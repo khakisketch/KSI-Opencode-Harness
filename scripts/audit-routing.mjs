@@ -32,11 +32,11 @@ const tierRank = { luna: 0, terra: 1, sol: 2 }
 const effortRank = { none: 0, low: 1, medium: 2, high: 3, xhigh: 4, max: 5 }
 const minimum = {
   explore: { tier: "luna", effort: "high" },
-  "ksi-analyst": { tier: "terra", effort: "xhigh" },
+  "analyst": { tier: "terra", effort: "xhigh" },
   general: { tier: "terra", effort: "high" },
   reviewer: { tier: "terra", effort: "xhigh" },
   "project-skill-advisor": { tier: "terra", effort: "high" },
-  "ksi-risk-analyst": { tier: "sol", effort: "xhigh" },
+  "risk-analyst": { tier: "sol", effort: "xhigh" },
 }
 
 function tier(model) {

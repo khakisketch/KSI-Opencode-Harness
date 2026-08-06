@@ -6,11 +6,11 @@ export const MODEL_BY_TIER = {
 
 export const AGENT_DEFAULTS = {
   explore: { tier: "luna", variant: "high" },
-  "ksi-analyst": { tier: "terra", variant: "xhigh" },
+  "analyst": { tier: "terra", variant: "xhigh" },
   general: { tier: "terra", variant: "high" },
   reviewer: { tier: "terra", variant: "xhigh" },
   "project-skill-advisor": { tier: "terra", variant: "high" },
-  "ksi-risk-analyst": { tier: "sol", variant: "xhigh" },
+  "risk-analyst": { tier: "sol", variant: "xhigh" },
 }
 
 const TIER_RANK = { luna: 0, terra: 1, sol: 2 }
@@ -64,11 +64,11 @@ export function selectRoute({ model, agent, parts }) {
 
   if (agent === "explore" && SYNTHESIS.test(text)) {
     promote(route, "terra", "xhigh", "synthesis")
-    route.agent = "ksi-analyst"
+    route.agent = "analyst"
   }
   if (RISK_DOMAIN.test(text) && JUDGMENT.test(text)) {
     promote(route, "sol", "xhigh", "high-risk-judgment")
-    route.agent = "ksi-risk-analyst"
+    route.agent = "risk-analyst"
   }
 
   const requestedTier = marker(text, "(?:route|tier)", Object.keys(TIER_RANK))

@@ -56,13 +56,13 @@ export function installAgents(config, prompts) {
 
   defineReserved(config, "explore", {
     description:
-      "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use ksi-analyst or ksi-risk-analyst instead.",
+      "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use analyst or risk-analyst instead.",
     mode: "subagent",
     prompt: prompts.explore,
     permission: readOnly,
   })
 
-  defineReserved(config, "ksi-analyst", {
+  defineReserved(config, "analyst", {
     description:
       "Read-only Terra-tier analyst for cross-file synthesis, architecture tradeoffs, roadmap reconciliation, feasibility analysis, and evidence-backed recommendations that are not high-risk final judgments.",
     mode: "subagent",
@@ -75,7 +75,7 @@ export function installAgents(config, prompts) {
       "Terra-tier implementation worker for complex multistep coding, testing, and bounded execution after product behavior and high-risk decisions are settled.",
   })
 
-  defineReserved(config, "ksi-risk-analyst", {
+  defineReserved(config, "risk-analyst", {
     description:
       "Read-only Sol-tier authority for security, authorization, privacy, customer data, release, deployment, migration, billing, incident, legal, regulatory, medical, or irreversible architecture judgments and go/no-go decisions.",
     mode: "subagent",

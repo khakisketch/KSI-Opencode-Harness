@@ -36,7 +36,7 @@ test("promotes synthesis disguised as explore to Terra", () => {
   })
   assert.equal(route.modelID, "gpt-5.6-terra")
   assert.equal(route.variant, "xhigh")
-  assert.equal(route.agent, "ksi-analyst")
+  assert.equal(route.agent, "analyst")
   assert.ok(route.reason.includes("synthesis"))
 })
 
@@ -48,7 +48,7 @@ test("promotes high-risk final judgment to Sol", () => {
   })
   assert.equal(route.modelID, "gpt-5.6-sol")
   assert.equal(route.variant, "xhigh")
-  assert.equal(route.agent, "ksi-risk-analyst")
+  assert.equal(route.agent, "risk-analyst")
   assert.ok(route.reason.includes("high-risk-judgment"))
 })
 
@@ -63,7 +63,7 @@ test("explicit maximum effort implies Sol and never downgrades", () => {
   assert.equal(max.modelID, "gpt-5.6-sol")
   assert.equal(max.variant, "max")
 
-  const noDowngrade = selectRoute({ model: gpt, agent: "ksi-risk-analyst", parts: text("Final release verdict [route:luna]") })
+  const noDowngrade = selectRoute({ model: gpt, agent: "risk-analyst", parts: text("Final release verdict [route:luna]") })
   assert.equal(noDowngrade.modelID, "gpt-5.6-sol")
   assert.equal(noDowngrade.variant, "xhigh")
 })
@@ -73,9 +73,9 @@ test("plugin installs agents and writes model plus variant", async () => {
   const config = { instructions: [], agent: {} }
   hooks.config(config)
 
-  assert.equal(config.agent["ksi-analyst"].mode, "subagent")
-  assert.equal(config.agent["ksi-risk-analyst"].permission.edit, "deny")
-  assert.equal(config.agent["ksi-risk-analyst"].permission["*"], "deny")
+  assert.equal(config.agent["analyst"].mode, "subagent")
+  assert.equal(config.agent["risk-analyst"].permission.edit, "deny")
+  assert.equal(config.agent["risk-analyst"].permission["*"], "deny")
   assert.equal(config.instructions.length, 1)
 
   const output = { message: { model: gpt }, parts: text("Locate the router") }
@@ -101,7 +101,7 @@ test("recognizes common high-risk operational language", () => {
   ]) {
     const route = selectRoute({ model: gpt, agent: "reviewer", parts: text(prompt) })
     assert.equal(route.modelID, "gpt-5.6-sol", prompt)
-    assert.equal(route.agent, "ksi-risk-analyst", prompt)
+    assert.equal(route.agent, "risk-analyst", prompt)
   }
 })
 
@@ -124,17 +124,17 @@ test("reserved agents and secret read rules cannot be replaced", async () => {
     instructions: [],
     agent: {
       explore: { prompt: "untrusted explore", permission: { codex: "allow" } },
-      "ksi-risk-analyst": { prompt: "untrusted", permission: "allow" },
+      "risk-analyst": { prompt: "untrusted", permission: "allow" },
     },
   }
   hooks.config(config)
 
-  assert.notEqual(config.agent["ksi-risk-analyst"].prompt, "untrusted")
+  assert.notEqual(config.agent["risk-analyst"].prompt, "untrusted")
   assert.notEqual(config.agent.explore.prompt, "untrusted explore")
   assert.equal(config.agent.explore.permission.codex, undefined)
   assert.equal(config.agent.explore.permission["*"], "deny")
-  assert.equal(config.agent["ksi-risk-analyst"].permission["*"], "deny")
-  assert.equal(config.agent["ksi-risk-analyst"].permission.read["**/.env"], "deny")
-  assert.equal(config.agent["ksi-risk-analyst"].permission.read[".npmrc"], "deny")
-  assert.equal(config.agent["ksi-risk-analyst"].permission.read["*.key"], "deny")
+  assert.equal(config.agent["risk-analyst"].permission["*"], "deny")
+  assert.equal(config.agent["risk-analyst"].permission.read["**/.env"], "deny")
+  assert.equal(config.agent["risk-analyst"].permission.read[".npmrc"], "deny")
+  assert.equal(config.agent["risk-analyst"].permission.read["*.key"], "deny")
 })

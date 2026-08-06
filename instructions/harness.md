@@ -10,12 +10,12 @@
 ## Subagent Routing
 
 - Use `explore` only for locating files, symbols, usages, and bounded inventories. It must not own synthesis or decisions.
-- Use `ksi-analyst` for read-only cross-file synthesis, architecture tradeoffs, roadmap reconciliation, and acceptance criteria.
+- Use `analyst` for read-only cross-file synthesis, architecture tradeoffs, roadmap reconciliation, and acceptance criteria.
 - Use `general` for bounded implementation and testing after behavior and risk decisions are settled.
 - Use `reviewer` for ordinary adversarial worktree review.
-- Use `ksi-risk-analyst` for high-risk judgments involving security, permissions, privacy, customer data, release, deployment, rollback, migration, billing, incidents, law, regulation, medical concerns, or irreversible architecture.
+- Use `risk-analyst` for high-risk judgments involving security, permissions, privacy, customer data, release, deployment, rollback, migration, billing, incidents, law, regulation, medical concerns, or irreversible architecture.
 - Under OpenAI GPT routing, high-risk final judgments belong to Sol. Important synthesis is Terra minimum. Luna is discovery only.
-- If a task is misrouted, promote both role and model: `explore` synthesis becomes `ksi-analyst`, and high-risk judgment becomes `ksi-risk-analyst`.
+- If a task is misrouted, promote both role and model: `explore` synthesis becomes `analyst`, and high-risk judgment becomes `risk-analyst`.
 - The router applies Luna, Terra, and Sol overrides only when the invoking model is an OpenAI GPT model. Every non-GPT parent keeps OpenCode's normal model inheritance.
 - A non-GPT high-risk agent must not claim the Sol guarantee. It returns an escalation requirement for irreversible final decisions unless a provider-specific equivalent tier is explicitly approved.
 
