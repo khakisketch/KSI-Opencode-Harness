@@ -16,15 +16,67 @@ OpenCode에 장기 작업을 맡길 때 모델 비용, 판단 위험, 구현 권
 | 에이전트 | OpenAI GPT 모델 | effort | 역할 |
 |---|---|---|---|
 | `explore` | GPT-5.6 Luna | high | 제한된 탐색 |
-| `analyst` | GPT-5.6 Terra | xhigh | 종합 분석과 설계 비교 |
-| `general` | GPT-5.6 Terra | high | 구현과 테스트 |
+| `test-runner` | GPT-5.6 Luna | high | 테스트 실행, 로그 수집, 실패 분류 |
 | `reviewer` | GPT-5.6 Terra | xhigh | 일반 코드 리뷰 |
-| `project-skill-advisor` | GPT-5.6 Terra | high | 프로젝트 스킬 분석 |
 | `risk-analyst` | GPT-5.6 Sol | xhigh | 고위험 최종 판단 |
 
-라우터는 부모 모델이 `providerID=openai`이고 모델 ID가 `gpt-`로 시작할 때만 적용됩니다. GPT 계열이 아닌 모든 부모 모델은 OpenCode 기본 상속을 그대로 유지합니다. 비 GPT에서는 Sol 보장을 주장하지 않으며, 별도로 승인된 동급 티어가 없으면 비가역적 최종 판단을 상위 모델로 에스컬레이션합니다.
+라우터는 부모 모델의 `providerID`별로 서브에이전트 모델을 매핑합니다. OpenAI GPT 이외에도 alibaba, deepseek, local, local-reviewer 프로바이더에 동급 능력 모델이 설정되어 있습니다. 비 GPT에서 Sol 보장을 주장하지 않으며, 별도로 승인된 동급 티어가 없으면 비가역적 최종 판단을 상위 모델로 에스컬레이션합니다.
 
-`explore` 프롬프트가 종합, 아키텍처, 로드맵, 감사, 검토, 제안을 요구하면 에이전트와 모델을 함께 `analyst + Terra`로 자동 승격합니다. 고위험 영역의 최종 승인·판정·go/no-go는 `risk-analyst + Sol`로 자동 승격합니다.
+시장 표식을 통한 승격과 고위험 자동 승격 규칙은 유지됩니다. 고위험 영역의 최종 승인·판정·go/no-go는 `risk-analyst + Sol`로 자동 승격합니다.
+
+## DGX Spark 로컬 서빙 (NVFP4)
+
+로컬 서브에이전트는 DGX Spark에서 vLLM으로 서빙한 NVFP4 모델을 사용합니다. 서빙 모델 이름은 라우터의 `modelID`와 1:1로 일치해야 합니다.
+
+| 엔진 | 모델 | served-model-name | 포트 | 용도 |
+|---|---|---|---|---|
+| A | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8000 | explore / test-runner (MoE, 빠름) |
+| B | `nvidia/Qwen3.5-122B-A10B-NVFP4` | `qwen3.5-122b-a10b` | 8001 | reviewer 로컬 폴백 (122B MoE, 공식 Apache-2.0) |
+
+엔진 A (`vllm/vllm-openai:cu130-nightly`):
+
+```bash
+docker run --gpus all -p 8000:8000 \
+  vllm/vllm-openai:cu130-nightly \
+  nvidia/Qwen3.6-35B-A3B-NVFP4 \
+  --tensor-parallel-size 1 --trust-remote-code \
+  --kv-cache-dtype fp8 --attention-backend flashinfer \
+  --moe-backend flashinfer_cutlass \
+  --gpu-memory-utilization 0.87 --max-model-len 131072 \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' \
+  --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
+  --enable-chunked-prefill --enable-prefix-caching \
+  --load-format fastsafetensors \
+  --served-model-name qwen3.6-35b-a3b
+```
+
+엔진 B: `nvidia/Qwen3.5-122B-A10B-NVFP4`(NVIDIA ModelOpt 공식 퀀트, Apache-2.0)를 `-p 8001:8001 --port 8001`(내부)로 띄웁니다. 총 122B/활성 10B MoE로, Dense 70B가 Spark 대역폭에서 ~4 tok/s로 실용성이 없는 것과 달리 MTP 추측 디코딩 시 24.5 tok/s로 리뷰 워크로드가 가능합니다.
+
+```bash
+docker run --gpus all -p 8001:8001 \
+  nvcr.io/nvidia/vllm:26.04-py3 \
+  vllm serve nvidia/Qwen3.5-122B-A10B-NVFP4 \
+    --served-model-name qwen3.5-122b-a10b \
+    --quantization modelopt_fp4 --kv-cache-dtype fp8 \
+    --tensor-parallel-size 1 --gpu-memory-utilization 0.87 \
+    --max-model-len 131072 \
+    --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}' \
+    --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
+    --enable-chunked-prefill --enable-prefix-caching
+```
+
+`opencode.jsonc` 예시 (저장소의 `opencode.jsonc.example` 참조):
+
+```jsonc
+"provider": {
+  "local":          { "apiKey": "vllm", "baseURL": "http://localhost:8000/v1" },
+  "local-reviewer": { "apiKey": "vllm", "baseURL": "http://localhost:8001/v1" }
+},
+"model": {
+  "local":          "qwen3.6-35b-a3b",
+  "local-reviewer": "qwen3.5-122b-a10b"
+}
+```
 
 ## 설치
 
@@ -53,7 +105,7 @@ npm에 배포한 뒤에는 경로 대신 다음 한 항목만 사용합니다.
 
 플러그인은 팀원의 전역 자동승인 설정이나 provider 설정을 덮어쓰지 않습니다. 대신 읽기 전용 에이전트의 수정·재위임 권한을 차단하고, reviewer에는 제한된 읽기 전용 Git 명령만 허용합니다.
 
-`explore`, `analyst`, `risk-analyst`는 하네스 예약 이름입니다. 프로젝트 설정이 같은 이름을 정의해도 플러그인의 검증된 프롬프트와 deny-by-default 권한으로 교체됩니다. 읽기 전용 에이전트는 `.env`, credential 파일, 개인키, 인증서와 OpenCode `auth.json`을 읽을 수 없습니다.
+`explore`, `test-runner`, `reviewer`, `risk-analyst`는 하네스 예약 이름입니다. 프로젝트 설정이 같은 이름을 정의해도 플러그인의 검증된 프롬프트와 deny-by-default 권한으로 교체됩니다. 읽기 전용 에이전트는 `.env`, credential 파일, 개인키, 인증서와 OpenCode `auth.json`을 읽을 수 없습니다.
 
 전역 자동승인이 필요한 개인은 별도로 다음을 선택할 수 있습니다.
 

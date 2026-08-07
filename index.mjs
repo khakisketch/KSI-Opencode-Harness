@@ -8,7 +8,7 @@ const instructionPath = fileURLToPath(new URL("./instructions/harness.md", impor
 
 async function loadPrompts() {
   const entries = await Promise.all(
-    ["explore", "analyst", "risk-analyst"].map(async (name) => [
+    ["explore", "test-runner", "reviewer", "risk-analyst"].map(async (name) => [
       name,
       await readFile(new URL(`./agents/${name}.md`, import.meta.url), "utf8"),
     ]),
@@ -31,7 +31,7 @@ export default async () => {
 
       if (route.agent) output.message.agent = route.agent
       output.message.model = {
-        providerID: "openai",
+        providerID: input.model?.providerID ?? "openai",
         modelID: route.modelID,
         variant: route.variant,
       }

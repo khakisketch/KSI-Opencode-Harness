@@ -5,17 +5,49 @@ import plugin from "../index.mjs"
 import { selectRoute } from "../src/router.mjs"
 
 const gpt = { providerID: "openai", modelID: "gpt-5.6-sol" }
+const qwen = { providerID: "alibaba", modelID: "qwen3-235b-a22b" }
+const local = { providerID: "local", modelID: "qwen3.6-35b-a3b" }
+const localReviewer = { providerID: "local-reviewer", modelID: "qwen3.5-122b-a10b" }
 const text = (value) => [{ type: "text", text: value }]
 
-test("leaves non-GPT parents unchanged", () => {
-  assert.equal(
-    selectRoute({ model: { providerID: "nvidia", modelID: "deepseek-ai/deepseek-v4-pro" }, agent: "explore", parts: text("find files") }),
-    undefined,
-  )
-  assert.equal(
-    selectRoute({ model: { providerID: "openai", modelID: "o4-mini" }, agent: "explore", parts: text("find files") }),
-    undefined,
-  )
+test("routes for all providers including non-GPT", () => {
+  const qwenRoute = selectRoute({ model: qwen, agent: "explore", parts: text("find files") })
+  assert.ok(qwenRoute)
+  assert.equal(qwenRoute.modelID, "qwen3-235b-a22b")
+  assert.equal(qwenRoute.tier, "luna")
+  assert.equal(qwenRoute.variant, "high")
+
+  const localRoute = selectRoute({ model: local, agent: "explore", parts: text("find files") })
+  assert.ok(localRoute)
+  assert.equal(localRoute.modelID, "qwen3.6-35b-a3b")
+})
+
+test("local reviewer provider routes reviewer to qwen3.5-122b-a10b", () => {
+  const route = selectRoute({ model: localReviewer, agent: "reviewer", parts: text("Review this PR") })
+  assert.equal(route.modelID, "qwen3.5-122b-a10b")
+  assert.equal(route.tier, "terra")
+  assert.equal(route.variant, "xhigh")
+})
+
+test("local high-risk judgment promotes within the provider model set", () => {
+  const route = selectRoute({
+    model: local,
+    agent: "reviewer",
+    parts: text("Give the final security release go/no-go verdict"),
+  })
+  assert.equal(route.modelID, "qwen3.6-35b-a3b")
+  assert.equal(route.tier, "sol")
+  assert.equal(route.variant, "xhigh")
+  assert.equal(route.agent, "risk-analyst")
+  assert.ok(route.reason.includes("high-risk-judgment"))
+
+  const bigRoute = selectRoute({
+    model: localReviewer,
+    agent: "reviewer",
+    parts: text("Final migration go/no-go"),
+  })
+  assert.equal(bigRoute.modelID, "qwen3.5-122b-a10b")
+  assert.equal(bigRoute.agent, "risk-analyst")
 })
 
 test("routes bounded discovery to Luna with explicit effort", () => {
@@ -23,24 +55,38 @@ test("routes bounded discovery to Luna with explicit effort", () => {
     modelID: "gpt-5.6-luna",
     tier: "luna",
     variant: "high",
+    temperature: 0.1,
+    maxTokens: 128000,
     agent: undefined,
     reason: ["agent:explore"],
   })
 })
 
-test("promotes synthesis disguised as explore to Terra", () => {
-  const route = selectRoute({
-    model: gpt,
-    agent: "explore",
-    parts: text("Reconcile the product roadmap and propose architecture tradeoffs"),
-  })
-  assert.equal(route.modelID, "gpt-5.6-terra")
-  assert.equal(route.variant, "xhigh")
-  assert.equal(route.agent, "analyst")
-  assert.ok(route.reason.includes("synthesis"))
+test("test-runner routes to Luna", () => {
+  const route = selectRoute({ model: gpt, agent: "test-runner", parts: text("Run unit tests") })
+  assert.equal(route.modelID, "gpt-5.6-luna")
+  assert.equal(route.tier, "luna")
+  assert.equal(route.variant, "high")
+  assert.equal(route.temperature, 0.1)
 })
 
-test("promotes high-risk final judgment to Sol", () => {
+test("reviewer routes to Terra xhigh", () => {
+  const route = selectRoute({ model: gpt, agent: "reviewer", parts: text("Review this PR") })
+  assert.equal(route.modelID, "gpt-5.6-terra")
+  assert.equal(route.tier, "terra")
+  assert.equal(route.variant, "xhigh")
+  assert.equal(route.temperature, 0.0)
+})
+
+test("risk-analyst routes to Sol xhigh", () => {
+  const route = selectRoute({ model: gpt, agent: "risk-analyst", parts: text("Final security verdict") })
+  assert.equal(route.modelID, "gpt-5.6-sol")
+  assert.equal(route.tier, "sol")
+  assert.equal(route.variant, "xhigh")
+  assert.equal(route.temperature, 0.0)
+})
+
+test("promotes high-risk final judgment to Sol from reviewer", () => {
   const route = selectRoute({
     model: gpt,
     agent: "reviewer",
@@ -52,10 +98,16 @@ test("promotes high-risk final judgment to Sol", () => {
   assert.ok(route.reason.includes("high-risk-judgment"))
 })
 
-test("keeps bounded security implementation on Terra", () => {
-  const route = selectRoute({ model: gpt, agent: "general", parts: text("Implement the approved authorization fix") })
-  assert.equal(route.modelID, "gpt-5.6-terra")
-  assert.equal(route.variant, "high")
+test("explicit tier marker promotes", () => {
+  const terra = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [route:terra]") })
+  assert.equal(terra.modelID, "gpt-5.6-terra")
+  assert.equal(terra.tier, "terra")
+  assert.equal(terra.variant, "xhigh")
+
+  const sol = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [route:sol]") })
+  assert.equal(sol.modelID, "gpt-5.6-sol")
+  assert.equal(sol.tier, "sol")
+  assert.equal(sol.variant, "xhigh")
 })
 
 test("explicit maximum effort implies Sol and never downgrades", () => {
@@ -73,7 +125,10 @@ test("plugin installs agents and writes model plus variant", async () => {
   const config = { instructions: [], agent: {} }
   hooks.config(config)
 
-  assert.equal(config.agent["analyst"].mode, "subagent")
+  assert.equal(config.agent["explore"].mode, "subagent")
+  assert.equal(config.agent["test-runner"].mode, "subagent")
+  assert.equal(config.agent["reviewer"].mode, "subagent")
+  assert.equal(config.agent["risk-analyst"].mode, "subagent")
   assert.equal(config.agent["risk-analyst"].permission.edit, "deny")
   assert.equal(config.agent["risk-analyst"].permission["*"], "deny")
   assert.equal(config.instructions.length, 1)
@@ -88,7 +143,35 @@ test("plugin installs agents and writes model plus variant", async () => {
   assert.equal(output.message.agent, undefined)
 })
 
-test("recognizes common high-risk operational language", () => {
+test("plugin keeps non-openai providerID when routing", async () => {
+  const hooks = await plugin()
+  const output = { message: { model: local }, parts: text("Locate the router") }
+  await hooks["chat.message"]({ model: local, agent: "explore" }, output)
+  assert.deepEqual(output.message.model, {
+    providerID: "local",
+    modelID: "qwen3.6-35b-a3b",
+    variant: "high",
+  })
+
+  const denseOutput = { message: { model: localReviewer }, parts: text("Review this PR") }
+  await hooks["chat.message"]({ model: localReviewer, agent: "reviewer" }, denseOutput)
+  assert.deepEqual(denseOutput.message.model, {
+    providerID: "local-reviewer",
+    modelID: "qwen3.5-122b-a10b",
+    variant: "xhigh",
+  })
+})
+
+test("plugin loads reserved prompts for all installed agents", async () => {
+  const hooks = await plugin()
+  const config = { instructions: [], agent: {} }
+  hooks.config(config)
+  for (const name of ["explore", "test-runner", "reviewer", "risk-analyst"]) {
+    assert.ok(config.agent[name].prompt.length > 100, `${name} prompt should be loaded`)
+  }
+})
+
+test("recognizes common high-risk operational language promotes to risk-analyst", () => {
   for (const prompt of [
     "Is this OAuth rollout ready to ship?",
     "Should we ship this OAuth migration?",
@@ -102,19 +185,6 @@ test("recognizes common high-risk operational language", () => {
     const route = selectRoute({ model: gpt, agent: "reviewer", parts: text(prompt) })
     assert.equal(route.modelID, "gpt-5.6-sol", prompt)
     assert.equal(route.agent, "risk-analyst", prompt)
-  }
-})
-
-test("does not promote bounded implementation without decision language", () => {
-  for (const prompt of [
-    "Implement the approved OAuth fix",
-    "Merge the approved OAuth fix",
-    "Implement the credential rotation UI",
-    "Add tests for payment validation",
-  ]) {
-    const route = selectRoute({ model: gpt, agent: "general", parts: text(prompt) })
-    assert.equal(route.modelID, "gpt-5.6-terra", prompt)
-    assert.equal(route.agent, undefined, prompt)
   }
 })
 

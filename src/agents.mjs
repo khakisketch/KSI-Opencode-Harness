@@ -33,10 +33,71 @@ const readOnly = {
   edit: "deny",
   bash: "deny",
   task: "deny",
+  webfetch: "deny",
+  websearch: "deny",
+  skill: "deny",
+}
+
+const testRunnerDeny = [
+  "rm -rf *",
+  "rm -rf /",
+  "git push*",
+  "git tag*",
+  "docker*",
+  "kubectl*",
+  "helm*",
+  "terraform*",
+  "aws*",
+  "gcloud*",
+  "az*",
+  "ssh*",
+  "scp*",
+  "rsync*",
+  "curl* | sh",
+  "wget* | sh",
+  "chmod 777*",
+  "chown root*",
+  "sudo*",
+  "reboot",
+  "shutdown",
+  "mkfs*",
+  "dd if=*",
+  "> /dev/sd*",
+];
+
+const testRunnerAllow = [
+  "npm test*",
+  "yarn test*",
+  "pnpm test*",
+  "pytest*",
+  "cargo test*",
+  "go test*",
+  "mvn test*",
+  "gradle test*",
+  "make test*",
+  "bash -c *test*",
+  "python -m pytest*",
+  "node *test*.js",
+  "jest*",
+  "vitest*",
+  "playwright test*",
+  "cypress run*",
+];
+
+function makeTestRunnerPermission() {
+  const perm = { ...readOnly };
+  perm.bash = { "*": "deny" };
+  for (const pattern of testRunnerDeny) {
+    perm.bash[pattern] = "deny";
+  }
+  for (const pattern of testRunnerAllow) {
+    perm.bash[pattern] = "allow";
+  }
+  return perm;
 }
 
 function enforce(config, name, definition) {
-  const current = config.agent[name] ?? {}
+  const current = config.agent[name] ?? {};
   config.agent[name] = {
     ...current,
     ...definition,
@@ -44,36 +105,39 @@ function enforce(config, name, definition) {
       ...(typeof current.permission === "object" ? current.permission : {}),
       ...(definition.permission ?? {}),
     },
-  }
+  };
 }
 
 function defineReserved(config, name, definition) {
-  config.agent[name] = definition
+  config.agent[name] = definition;
 }
 
 export function installAgents(config, prompts) {
-  config.agent ??= {}
+  config.agent ??= {};
 
   defineReserved(config, "explore", {
     description:
-      "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use analyst or risk-analyst instead.",
+      "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use reviewer or risk-analyst instead.",
     mode: "subagent",
     prompt: prompts.explore,
     permission: readOnly,
-  })
+  });
 
-  defineReserved(config, "analyst", {
+  defineReserved(config, "test-runner", {
     description:
-      "Read-only Terra-tier analyst for cross-file synthesis, architecture tradeoffs, roadmap reconciliation, feasibility analysis, and evidence-backed recommendations that are not high-risk final judgments.",
+      "Local test execution agent. Runs test suites, collects logs, and returns structured summaries (pass/fail, key errors, timing). Does not modify code. Use freely during implementation loops.",
     mode: "subagent",
-    prompt: prompts.analyst,
-    permission: { ...readOnly, webfetch: "allow", websearch: "allow", skill: "allow" },
-  })
+    prompt: prompts["test-runner"],
+    permission: makeTestRunnerPermission(),
+  });
 
-  enforce(config, "general", {
+  defineReserved(config, "reviewer", {
     description:
-      "Terra-tier implementation worker for complex multistep coding, testing, and bounded execution after product behavior and high-risk decisions are settled.",
-  })
+      "Adversarial code reviewer. Reviews changes with fresh context, withheld producer reasoning. Finds bugs, design flaws, security issues, and maintenance risks. Called at checkpoints by Plan or Build.",
+    mode: "subagent",
+    prompt: prompts.reviewer,
+    permission: { ...readOnly, webfetch: "allow", websearch: "allow", skill: "allow" },
+  });
 
   defineReserved(config, "risk-analyst", {
     description:
@@ -81,5 +145,5 @@ export function installAgents(config, prompts) {
     mode: "subagent",
     prompt: prompts["risk-analyst"],
     permission: { ...readOnly, webfetch: "allow", websearch: "allow", skill: "allow" },
-  })
+  });
 }
