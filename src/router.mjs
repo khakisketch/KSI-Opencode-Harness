@@ -24,10 +24,10 @@ export const AGENT_MODEL_CONFIG = {
     "risk-analyst": { modelID: "qwen3.6-35b-a3b", tier: "sol", variant: "xhigh", temperature: 0.0, maxTokens: 512000 },
   },
   "local-reviewer": {
-    explore: { modelID: "qwen3.5-122b-a10b", tier: "luna", variant: "high", temperature: 0.1, maxTokens: 128000 },
-    "test-runner": { modelID: "qwen3.5-122b-a10b", tier: "luna", variant: "high", temperature: 0.1, maxTokens: 128000 },
-    reviewer: { modelID: "qwen3.5-122b-a10b", tier: "terra", variant: "xhigh", temperature: 0.0, maxTokens: 256000 },
-    "risk-analyst": { modelID: "qwen3.5-122b-a10b", tier: "sol", variant: "xhigh", temperature: 0.0, maxTokens: 512000 },
+    explore: { modelID: "qwen3.6-35b-a3b", tier: "luna", variant: "high", temperature: 0.1, maxTokens: 128000 },
+    "test-runner": { modelID: "qwen3.6-35b-a3b", tier: "luna", variant: "high", temperature: 0.1, maxTokens: 128000 },
+    reviewer: { modelID: "qwen3.6-35b-a3b", tier: "terra", variant: "xhigh", temperature: 0.0, maxTokens: 256000 },
+    "risk-analyst": { modelID: "qwen3.6-35b-a3b", tier: "sol", variant: "xhigh", temperature: 0.0, maxTokens: 512000 },
   },
 };
 

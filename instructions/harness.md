@@ -34,22 +34,18 @@ Local subagents run against vLLM-served quantized MoE models on a single DGX Spa
 
 | Engine | Model | served-model-name | Port | Agents |
 |---|---|---|---|---|
-| A | `Qwen/Qwen3.6-35B-A3B-FP8` | `qwen3.6-35b-a3b` | 8000 | `explore`, `test-runner` (MoE, fast) |
-| B | `nvidia/Qwen3.5-122B-A10B-NVFP4` | `qwen3.5-122b-a10b` | 8001 | `reviewer` local fallback (122B MoE, official Apache-2.0) |
+| A | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8000 | `explore`, `test-runner` (MoE 3B active, fast) |
+| B | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8001 | `reviewer` local fallback (same 35B-A3B, co-resident) |
 
-Engine A uses `vllm/vllm-openai:cu130-nightly` with `--kv-cache-dtype fp8 --attention-backend flashinfer --moe-backend marlin --max-num-seqs 4 --max-num-batched-tokens 8192 --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice --enable-chunked-prefill --enable-prefix-caching --served-model-name qwen3.6-35b-a3b`. Measured 65-71 tok/s decode (MTP on), 0.14s TTFT warm.
-
-Engine B is NVIDIA's official ModelOpt quant of Qwen3.5-122B-A10B (Apache-2.0, 122B total / 10B active), served on `nvcr.io/nvidia/vllm:26.04-py3` with `--quantization modelopt_fp4 --kv-cache-dtype fp8 --gpu-memory-utilization 0.87 --max-num-batched-tokens 8192 --max-model-len 262144 --speculative-config '{"method":"mtp","num_speculative_tokens":2}' --reasoning-parser qwen3 --tool-call-parser qwen3_coder --served-model-name qwen3.5-122b-a10b` (container port 8000, mapped `-p 8001:8000`). Measured: 28.6-29.7 decode tok/s, 0.30 s TTFT.
+Both engines run the same model on `vllm/vllm-openai:v0.24.0-ubuntu2404` (positional model arg, ENTRYPOINT is `vllm serve`) with `--quantization modelopt --kv-cache-dtype fp8 --moe-backend marlin --gpu-memory-utilization 0.25 --max-model-len 32768 --max-num-seqs 2 --max-num-batched-tokens 4096 --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' --load-format fastsafetensors --reasoning-parser qwen3 --tool-call-parser qwen3_xml --enable-auto-tool-choice`, plus env `VLLM_MARLIN_USE_ATOMIC_ADD=1 VLLM_USE_FLASHINFER_MOE_FP4=0` (SM121 garbage-output guards). Measured: **117 tok/s decode (MTP on) co-resident** (A 107-125, B 108-125), TTFT ~0.10 s, KV ~1.6M tokens total.
 
 Key facts learned on-device:
 
-- The Qwen3.6-35B-A3B **NVFP4** checkpoint (`nvidia/Qwen3.6-35B-A3B-NVFP4`) does NOT load in any vLLM build: `KeyError: layers.0.mlp.experts.w2_input_scale`. Its `hf_quant_config` uses MIXED_PRECISION per-layer overrides (experts W4A16_NVFP4 + shared_expert + linear-attn FP8) that the loader maps to unquantized MoE, then keys a missing weight name. The Qwen official FP8 checkpoint (`Qwen/Qwen3.6-35B-A3B-FP8`) loads fine and must be used instead. NVIDIA's card command (`--moe-backend marlin` + NVFP4) fails on this checkpoint.
-- Qwen3.5-122B-A10B is a Mamba hybrid: block_size 4224 > default max_num_batched_tokens 2048 unless `--max-num-batched-tokens 8192` is set (else "In Mamba cache align mode" assert).
-- On UMA, `--gpu-memory-utilization` below model footprint fails with "No available memory for the cache blocks"; 0.87 required for the 78 GiB 122B weights.
-- 128GB UMA cannot co-host both engines (weights 78+35 GiB leave zero KV cache). Operate on-demand: start one, stop the other, but never both serving concurrently.
-- NVIDIA vLLM container listens on port 8000 internally; map `-p 8001:8000` for engine B.
-
-Dense 70B-class NVFP4 models are impractical here (~4 tok/s at 273 GB/s), so the reviewer fallback stays an MoE with a large total parameter count.
+- The Qwen3.6-35B-A3B **NVFP4** checkpoint (`nvidia/Qwen3.6-35B-A3B-NVFP4`) fails on v0.19-era builds (`KeyError: layers.0.mlp.experts.w2_input_scale`, MIXED_PRECISION per-layer overrides; loader maps to unquantized MoE). v0.24.0+ with `--moe-backend marlin` loads it fine — this is the fix that unlocked the faster/smaller engine. Old fallback: Qwen official FP8 checkpoint + `cu130-nightly`.
+- Marlin NVFP4 kernels need `VLLM_MARLIN_USE_ATOMIC_ADD=1` on SM121, and `VLLM_USE_FLASHINFER_MOE_FP4=0` keeps MoE routing off the broken FP4 path (GB10-validated kit flags).
+- GB10 (273 GB/s) is bandwidth-bound: decode speed follows **active params** — 3B active → ~120 tok/s, 10B active (122B) → ~28, 70B dense → ~15-20. The 35B-A3B is the local optimum for this device.
+- Two identical engines co-reside at util 0.25 each (~80GB total, KV 1.59M tokens); the 122B-A10B (78 GiB) could NOT co-reside and was retired from B.
+- NVIDIA vLLM container listens on port 8000 internally; map `-p 8001:8000` for engine B (only relevant if you ever go back to `nvcr.io` images).
 
 `risk-analyst` has no trusted local equivalent on Spark; it stays cloud-primary. A local run is last-resort only and must not claim Sol-equivalent capability.
 

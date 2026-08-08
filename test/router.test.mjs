@@ -7,7 +7,7 @@ import { selectRoute } from "../src/router.mjs"
 const gpt = { providerID: "openai", modelID: "gpt-5.6-sol" }
 const qwen = { providerID: "alibaba", modelID: "qwen3-235b-a22b" }
 const local = { providerID: "local", modelID: "qwen3.6-35b-a3b" }
-const localReviewer = { providerID: "local-reviewer", modelID: "qwen3.5-122b-a10b" }
+const localReviewer = { providerID: "local-reviewer", modelID: "qwen3.6-35b-a3b" }
 const text = (value) => [{ type: "text", text: value }]
 
 test("routes for all providers including non-GPT", () => {
@@ -22,9 +22,9 @@ test("routes for all providers including non-GPT", () => {
   assert.equal(localRoute.modelID, "qwen3.6-35b-a3b")
 })
 
-test("local reviewer provider routes reviewer to qwen3.5-122b-a10b", () => {
+test("local reviewer provider routes reviewer to qwen3.6-35b-a3b", () => {
   const route = selectRoute({ model: localReviewer, agent: "reviewer", parts: text("Review this PR") })
-  assert.equal(route.modelID, "qwen3.5-122b-a10b")
+  assert.equal(route.modelID, "qwen3.6-35b-a3b")
   assert.equal(route.tier, "terra")
   assert.equal(route.variant, "xhigh")
 })
@@ -46,7 +46,7 @@ test("local high-risk judgment promotes within the provider model set", () => {
     agent: "reviewer",
     parts: text("Final migration go/no-go"),
   })
-  assert.equal(bigRoute.modelID, "qwen3.5-122b-a10b")
+  assert.equal(bigRoute.modelID, "qwen3.6-35b-a3b")
   assert.equal(bigRoute.agent, "risk-analyst")
 })
 
@@ -157,7 +157,7 @@ test("plugin keeps non-openai providerID when routing", async () => {
   await hooks["chat.message"]({ model: localReviewer, agent: "reviewer" }, denseOutput)
   assert.deepEqual(denseOutput.message.model, {
     providerID: "local-reviewer",
-    modelID: "qwen3.5-122b-a10b",
+    modelID: "qwen3.6-35b-a3b",
     variant: "xhigh",
   })
 })

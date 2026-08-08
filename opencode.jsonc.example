@@ -30,6 +30,6 @@
     "alibaba": "qwen3-235b-a22b",
     "deepseek": "deepseek-v3",
     "local": "qwen3.6-35b-a3b",
-    "local-reviewer": "qwen3.5-122b-a10b"
+    "local-reviewer": "qwen3.6-35b-a3b"
   }
 }
