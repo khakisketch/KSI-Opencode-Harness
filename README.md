@@ -30,28 +30,28 @@ OpenCode에 장기 작업을 맡길 때 모델 비용, 판단 위험, 구현 권
 
 | 엔진 | 모델 | served-model-name | 포트 | 용도 |
 |---|---|---|---|---|
-| A | `Qwen/Qwen3.6-35B-A3B-FP8` | `qwen3.6-35b-a3b` | 8000 | explore / test-runner (MoE, 빠름) |
+| A | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8000 | explore / test-runner (MoE, 빠름) |
 | B | `nvidia/Qwen3.5-122B-A10B-NVFP4` | `qwen3.5-122b-a10b` | 8001 | reviewer 로컬 폴백 (122B MoE, 공식 Apache-2.0) |
 
-직역: 두 엔진은 NVFP4를 쓰지만 두 모델의 포맷이 달라 vLLM 로더가 동일하게 처리하지 못합니다. 엔진 B는 global NVFP4(+exclude_modules)라 `modelopt_fp4`로 정상 로드되지만, 엔진 A(`nvidia/Qwen3.6-35B-A3B-NVFP4`)는 MIXED_PRECISION 층별 상세 명세라 모든 vLLM 버전에서 `KeyError: w2_input_scale`로 실패합니다. 그래서 엔진 A는 Qwen 공식 FP8 체크포인트 + `marlin` MoE backend를 사용합니다 (GB10 실측 검증 완료).
+두 엔진은 all NVFP4이지만 점진 포맷이 달라: 엔진 A(`nvidia/Qwen3.6-35B-A3B-NVFP4`)는 MIXED_PRECISION per-layer 명세라 vLLM v0.19 이하에서 `KeyError: w2_input_scale`로 실패하며, **v0.24.0+와 `--moe-backend marlin`이 필수**입니다. 엔진 B(`nvidia/Qwen3.5-122B-A10B-NVFP4`)는 global NVFP4(+exclude_modules)라 v0.19 계열(`nvcr.io/nvidia/vllm:26.04-py3`)의 `modelopt_fp4`로 정상 로드됩니다. (A를 0.19 계열에서 띄울 때는 Qwen 공식 FP8 체크포인트 `Qwen/Qwen3.6-35B-A3B-FP8` 폴백, GB10 실측 검증됨)
 
-엔진 A (`vllm/vllm-openai:cu130-nightly`, FP8):
+엔진 A (`vllm/vllm-openai:v0.24.0-ubuntu2404`, NVFP4 + MARLIN, default 이미지처럼 CLI가 `vllm serve`이므로 모델을 positional 인자로):
 
 ```bash
 docker run -d --name vllm-engine-a \
   --device nvidia.com/gpu=all -p 8000:8000 \
-  -v /home/ksi/.cache/huggingface:/root/.cache/huggingface \
-  vllm/vllm-openai:cu130-nightly \
-  --model Qwen/Qwen3.6-35B-A3B-FP8 \
-  --host 0.0.0.0 --port 8000 \
+  -v /home/ksi/models/hf-hub:/root/.cache/huggingface \
+  vllm/vllm-openai:v0.24.0-ubuntu2404 \
+  nvidia/Qwen3.6-35B-A3B-NVFP4 \
   --tensor-parallel-size 1 --trust-remote-code \
-  --kv-cache-dtype fp8 --attention-backend flashinfer \
+  --quantization modelopt --kv-cache-dtype fp8 \
   --moe-backend marlin \
   --gpu-memory-utilization 0.87 --max-model-len 131072 \
   --max-num-seqs 4 --max-num-batched-tokens 8192 \
-  --enable-chunked-prefill --enable-prefix-caching \
+  --enable-chunked-prefill --async-scheduling --enable-prefix-caching \
   --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' \
-  --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
+  --load-format fastsafetensors \
+  --reasoning-parser qwen3 --tool-call-parser qwen3_xml --enable-auto-tool-choice \
   --served-model-name qwen3.6-35b-a3b
 ```
 
@@ -74,14 +74,16 @@ docker run -d --name vllm-engine-b \
     --served-model-name qwen3.5-122b-a10b
 ```
 
-### GB10 실측 결과 (2026-08-08, vLLM 상)
+### GB10 실측 결과 (2026-08-08 확인)
 
 | 엔진 | decode (MTP on) | TTFT (워밍) | prefill-1k | prefill-8k | 콜드 로드 |
 |---|---|---|---|---|---|
-| A: qwen3.6-35b-a3b (FP8) | 65~71 tok/s | 0.14 s | 33.9 tok/s | 44.2 tok/s | ~3.5 min |
-| B: qwen3.5-122b-a10b (NVFP4) | 28.6~29.7 tok/s | 0.30 s | 22.7 tok/s | 19.3 tok/s | ~9 min |
+| A: qwen3.6-35b-a3b (NVFP4, v0.24) | 116~121 tok/s | 0.09~0.14 s | 62 tok/s | 64 tok/s | ~3 min |
+| B: qwen3.5-122b-a10b (NVFP4) | 27.4~29.1 tok/s | 0.31~0.42 s | 21.6 tok/s | 16.5 tok/s | ~9 min |
 
-주의: 두 모델(가중치 78+35GB)을 UMA 128GB에 동시 상주하면 KV 캐시가 0이 되어 엔진 초기화가 실패합니다. 동시 서빙이 아니라 **온디맨드 스왑**을 전제로 둔 설계입니다.
+엔진 A는 v0.24.0의 `marlin` NVFP4 커널로 FP8 백엔드(0.19, ~68 tok/s) 대비 약 1.8배 빠릅니다. 참고: A의 이전 실측(FP8)은 decode 65~71 tok/s, TTFT 0.14 s, prefill-1k 33.9 / 8k 44.2 tok/s였습니다.
+
+**동시 서빙 불가 (실측, 2026-08-08):** 두 NVFP4 가중치 78+18 GiB 합 96~100 GB는 UMA 121 GB에서 원칙적으로 가능해 보여 줄여 배분(각 0.2~0.5)까지 시도했지만, 엔진 로더는 각자 own 쿼래스 UMA 가용량을 잘못 보게 되어 B가 필요한 78 GiB 이상 잔여를 확보하지 못했습니다 (A 0.2 상주 시 free 62 GB < B의 `gpu-memory-utilization 0.64` 요구량). 따라서 여전히 **온디맨드 스왑**이 운영 방식이며, 한쪽만 띄우고 쓸 때는 위 검증된 단독 설정을 그대로 사용합니다.
 
 `opencode.jsonc` 예시 (저장소의 `opencode.jsonc.example` 참조):
 
