@@ -10,14 +10,14 @@ const local = { providerID: "local", modelID: "qwen3.6-35b-a3b" }
 const localReviewer = { providerID: "local-reviewer", modelID: "qwen3.6-35b-a3b" }
 const text = (value) => [{ type: "text", text: value }]
 
-test("gpt main keeps gpt subagents", () => {
+test("all mains route explore/test-runner/reviewer to local", () => {
   const gptExplore = selectRoute({ model: gpt, agent: "explore", parts: text("find files") })
-  assert.equal(gptExplore.providerID, "openai")
-  assert.equal(gptExplore.modelID, "gpt-5.6-luna")
+  assert.equal(gptExplore.providerID, "local")
+  assert.equal(gptExplore.modelID, "qwen3.6-35b-a3b")
 
   const gptReviewer = selectRoute({ model: gpt, agent: "reviewer", parts: text("Review this PR") })
-  assert.equal(gptReviewer.providerID, "openai")
-  assert.equal(gptReviewer.modelID, "gpt-5.6-terra")
+  assert.equal(gptReviewer.providerID, "local")
+  assert.equal(gptReviewer.modelID, "qwen3.6-35b-a3b")
 })
 
 test("non-gpt main routes subagents to local", () => {
@@ -69,8 +69,8 @@ test("local high-risk judgment promotes to cloud risk-analyst", () => {
 
 test("routes bounded discovery to Luna with explicit effort", () => {
   assert.deepEqual(selectRoute({ model: gpt, agent: "explore", parts: text("Locate the router definition") }), {
-    providerID: "openai",
-    modelID: "gpt-5.6-luna",
+    providerID: "local",
+    modelID: "qwen3.6-35b-a3b",
     tier: "luna",
     variant: "high",
     temperature: 0.1,
@@ -82,8 +82,8 @@ test("routes bounded discovery to Luna with explicit effort", () => {
 
 test("test-runner routes to Luna", () => {
   const route = selectRoute({ model: gpt, agent: "test-runner", parts: text("Run unit tests") })
-  assert.equal(route.providerID, "openai")
-  assert.equal(route.modelID, "gpt-5.6-luna")
+  assert.equal(route.providerID, "local")
+  assert.equal(route.modelID, "qwen3.6-35b-a3b")
   assert.equal(route.tier, "luna")
   assert.equal(route.variant, "high")
   assert.equal(route.temperature, 0.1)
@@ -91,8 +91,8 @@ test("test-runner routes to Luna", () => {
 
 test("reviewer routes to Terra xhigh", () => {
   const route = selectRoute({ model: gpt, agent: "reviewer", parts: text("Review this PR") })
-  assert.equal(route.providerID, "openai")
-  assert.equal(route.modelID, "gpt-5.6-terra")
+  assert.equal(route.providerID, "local")
+  assert.equal(route.modelID, "qwen3.6-35b-a3b")
   assert.equal(route.tier, "terra")
   assert.equal(route.variant, "xhigh")
   assert.equal(route.temperature, 0.0)
@@ -120,24 +120,24 @@ test("promotes high-risk final judgment to Sol from reviewer", () => {
   assert.ok(route.reason.includes("high-risk-judgment"))
 })
 
-test("explicit tier marker promotes within the main provider", () => {
-  const terra = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [route:terra]") })
-  assert.equal(terra.providerID, "openai")
-  assert.equal(terra.modelID, "gpt-5.6-terra")
-  assert.equal(terra.tier, "terra")
-  assert.equal(terra.variant, "xhigh")
+test("explicit tier marker promotes within the local provider", () => {
+  const inPlace = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [route:terra]") })
+  assert.equal(inPlace.providerID, "local")
+  assert.equal(inPlace.modelID, "qwen3.6-35b-a3b")
+  assert.equal(inPlace.tier, "terra")
+  assert.equal(inPlace.variant, "xhigh")
 
   const sol = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [route:sol]") })
-  assert.equal(sol.providerID, "openai")
-  assert.equal(sol.modelID, "gpt-5.6-sol")
+  assert.equal(sol.providerID, "local")
+  assert.equal(sol.modelID, "qwen3.6-35b-a3b")
   assert.equal(sol.tier, "sol")
   assert.equal(sol.variant, "xhigh")
 })
 
 test("explicit maximum effort implies Sol and never downgrades", () => {
   const max = selectRoute({ model: gpt, agent: "explore", parts: text("Locate files [effort:max]") })
-  assert.equal(max.providerID, "openai")
-  assert.equal(max.modelID, "gpt-5.6-sol")
+  assert.equal(max.providerID, "local")
+  assert.equal(max.modelID, "qwen3.6-35b-a3b")
   assert.equal(max.variant, "max")
 
   const noDowngrade = selectRoute({ model: gpt, agent: "risk-analyst", parts: text("Final release verdict [route:luna]") })
@@ -162,8 +162,8 @@ test("plugin installs agents and writes model plus variant", async () => {
   const output = { message: { model: gpt }, parts: text("Locate the router") }
   await hooks["chat.message"]({ model: gpt, agent: "explore" }, output)
   assert.deepEqual(output.message.model, {
-    providerID: "openai",
-    modelID: "gpt-5.6-luna",
+    providerID: "local",
+    modelID: "qwen3.6-35b-a3b",
     variant: "high",
   })
   assert.equal(output.message.agent, undefined)

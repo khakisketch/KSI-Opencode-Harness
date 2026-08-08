@@ -90,8 +90,7 @@ function getProviderConfig(model) {
 export function selectRoute({ model, agent, parts }) {
   if (!agent) return;
   const requestedProvider = model?.providerID || "openai";
-  const useLocalSubagents = requestedProvider !== "openai";
-  const localSubagent = useLocalSubagents && LOCAL_SUBAGENTS.has(agent);
+  const localSubagent = LOCAL_SUBAGENTS.has(agent);
   const providerID = localSubagent ? "local" : requestedProvider === "local-reviewer" ? "local" : requestedProvider;
   const config = getProviderConfig({ providerID });
   const agentConfig = config[agent];

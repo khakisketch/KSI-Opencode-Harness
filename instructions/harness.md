@@ -18,7 +18,7 @@
 
 ### Provider-Agnostic Routing
 
-The router maps agents to models **per provider** (openai, alibaba, deepseek, local, etc.). When the main agent uses a GPT model, subagents receive GPT-5.6 Luna/Terra/Sol as configured. For other providers, equivalent capability models are assigned.
+The router maps agents to models **per tier**. All subagents (`explore`, `test-runner`, `reviewer`) run on the shared local Qwen engine regardless of the main provider; only `risk-analyst` elevates to cloud models. Explicit overrides via markers still apply within the local provider.
 
 - `explore`, `test-runner` → Luna-equivalent (fast, deterministic)
 - `reviewer` → Terra-equivalent (deep reasoning, xhigh effort)
@@ -32,11 +32,11 @@ Explicit overrides via markers still apply:
 
 Local subagents run against vLLM-served quantized MoE models on a single DGX Spark (GB10, 128GB unified, 273 GB/s). Serving names must match the router `modelID` 1:1.
 
-The main agent keeps the provider/model selected by the user. When the main agent uses a GPT model, subagents also use GPT models. When the main agent uses any non-GPT provider, `explore`, `test-runner`, and `reviewer` are automatically routed to the shared local Qwen engine, so a non-GPT main can use local subagents. `risk-analyst` remains cloud-primary for high-risk judgments.
+The main agent keeps the provider/model selected by the user. All subagents (`explore`, `test-runner`, `reviewer`) run on the shared local Qwen engine regardless of the main provider, so subagents stay synchronous and in-house. `risk-analyst` remains cloud-primary for high-risk judgments.
 
 | Engine | Model | served-model-name | Port | Agents |
 |---|---|---|---|---|
-| A (shared) | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8666 | `explore`, `test-runner`, `reviewer` local fallback |
+| A (shared) | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8666 | `explore`, `test-runner`, `reviewer` |
 
 The shared engine runs on `vllm/vllm-openai:v0.24.0-ubuntu2404` (positional model arg, ENTRYPOINT is `vllm serve`) with `--quantization modelopt --kv-cache-dtype fp8 --moe-backend marlin --gpu-memory-utilization 0.25 --max-model-len 32768 --max-num-seqs 2 --max-num-batched-tokens 4096 --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' --load-format fastsafetensors --reasoning-parser qwen3 --tool-call-parser qwen3_xml --enable-auto-tool-choice`, plus env `VLLM_MARLIN_USE_ATOMIC_ADD=1 VLLM_USE_FLASHINFER_MOE_FP4=0` (SM121 garbage-output guards). Measured single-engine decode is **116-121 tok/s** with TTFT ~0.09 s.
 

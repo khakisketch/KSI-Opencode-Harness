@@ -28,7 +28,7 @@ OpenCode에 장기 작업을 맡길 때 모델 비용, 판단 위험, 구현 권
 
 로컬 서브에이전트는 DGX Spark(GB10, UMA 128GB)에서 vLLM으로 서빙한 경량 MoE를 사용합니다. 서빙 모델 이름은 라우터의 `modelID`와 1:1로 일치해야 합니다.
 
-메인 에이전트는 사용자가 선택한 GPT/Alibaba/DeepSeek provider를 유지합니다. **메인이 GPT이면 서브에이전트도 GPT 모델**을 사용합니다. **메인이 GPT 외(non-GPT)이면** `explore`, `test-runner`, `reviewer` 서브에이전트는 공유 로컬 Qwen 엔진으로 자동 라우팅됩니다. `risk-analyst`는 고위험 판단을 위해 항상 클라우드 모델을 유지합니다.
+메인 에이전트는 사용자가 선택한 GPT/Alibaba/DeepSeek provider를 유지합니다. `explore`, `test-runner`, `reviewer` 서브에이전트는 메인 provider와 무관하게 **항상 공유 로컬 Qwen 엔진**으로 라우팅됩니다. `risk-analyst`는 고위험 판단을 위해 항상 클라우드 모델을 유지합니다.
 
 | 엔진 | 모델 | served-model-name | 포트 | 용도 |
 |---|---|---|---|---|
