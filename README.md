@@ -24,46 +24,64 @@ OpenCode에 장기 작업을 맡길 때 모델 비용, 판단 위험, 구현 권
 
 시장 표식을 통한 승격과 고위험 자동 승격 규칙은 유지됩니다. 고위험 영역의 최종 승인·판정·go/no-go는 `risk-analyst + Sol`로 자동 승격합니다.
 
-## DGX Spark 로컬 서빙 (NVFP4)
+## DGX Spark 로컬 서빙 (vLLM)
 
-로컬 서브에이전트는 DGX Spark에서 vLLM으로 서빙한 NVFP4 모델을 사용합니다. 서빙 모델 이름은 라우터의 `modelID`와 1:1로 일치해야 합니다.
+로컬 서브에이전트는 DGX Spark(GB10, UMA 128GB)에서 vLLM으로 서빙한 경량 MoE를 사용합니다. 서빙 모델 이름은 라우터의 `modelID`와 1:1로 일치해야 합니다.
 
 | 엔진 | 모델 | served-model-name | 포트 | 용도 |
 |---|---|---|---|---|
-| A | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8000 | explore / test-runner (MoE, 빠름) |
+| A | `Qwen/Qwen3.6-35B-A3B-FP8` | `qwen3.6-35b-a3b` | 8000 | explore / test-runner (MoE, 빠름) |
 | B | `nvidia/Qwen3.5-122B-A10B-NVFP4` | `qwen3.5-122b-a10b` | 8001 | reviewer 로컬 폴백 (122B MoE, 공식 Apache-2.0) |
 
-엔진 A (`vllm/vllm-openai:cu130-nightly`):
+직역: 두 엔진은 NVFP4를 쓰지만 두 모델의 포맷이 달라 vLLM 로더가 동일하게 처리하지 못합니다. 엔진 B는 global NVFP4(+exclude_modules)라 `modelopt_fp4`로 정상 로드되지만, 엔진 A(`nvidia/Qwen3.6-35B-A3B-NVFP4`)는 MIXED_PRECISION 층별 상세 명세라 모든 vLLM 버전에서 `KeyError: w2_input_scale`로 실패합니다. 그래서 엔진 A는 Qwen 공식 FP8 체크포인트 + `marlin` MoE backend를 사용합니다 (GB10 실측 검증 완료).
+
+엔진 A (`vllm/vllm-openai:cu130-nightly`, FP8):
 
 ```bash
-docker run --gpus all -p 8000:8000 \
+docker run -d --name vllm-engine-a \
+  --device nvidia.com/gpu=all -p 8000:8000 \
+  -v /home/ksi/.cache/huggingface:/root/.cache/huggingface \
   vllm/vllm-openai:cu130-nightly \
-  nvidia/Qwen3.6-35B-A3B-NVFP4 \
+  --model Qwen/Qwen3.6-35B-A3B-FP8 \
+  --host 0.0.0.0 --port 8000 \
   --tensor-parallel-size 1 --trust-remote-code \
   --kv-cache-dtype fp8 --attention-backend flashinfer \
-  --moe-backend flashinfer_cutlass \
+  --moe-backend marlin \
   --gpu-memory-utilization 0.87 --max-model-len 131072 \
+  --max-num-seqs 4 --max-num-batched-tokens 8192 \
+  --enable-chunked-prefill --enable-prefix-caching \
   --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' \
   --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
-  --enable-chunked-prefill --enable-prefix-caching \
-  --load-format fastsafetensors \
   --served-model-name qwen3.6-35b-a3b
 ```
 
-엔진 B: `nvidia/Qwen3.5-122B-A10B-NVFP4`(NVIDIA ModelOpt 공식 퀀트, Apache-2.0)를 `-p 8001:8001 --port 8001`(내부)로 띄웁니다. 총 122B/활성 10B MoE로, Dense 70B가 Spark 대역폭에서 ~4 tok/s로 실용성이 없는 것과 달리 MTP 추측 디코딩 시 24.5 tok/s로 리뷰 워크로드가 가능합니다.
+엔진 B: `nvidia/Qwen3.5-122B-A10B-NVFP4`(NVIDIA ModelOpt 공식 퀀트, Apache-2.0, 122B/활성 10B)를 `-p 8001:8000`으로 띄웁니다 (NVIDIA 컨테이너는 내부 기본 포트가 8000). UMA 환경에서 모델이 78GiB를 차지하므로 `--gpu-memory-utilization 0.87`이 필요하며, Mamba 하이브리드 아키텍처는 `--max-num-batched-tokens 8192`가 필수입니다.
 
 ```bash
-docker run --gpus all -p 8001:8001 \
+docker run -d --name vllm-engine-b \
+  --device nvidia.com/gpu=all -p 8001:8000 \
+  -v /home/ksi/models/hf-hub:/root/.cache/huggingface \
   nvcr.io/nvidia/vllm:26.04-py3 \
   vllm serve nvidia/Qwen3.5-122B-A10B-NVFP4 \
-    --served-model-name qwen3.5-122b-a10b \
+    --tensor-parallel-size 1 --trust-remote-code \
     --quantization modelopt_fp4 --kv-cache-dtype fp8 \
-    --tensor-parallel-size 1 --gpu-memory-utilization 0.87 \
-    --max-model-len 131072 \
-    --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}' \
+    --gpu-memory-utilization 0.87 \
+    --max-num-batched-tokens 8192 \
+    --max-model-len 262144 \
+    --speculative-config '{"method":"mtp","num_speculative_tokens":2}' \
     --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
-    --enable-chunked-prefill --enable-prefix-caching
+    --enable-chunked-prefill --enable-prefix-caching \
+    --served-model-name qwen3.5-122b-a10b
 ```
+
+### GB10 실측 결과 (2026-08-08, vLLM 상)
+
+| 엔진 | decode (MTP on) | TTFT (워밍) | prefill-1k | prefill-8k | 콜드 로드 |
+|---|---|---|---|---|---|
+| A: qwen3.6-35b-a3b (FP8) | 65~71 tok/s | 0.14 s | 33.9 tok/s | 44.2 tok/s | ~3.5 min |
+| B: qwen3.5-122b-a10b (NVFP4) | 28.6~29.7 tok/s | 0.30 s | 22.7 tok/s | 19.3 tok/s | ~9 min |
+
+주의: 두 모델(가중치 78+35GB)을 UMA 128GB에 동시 상주하면 KV 캐시가 0이 되어 엔진 초기화가 실패합니다. 동시 서빙이 아니라 **온디맨드 스왑**을 전제로 둔 설계입니다.
 
 `opencode.jsonc` 예시 (저장소의 `opencode.jsonc.example` 참조):
 
