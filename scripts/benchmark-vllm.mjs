@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import process from "node:process"
 
-const base = process.env.BASE_URL ?? "http://127.0.0.1:8001/v1"
-const model = process.env.MODEL ?? "qwen3.5-122b-a10b"
-const port = new URL(base).port ?? 8001
+const base = process.env.BASE_URL ?? "http://127.0.0.1:8666/v1"
+const model = process.env.MODEL ?? "qwen3.6-35b-a3b"
+const port = new URL(base).port ?? 8666
 
 async function chat(prompt, { maxTokens = 256, stream = true, reasoning = false } = {}) {
   const t0 = performance.now()

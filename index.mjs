@@ -31,7 +31,7 @@ export default async () => {
 
       if (route.agent) output.message.agent = route.agent
       output.message.model = {
-        providerID: input.model?.providerID ?? "openai",
+        providerID: route.providerID,
         modelID: route.modelID,
         variant: route.variant,
       }

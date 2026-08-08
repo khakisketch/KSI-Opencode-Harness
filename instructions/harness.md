@@ -32,20 +32,23 @@ Explicit overrides via markers still apply:
 
 Local subagents run against vLLM-served quantized MoE models on a single DGX Spark (GB10, 128GB unified, 273 GB/s). Serving names must match the router `modelID` 1:1.
 
+The main agent keeps the provider/model selected by the user. When the main agent uses a GPT model, subagents also use GPT models. When the main agent uses any non-GPT provider, `explore`, `test-runner`, and `reviewer` are automatically routed to the shared local Qwen engine, so a non-GPT main can use local subagents. `risk-analyst` remains cloud-primary for high-risk judgments.
+
 | Engine | Model | served-model-name | Port | Agents |
 |---|---|---|---|---|
-| A | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8000 | `explore`, `test-runner` (MoE 3B active, fast) |
-| B | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8001 | `reviewer` local fallback (same 35B-A3B, co-resident) |
+| A (shared) | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8666 | `explore`, `test-runner`, `reviewer` local fallback |
 
-Both engines run the same model on `vllm/vllm-openai:v0.24.0-ubuntu2404` (positional model arg, ENTRYPOINT is `vllm serve`) with `--quantization modelopt --kv-cache-dtype fp8 --moe-backend marlin --gpu-memory-utilization 0.25 --max-model-len 32768 --max-num-seqs 2 --max-num-batched-tokens 4096 --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' --load-format fastsafetensors --reasoning-parser qwen3 --tool-call-parser qwen3_xml --enable-auto-tool-choice`, plus env `VLLM_MARLIN_USE_ATOMIC_ADD=1 VLLM_USE_FLASHINFER_MOE_FP4=0` (SM121 garbage-output guards). Measured: **117 tok/s decode (MTP on) co-resident** (A 107-125, B 108-125), TTFT ~0.10 s, KV ~1.6M tokens total.
+The shared engine runs on `vllm/vllm-openai:v0.24.0-ubuntu2404` (positional model arg, ENTRYPOINT is `vllm serve`) with `--quantization modelopt --kv-cache-dtype fp8 --moe-backend marlin --gpu-memory-utilization 0.25 --max-model-len 32768 --max-num-seqs 2 --max-num-batched-tokens 4096 --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' --load-format fastsafetensors --reasoning-parser qwen3 --tool-call-parser qwen3_xml --enable-auto-tool-choice`, plus env `VLLM_MARLIN_USE_ATOMIC_ADD=1 VLLM_USE_FLASHINFER_MOE_FP4=0` (SM121 garbage-output guards). Measured single-engine decode is **116-121 tok/s** with TTFT ~0.09 s.
 
 Key facts learned on-device:
 
 - The Qwen3.6-35B-A3B **NVFP4** checkpoint (`nvidia/Qwen3.6-35B-A3B-NVFP4`) fails on v0.19-era builds (`KeyError: layers.0.mlp.experts.w2_input_scale`, MIXED_PRECISION per-layer overrides; loader maps to unquantized MoE). v0.24.0+ with `--moe-backend marlin` loads it fine — this is the fix that unlocked the faster/smaller engine. Old fallback: Qwen official FP8 checkpoint + `cu130-nightly`.
 - Marlin NVFP4 kernels need `VLLM_MARLIN_USE_ATOMIC_ADD=1` on SM121, and `VLLM_USE_FLASHINFER_MOE_FP4=0` keeps MoE routing off the broken FP4 path (GB10-validated kit flags).
 - GB10 (273 GB/s) is bandwidth-bound: decode speed follows **active params** — 3B active → ~120 tok/s, 10B active (122B) → ~28, 70B dense → ~15-20. The 35B-A3B is the local optimum for this device.
-- Two identical engines co-reside at util 0.25 each (~80GB total, KV 1.59M tokens); the 122B-A10B (78 GiB) could NOT co-reside and was retired from B.
-- NVIDIA vLLM container listens on port 8000 internally; map `-p 8001:8000` for engine B (only relevant if you ever go back to `nvcr.io` images).
+- Do not run two model replicas on this UMA host. Repeated sequential and concurrent cold starts produced NVIDIA `NV_ERR_NO_MEMORY` followed by host-wide memory pressure and freezes. Docker memory limits and host swap do not constrain non-pageable driver allocations.
+- Both local providers point to the one shared engine at port 8666. `--max-num-seqs 2` provides aggregate concurrency without duplicating weights, compilation workspaces, or KV pools.
+- Use `scripts/vllm-start-safe.sh`; it removes the legacy B replica, refuses to run beside any other vLLM container or NVIDIA compute process, refuses cold starts below 70 GiB available RAM or during memory pressure, and applies a cgroup limit as defense in depth. Admission thresholds cannot be weakened through environment overrides.
+- NVIDIA vLLM listens on port 8000 internally and maps only to `127.0.0.1:8666`, outside the common 3000 (dev app) and 8000 (web/proxy) ranges.
 
 `risk-analyst` has no trusted local equivalent on Spark; it stays cloud-primary. A local run is last-resort only and must not claim Sol-equivalent capability.
 

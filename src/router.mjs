@@ -33,6 +33,7 @@ export const AGENT_MODEL_CONFIG = {
 
 const TIER_RANK = { luna: 0, terra: 1, sol: 2 };
 const EFFORT_RANK = { none: 0, low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
+const LOCAL_SUBAGENTS = new Set(["explore", "test-runner", "reviewer"]);
 
 const SYNTHESIS =
   /\b(reconcile|design|architecture|roadmap|trade-?offs?|propos(?:e|al)|acceptance criteria|prioriti[sz]e|audit|assess|review|validate|recommend|completion plan|system boundar(?:y|ies))\b|종합|조정|설계|아키텍처|로드맵|트레이드오프|제안|수용 기준|우선순위|감사|평가|검토|검증|권고|시스템 경계/i;
@@ -88,7 +89,11 @@ function getProviderConfig(model) {
 
 export function selectRoute({ model, agent, parts }) {
   if (!agent) return;
-  const config = getProviderConfig(model);
+  const requestedProvider = model?.providerID || "openai";
+  const useLocalSubagents = requestedProvider !== "openai";
+  const localSubagent = useLocalSubagents && LOCAL_SUBAGENTS.has(agent);
+  const providerID = localSubagent ? "local" : requestedProvider === "local-reviewer" ? "local" : requestedProvider;
+  const config = getProviderConfig({ providerID });
   const agentConfig = config[agent];
   if (!agentConfig) return;
 
@@ -96,7 +101,10 @@ export function selectRoute({ model, agent, parts }) {
   const route = { ...agentConfig, agent: undefined, reason: [`agent:${agent}`] };
 
   if (RISK_DOMAIN.test(text) && JUDGMENT.test(text)) {
-    promote(route, "sol", "xhigh", "high-risk-judgment", config);
+    const riskProviderID = requestedProvider === "local" || requestedProvider === "local-reviewer" ? "openai" : requestedProvider;
+    const riskConfig = getProviderConfig({ providerID: riskProviderID });
+    route.providerID = riskProviderID;
+    promote(route, "sol", "xhigh", "high-risk-judgment", riskConfig);
     route.agent = "risk-analyst";
   }
 
@@ -111,6 +119,7 @@ export function selectRoute({ model, agent, parts }) {
   }
 
   return {
+    providerID: route.providerID ?? providerID,
     modelID: route.modelID,
     tier: route.tier,
     variant: route.variant,
