@@ -1,112 +1,55 @@
-const readOnly = {
+export const UNRESTRICTED_PERMISSION = {
+  "*": "allow",
+  read: "allow",
+  edit: "allow",
+  glob: "allow",
+  grep: "allow",
+  list: "allow",
+  bash: "allow",
+  task: "allow",
+  external_directory: "allow",
+  todowrite: "allow",
+  question: "allow",
+  webfetch: "allow",
+  websearch: "allow",
+  lsp: "allow",
+  doom_loop: "allow",
+  skill: "allow",
+  plan_enter: "allow",
+  plan_exit: "allow",
+};
+
+export const PLAN_PERMISSION = {
   "*": "deny",
   read: {
     "*": "allow",
     "*.env": "deny",
     "*.env.*": "deny",
-    "**/.env": "deny",
-    "**/.env.*": "deny",
-    "**/*credentials*": "deny",
-    "*credentials*": "deny",
-    "**/auth.json": "deny",
-    "auth.json": "deny",
-    "**/.npmrc": "deny",
-    ".npmrc": "deny",
-    "**/.pypirc": "deny",
-    ".pypirc": "deny",
-    "**/*.pem": "deny",
-    "*.pem": "deny",
-    "**/*.key": "deny",
-    "*.key": "deny",
-    "**/*.p12": "deny",
-    "*.p12": "deny",
-    "**/*.pfx": "deny",
-    "*.pfx": "deny",
-    "**/id_rsa": "deny",
-    "id_rsa": "deny",
     "*.env.example": "allow",
-    "**/.env.example": "allow",
   },
   glob: "allow",
   grep: "allow",
   list: "allow",
-  edit: "deny",
+  skill: "allow",
+  question: "allow",
+  plan_exit: "allow",
+  todowrite: "allow",
+  webfetch: "allow",
+  websearch: "allow",
+  external_directory: "deny",
+  doom_loop: "deny",
+  edit: {
+    "*": "deny",
+    ".opencode/working-state.md": "allow",
+  },
   bash: "deny",
-  task: "deny",
-  webfetch: "deny",
-  websearch: "deny",
-  skill: "deny",
-}
-
-const testRunnerDeny = [
-  "rm -rf *",
-  "rm -rf /",
-  "git push*",
-  "git tag*",
-  "docker*",
-  "kubectl*",
-  "helm*",
-  "terraform*",
-  "aws*",
-  "gcloud*",
-  "az*",
-  "ssh*",
-  "scp*",
-  "rsync*",
-  "curl* | sh",
-  "wget* | sh",
-  "chmod 777*",
-  "chown root*",
-  "sudo*",
-  "reboot",
-  "shutdown",
-  "mkfs*",
-  "dd if=*",
-  "> /dev/sd*",
-];
-
-const testRunnerAllow = [
-  "npm test*",
-  "yarn test*",
-  "pnpm test*",
-  "pytest*",
-  "cargo test*",
-  "go test*",
-  "mvn test*",
-  "gradle test*",
-  "make test*",
-  "bash -c *test*",
-  "python -m pytest*",
-  "node *test*.js",
-  "jest*",
-  "vitest*",
-  "playwright test*",
-  "cypress run*",
-];
-
-function makeTestRunnerPermission() {
-  const perm = { ...readOnly };
-  perm.bash = { "*": "deny" };
-  for (const pattern of testRunnerDeny) {
-    perm.bash[pattern] = "deny";
-  }
-  for (const pattern of testRunnerAllow) {
-    perm.bash[pattern] = "allow";
-  }
-  return perm;
-}
-
-function enforce(config, name, definition) {
-  const current = config.agent[name] ?? {};
-  config.agent[name] = {
-    ...current,
-    ...definition,
-    permission: {
-      ...(typeof current.permission === "object" ? current.permission : {}),
-      ...(definition.permission ?? {}),
-    },
-  };
-}
+  task: {
+    "*": "deny",
+    explore: "allow",
+    analyst: "allow",
+    "risk-analyst": "allow",
+  },
+};
 
 function defineReserved(config, name, definition) {
   config.agent[name] = definition;
@@ -114,36 +57,47 @@ function defineReserved(config, name, definition) {
 
 export function installAgents(config, prompts) {
   config.agent ??= {};
+  config.agent.plan = { ...(config.agent.plan ?? {}), permission: PLAN_PERMISSION };
+
+  defineReserved(config, "developer", {
+    description:
+      "Write-capable local coding agent for approved, bounded repository changes. Build targets safe two-Developer waves with disjoint ownership, supplies compact task contracts and evidence pointers, and falls back to one Developer for coupled or undersized work; the agent implements and verifies narrowly and escalates product, architecture, contract, security, data, and operational decisions.",
+    mode: "subagent",
+    steps: 40,
+    prompt: prompts.developer,
+    permission: { ...UNRESTRICTED_PERMISSION },
+  });
 
   defineReserved(config, "explore", {
     description:
       "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use reviewer or risk-analyst instead.",
     mode: "subagent",
+    steps: 12,
     prompt: prompts.explore,
-    permission: readOnly,
+    permission: { ...UNRESTRICTED_PERMISSION },
   });
 
   defineReserved(config, "test-runner", {
     description:
-      "Local test execution agent. Runs test suites, collects logs, and returns structured summaries (pass/fail, key errors, timing). Does not modify code. Use freely during implementation loops.",
+      "Independent GPT-5.3 Codex Spark test execution agent. Run it after implementation waves to execute trusted test suites, collect logs, and return structured summaries. It does not edit by role, but test subprocesses are not sandboxed.",
     mode: "subagent",
     prompt: prompts["test-runner"],
-    permission: makeTestRunnerPermission(),
+    permission: { ...UNRESTRICTED_PERMISSION },
   });
 
   defineReserved(config, "reviewer", {
     description:
-      "Adversarial code reviewer. Reviews changes with fresh context, withheld producer reasoning. Finds bugs, design flaws, security issues, and maintenance risks. Called at checkpoints by Plan or Build.",
+      "Optional advisory reviewer for non-trivial code changes. Uses fresh context to find concrete defects and testing gaps; the primary agent must validate its findings.",
     mode: "subagent",
     prompt: prompts.reviewer,
-    permission: { ...readOnly, webfetch: "allow", websearch: "allow", skill: "allow" },
+    permission: { ...UNRESTRICTED_PERMISSION },
   });
 
   defineReserved(config, "risk-analyst", {
     description:
-      "Read-only Sol-tier authority for security, authorization, privacy, customer data, release, deployment, migration, billing, incident, legal, regulatory, medical, or irreversible architecture judgments and go/no-go decisions.",
+      "Read-only high-risk authority. OpenAI mains use GPT-5.6 Sol; non-OpenAI mains inherit their selected model and must state that no Sol-tier guarantee applies.",
     mode: "subagent",
     prompt: prompts["risk-analyst"],
-    permission: { ...readOnly, webfetch: "allow", websearch: "allow", skill: "allow" },
+    permission: { ...UNRESTRICTED_PERMISSION },
   });
 }

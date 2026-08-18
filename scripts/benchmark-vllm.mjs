@@ -15,7 +15,8 @@ async function chat(prompt, { maxTokens = 256, stream = true, reasoning = false 
       messages: [{ role: "user", content: prompt }],
       max_tokens: maxTokens,
       stream,
-      ...(reasoning ? {} : { extra_body: { chat_template_kwargs: { enable_thinking: false } } }),
+      ...(stream ? { stream_options: { include_usage: true } } : {}),
+      ...(reasoning ? {} : { chat_template_kwargs: { enable_thinking: false } }),
     }),
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`)
@@ -29,6 +30,7 @@ async function chat(prompt, { maxTokens = 256, stream = true, reasoning = false 
   const decoder = new TextDecoder()
   let text = ""
   let ttft = null
+  let completionTokens = null
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -39,6 +41,7 @@ async function chat(prompt, { maxTokens = 256, stream = true, reasoning = false 
       if (!payload || payload === "[DONE]") continue
       try {
         const json = JSON.parse(payload)
+        if (json.usage?.completion_tokens !== undefined) completionTokens = json.usage.completion_tokens
         const delta = json.choices?.[0]?.delta ?? {}
         const piece = delta.content ?? delta.reasoning ?? ""
         if (piece && ttft === null) ttft = (performance.now() - t0) / 1000
@@ -47,7 +50,7 @@ async function chat(prompt, { maxTokens = 256, stream = true, reasoning = false 
     }
   }
   const dt = (performance.now() - t0) / 1000
-  const tokens = await estimateTokens(text.length)
+  const tokens = completionTokens ?? await estimateTokens(text.length)
   return { dt, tokens, tokps: tokens / dt, ttft }
 }
 

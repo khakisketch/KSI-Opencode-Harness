@@ -14,8 +14,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test",
-    "check": "node --check index.mjs && node --check src/router.mjs && node --check src/agents.mjs && node --check scripts/audit-routing.mjs && node --test",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check index.mjs && node --check src/router.mjs && node --check src/agents.mjs && node --check src/lease.mjs && node --check scripts/audit-routing.mjs && bash -n scripts/vllm-lease.sh scripts/vllm-profile-safe.sh scripts/vllm-stop-safe.sh scripts/vllm-start-safe.sh && node --test test/*.test.mjs",
     "audit": "node scripts/audit-routing.mjs"
   },
   "engines": {
