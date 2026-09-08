@@ -1,198 +1,146 @@
 # KSI OpenCode Harness
 
-OpenCode에 장기 작업을 맡길 때 모델 비용, 판단 위험, 구현 권한, 검증 책임을 분리하는 공유 하네스입니다.
+[![Check workflow](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml) · [MIT](LICENSE) · Node `>=20`
 
-## 철학
+OpenCode의 native agent/task 그래프에 **계획·구현·검증의 경계**를 더하는 플러그인입니다. 모델 서버나 독립 실행기가 아니며, 모델을 고르거나 자동 승격하지 않습니다.
 
-1. **Solo first**: 분리 이득이 분명할 때만 서브에이전트를 사용합니다.
-2. **OpenAI 티어와 effort 분리**: 높은 effort가 더 높은 모델 티어를 대신하지 않습니다.
-3. **비 OpenAI는 상속**: Risk Analyst는 메인 모델을 상속하며 별도 승인 없이는 Sol 동급을 주장하지 않습니다.
-4. **중요 분석은 상위 모델**: 종합, 설계, 로드맵, 수용 기준과 최종 판단은 역할에 맞는 상위 모델이 담당합니다.
-5. **Explore는 탐색 전용**: 파일, 심볼, 사용처, 제한된 인벤토리만 담당합니다.
-6. **green != operation**: 테스트 통과만으로 실제 작동을 주장하지 않습니다.
+> **설치는 검토한 Git commit에 고정하세요.** Git 소스 설치, npm registry 게시, GitHub Release는 서로 다른 배포 경로입니다. 이 안내는 확인 가능한 원격 소스 revision을 사용하며, npm 패키지나 Release가 게시되었다고 가정하지 않습니다.
 
-## 자동 라우팅
+## 목차
 
-| 에이전트 | OpenAI 메인 | 비 OpenAI 메인 | 역할 |
-|---|---|---|---|
-| `explore` | GPT-5.4 Mini / medium | GPT-5.4 Mini / medium | 제한된 탐색 |
-| `test-runner` | GPT-5.3 Codex Spark / medium | GPT-5.3 Codex Spark / medium | 테스트 실행, 로그 수집, 실패 분류 |
-| `developer` | Qwen3.8 27B quality profile | Qwen3.8 27B quality profile | 승인된 범위의 구현, targeted verification, 실패 수정 |
-| `reviewer` | GPT-5.6 Terra / high | 메인 모델 상속 | 선택적 보조 코드 리뷰 |
-| `risk-analyst` | GPT-5.6 Sol / xhigh | 메인 모델 그대로 상속 | 고위험 판단 |
+- [에이전트로 설치](#에이전트로-설치)
+- [사용 흐름](#사용-흐름)
+- [역할과 모델](#역할과-모델)
+- [설정 소유권](#설정-소유권)
+- [검증과 한계](#검증과-한계)
+- [문서](#문서)
 
-Plan과 Build는 사용자가 선택한 모델을 그대로 유지합니다. Explore는 GPT-5.4 Mini/medium, Test Runner는 독립 검증을 위해 GPT-5.3 Codex Spark/medium을 사용합니다. `developer`만 상시 실행되는 로컬 Qwen3.8 quality profile을 사용합니다. OpenAI 메인에서는 Reviewer에 Terra/high, Risk Analyst에 Sol/xhigh를 사용하고, 그 외 provider에서는 두 역할 모두 메인 모델을 상속합니다.
+## 에이전트로 설치
 
-명시적 표식은 선택된 provider가 해당 능력을 실제로 제공할 때만 적용됩니다. OpenAI 고위험 판단은 `risk-analyst + Sol`로 승격하며, 비 OpenAI 고위험 판단은 Risk Analyst 역할로 전환하되 메인 모델을 유지합니다.
+설치 작업은 먼저 이 PC의 OpenCode 설정과 기존 설치를 읽고, 아래 경계를 확인한 뒤 사용자가 승인한 merge만 적용해야 합니다. [INSTALL.md](INSTALL.md)를 설치 에이전트에게 함께 전달하세요.
 
-## DGX Spark 로컬 서빙 (vLLM)
-
-로컬 구현 서브에이전트는 DGX Spark(GB10, UMA 128GB)에서 하나의 Qwen3.8 27B Dense vLLM 서버를 공유합니다. 서빙 모델 이름은 라우터의 `modelID`와 1:1로 일치해야 합니다.
-
-Qwen3.6 35B-A3B는 빠른 수동 fallback과 실험용으로만 남깁니다. 두 모델을 동시에 상주시키지 않으며 정상 운영에서는 Qwen3.8이 8667 포트에 상주합니다.
-
-메인 에이전트는 사용자가 선택한 provider와 모델을 유지합니다. `explore`와 `test-runner`는 역할별 OpenAI 모델로 고정되고 `developer`만 Qwen3.8 서버로 고정 라우팅됩니다. Reviewer는 OpenAI 메인에서 Terra/high, 그 외에는 메인 모델을 상속합니다. Risk Analyst는 OpenAI에서 Sol/xhigh를 사용하고 비 OpenAI에서 메인 모델을 상속합니다.
-
-`reviewer`는 필수 승인자가 아니라 선택적 advisory second pass입니다. 여러 파일의 동작, 비동기·수명주기, API·영속성 계약, 테스트가 약한 구현처럼 새 컨텍스트의 이득이 분명할 때만 호출합니다. 조사, 문서·포맷 변경, 단순 저위험 수정, 충분히 독립 검증된 동작에는 호출하지 않습니다. Reviewer 결과는 `Approved`가 아니며 메인 에이전트가 근거를 재검증합니다.
-
-| 엔진 | 모델 | served-model-name | 포트 | 용도 |
-|---|---|---|---|---|
-| Developer (상시) | `unsloth/Qwen3.8-27B-NVFP4` | `qwen3.8-27b` | 8667 | developer |
-| Fast fallback (수동) | `nvidia/Qwen3.6-35B-A3B-NVFP4` | `qwen3.6-35b-a3b` | 8666 | 운영자 실험 전용 |
-
-DHX10은 대역폭 바운드(273 GB/s) 장비라 토큰 속도는 **활성 파라미터**로 결정됩니다. 35B-A3B(활성 3B ≈ 1.5GB/token)는 120 tok/s를 내는 이 장비의 최적점이며, 같은 이유로 Llama-3.3-70B dense(활성 70B ≈ 36GB/token, ~15-20 tok/s)나 Nemotron-120B-A12B(활성 12B, ~28 tok/s) 같은 후보들은 느리거나 동시 서빙이 불가합니다. 모델 MoE 아키텍처:
-
-- 엔진 A(`nvidia/Qwen3.6-35B-A3B-NVFP4`)는 MIXED_PRECISION per-layer 명세라 vLLM v0.19 이하에서 `KeyError: w2_input_scale`로 실패하며, **v0.24.0+와 `--moe-backend marlin`이 필수**입니다.
-- 두 active vLLM 모델의 동시 상주는 금지합니다. 반복 실험에서 NVIDIA 드라이버의 `NV_ERR_NO_MEMORY`와 호스트 전체 메모리 압력을 유발했습니다. Qwen3.6 fallback은 Qwen3.8을 완전히 종료한 뒤에만 시작합니다.
-
-기본 Qwen3.8 엔진은 반드시 안전 시작 스크립트로 실행합니다:
-
-```bash
-./scripts/vllm-start-safe.sh
+```text
+Read INSTALL.md from the reviewed source or Git distribution. Inspect this PC first.
+Install KSI OpenCode Harness and the pinned official Superpowers as two separate
+OpenCode plugins. Preserve my Plan/Build models, Build tool permissions,
+credentials, shared Codex/Claude installs, and unrelated MCP/provider settings.
+Explain that KSI manages Plan permission and replaces the six reserved subagent
+definitions, preserving each definition's model/variant and valid positive integer
+native steps; preserve Plan's other settings and Build config.
+Show every name collision and changed grant/denial for my approval, and stop if I
+decline a conflict. Do not substitute a missing model. Validate, restart the full
+OpenCode process, continue the conversation if desired, and report the result.
+Ask before any billable live model smoke test.
 ```
 
-수동 fallback이 필요할 때는 활성 로컬 요청이 없는지 확인한 뒤 다음 명령으로 전환합니다.
+### 배포 경로와 고정
 
-```bash
-./scripts/vllm-profile-safe.sh fast
+- GitHub repository URL은 원하는 source를 찾는 **discovery entry**입니다. 설치 에이전트는 원하는 source를 확인한 뒤 실제로 존재하는 immutable remote commit으로 resolve하고 그 revision을 pin해야 합니다. 문서에 SHA를 지어내거나 remote가 이미 갱신됐다고 쓰지 않습니다.
+- 이 작업은 npm package나 GitHub Release를 게시하지 않습니다. Primary가 checks 후 source commit을 push하고 remote 존재를 확인하면, 그 source Git distribution은 유효한 설치 경로가 됩니다.
+- source checkout의 `file:` URL은 editable한 **mutable 개발/검증 경로**입니다. 고정된 source revision의 runtime integrity를 대신하지 않습니다. 설치 형식과 rollback 경계는 [INSTALL.md](INSTALL.md)를 따릅니다.
+- 공식 Superpowers는 KSI와 별도 plugin으로 설치하며, 다음 upstream revision을 그대로 pin합니다: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`.
+
+## 사용 흐름
+
+```text
+Plan  -> Explore -> 설계 -> (선택) Plan Reviewer -> Human 승인
+Build -> 작은 작업은 직접 수행
+      -> Developer 또는 Developer Complex -> writer 종료
+      -> Test Runner -> Reviewer -> Build의 독립 검증
 ```
 
-기본 Developer profile로 돌아가려면 `./scripts/vllm-profile-safe.sh developer`를 사용합니다. 이 전환기는 양쪽 managed vLLM 컨테이너를 종료하고 NVIDIA compute PID가 사라지며 MemAvailable이 70GiB 이상, memory PSI avg10이 0.10 이하인지 확인한 뒤 정확히 하나의 profile만 시작합니다. 자동 재시작은 사용하지 않습니다.
+위 그래프는 native `task` 호출의 읽기 쉬운 요약입니다.
 
-Build는 프로필을 전환하지 않습니다. Qwen3.8 상시 서버에 foreground Developer 작업을 할당하며, 현재 단계의 하드 상한은 두 개입니다. 같은 Build session의 동일 profile Task 두 개는 하나의 host lease를 공유하고, lease가 유지되는 동안 수동 profile 전환과 다른 session의 local wave는 거부됩니다. Build는 dependency graph에서 바로 실행 가능한 독립 단위 두 개를 먼저 찾아 같은 assistant turn에 호출하며, 안전하고 유용한 분할이 없을 때만 한 개를 사용합니다. Test Runner는 구현 wave가 끝난 뒤 실행합니다.
+| 역할 | 실제 책임 |
+| --- | --- |
+| Plan | 범위·수용 기준을 정리하고 승인 가능한 계획을 작성합니다. 구현하지 않습니다. |
+| Explore | 지정된 경로와 증거를 좁게 조사합니다. |
+| Developer | 승인된 범위에서 소유한 경로를 구현하고 targeted verification을 실행합니다. |
+| Developer Complex | 결합된 상태·계약·수리 작업을 담당합니다. |
+| Test Runner | writer와 독립적으로 지정된 검사를 실행하고 실패를 분류합니다. |
+| Reviewer | 실제 diff와 증거를 검토하며 승인이나 배포를 대신하지 않습니다. |
 
-Developer Task에는 목표, 허용 write 경로, 금지 shared file, acceptance criteria, targeted verification, 시작에 필요한 경로·줄 번호만 전달합니다. Build나 Explore가 이미 확인한 소스 전체와 긴 로그를 다시 붙이지 않으며, Developer는 막힌 사실만 좁게 검색하고 전체 테스트는 기본적으로 Test Runner에 맡깁니다. 실패 수정 시에는 기존 `task_id`에 실패 명령, 핵심 오류, 관련 evidence pointer만 전달합니다.
+기본 graph는 일반 작업을 우회하거나 worker를 재귀 위임하지 않습니다. 작은 작업은 Build가 직접 수행하고, 복잡도와 독립 검증 필요에 따라 역할을 선택합니다. 명시적으로 켠 `developerTestRunner`만 좁은 예외이며, 자세한 조건은 [execution.md](docs/execution.md)에 있습니다. 권한·계약의 상세 내용은 [architecture.md](docs/architecture.md)에 있습니다.
 
-OpenCode가 긴 foreground Task를 내부적으로 detach하면 child session이 idle이 될 때까지 lease와 slot을 유지합니다. 기본 Developer profile 복구가 실패하면 이후 local 호출은 fail-closed로 차단되며, 운영자가 엔진을 복구한 뒤 OpenCode를 재시작해야 합니다.
+`/complete`는 승인된 범위를 Build 그래프로 끝내라는 요청이고, `/review`는 실제 diff와 결과를 독립적으로 검토하라는 요청입니다. 둘 다 Human 승인이나 배포 승인이 아닙니다.
 
-모든 Developer는 같은 worktree를 직접 수정합니다. 병렬 호출 전에 Build는 각 작업의 허용 write 경로와 금지된 shared file을 지정해야 하며, 같은 파일·schema·lockfile·generated output을 건드리는 작업은 다른 wave로 분리합니다. 테스트 실패가 특정 작업에 귀속되면 기존 `task_id`를 재사용합니다.
+```text
+/complete 승인된 범위 안에서 구현하고, writer 종료 후 테스트와 독립 검토 증거를 모아 결과를 보고해 주세요.
+/review 현재 diff·관련 테스트 결과·변경 범위만 검토하고 결함·누락·미검증 경계를 보고해 주세요. 승인이나 배포는 하지 마세요.
+```
 
-2-way 우선은 슬롯을 채우기 위한 중복 조사를 뜻하지 않습니다. 두 작업은 각각 독립적인 완료 기준과 충분한 구현량이 있어야 하며, tightly coupled edit, 동일 파일 수정, 전체 테스트 전담, shared integration 변경은 두 번째 Developer를 만들지 않습니다. 공통 schema·lockfile·generated output·integration file은 후속 single-owner wave에서 처리합니다.
+설정/plugin을 바꾼 뒤에는 **OpenCode process 전체를 재시작**해야 새 설정을 읽습니다. 대화를 버릴 필요는 없으며 재시작 뒤 기존 대화를 계속할 수 있습니다. 재시작 전 호출은 이전 plugin/role/model을 사용했을 수 있으므로 새 child call의 실제 metadata를 확인하세요.
 
-스크립트는 여유 UMA가 70GiB 미만이거나 memory PSI가 높은 경우 콜드 시작을 거부하고, 다른 vLLM 컨테이너 또는 NVIDIA compute 프로세스가 있으면 중단해 두 번째 복제본이 생기지 않도록 합니다. 안전 임계값은 환경변수로 완화할 수 없습니다. 기본 API는 `127.0.0.1:8667`에만 바인딩합니다. Qwen3.8은 Triton attention, `max-num-seqs=2`, MTP/async scheduling/prefix cache 비활성화로 시작하며 Docker 자동 재시작은 사용하지 않습니다.
+## 역할·모델·실행 한도
 
-### GB10 실측 결과 (2026-08-08, 이전 MTP 구성)
+이 플러그인은 provider, model, variant, thinking effort를 선택하거나 강제하지 않습니다. 사용자가 native role에 지정한 `model`, `variant`, 유효한 양의 정수 `steps`는 보존합니다. 생략한 `steps`에는 다음 native 기본값이 적용됩니다.
 
-| 엔진 | decode (MTP on) | TTFT (워밍) | prefill-1k | prefill-8k | 콜드 로드 |
-|---|---|---|---|---|---|
-| A: qwen3.6-35b-a3b (NVFP4, v0.24, 단독) | 116~121 tok/s | 0.09 s | 62 tok/s | 64 tok/s | ~2-3 min |
-| 구 B: qwen3.5-122b-a10b (NVFP4, 참고) | 27.4~29.1 tok/s | 0.31~0.42 s | 21.6 tok/s | 16.5 tok/s | ~9 min |
+| 역할 | 호출자 | 기본 `steps` |
+| --- | --- | ---: |
+| `explore` | Plan, Build | 20 |
+| `plan-reviewer` | Plan | 24 |
+| `developer` | Build | 60 |
+| `developer-complex` | Build | 80 |
+| `test-runner` | Build | 16 |
+| `reviewer` | Build | 32 |
 
-엔진 A는 v0.24.0의 `marlin` NVFP4 커널로 FP8 백엔드(0.19, ~68 tok/s) 대비 약 1.8배 빠릅니다. 참고: A의 이전 실측(FP8)은 decode 65~71 tok/s, TTFT 0.14 s였습니다.
+`steps`는 native agent iteration/실행 step budget이며 provider token budget, thinking effort, nested-agent depth와 다른 값입니다. provider-specific variant/effort 지원과 한도는 보편 규칙이나 benchmark가 아닙니다. 일반적인 `high`/`medium` 선택에 model-specific `max`를 기본으로 강제하지 않습니다. 전체 의미와 선택 가능한 variant 발견 방법은 [execution.md](docs/execution.md)를 참조하세요.
 
-**안정성 판정 (2026-08-09):** 두 모델 복제본의 동시 상주는 실패했습니다. 커널 로그에 NVIDIA `_memdescAllocInternal`의 `NV_ERR_NO_MEMORY`와 호스트 메모리 압력이 기록됐습니다. 이후 FlashInfer attention 경로의 두 장문 시퀀스에서도 CUDA illegal memory access가 발생했습니다. 현재는 복제본 없이 하나의 Qwen3.8 엔진만 사용하고 Triton attention으로 제한한 상태에서 `max-num-seqs=2`를 단계적으로 검증합니다. 3~4는 후속 실측 전까지 허용하지 않습니다.
-
-`opencode.jsonc` 예시 (저장소의 `opencode.jsonc.example` 참조):
+설정을 명시할 때만 OpenCode native `agent` 항목에 필요한 키를 merge합니다. 지원되지 않는 model/variant는 magic prompt tag로 보정하지 않고 native 설정에서 발견·확인해야 합니다.
 
 ```jsonc
-"provider": {
-  "local": {
-    "npm": "@ai-sdk/openai-compatible",
-    "options": { "apiKey": "vllm", "baseURL": "http://localhost:8666/v1" },
-    "models": {
-      "qwen3.6-35b-a3b": { "limit": { "context": 28672, "output": 4096 } }
+{
+  "agent": {
+    "developer": {
+      "model": "provider/approved-model",
+      "variant": "supported-variant"
     }
   }
 }
 ```
 
-OpenCode에는 fast 로컬 모델의 `context`를 28,672, `output`을 4,096으로 등록합니다. Developer는 text-only Qwen3.8의 131,072 서버 창에 대해 `context` 122,880, `output` 32,768을 등록합니다. 8,192 토큰의 서버 여유는 tool schema와 chat template 변동을 흡수합니다. Qwen variant는 thinking을 끄는 `fast`, 4K thinking budget의 `balanced`, 16K thinking budget의 `quality`를 제공하며 Developer는 `quality`로 라우팅됩니다. MTP, async scheduling, prefix cache는 끈 품질 baseline입니다.
+설정하지 않은 역할은 OpenCode native inheritance를 따릅니다. 따라서 Primary의 비싼 모델을 물려받을 수도 있습니다. 비용·지연·데이터 경계를 확인하고 의도적으로 선택하세요. 모델을 바꿔도 role permission은 바뀌지 않으며 local-to-cloud fallback도 없습니다. 선택 가능한 mapping 예시는 [examples/model-routing.json](examples/model-routing.json)에서 확인할 수 있지만 설치된 plugin은 그 파일을 읽지 않습니다.
 
-장기 작업의 반복 prefill을 줄이기 위해 tool output은 600줄 또는 24KiB에서 잘라 별도 파일로 보존하고, 자동 compaction은 오래된 tool 결과를 pruning합니다. 최근 4개 user turn에서 최대 32K 토큰을 보존하고 16K 토큰을 compaction 여유로 예약합니다. 이는 Qwen의 120K context 상한을 낮추지 않고 불필요한 누적만 줄입니다.
+## 설정 소유권
 
-## 설치
+| 영역 | 설치 시 의미 |
+| --- | --- |
+| Plan permission | KSI가 관리하는 값으로 교체됩니다. 설치 전 현재 grant/denial을 확인합니다. |
+| 여섯 reserved subagent 정의 | KSI 역할 정의로 교체됩니다. 각 정의에서 `model`·`variant`와 유효한 양의 정수 `steps`만 보존하고, `mode`·`description`·`prompt`·`permission` 등 나머지는 관리합니다. |
+| Plan의 기타 설정 | Plan `permission`은 KSI가 관리하지만 그 밖의 Plan 설정은 보존합니다. |
+| Build config와 Build tool permission | 보존합니다. 승인 없이 allow-all로 바꾸지 않습니다. |
+| 기존 agent 이름 충돌 | 사라지는 항목과 권한 변화를 보여 주고 승인 또는 중단합니다. |
+| credential, provider/MCP, 공유 Codex/Claude 설치 | KSI가 수정하지 않습니다. 기존 설정 전체를 replacement하지 않습니다. |
 
-저장소를 팀원 머신에 clone한 뒤 `~/.config/opencode/opencode.json` 또는 `opencode.jsonc`의 `plugin` 배열에 절대 경로를 추가합니다.
+`opencode.jsonc.example`는 replacement가 아니라 참고용 merge 예시입니다. 설치 후에는 KSI와 Superpowers를 별도 plugin 항목으로 유지하고, source checkout의 개발 script와 설치된 production package의 경계를 구분하세요.
 
-```jsonc
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "file:///home/USER/projects/KSI-Opencode-Harness/index.mjs"
-  ]
-}
-```
+## 검증과 한계
 
-npm에 배포한 뒤에는 경로 대신 다음 한 항목만 사용합니다.
-
-```json
-{
-  "plugin": ["ksi-opencode-harness"]
-}
-```
-
-설정은 시작할 때 한 번 로드됩니다. 설치 또는 업데이트 후 OpenCode를 완전히 종료하고 다시 실행해야 합니다.
-
-## 권한
-
-사용자 정책에 따라 하네스는 Build와 모든 서브에이전트의 OpenCode tool permission을 `allow`로 설정해 권한 확인 팝업을 제거합니다. 프로젝트가 별도 deny/ask를 선언해도 하네스가 로드되면 Build와 서브에이전트는 `allow`로 정규화됩니다. Test subprocess를 포함한 repository command는 별도 sandbox가 아닙니다.
-
-Plan은 예외입니다. Plan은 read-only 계획 경계를 hard permission으로 유지하며 source edit와 shell command를 실행할 수 없고 `.opencode/working-state.md`만 수정할 수 있습니다. Plan의 민감 파일 접근은 `deny`라서 확인 팝업 없이 차단됩니다.
-
-Explore, Test Runner, Reviewer, Risk Analyst의 역할 경계와 Developer의 write ownership은 프롬프트 계약으로 유지됩니다. Tool이 사용 가능하다는 사실은 task scope를 확장하지 않습니다. Force push, 대량 삭제, production deploy, secret rotation 같은 비가역 작업은 사용자가 해당 작업을 명시적으로 요청해야 합니다.
-
-권장 전역 설정은 다음과 같으며 `opencode.jsonc.example`에도 포함됩니다.
-
-```json
-{
-  "permission": {
-    "*": "allow",
-    "read": "allow",
-    "edit": "allow",
-    "bash": "allow",
-    "task": "allow",
-    "external_directory": "allow",
-    "doom_loop": "allow"
-  }
-}
-```
-
-이 정책은 `.env`, credential, key, 외부 디렉터리, 네트워크, container, cloud 명령에 대한 tool-level 보호를 제거합니다. 신뢰할 수 있는 repository와 attended session에서만 사용하세요.
-
-## 명시적 승격 요청
-
-서브에이전트 프롬프트에 다음 표식을 넣을 수 있습니다.
-
-```text
-[route:terra]
-[route:sol]
-[effort:xhigh]
-[effort:max]
-```
-
-선택된 provider에 요청한 tier나 effort가 정의되지 않았다면 현재 모델을 허위 승격하지 않고 기존 능력으로 유지합니다.
-
-Explore와 Test Runner의 고정 OpenAI 경로, Developer의 고정 Qwen3.8 경로는 표식으로 변경되지 않습니다. Reviewer는 복잡한 검토에서 `[effort:xhigh]`로 승격할 수 있고 Risk Analyst의 명시적 표식은 정책 하한보다 위로만 승격합니다. 비 OpenAI에서는 존재하지 않는 tier나 variant를 만들지 않습니다.
-
-## 검증
+source checkout에서 개발·패키지 검사를 실행합니다:
 
 ```bash
-npm test
 npm run check
-npm run audit
-npm pack --dry-run
+npm run check:package
+git diff --check
 ```
 
-`npm run audit -- --limit=100`은 최근 실제 서브세션의 assistant 메시지를 확인해 모델 티어와 effort 하한 위반을 보여줍니다. CI나 배포 전 점검에서 위반을 실패로 처리하려면 `npm run audit -- --strict`를 사용합니다. 기존 세션에는 예전 라우팅 기록이 남아 있을 수 있으므로 첫 도입 시에는 최신 실행만 해석해야 합니다.
-세션 제목은 민감한 작업 설명을 포함할 수 있어 기본 출력에서 제외됩니다. 로컬 진단에서만 `--show-titles`를 추가하세요.
+`npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`은 source checkout용입니다. 설치된 production package에 test, CI, `check-package`가 포함된다고 가정하지 않습니다. CI workflow의 matrix가 있어도 실제 실행 결과 없이 모든 OS·Node 조합의 통과를 주장하지 않습니다.
 
-공유 설치에서는 npm의 고정 버전이나 검토한 Git 태그를 사용하세요. Desktop의 mutable checkout을 직접 연결하는 방식은 개발 머신에서만 권장합니다.
-
-실제 모델 확인 시 서브세션의 요약 `session.model`보다 assistant 메시지의 `providerID`, `modelID`, `variant`를 기준으로 보세요. OpenCode는 플러그인이 메시지 모델을 바꾸기 전에 서브세션 메타데이터를 먼저 만들 수 있습니다.
-
-디버그 로그가 필요하면 일시적으로 다음을 설정합니다.
+라우팅 audit은 local OpenCode DB의 `providerID`, `modelID`, `variant` metadata를 세는 관찰용 inventory입니다. 품질·비용·무료 실행·모든 task의 correctness를 인증하지 않습니다. strict 비교에는 사용자의 기대 routes 파일과 변경 후 timestamp를 실제 값으로 넣습니다.
 
 ```bash
-KSI_HARNESS_DEBUG=1 opencode
+npm run audit -- \
+  '--routes=<path/to/user-expected-routes.json>' \
+  '--since=<POST_CHANGE_ISO_TIMESTAMP>' --strict
 ```
 
-프롬프트 내용은 로그에 남기지 않고 에이전트, 모델, effort, 승격 사유만 기록합니다.
+대화 재시작, live model smoke, 다른 OS/PC, remote source publication, Human acceptance는 이 정적 검사로 검증되지 않습니다. live call은 quota/API token과 provider 전송을 일으킬 수 있으므로 별도 승인 없이는 실행하지 않습니다.
 
-## 배포 전 확인
+## 문서
 
-- `npm run check` 통과
-- GPT-5.4 Mini Explore, GPT-5.3 Codex Spark Test Runner, Qwen3.8 Developer, Terra Reviewer, Sol Risk Analyst 샘플 호출 확인
-- 비 OpenAI 부모에서도 Explore/Test Runner의 고정 OpenAI 경로와 Reviewer/Risk Analyst의 메인 모델 상속 확인
-- 독립 write ownership을 가진 Developer 두 개가 동일 Qwen3.8 서버에서 실제로 중첩 실행되는지 확인
-- 읽기 전용 에이전트가 수정 도구를 사용할 수 없는지 확인
-- OpenAI 고위험 판단은 Sol인지, 비 OpenAI 고위험 판단은 메인 모델을 정확히 상속하는지 확인
+- [INSTALL.md](INSTALL.md): 에이전트 설치, source Git pin, merge·migration 경계
+- [docs/architecture.md](docs/architecture.md): native role graph와 책임
+- [docs/execution.md](docs/execution.md): steps, model/variant discovery, opt-in helper lifecycle
+- [docs/verification.md](docs/verification.md): 검사, audit 의미, 미검증 경계
+- [docs/troubleshooting.md](docs/troubleshooting.md): startup/session/provider 진단과 조사 기록
+- [docs/releasing.md](docs/releasing.md): source push 이후의 수동 publication 절차

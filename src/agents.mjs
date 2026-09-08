@@ -1,103 +1,92 @@
-export const UNRESTRICTED_PERMISSION = {
-  "*": "allow",
-  read: "allow",
-  edit: "allow",
-  glob: "allow",
-  grep: "allow",
-  list: "allow",
-  bash: "allow",
-  task: "allow",
-  external_directory: "allow",
-  todowrite: "allow",
-  question: "allow",
-  webfetch: "allow",
-  websearch: "allow",
-  lsp: "allow",
-  doom_loop: "allow",
-  skill: "allow",
-  plan_enter: "allow",
-  plan_exit: "allow",
-};
+export const ROLES = ["explore", "plan-reviewer", "developer", "developer-complex", "test-runner", "reviewer"]
 
-export const PLAN_PERMISSION = {
-  "*": "deny",
-  read: {
-    "*": "allow",
-    "*.env": "deny",
-    "*.env.*": "deny",
-    "*.env.example": "allow",
-  },
-  glob: "allow",
-  grep: "allow",
-  list: "allow",
-  skill: "allow",
-  question: "allow",
-  plan_exit: "allow",
-  todowrite: "allow",
-  webfetch: "allow",
-  websearch: "allow",
-  external_directory: "deny",
-  doom_loop: "deny",
-  edit: {
-    "*": "deny",
-    ".opencode/working-state.md": "allow",
-  },
-  bash: "deny",
-  task: {
-    "*": "deny",
-    explore: "allow",
-    analyst: "allow",
-    "risk-analyst": "allow",
-  },
-};
-
-function defineReserved(config, name, definition) {
-  config.agent[name] = definition;
+export const CALLS = {
+  plan: ["explore", "plan-reviewer"],
+  build: ["explore", "developer", "developer-complex", "test-runner", "reviewer"],
 }
 
-export function installAgents(config, prompts) {
-  config.agent ??= {};
-  config.agent.plan = { ...(config.agent.plan ?? {}), permission: PLAN_PERMISSION };
+export const EXECUTION_BUDGETS = {
+  explore: 20,
+  "plan-reviewer": 24,
+  developer: 60,
+  "developer-complex": 80,
+  "test-runner": 16,
+  reviewer: 32,
+}
 
-  defineReserved(config, "developer", {
-    description:
-      "Write-capable local coding agent for approved, bounded repository changes. Build targets safe two-Developer waves with disjoint ownership, supplies compact task contracts and evidence pointers, and falls back to one Developer for coupled or undersized work; the agent implements and verifies narrowly and escalates product, architecture, contract, security, data, and operational decisions.",
-    mode: "subagent",
-    steps: 40,
-    prompt: prompts.developer,
-    permission: { ...UNRESTRICTED_PERMISSION },
-  });
+const safeRead = {
+  "*": "allow", "*.env": "deny", "*.env.*": "deny",
+  "*credentials*": "deny", "*auth.json": "deny", "*.pem": "deny", "*.key": "deny",
+  "*.env.example": "allow",
+}
+export const READ_ONLY_PERMISSION = {
+  "*": "deny", read: safeRead, glob: "allow", grep: "allow", list: "allow",
+  edit: "deny", bash: "deny", task: "deny", skill: "deny",
+  external_directory: "deny", webfetch: "deny", websearch: "deny",
+}
+const rules = (names) => ({ "*": "deny", ...Object.fromEntries(names.map((name) => [name, "allow"])) })
+export const DEVELOPER_PERMISSION = {
+  ...READ_ONLY_PERMISSION, lsp: "allow", edit: "ask", bash: "ask",
+  question: "allow", todowrite: "allow",
+  skill: rules(["test-driven-development", "systematic-debugging", "verification-before-completion"]),
+}
+export const PLAN_PERMISSION = {
+  ...READ_ONLY_PERMISSION, question: "allow", todowrite: "allow", plan_exit: "allow",
+  webfetch: "allow", websearch: "allow",
+  skill: rules(["brainstorming", "writing-plans", "systematic-debugging", "ui-ux-pro-max", "customize-opencode"]),
+  edit: { "*": "deny", ".opencode/working-state.md": "allow" },
+  task: rules(CALLS.plan),
+}
+const descriptions = {
+  explore: "Bounded read-only code discovery for Plan and Build. Return evidence, not architecture decisions.",
+  "plan-reviewer": "Plan-only independent critique: omissions, contracts, dependencies and verifiable acceptance. No implementation or approval.",
+  developer: "Bounded general implementation and targeted repair. Escalate design changes and unexplained failures to Build. No delegation.",
+  "developer-complex": "Complex implementation assigned by Build: coupled state, concurrency and difficult repairs within an approved contract. No delegation.",
+  "test-runner": "Independent trusted test execution after writers stop. Return commands, evidence and unverified boundaries; no fixes.",
+  reviewer: "Independent read-only review of actual changes and test evidence. Return defects and gaps, not final approval.",
+}
+const clonePermission = (permission) => structuredClone(permission)
 
-  defineReserved(config, "explore", {
-    description:
-      "Fast read-only discovery for locating files, symbols, usages, and bounded inventories. Do not use for architecture, roadmap, security, release, regulatory, or final judgment work; use reviewer or risk-analyst instead.",
-    mode: "subagent",
-    steps: 12,
-    prompt: prompts.explore,
-    permission: { ...UNRESTRICTED_PERMISSION },
-  });
+const DEVELOPER_TEST_RUNNER_PROMPT = `
 
-  defineReserved(config, "test-runner", {
-    description:
-      "Independent GPT-5.3 Codex Spark test execution agent. Run it after implementation waves to execute trusted test suites, collect logs, and return structured summaries. It does not edit by role, but test subprocesses are not sandboxed.",
-    mode: "subagent",
-    prompt: prompts["test-runner"],
-    permission: { ...UNRESTRICTED_PERMISSION },
-  });
+Developer-to-Test Runner assistance is enabled for this session. You may request one targeted Test Runner helper only for author feedback, never as independent acceptance. Pause all edits and shell use while that helper is active. The Primary still owns final testing and review.`
 
-  defineReserved(config, "reviewer", {
-    description:
-      "Optional advisory reviewer for non-trivial code changes. Uses fresh context to find concrete defects and testing gaps; the primary agent must validate its findings.",
-    mode: "subagent",
-    prompt: prompts.reviewer,
-    permission: { ...UNRESTRICTED_PERMISSION },
-  });
+function nativeSteps(name, existing) {
+  if (!Object.hasOwn(existing, "steps")) return EXECUTION_BUDGETS[name]
+  if (!Number.isSafeInteger(existing.steps) || existing.steps <= 0) {
+    throw new Error(`KSI: ${name} supplied invalid positive integer native steps; received ${String(existing.steps)}.`)
+  }
+  return existing.steps
+}
 
-  defineReserved(config, "risk-analyst", {
-    description:
-      "Read-only high-risk authority. OpenAI mains use GPT-5.6 Sol; non-OpenAI mains inherit their selected model and must state that no Sol-tier guarantee applies.",
-    mode: "subagent",
-    prompt: prompts["risk-analyst"],
-    permission: { ...UNRESTRICTED_PERMISSION },
-  });
+function developerPermission(developerTestRunner) {
+  if (!developerTestRunner) return clonePermission(DEVELOPER_PERMISSION)
+  return { ...clonePermission(DEVELOPER_PERMISSION), task: rules(["test-runner"]) }
+}
+
+function roleDescription(name, developerTestRunner) {
+  const description = descriptions[name]
+  if (!developerTestRunner || !name.startsWith("developer")) return description
+  return description.replace("No delegation.", "No delegation except the narrow developerTestRunner opt-in for one targeted Test Runner helper.")
+}
+
+export function installAgents(config, prompts, { developerTestRunner = false } = {}) {
+  config.agent ??= {}
+  config.agent.plan = { ...config.agent.plan, permission: clonePermission(PLAN_PERMISSION) }
+  // Preserve inherited and per-agent grants/denials exactly. The hook enforces the role graph.
+  config.agent.build = { ...config.agent.build }
+  for (const name of ROLES) {
+    const existing = config.agent[name] ?? {}
+    config.agent[name] = {
+      mode: "subagent", description: roleDescription(name, developerTestRunner),
+      prompt: developerTestRunner && name.startsWith("developer")
+        ? `${prompts[name]}${DEVELOPER_TEST_RUNNER_PROMPT}`
+        : prompts[name],
+      ...(existing.model === undefined ? {} : { model: existing.model }),
+      ...(existing.variant === undefined ? {} : { variant: existing.variant }),
+      steps: nativeSteps(name, existing),
+      permission: name.startsWith("developer") ? developerPermission(developerTestRunner)
+        : name === "test-runner" ? { ...clonePermission(READ_ONLY_PERMISSION), bash: "allow" } : clonePermission(READ_ONLY_PERMISSION),
+    }
+  }
 }

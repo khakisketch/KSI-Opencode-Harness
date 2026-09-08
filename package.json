@@ -1,22 +1,33 @@
 {
   "name": "ksi-opencode-harness",
-  "version": "0.1.0",
-  "description": "Risk-aware OpenCode subagent routing and verification harness",
+  "version": "0.2.0",
+  "description": "OpenCode plugin for risk-aware subagent routing and verification policy",
   "type": "module",
+  "main": "./index.mjs",
   "exports": "./index.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khakisketch/KSI-Opencode-Harness"
+  },
   "files": [
     "index.mjs",
     "src/",
     "agents/",
     "instructions/",
-    "scripts/",
+    "scripts/audit-routing.mjs",
     "README.md",
+    "INSTALL.md",
+    "docs/",
+    "examples/model-routing.json",
+    "opencode.jsonc.example",
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "check": "node --check index.mjs && node --check src/router.mjs && node --check src/agents.mjs && node --check src/lease.mjs && node --check scripts/audit-routing.mjs && bash -n scripts/vllm-lease.sh scripts/vllm-profile-safe.sh scripts/vllm-stop-safe.sh scripts/vllm-start-safe.sh && node --test test/*.test.mjs",
-    "audit": "node scripts/audit-routing.mjs"
+    "test": "node --test",
+    "check": "node --check index.mjs && node --check src/agents.mjs && node --check src/contracts.mjs && node --check src/audit-metrics.mjs && node --check src/delegation.mjs && node --check scripts/audit-routing.mjs && node --test",
+    "check:package": "node scripts/check-package.mjs",
+    "audit": "node scripts/audit-routing.mjs",
+    "prepublishOnly": "npm run check && npm run check:package"
   },
   "engines": {
     "node": ">=20"

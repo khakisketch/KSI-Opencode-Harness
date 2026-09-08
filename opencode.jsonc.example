@@ -1,99 +1,33 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  // Resolve the installed harness path on THIS PC; see INSTALL.md.
   "plugin": [
-    "file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs"
+    "file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs",
+    "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+    // Optional execution assistance is OFF by default. If explicitly approved,
+    // replace the KSI string above with this native plugin tuple:
+    // ["file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs", { "developerTestRunner": true }]
   ],
-  "permission": {
-    "*": "allow",
-    "read": "allow",
-    "edit": "allow",
-    "glob": "allow",
-    "grep": "allow",
-    "list": "allow",
-    "bash": "allow",
-    "task": "allow",
-    "external_directory": "allow",
-    "todowrite": "allow",
-    "question": "allow",
-    "webfetch": "allow",
-    "websearch": "allow",
-    "lsp": "allow",
-    "doom_loop": "allow",
-    "skill": "allow",
-    "plan_enter": "allow",
-    "plan_exit": "allow"
-  },
-  "tool_output": {
-    "max_lines": 600,
-    "max_bytes": 24576
-  },
-  "compaction": {
-    "auto": true,
-    "prune": true,
-    "tail_turns": 4,
-    "preserve_recent_tokens": 32768,
-    "reserved": 16384
-  },
-  "provider": {
-    "local": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "apiKey": "vllm",
-        "baseURL": "http://localhost:8666/v1"
-      },
-      "models": {
-        "qwen3.6-35b-a3b": {
-          "limit": { "context": 28672, "output": 4096 }
-        }
-      }
-    },
-    "local-developer": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "apiKey": "vllm",
-        "baseURL": "http://127.0.0.1:8667/v1",
-        "timeout": false,
-        "headerTimeout": 300000,
-        "chunkTimeout": 300000
-      },
-      "models": {
-        "qwen3.8-27b": {
-          "reasoning": true,
-          "temperature": true,
-          "tool_call": true,
-          "interleaved": "reasoning",
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "limit": { "context": 122880, "output": 32768 },
-          "variants": {
-            "fast": {
-              "reasoningEffort": "none",
-              "temperature": 1.0,
-              "topP": 0.95,
-              "topK": 20,
-              "minP": 0.0,
-              "presencePenalty": 0.0
-            },
-            "balanced": {
-              "reasoningEffort": "medium",
-              "thinking_token_budget": 4096,
-              "temperature": 1.0,
-              "topP": 0.95,
-              "topK": 20,
-              "minP": 0.0,
-              "presencePenalty": 0.0
-            },
-            "quality": {
-              "reasoningEffort": "xhigh",
-              "thinking_token_budget": 16384,
-              "temperature": 1.0,
-              "topP": 0.95,
-              "topK": 20,
-              "minP": 0.0,
-              "presencePenalty": 0.0
-            }
-          }
+  // Merge only with approval. Build permissions are user-owned; KSI manages
+  // Plan permission and reserved-role definitions. Review those changes first.
+  "permission": { "*": "deny" },
+  "agent": {
+    // Optional: configure any native role's model and variant here; omitted values inherit through OpenCode.
+    // The harness never selects a provider, model, or effort on your behalf.
+    "build": {
+      "permission": {
+        "*": "deny",
+        "read": "allow", "glob": "allow", "grep": "allow", "list": "allow",
+        "edit": "ask", "bash": "ask", "external_directory": "ask",
+        "question": "allow", "todowrite": "allow", "lsp": "allow",
+        "webfetch": "allow", "websearch": "allow",
+        "skill": { "*": "allow", "grill-me": "deny", "goals": "deny" },
+        "task": {
+          "*": "deny", "explore": "allow", "developer": "allow",
+          "developer-complex": "allow", "test-runner": "allow", "reviewer": "allow"
         }
       }
     }
-  }
+  },
+  "share": "disabled"
 }

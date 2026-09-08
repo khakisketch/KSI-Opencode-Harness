@@ -1,0 +1,31 @@
+# Native role architecture
+
+## 역할과 권한
+
+Plan은 Human과 범위·수용 기준을 설계하고 합의합니다. Plan Reviewer는 중요한 계획을 독립적으로 비평하지만 승인하지 않습니다. Explore는 Plan과 Build가 공유하는 제한적 조사 역할이며, 별도 standing Architect는 없습니다. Build는 승인된 계획의 구현·통합·완료를 소유합니다.
+
+```text
+Plan  -> Explore -> design -> (optional) Plan Reviewer -> Human agreement
+Build -> direct small work OR Developer/Developer Complex
+      -> writer idle -> Test Runner -> Reviewer -> Build verification
+```
+
+오직 Primary인 Plan/Build가 native `task`로 역할을 호출합니다. 기본값에서는 Plan은 구현 역할을 호출할 수 없고 worker는 다시 위임할 수 없습니다. 명시적으로 켠 `developerTestRunner`만 root Build의 직접 child인 Developer/Developer Complex에서 foreground Test Runner로 이어지는 좁은 예외입니다. 호출자는 세션의 최신 `chat.params`로 확인하며 unknown caller는 거부합니다. 이는 native-tool 경계이지 OS sandbox가 아니며, 허용된 shell을 통한 임의 subprocess를 막는 장치도 아닙니다.
+
+## 모델 설정: plugin은 선택하지 않음
+
+런타임은 `ROLES`에 역할 이름, `CALLS`에 caller graph, 역할별 native `steps` 기본값을 공개합니다. 여섯 reserved subagent는 기존 `model`, `variant`, 유효한 양의 정수 `steps`를 보존하고, `mode`, `description`, `prompt`, `permission`, 기타 options 등 나머지 정의를 관리합니다. Plan은 `permission`만 교체하고 다른 설정은 보존하며, Build 설정은 보존합니다. 같은 이름의 사용자 agent와 충돌하는지 설치 전에 확인해야 합니다. 플러그인은 어떤 provider/model/thinking effort도 할당하지 않습니다. model/variant와 provider-specific variant 지원은 사용자가 native 설정과 설치된 OpenCode에서 확인하며, 추천 mapping이나 magic prompt tag를 enforcement하지 않습니다.
+
+사용자가 native `agent.<role>.model`, `.variant`, 유효한 양의 정수 `.steps`를 설정하면 그 값을 사용합니다. 생략한 steps에는 Explore 20, Plan Reviewer 24, Developer 60, Developer Complex 80, Test Runner 16, Reviewer 32가 적용됩니다. 생략한 model/variant는 OpenCode의 native inheritance를 따르며 Primary의 비싼 모델을 물려받을 수도 있습니다. 설치자는 역할별 비용·지연·데이터 경계를 보고 의도적으로 선택해야 합니다. 모델/variant 미발견 시 자동 fallback이나 silent substitute는 없습니다. `steps`, provider token budget, thinking effort, `subagent_depth`, helper concurrency의 차이는 [execution.md](execution.md)에 정리되어 있습니다.
+
+예시 mapping을 사용하려면 [`examples/model-routing.json`](../examples/model-routing.json)을 복사·편집하고 native `agent` 설정에 필요한 model/variant 키만 merge합니다. 기존 permission, Primary 설정, 다른 agent 키를 덮어쓰지 않습니다. 설치된 plugin은 예시 파일을 읽거나 자동 enforcement하지 않으며, quality/cost 우위도 주장하지 않습니다. 이 PC에서 따로 선택한 여섯 모델은 portable default가 아닙니다.
+
+## Superpowers와 workflow
+
+공식 Superpowers는 `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`에 고정된 별도 plugin입니다. KSI는 upstream skill을 복사하거나 patch하지 않습니다. Superpowers의 general-agent mapping이 KSI의 role·permission·approval 경계를 덮어쓰지 않습니다. 사용자는 설치 전에 관리되는 permission 변경을 검토하고 충돌 시 거절할 수 있습니다.
+
+Plan은 조사·설계·승인을, Build는 작은 직접 작업 또는 Developer/Developer Complex 위임과 독립 Test Runner/Reviewer 증거를 담당합니다. `/complete`와 `/review` 기본 command는 기존 command가 없을 때만 추가되며 Human 승인·배포 승인을 대신하지 않습니다.
+
+## 소유권과 한계
+
+한 shared worktree에는 한 writer만 둡니다. 병렬 구현은 명시적으로 분리된 worktree와 비중첩 소유권이 있을 때만 허용합니다. task contract 형식 검사는 구조를 확인할 뿐 실제 테스트의 진실성이나 Human acceptance를 보증하지 않습니다. permission read filter는 defense in depth이며 secret isolation이 아닙니다. local check와 reviewer 의견은 CI·배포·Human acceptance가 아닙니다.
