@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { spawn } from "node:child_process"
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { access, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { basename, isAbsolute, join, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -79,6 +79,19 @@ function validateManifest(paths) {
   return files
 }
 
+async function policyReferenceMatches(references, expectedPath) {
+  const expectedRealPath = await realpath(expectedPath)
+  for (const reference of references) {
+    try {
+      if (await realpath(reference) === expectedRealPath) return true
+    } catch (error) {
+      // Missing paths cannot match; surface permission, I/O and invalid-config errors.
+      if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error
+    }
+  }
+  return false
+}
+
 async function verifyPackage() {
   const workDir = await mkdtemp(join(tmpdir(), "ksi-opencode-harness-package-"))
   try {
@@ -137,7 +150,7 @@ export default async function loadConfig() {
       assert.equal(config.command?.[command]?.agent, "build", `installed plugin is missing default command: ${command}`)
     }
     const instructionPath = resolve(packageDirectory, "instructions/harness.md")
-    assert.ok(config.instructions?.includes(instructionPath), "installed plugin did not reference harness policy")
+    assert.ok(await policyReferenceMatches(config.instructions ?? [], instructionPath), "installed plugin did not reference harness policy")
     await access(instructionPath)
   } finally {
     await rm(workDir, { recursive: true, force: true })
@@ -149,4 +162,4 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   console.log("Package verification passed: manifest, offline installation, plugin hooks, roles, commands, and policy reference.")
 }
 
-export { REQUIRED_PACKAGE_FILES, npmInvocation, validateManifest }
+export { REQUIRED_PACKAGE_FILES, npmInvocation, policyReferenceMatches, validateManifest }

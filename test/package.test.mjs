@@ -1,7 +1,9 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { readFile } from "node:fs/promises"
-import { REQUIRED_PACKAGE_FILES, npmInvocation, validateManifest } from "../scripts/check-package.mjs"
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { REQUIRED_PACKAGE_FILES, npmInvocation, policyReferenceMatches, validateManifest } from "../scripts/check-package.mjs"
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
@@ -58,4 +60,28 @@ test("requires npm_execpath and never enables shell execution", () => {
   assert.equal(invocation.command, process.execPath)
   assert.deepEqual(invocation.args, ["C:\\Program Files\\npm\\npm-cli.js", "pack"])
   assert.equal(invocation.options.shell, false)
+})
+
+test("accepts a policy reference through an aliased installed root but rejects an unrelated policy", async () => {
+  const workDir = await mkdtemp(join(tmpdir(), "ksi-policy-reference-"))
+  try {
+    const canonicalRoot = join(workDir, "canonical")
+    const aliasedRoot = join(workDir, "alias")
+    const policyRelativePath = join("instructions", "harness.md")
+    const canonicalPolicy = join(canonicalRoot, policyRelativePath)
+    const aliasedPolicy = join(aliasedRoot, policyRelativePath)
+    const unrelatedPolicy = join(workDir, "unrelated", policyRelativePath)
+    await mkdir(join(canonicalRoot, "instructions"), { recursive: true })
+    await mkdir(join(workDir, "unrelated", "instructions"), { recursive: true })
+    await writeFile(canonicalPolicy, "installed policy")
+    await writeFile(unrelatedPolicy, "unrelated policy")
+    await symlink(canonicalRoot, aliasedRoot, process.platform === "win32" ? "junction" : "dir")
+
+    assert.equal(await policyReferenceMatches([canonicalPolicy], aliasedPolicy), true)
+    assert.equal(await policyReferenceMatches([unrelatedPolicy], aliasedPolicy), false)
+    assert.equal(await policyReferenceMatches([join(workDir, "missing")], aliasedPolicy), false)
+    await assert.rejects(() => policyReferenceMatches([null], aliasedPolicy), { code: "ERR_INVALID_ARG_TYPE" })
+  } finally {
+    await rm(workDir, { recursive: true, force: true })
+  }
 })
