@@ -53,3 +53,29 @@ denied access or prove that a plugin is the root cause.
 After a plugin or configuration change, restart the full OpenCode process before
 testing. A continued conversation may be retained, but calls made before the
 restart can carry historical metadata from the previous process.
+
+## Design browser/MCP failures
+
+Diagnose these as separate stages rather than treating one success as proof of
+the next:
+
+1. **MCP connection:** the named `playwright` server starts with the pinned
+   `@playwright/mcp@0.0.80` command from
+   [the example](../examples/design.project.jsonc).
+2. **Browser launch:** an installed supported Chrome opens with the documented
+   headless/isolated flags. Browser installation is separate consent.
+3. **Image inspection:** the selected Design model actually reads the PNG and
+   reports observable layout/state details. A returned screenshot path or an
+   existing file is not inspection evidence.
+
+The cached Chromium in the recorded Linux run failed its OS sandbox, so the
+pipeline selected an already-installed official Chrome without disabling the
+sandbox or adding `--no-sandbox`. This does not reproduce or fix the original
+generic server error. Do not claim egress isolation from `--allowed-origins`;
+it does not cover every redirect. Use trusted local or synthetic pages, and
+keep the explicit workspace-relative screenshot path inside the agreed scope.
+
+Credentials, auth/data access, browser permissions, and model image capability
+are separate checks. If any stage is missing, report `NOT visually approved`
+for material work and return the missing evidence, affected scope, and next
+decision to Build rather than rendering approval from source.

@@ -23,8 +23,9 @@ function pluginOptions(options) {
 const developerRoles = new Set(["developer", "developer-complex"])
 const guardedWriterTools = new Set(["edit", "write", "apply_patch", "bash"])
 
-export default async ({ client } = {}, options) => {
+export default async ({ client, directory, worktree } = {}, options) => {
   const { developerTestRunner } = pluginOptions(options)
+  const designPrompt = await readFile(new URL("./agents/design.md", import.meta.url), "utf8")
   const prompts = Object.fromEntries(await Promise.all(ROLES.map(async (name) => [
     name, await readFile(new URL(`./agents/${name}.md`, import.meta.url), "utf8"),
   ])))
@@ -37,7 +38,7 @@ export default async ({ client } = {}, options) => {
       effectiveSubagentDepth = config.subagent_depth
       config.instructions ??= []
       if (!config.instructions.includes(instructionPath)) config.instructions.push(instructionPath)
-      installAgents(config, prompts, { developerTestRunner })
+      installAgents(config, prompts, { developerTestRunner, designPrompt, directory, worktree })
       config.command ??= {}
       config.command.complete ??= {
         agent: "build", description: "Complete approved work with native roles and verification evidence.",
@@ -73,6 +74,9 @@ export default async ({ client } = {}, options) => {
       if (input.tool !== "task") return
       const caller = callers.get(input.sessionID)
       const target = output.args?.subagent_type
+      if (caller === "design" || target === "design") {
+        throw new Error(`KSI: task route ${caller ?? "unknown"} -> ${target ?? "unknown"} is not allowed. Design is an independent Primary and does not dispatch tasks in v1.`)
+      }
       const helperCall = developerTestRunner && developerRoles.has(caller) && target === "test-runner"
       if (!helperCall && !CALLS[caller]?.includes(target)) {
         throw new Error(`KSI: task route ${caller ?? "unknown"} -> ${target ?? "unknown"} is not allowed. Only Primary Plan/Build dispatch assigned roles.`)

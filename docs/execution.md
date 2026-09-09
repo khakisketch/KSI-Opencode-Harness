@@ -17,6 +17,11 @@ The six reserved roles and their default native `steps` are:
 | `test-runner` | Build | 16 |
 | `reviewer` | Build | 32 |
 
+Design is not one of the six reserved subagents. It is a user-selected native
+Primary with a default of 60 steps, no model/variant injected by KSI, and no
+native `task` calls in v1. Use `/models` to choose the current Primary's native
+model/variant; that choice does not automatically bind spawned children.
+
 For each reserved role, an existing `model`, `variant`, and valid positive
 integer native `steps` value is preserved. An omitted `steps` value receives the
 role default above. A supplied `steps` value must be a safe positive integer;
@@ -53,7 +58,12 @@ variant names:
 | Discovered model family | Variants observed |
 | --- | --- |
 | Luna, Terra, Sol | `none`, `low`, `medium`, `high`, `xhigh`, `max` |
-| Mini, Spark | `none`, `low`, `medium`, `high`, `xhigh` |
+| Spark | `none`, `low`, `medium`, `high`, `xhigh` |
+
+Retired `openai/gpt-5.4-mini` remains listed for historical discovery context only;
+new Explore recommendations use `openai/gpt-5.6-luna` at `medium`. Explore keeps
+steps 20 and read-only discovery scope even when it shares the Luna family with
+the general Developer.
 
 This is local discovery evidence, not a portable provider contract, benchmark,
 or recommendation. Advertised provider-specific limits are not universal.
@@ -105,3 +115,33 @@ verified native parent/child metadata and the author-feedback title.
 This validates the narrow lifecycle, not cost, complexity, throughput, or model
 quality. It is not a substitute for the independent checks in
 [verification.md](verification.md).
+
+## Browser/MCP evidence
+
+The optional local renderer is the pinned official `@playwright/mcp@0.0.80`
+invocation in [the project example](../examples/design.project.jsonc):
+
+```text
+npx --yes @playwright/mcp@0.0.80 --headless --isolated \
+  --block-service-workers --browser chrome --caps vision \
+  --image-responses allow \
+  --allowed-origins 'http://127.0.0.1:*;http://localhost:*' \
+  --output-dir design-previews/artifacts
+```
+
+It requires an already-installed supported Chrome. Browser installation is a
+separate consent step; the harness does not install a browser, add
+`--no-sandbox`, use a personal profile or extension, or expose a public host.
+`allowed-origins` is not an egress/security boundary and does not cover every
+redirect. `--output-dir` is the default output location, not a path sandbox;
+the Design agent must explicitly request a workspace-relative
+`design-previews/artifacts/<name>.png` and keep the agreed scope.
+
+The actual Linux evidence used OpenCode 1.18.29 with a named Playwright MCP:
+the Design root had an explicitly selected Astra `high` model, resized and
+navigated a synthetic page, captured and read desktop `1280x800` and mobile
+`390x844` PNGs, checked a selected state and no horizontal overflow, clicked,
+snapshotted, and closed. No task call or source change occurred. This proves
+the recorded pipeline and image inspection only; MCP connection, browser
+launch, and model image visibility remain separate evidence, and this is not
+product approval or a cost/model benchmark.

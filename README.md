@@ -2,14 +2,17 @@
 
 [![Check workflow](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml) · [MIT](LICENSE) · Node `>=20`
 
-OpenCode의 native agent/task 그래프에 **계획·구현·검증의 경계**를 더하는 플러그인입니다. 모델 서버나 독립 실행기가 아니며, 모델을 고르거나 자동 승격하지 않습니다.
+OpenCode의 native agent/task 그래프에 **계획·시각 디자인·구현·검증의 경계**를 더하는 플러그인입니다. 모델 서버나 독립 실행기가 아니며, 모델을 고르거나 자동 승격하지 않습니다.
 
 > **설치는 검토한 Git commit에 고정하세요.** Git 소스 설치, npm registry 게시, GitHub Release는 서로 다른 배포 경로입니다. 이 안내는 확인 가능한 원격 소스 revision을 사용하며, npm 패키지나 Release가 게시되었다고 가정하지 않습니다.
+
+Design 기능을 사용하려면 해당 기능이 포함된 revision인지 확인하세요. 위 CI 배지는 게시된 main 결과이며, 미커밋 변경을 검증하지 않습니다.
 
 ## 목차
 
 - [에이전트로 설치](#에이전트로-설치)
 - [사용 흐름](#사용-흐름)
+- [Design Primary](#design-primary)
 - [역할과 모델](#역할과-모델)
 - [설정 소유권](#설정-소유권)
 - [검증과 한계](#검증과-한계)
@@ -27,6 +30,8 @@ credentials, shared Codex/Claude installs, and unrelated MCP/provider settings.
 Explain that KSI manages Plan permission and replaces the six reserved subagent
 definitions, preserving each definition's model/variant and valid positive integer
 native steps; preserve Plan's other settings and Build config.
+Design is primary-only: preserve its native model preferences, and review its
+managed prompt/permissions and scoped preview/UI paths before installation.
 Show every name collision and changed grant/denial for my approval, and stop if I
 decline a conflict. Do not substitute a missing model. Validate, restart the full
 OpenCode process, continue the conversation if desired, and report the result.
@@ -43,13 +48,14 @@ Ask before any billable live model smoke test.
 ## 사용 흐름
 
 ```text
-Plan  -> Explore -> 설계 -> (선택) Plan Reviewer -> Human 승인
-Build -> 작은 작업은 직접 수행
-      -> Developer 또는 Developer Complex -> writer 종료
-      -> Test Runner -> Reviewer -> Build의 독립 검증
+Plan   -> Explore -> 계획/결정 -> (선택) Plan Reviewer -> Human 승인
+Design -> 실제 artifact -> Human 시각 검토 -> 승인 handoff
+Build  -> 작은 작업은 직접 수행
+       -> Developer 또는 Developer Complex -> writer 종료
+       -> Test Runner -> Reviewer -> Build의 독립 검증
 ```
 
-위 그래프는 native `task` 호출의 읽기 쉬운 요약입니다.
+위 그래프는 native `task` 호출의 읽기 쉬운 요약입니다. Design은 v1에서 incoming/outgoing `task`가 없으며, Plan과 Build도 `task(design)`을 호출하지 않습니다.
 
 | 역할 | 실제 책임 |
 | --- | --- |
@@ -59,6 +65,7 @@ Build -> 작은 작업은 직접 수행
 | Developer Complex | 결합된 상태·계약·수리 작업을 담당합니다. |
 | Test Runner | writer와 독립적으로 지정된 검사를 실행하고 실패를 분류합니다. |
 | Reviewer | 실제 diff와 증거를 검토하며 승인이나 배포를 대신하지 않습니다. |
+| Design Primary | 승인된 시각 작업의 실제 artifact를 만들고, v1에서는 `task`를 호출하지 않습니다. |
 
 기본 graph는 일반 작업을 우회하거나 worker를 재귀 위임하지 않습니다. 작은 작업은 Build가 직접 수행하고, 복잡도와 독립 검증 필요에 따라 역할을 선택합니다. 명시적으로 켠 `developerTestRunner`만 좁은 예외이며, 자세한 조건은 [execution.md](docs/execution.md)에 있습니다. 권한·계약의 상세 내용은 [architecture.md](docs/architecture.md)에 있습니다.
 
@@ -69,6 +76,20 @@ Build -> 작은 작업은 직접 수행
 /review 현재 diff·관련 테스트 결과·변경 범위만 검토하고 결함·누락·미검증 경계를 보고해 주세요. 승인이나 배포는 하지 마세요.
 ```
 
+### Design을 선택하는 시점
+
+사용자는 `/models`에서 현재 **Plan / Design / Build Primary**의 native model/variant를 선택할 수 있습니다. 이 선택이 spawned child의 model을 자동으로 고정하지는 않습니다. child에 model이 필요하면 native `agent.<role>.model`/`variant`를 별도로 설정하고 실제 metadata를 확인하세요. KSI는 provider/model을 고르거나 대체하지 않습니다.
+
+Build는 decomposition과 새 evidence마다 다음을 의미적으로 판단합니다.
+
+- 기존 component/token/template를 따르는 작은 UI 수정은 Design loop 없이 진행합니다.
+- hierarchy, interaction, reference fidelity가 미정이면 **누락된 결정·필요 evidence·영향 scope**를 사용자에게 보이고 Design으로 전환합니다. 그 UI에 의존하는 작업만 멈추고 독립 작업은 계속합니다.
+- 승인된 prototype/source가 있으면 Developer가 실제 artifact와 tokens/components를 재사용합니다. 빈 방향을 새로 발명하지 않습니다.
+
+material visual approval은 사용자가 실제로 읽은 rendered artifact의 `name@version`과 scope에만 묶입니다. renderer/image가 없으면 `NOT visually approved`로 남기며 source나 파일 존재를 approval로 해석하지 않습니다. 한 번 승인한 preview/browser scope 안의 refinement는 매번 재승인하지 않습니다. 실무 절차와 짧은 handoff는 [docs/design.md](docs/design.md)와 [examples/design-handoff.md](examples/design-handoff.md)를 참고하세요.
+
+선택적 local browser 예시는 [examples/design.project.jsonc](examples/design.project.jsonc)에 있습니다. 공식 `@playwright/mcp@0.0.80`과 이미 설치된 Chrome으로 Linux에서 synthetic desktop `1280x800`/mobile `390x844`와 선택 state, no horizontal overflow를 실제 확인했지만, 이는 product approval이나 model/cost benchmark가 아닙니다. browser install은 별도 동의이며 `--allowed-origins`와 output path는 security/path sandbox가 아닙니다.
+
 설정/plugin을 바꾼 뒤에는 **OpenCode process 전체를 재시작**해야 새 설정을 읽습니다. 대화를 버릴 필요는 없으며 재시작 뒤 기존 대화를 계속할 수 있습니다. 재시작 전 호출은 이전 plugin/role/model을 사용했을 수 있으므로 새 child call의 실제 metadata를 확인하세요.
 
 ## 역할·모델·실행 한도
@@ -77,6 +98,7 @@ Build -> 작은 작업은 직접 수행
 
 | 역할 | 호출자 | 기본 `steps` |
 | --- | --- | ---: |
+| `design` Primary | 사용자 선택 | 60 |
 | `explore` | Plan, Build | 20 |
 | `plan-reviewer` | Plan | 24 |
 | `developer` | Build | 60 |
@@ -140,7 +162,10 @@ npm run audit -- \
 
 - [INSTALL.md](INSTALL.md): 에이전트 설치, source Git pin, merge·migration 경계
 - [docs/architecture.md](docs/architecture.md): native role graph와 책임
+- [docs/design.md](docs/design.md): Design Primary, approval gate와 browser pipeline
 - [docs/execution.md](docs/execution.md): steps, model/variant discovery, opt-in helper lifecycle
 - [docs/verification.md](docs/verification.md): 검사, audit 의미, 미검증 경계
 - [docs/troubleshooting.md](docs/troubleshooting.md): startup/session/provider 진단과 조사 기록
 - [docs/releasing.md](docs/releasing.md): source push 이후의 수동 publication 절차
+- [examples/design.project.jsonc](examples/design.project.jsonc): 좁은 Design edit path와 선택적 local MCP merge 예시
+- [examples/design-handoff.md](examples/design-handoff.md): `NOT visually approved`로 시작하는 짧은 handoff template

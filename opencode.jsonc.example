@@ -29,5 +29,22 @@
       }
     }
   },
+  // Optional, user-approved local renderer. This does not install a browser
+  // or select a model/provider. See examples/design.project.jsonc for narrow
+  // project-scoped Design edit paths.
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx", "--yes", "@playwright/mcp@0.0.80",
+        "--headless", "--isolated", "--block-service-workers",
+        "--browser", "chrome", "--caps", "vision",
+        "--image-responses", "allow",
+        "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
+        "--output-dir", "design-previews/artifacts"
+      ],
+      "enabled": true
+    }
+  },
   "share": "disabled"
 }

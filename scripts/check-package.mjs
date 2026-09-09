@@ -15,6 +15,7 @@ const REQUIRED_PACKAGE_FILES = [
   "src/audit-metrics.mjs",
   "src/delegation.mjs",
   "instructions/harness.md",
+  "agents/design.md",
   ...roles.map((role) => `agents/${role}.md`),
   "README.md",
   "INSTALL.md",
@@ -23,7 +24,10 @@ const REQUIRED_PACKAGE_FILES = [
   "docs/releasing.md",
   "docs/execution.md",
   "docs/troubleshooting.md",
+  "docs/design.md",
   "examples/model-routing.json",
+  "examples/design.project.jsonc",
+  "examples/design-handoff.md",
   "opencode.jsonc.example",
   "scripts/audit-routing.mjs",
   "LICENSE",
@@ -142,6 +146,8 @@ export default async function loadConfig() {
     const consumerModule = await import(pathToFileURL(consumerPath).href)
     assert.equal(typeof consumerModule.default, "function", "installed package-name import did not export a consumer function")
     const config = await consumerModule.default()
+    assert.equal(config.agent?.design?.mode, "primary", "installed plugin is missing Design Primary")
+    assert.ok(config.agent.design.prompt, "installed plugin is missing Design prompt")
     for (const role of roles) {
       assert.equal(config.agent?.[role]?.mode, "subagent", `installed plugin is missing role: ${role}`)
       assert.ok(config.agent[role].prompt, `installed plugin is missing prompt for role: ${role}`)

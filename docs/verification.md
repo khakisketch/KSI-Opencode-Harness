@@ -3,6 +3,7 @@
 ## 범위
 
 - 기록된 호환성 기준: OpenCode 1.18.29, Node >=20. 다른 version/OS는 실제 실행 전까지 미검증입니다.
+- 이 문서/package version은 `0.3.0`입니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
 - 공식 Superpowers pin: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`, package 6.3.0.
 - `npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`, `git diff --check`는 source checkout에서 수행하는 개발/패키지 게이트입니다. 설치된 production package에는 test, CI, `check-package`가 의도적으로 없습니다.
 - CI에 Node 20/22와 OS matrix 설정이 있어도, 설정의 존재는 해당 matrix가 통과했다는 주장이 아닙니다. 실제 실행 결과만 기록합니다.
@@ -47,9 +48,19 @@ Live call은 quota/API token을 사용하고 입력을 provider로 보낼 수 �
 
 ## 날짜가 있는 local evidence의 범위
 
-**2026-09-08 독립 로컬 검증:** Test Runner가 `npm run check`를 실행해 50/50 tests 통과를 확인했습니다. 실제 tarball의 offline install·bare package-name import·config hook 검사와 pack dry-run(24개 파일), diff whitespace 검사도 통과했습니다. 이는 로컬 검증이며 원격 CI 결과와 구분합니다.
+**이전 0.2 계열 baseline:** 2026-09-08에는 50 tests/24개 패키지 파일을 검증했습니다. 이후 공개 commit `3715dcb`의 51 tests와 6개 OS/Node CI job이 통과했습니다. 이 과거 결과는 아래 Design 0.3.0 변경에 대한 CI 승인이 아닙니다.
+
+**Design 0.3.0 로컬 검증:** Linux/Node 24.19.0에서 독립 Test Runner가 65/65 tests, 실제 tarball offline install/import/config hook, pack dry-run(28개 파일), diff whitespace 검사를 통과했습니다. 독립 리뷰에서 발견한 root/blanket 권한·unsafe tool 재허용·상대 경로 범위 문제를 수정하고 재검토했습니다. 이 로컬 실행은 Windows 전용 cross-drive 분기를 실행하지 않으며, 원격 OS/Node 검증은 해당 commit의 CI 결과를 확인해야 합니다.
 
 **Execution-control evidence:** native `subagent_depth: 1`이 올바르게 거절되었고, corrected integration 뒤 author-requested helper 4 checks, Developer shell의 `npm test` 4 checks, 별도 root Test Runner 4 checks가 보고되었습니다. Primary는 native parent/child metadata와 author-feedback title도 확인했습니다. 이는 작은 helper lifecycle 검증이지 cost/complexity benchmark가 아닙니다.
+
+**Design browser pipeline evidence:** Linux의 실제 OpenCode Design root에서 named Playwright MCP와 명시적으로 선택한 Astra `high`를 사용했습니다. official `@playwright/mcp@0.0.80`의 manifest를 inspect했고 install lifecycle hook은 없었으며 Playwright/core는 `1.63.0-alpha-2026-08-31`로 pin되어 있었습니다. `--headless --isolated --block-service-workers --browser chrome --caps vision --image-responses allow` 및 local-only allowed origins/output 설정으로 synthetic page를 desktop `1280x800`, mobile `390x844`에서 resize/navigate/screenshot/read/snapshot/click하고 close했습니다. 두 PNG를 Primary가 직접 읽어 selected state와 no horizontal overflow를 관찰했으며 task call/source change는 없었습니다. 이는 browser pipeline과 image inspection의 실제 증거이지 product design approval, quality/cost benchmark, egress isolation의 증거가 아닙니다.
+
+Browser/MCP 연결, supported browser launch, model이 PNG를 실제로 볼 수 있음은 각각 확인해야 합니다. cached Chromium의 OS sandbox 실패를 `--no-sandbox`로 우회하지 않았고, 이미 설치된 official Chrome을 사용했습니다. browser install은 별도 consent이며 credentials/auth/data permission과는 별개입니다. screenshot 또는 `screenshotwithfilename`의 text path나 output file 존재만으로 visual inspection을 기록하지 않습니다.
+
+**Design prototype 생성 검증:** 비-Git 작업 폴더에서 native worktree-relative 권한 경로를 보정한 후, 실제 Design Primary가 기존 HTML을 읽고 `apply_patch`로 지정한 preview 파일을 생성했습니다. 원본 대비 변경은 요청한 H1과 header 색상뿐이었으며 responsive CSS와 interaction script는 유지됐습니다. Desktop/mobile 렌더를 캡처·READ하고 선택 동작을 확인한 뒤 `NOT visually approved / awaiting Human feedback`으로 반환했습니다. Build가 실제 diff와 PNG를 확인했으며, 생산 코드 반영이나 사용자 승인을 가장하지 않았습니다.
+
+CI와 source package checks는 browser-free로 유지되어 portable합니다. 위 native browser pipeline의 실제 실행은 현재 Linux에서만 확인했으며, 다른 OS/browser와 remote CI 결과는 이 evidence로 대체하지 않습니다.
 
 Startup diagnosis는 [troubleshooting.md](troubleshooting.md)에 기록되어 있습니다. health/agent/command/skill/session headless probes와 짧은 new/continue PTY probes는 같은 generic error를 재현하지 못했으며, root cause는 확정되지 않았고 fix도 주장하지 않습니다.
 

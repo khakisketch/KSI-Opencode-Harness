@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Illustrative merge only: ask for these selected UI/story/style paths.
+  // Do not replace the project config or grant a blanket '*.tsx' pattern.
+  "agent": {
+    "design": {
+      "permission": {
+        "edit": {
+          "src/ui/OrderSummary.tsx": "ask",
+          "src/ui/OrderSummary.stories.tsx": "ask",
+          "src/styles/tokens.css": "ask"
+        }
+      }
+    }
+  },
+  // Optional local renderer. Keep browser install and model selection separate.
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx", "--yes", "@playwright/mcp@0.0.80",
+        "--headless", "--isolated", "--block-service-workers",
+        "--browser", "chrome", "--caps", "vision",
+        "--image-responses", "allow",
+        "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
+        "--output-dir", "design-previews/artifacts"
+      ],
+      "enabled": true
+    }
+  }
+}

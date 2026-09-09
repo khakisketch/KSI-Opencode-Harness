@@ -1,6 +1,6 @@
 {
   "name": "ksi-opencode-harness",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "OpenCode plugin for risk-aware subagent routing and verification policy",
   "type": "module",
   "main": "./index.mjs",
@@ -19,6 +19,8 @@
     "INSTALL.md",
     "docs/",
     "examples/model-routing.json",
+    "examples/design.project.jsonc",
+    "examples/design-handoff.md",
     "opencode.jsonc.example",
     "LICENSE"
   ],

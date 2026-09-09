@@ -8,7 +8,7 @@ import { REQUIRED_PACKAGE_FILES, npmInvocation, policyReferenceMatches, validate
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("declares portable plugin metadata and automatic test discovery", () => {
-  assert.equal(packageJson.version, "0.2.0")
+  assert.equal(packageJson.version, "0.3.0")
   assert.equal(packageJson.type, "module")
   assert.equal(packageJson.main, "./index.mjs")
   assert.equal(packageJson.exports, "./index.mjs")
@@ -18,6 +18,20 @@ test("declares portable plugin metadata and automatic test discovery", () => {
   assert.match(packageJson.scripts.check, /node --test$/)
   assert.doesNotMatch(packageJson.scripts.test, /[*?]/)
   assert.doesNotMatch(packageJson.scripts.check, /[*?]/)
+})
+
+test("ships the Design workflow documentation and model-free examples", () => {
+  for (const required of [
+    "docs/design.md",
+    "examples/design.project.jsonc",
+    "examples/design-handoff.md",
+  ]) {
+    assert.ok(REQUIRED_PACKAGE_FILES.includes(required), `package gate does not require ${required}`)
+  }
+  assert.ok(packageJson.files.includes("docs/"), "package does not ship the docs directory")
+  for (const example of ["examples/design.project.jsonc", "examples/design-handoff.md"]) {
+    assert.ok(packageJson.files.includes(example), `package does not explicitly ship ${example}`)
+  }
 })
 
 test("production files allowlist excludes checks, CI, tests, and temporary assets", () => {
@@ -34,7 +48,7 @@ test("package manifest validation rejects missing critical and forbidden paths",
 })
 
 test("accepts the complete manifest and normalizes Windows separators", () => {
-  for (const required of ["LICENSE", "scripts/audit-routing.mjs", "src/audit-metrics.mjs"]) {
+  for (const required of ["LICENSE", "agents/design.md", "scripts/audit-routing.mjs", "src/audit-metrics.mjs"]) {
     assert.ok(REQUIRED_PACKAGE_FILES.includes(required), `required shipped file is not gated: ${required}`)
   }
   assert.deepEqual(

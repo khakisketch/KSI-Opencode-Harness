@@ -2,15 +2,22 @@
 
 ## 역할과 권한
 
-Plan은 Human과 범위·수용 기준을 설계하고 합의합니다. Plan Reviewer는 중요한 계획을 독립적으로 비평하지만 승인하지 않습니다. Explore는 Plan과 Build가 공유하는 제한적 조사 역할이며, 별도 standing Architect는 없습니다. Build는 승인된 계획의 구현·통합·완료를 소유합니다.
+Plan은 Human과 범위·수용 기준을 설계하고 합의합니다. Design은 승인된 시각 작업을 위한 독립적인 user-facing Primary이며 v1에서 위임하지 않습니다. Plan Reviewer는 중요한 계획을 독립적으로 비평하지만 승인하지 않습니다. Explore는 Plan과 Build가 공유하는 제한적 조사 역할이며, 별도 standing Architect는 없습니다. Build는 승인된 계획과 Design artifact의 구현·통합·완료를 소유합니다.
 
 ```text
-Plan  -> Explore -> design -> (optional) Plan Reviewer -> Human agreement
+Plan   -> Explore -> plan decisions -> (optional) Plan Reviewer -> Human agreement
+Design -> rendered artifact -> Human visual review -> approved handoff
 Build -> direct small work OR Developer/Developer Complex
       -> writer idle -> Test Runner -> Reviewer -> Build verification
 ```
 
-오직 Primary인 Plan/Build가 native `task`로 역할을 호출합니다. 기본값에서는 Plan은 구현 역할을 호출할 수 없고 worker는 다시 위임할 수 없습니다. 명시적으로 켠 `developerTestRunner`만 root Build의 직접 child인 Developer/Developer Complex에서 foreground Test Runner로 이어지는 좁은 예외입니다. 호출자는 세션의 최신 `chat.params`로 확인하며 unknown caller는 거부합니다. 이는 native-tool 경계이지 OS sandbox가 아니며, 허용된 shell을 통한 임의 subprocess를 막는 장치도 아닙니다.
+오직 Primary인 Plan/Build가 native `task`로 역할을 호출합니다. Design은 incoming/outgoing `task`가 모두 금지됩니다. 기본값에서는 Plan은 구현 역할을 호출할 수 없고 worker는 다시 위임할 수 없습니다. 명시적으로 켠 `developerTestRunner`만 root Build의 직접 child인 Developer/Developer Complex에서 foreground Test Runner로 이어지는 좁은 예외입니다. 호출자는 세션의 최신 `chat.params`로 확인하며 unknown caller는 거부합니다. 이는 native-tool 경계이지 OS sandbox가 아니며, 허용된 shell을 통한 임의 subprocess를 막는 장치도 아닙니다.
+
+## Design sufficiency gate
+
+Build는 decomposition과 새 evidence에서 시각 결정의 충분성을 의미적으로 판단합니다. 기존 pattern을 따르는 minor UI는 Design loop 없이 진행하고, material하게 미정인 hierarchy·interaction·reference fidelity는 누락된 결정, 필요한 evidence, 영향을 받는 scope를 사용자에게 제시한 뒤 Design 전환을 권합니다. 의존하는 UI만 일시 중지하며 독립 작업은 계속합니다. 승인된 prototype/source가 있으면 Developer는 실제 artifact, tokens, components, props/events/states를 재사용하고 대체 방향을 발명하지 않습니다. 이는 prompt/contract 판단이지 keyword classifier나 state machine이 아닙니다.
+
+Material visual approval은 실제로 사용자가 검사한 rendered artifact의 이름/version/scope가 있어야 합니다. renderer나 image가 없으면 `NOT visually approved`로 남기며 source·code·파일 존재를 inspection으로 해석하지 않습니다. 상세한 browser evidence와 handoff 형식은 [design.md](design.md)와 [../examples/design-handoff.md](../examples/design-handoff.md)에 있습니다.
 
 ## 모델 설정: plugin은 선택하지 않음
 
