@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="KSI OpenCode Harness — More agents is not a strategy.">
+  <style>
+    text { font-family: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .bg { fill: #0d1117; }
+    .accent { fill: #4493f8; }
+    .kicker { font-size: 17px; font-weight: 600; letter-spacing: .28em; fill: #7d8590; }
+    .h1 { font-size: 64px; font-weight: 700; fill: #e6edf3; }
+    .sub { font-size: 25px; fill: #9198a1; }
+    .pill { fill: none; stroke: #30363d; stroke-width: 2; }
+    .pill-text { font-size: 19px; font-weight: 600; letter-spacing: .12em; fill: #e6edf3; }
+    .arrow { font-size: 22px; fill: #4493f8; }
+    .foot { font-size: 19px; fill: #7d8590; }
+  </style>
+  <rect class="bg" width="1280" height="640"/>
+  <rect class="accent" x="84" y="96" width="6" height="448" rx="3"/>
+  <text class="kicker" x="124" y="150">KSI OPENCODE HARNESS</text>
+  <text class="h1" x="124" y="258">More agents</text>
+  <text class="h1" x="124" y="332">is not a strategy.</text>
+  <text class="sub" x="124" y="398">A real development pipeline for AI coding agents.</text>
+  <rect class="pill" x="124" y="470" width="176" height="52" rx="26"/>
+  <text class="pill-text" x="212" y="503" text-anchor="middle">PLAN</text>
+  <text class="arrow" x="324" y="504" text-anchor="middle">&#8594;</text>
+  <rect class="pill" x="348" y="470" width="176" height="52" rx="26"/>
+  <text class="pill-text" x="436" y="503" text-anchor="middle">DESIGN</text>
+  <text class="arrow" x="548" y="504" text-anchor="middle">&#8594;</text>
+  <rect class="pill" x="572" y="470" width="176" height="52" rx="26"/>
+  <text class="pill-text" x="660" y="503" text-anchor="middle">BUILD</text>
+  <text class="arrow" x="772" y="504" text-anchor="middle">&#8594;</text>
+  <rect class="pill" x="796" y="470" width="176" height="52" rx="26"/>
+  <text class="pill-text" x="884" y="503" text-anchor="middle">VERIFY</text>
+  <text class="arrow" x="996" y="504" text-anchor="middle">&#8594;</text>
+  <rect class="pill" x="1020" y="470" width="176" height="52" rx="26"/>
+  <text class="pill-text" x="1108" y="503" text-anchor="middle">STATE</text>
+  <text class="foot" x="124" y="584">github.com/khakisketch/KSI-Opencode-Harness</text>
+</svg>

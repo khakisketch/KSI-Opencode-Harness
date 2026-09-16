@@ -8,8 +8,10 @@
     // replace the KSI string above with this native plugin tuple:
     // ["file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs", { "developerTestRunner": true }]
   ],
-  // Merge only with approval. Build permissions are user-owned; KSI manages
-  // Plan permission and reserved-role definitions. Review those changes first.
+  // Merge only with approval. KSI enforces strict coordinator-only Build
+  // permissions at startup (bookkeeping writes only, no product edits or
+  // shell); the block below documents the previous user-owned shape and is
+  // overridden by the plugin. Review those changes first.
   "permission": { "*": "deny" },
   "agent": {
     // Optional: configure any native role's model and variant here; omitted values inherit through OpenCode.
@@ -24,7 +26,8 @@
         "skill": { "*": "allow", "grill-me": "deny", "goals": "deny" },
         "task": {
           "*": "deny", "explore": "allow", "developer": "allow",
-          "developer-complex": "allow", "test-runner": "allow", "reviewer": "allow"
+          "test-runner": "allow", "reviewer": "allow",
+          "research": "allow", "design-task": "allow"
         }
       }
     }

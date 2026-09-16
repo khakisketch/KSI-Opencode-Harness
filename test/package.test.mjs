@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { REQUIRED_PACKAGE_FILES, npmInvocation, policyReferenceMatches, validateManifest } from "../scripts/check-package.mjs"
+import { REQUIRED_PACKAGE_FILES, INSTALL_CHECK_ROLES, npmInvocation, policyReferenceMatches, validateManifest } from "../scripts/check-package.mjs"
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
@@ -48,7 +48,7 @@ test("package manifest validation rejects missing critical and forbidden paths",
 })
 
 test("accepts the complete manifest and normalizes Windows separators", () => {
-  for (const required of ["LICENSE", "agents/design.md", "scripts/audit-routing.mjs", "src/audit-metrics.mjs"]) {
+  for (const required of ["LICENSE", "agents/design.md", "scripts/audit-routing.mjs", "src/audit-metrics.mjs", "src/evidence-tools.mjs", "src/env-probe.mjs"]) {
     assert.ok(REQUIRED_PACKAGE_FILES.includes(required), `required shipped file is not gated: ${required}`)
   }
   assert.deepEqual(
@@ -98,4 +98,10 @@ test("accepts a policy reference through an aliased installed root but rejects a
   } finally {
     await rm(workDir, { recursive: true, force: true })
   }
+})
+
+test("package install gate asserts the hidden design-task registration", () => {
+  assert.ok(INSTALL_CHECK_ROLES.includes("design-task"), "install gate does not assert design-task")
+  assert.ok(!REQUIRED_PACKAGE_FILES.includes("agents/design-task.md"), "design-task shares agents/design.md and needs no own prompt file")
+  assert.ok(REQUIRED_PACKAGE_FILES.includes("agents/design.md"), "shared design-task prompt file is not gated")
 })

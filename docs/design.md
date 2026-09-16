@@ -37,6 +37,17 @@ Build는 decomposition 때와 새 evidence가 들어올 때 의미적으로 판�
 
 Handoff에는 긴 명세 대신 approved artifact/source/reproduction, 짧은 relevant props/events와 loading/empty/error/permission states, unresolved constraints, viewport/interaction acceptance만 담습니다. Build가 통합하고, integrated viewport/state를 다시 확인합니다. Prototype approval은 product acceptance나 배포 승인이 아닙니다.
 
+## Ordered gates (OpenDesign-inspired, paraphrased)
+
+Workflow adapted in our own words from OpenDesign concepts (Apache-2.0); no copied text. Run gates in order and do not prototype before gates 1–3 are locked.
+
+1. Brief gate — collect user, purpose, density, exclusions. Ask on unknowns, never guess. Version the brief (for example `brief v1`) and cite that version in Evidence.
+2. Token block prerequisite — list reused tokens/components first. No invented hex or ad-hoc palette. A missing token is an unresolved constraint, not a silent invention.
+3. Aesthetic direction lock — record one explicit direction before prototyping. The prototype follows it; an alternative needs a new direction plus Human re-approval.
+4. Hierarchy then prototype — settle hierarchy/layout first, then build the prototype with real content, real loading/empty/error/permission states, and responsive viewports.
+5. Self-review checklist — confirm all states render, text contrast is readable, viewports 640/768/1024/1280 have no unintended overflow, and anti-AI-pattern rules hold: no indigo defaults, no purple-blue gradients, no emoji-as-icons.
+6. Handoff then Human approval — fill the existing handoff format with artifact/version/scope, brief version, token block, and inspection evidence, then wait for Human approval. design-task Evidence must cite brief version plus token block.
+
 Design의 기본 read/discovery에는 secret filter가 적용됩니다. 기본 preview는 **현재 OpenCode 작업 디렉터리의 `design-previews/`**이며 편집은 `ask`입니다. 플러그인은 이를 native worktree-relative 경로로 변환하므로 Git 하위 디렉터리나 비-Git 작업 폴더에서도 전체 경로를 넓히지 않습니다. checkpoint 예외는 기존 Git 작업 연속성 정책을 따릅니다. 사용자가 추가하는 project UI permission은 native worktree-relative 경로이며 자동 재해석하지 않습니다.
 
 Shell, external directory, webfetch, Playwright 계열은 `ask`이고 task와 `playwright_browser_run_code_unsafe`는 마지막 `deny`로 유지됩니다. Root `allow`와 scalar edit `allow`는 허용하지 않습니다. Edit `allow`는 worktree-relative 경로여야 하며 절대 경로, drive/UNC 경로, 빈 경로 조각, `.`/`..` traversal은 거부합니다. Glob은 첫 wildcard 앞에 구체적인 디렉터리 범위가 있어야 하며(`src/components/**`), exact 상대 파일 경로도 사용할 수 있습니다. `**/**`, `*.tsx`, `Card*.tsx` 같은 root-level 패턴은 거부합니다. 이는 패턴의 범위 검사일 뿐 frontend 소유권이나 symlink 안전성을 증명하지 않습니다. 승인 범위 밖을 가리키는 symlink를 사용하지 말고 실제 위치를 먼저 확인해야 합니다.
@@ -66,3 +77,11 @@ npx --yes @playwright/mcp@0.0.80
 ## Handoff 시작점
 
 [`../examples/design-handoff.md`](../examples/design-handoff.md)의 template을 복사해 artifact/version/scope를 먼저 채웁니다. material 작업은 `NOT visually approved`로 시작하고, 실제 PNG를 읽은 사용자 확인 뒤에만 `VISUALLY APPROVED`로 바꿉니다.
+
+## Visual loop and review mode
+
+Material UI must run the visual loop: render, capture desktop `1280x800` plus mobile `390x844`, READ each PNG via vision, list findings vs brief/tokens/direction, fix, then re-capture and re-read at least one full iteration (single verified capture suffices for established-pattern reuse); no handoff without it. The established-pattern exception is an existing approved artifact plus token-identical reuse with cited artifact version, else full loop. Require at least one intermediate capture plus READ when layout changes across breakpoints, else state why not applicable. `gpt_imagegen` outputs are mockups/assets only, never evidence.
+
+Review mode is read-only and hook-enforced: Build requests it with `Mode: review` plus `Allowed write paths: none` (contract-validated; prototype requests need concrete paths and no `Mode:`). On task completion the hook records the child session from completion metadata and denies `edit`/`write`/`apply_patch`/`bash`/`task`/`lsp` from it under `DESIGN_REVIEW_PERMISSION` (`edit: * deny`, `lsp: deny`); `session.deleted` clears the marker. Enforcement needs the child session id in completion metadata. Compare the approved artifact plus brief version plus captures and return `VISUAL PASS`/`FAIL`/`BLOCKED-no-render`; it never replaces Human approval. Gate 6 waits for Human approval only on the user-facing Design primary; `design-task` returns its result instead of waiting.
+
+Design and `design-task` hold `mobbin_*`, `gpt_imagegen`, and `context7_*` at `ask`; no other role gains `mobbin_*` or `gpt_imagegen`, and only research keeps its separate `context7_*` allow. `external_directory`: Design primary `ask`, `design-task` `deny` (review denies it).

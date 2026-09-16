@@ -11,16 +11,37 @@ The six reserved roles and their default native `steps` are:
 | Role | Primary caller | Default steps |
 | --- | --- | ---: |
 | `explore` | Plan, Build | 20 |
-| `plan-reviewer` | Plan | 24 |
-| `developer` | Build | 60 |
-| `developer-complex` | Build | 80 |
-| `test-runner` | Build | 16 |
-| `reviewer` | Build | 32 |
+| `developer` | Build | 80 |
+| `test-runner` | Build | 24 |
+| `reviewer` | Plan, Build | 32 |
+| `research` | Plan, Build | 20 |
+| `design-task` | Build | 40 |
+
+Complex Developer work uses the same default 80 steps; Build may approve an explicit 120-step condition when the handoff documents coupled state, concurrency, migration or deliberate repair scope.
 
 Design is not one of the six reserved subagents. It is a user-selected native
 Primary with a default of 60 steps, no model/variant injected by KSI, and no
-native `task` calls in v1. Use `/models` to choose the current Primary's native
+native `task` calls in v1. `design-task` is a hidden delegated entrypoint that
+shares the Design contract with prototype-only permissions, no approval
+authority, and no recursion. Use `/models` to choose the current Primary's native
 model/variant; that choice does not automatically bind spawned children.
+
+Design track tool matrix: Design and `design-task` hold `mobbin_*`, `gpt_imagegen`,
+and `context7_*` at `ask` (`design-task` inherits via clone); no other role gains
+`mobbin_*` or `gpt_imagegen`. Review mode is requested with `Mode: review` plus
+`Allowed write paths: none` and hook-enforced under `DESIGN_REVIEW_PERMISSION`
+(`edit: * deny`, `lsp: deny`; denied `edit`/`write`/`apply_patch`/`bash`/`task`/`lsp`,
+cleared on `session.deleted`). Build requires a `design-task` fidelity review after
+Developer UI integration before completion on UI completions with inputs artifact version
+plus diff plus PNGs (`FAIL` becomes work items, `BLOCKED-no-render` escalates to user,
+max two fix rounds then escalates).
+
+Build is a coordinator-only Primary with a default of 200 steps. It never
+implements product code: user model, variant, and steps are preserved, but
+product edit and shell grants are replaced with bookkeeping-only permissions
+(checkpoint, plan ledger, scoped execution reports). Direct implementation
+attempts are denied by a second hook layer with an explicit delegate-instead
+message.
 
 For each reserved role, an existing `model`, `variant`, and valid positive
 integer native `steps` value is preserved. An omitted `steps` value receives the
@@ -29,8 +50,7 @@ invalid values fail configuration rather than silently falling back.
 
 Other reserved-agent fields are managed by the plugin, including `mode`,
 `description`, `prompt`, `permission`, and other options. Plan permission is
-managed while other Plan settings are preserved. Build configuration is
-preserved. Review collisions before installation.
+managed while other Plan settings are preserved. Review collisions before installation.
 
 ## Keep the controls distinct
 
@@ -79,7 +99,7 @@ recursive delegation.
 When explicitly enabled in the plugin tuple, the sole exception is:
 
 1. a direct child of a root Build session;
-2. whose caller role is `developer` or `developer-complex`;
+2. whose caller role is `developer`;
 3. requests one foreground `test-runner` helper under the native read/test
    contract.
 
@@ -103,6 +123,58 @@ OS sandbox.
 The helper's title and result are author-requested feedback only, not independent
 acceptance. A Developer may use it for a targeted TDD/test loop; the Primary
 still owns independent final verification and review.
+
+## Evidence tools for Plan and Build
+
+Plan and Build share six read-only evidence tools registered on the plugin
+`tool` hook (`src/evidence-tools.mjs`, fixed probes in `src/env-probe.mjs`).
+They run in-process with zero general-shell exposure: repository and
+continuity observations reuse `createRepositoryService`/`createContinuity`,
+the env probe runs only a fixed `execFile` allowlist (`free -m`, `nproc`,
+`nvidia-smi --query-gpu ... --format=csv`, `ollama list`, `ollama ps`) with
+`shell: false` and per-command timeouts, and the audit summary issues
+fixed SELECT-only aggregation against a read-only handle of the local
+OpenCode DB (role/tool counts only; titles, directories, prompts, token
+counts, and costs are never selected).
+
+Each tool takes at most a bounded scope enum or paths array (max 32), and
+every output is bounded to 4 KiB with truncation noted; full diffs are never
+returned (`ksi_repo_diffstat` reports flags and counts only). Unknown or
+missing capabilities (non-Git worktree, missing checkpoint, missing DB,
+unavailable command) resolve to an explicit degraded payload and never throw
+fatally. `PLAN_PERMISSION` and `BUILD_PERMISSION` grant exactly these six
+tools; Plan keeps `bash: deny` and adds native `lsp: allow` (same as explore)
+for code intelligence.
+
+Plan's fallback chain is native tools first, `ksi_*` evidence tools second,
+Explore delegation last — so a custom-tool load failure degrades Plan instead
+of disabling it.
+
+The tool definitions use the native `tool({ description, args, execute })`
+helper with Zod arg schemas when `@opencode-ai/plugin` resolves at runtime.
+The offline source checkout cannot resolve it without adding a dependency, so
+the module falls back to a vendored identity shape with a minimal
+validating schema shim; see [verification.md](verification.md) for the
+resolvability evidence.
+
+## Continuity and recovery
+
+Conversation memory is transient. The harness keeps three separate layers:
+approved specs and project instructions own durable decisions, one selected
+task-progress ledger owns execution state, and `.opencode/working-state.md`
+remains a short resume pointer. Native task records are recovery evidence,
+never a second plan.
+
+On the first task dispatch per session, and again after compaction or
+restart, the harness reconciles worktree, HEAD, checkpoint presence, and
+unfinished child-task records in-process and injects the result as bounded
+evidence into the dispatch. Unknown or mismatched task identity blocks
+instead of silently restarting work. Child outputs above 8 KiB are archived
+under `.opencode/artifacts/task-output/` with session and call provenance;
+the Parent receives a bounded preview plus pointer. Native automatic
+compaction stays on with existing user token settings; the compaction hook
+contributes recovery pointers only, never conversation history or a
+percentage threshold.
 
 ## Observed lifecycle evidence
 

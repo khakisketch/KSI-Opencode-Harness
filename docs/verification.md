@@ -8,21 +8,51 @@
 - `npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`, `git diff --check`는 source checkout에서 수행하는 개발/패키지 게이트입니다. 설치된 production package에는 test, CI, `check-package`가 의도적으로 없습니다.
 - CI에 Node 20/22와 OS matrix 설정이 있어도, 설정의 존재는 해당 matrix가 통과했다는 주장이 아닙니다. 실제 실행 결과만 기록합니다.
 
+## Evidence-tool compatibility
+
+- Tool registration shape: `tool({ description, args, execute })` returning the
+  input unchanged, confirmed against `@opencode-ai/plugin@1.15.13`
+  (`dist/tool.js`: `export function tool(input) { return input; }`,
+  `tool.schema = z`) as bundled in the local OpenCode package cache. The
+  installed OpenCode binary is 1.18.31; its `Hooks.tool` map
+  (`{ [key]: ToolDefinition }`) is the registration surface used in
+  `index.mjs`. A readable 1.18.31 plugin `dist` was not available in this
+  environment, so exact shape parity with 1.18.31 remains an unverified
+  boundary (no shell, network, or external-directory access was used to
+  chase it).
+- Offline resolvability: `node -e "import('@opencode-ai/plugin')"` and
+  `import('zod')` both fail with `Cannot find package` in this source
+  checkout, and the packed tarball declares no dependencies, so the offline
+  `npm run check:package` install cannot resolve the native helper either.
+  Adding the dependency would require editing `package.json`, which is
+  outside this change; therefore `src/evidence-tools.mjs` prefers the native
+  helper at runtime and otherwise uses the vendored `{ description, args,
+  execute }` identity shape with a minimal validating schema shim for the
+  bounded scope-enum/paths-array args.
+- Targeted tests: `test/evidence-tools.test.mjs` and `test/env-probe.test.mjs`
+  cover the six-tool registration, arg bounds, 4 KiB output bounds with
+  truncation notes, degraded (non-fatal) paths, and secret exclusion (no
+  titles/prompts/costs in audit output, no environment reads in env-probe,
+  no contents/diffs in diffstat). `npm run check`'s `node --check` list is
+  fixed in `package.json` and does not yet include the two new source files;
+  they are syntax-covered by loading them under `node --test`.
+
 ## 정적·새 process 검사
 
 source checkout에서 다음을 실행하고 결과를 기록합니다.
 
 ```bash
 npm run check
-npm test
 npm run check:package
 npm pack --dry-run
 git diff --check
 ```
 
+`npm run check` already ends with `node --test`, so do not run `npm test` again for the same revision.
+
 package gate는 manifest, 실제 tarball, offline local-tarball install, plugin hook, 여섯 role, command와 policy reference를 확인합니다. path/filename gate는 알려진 금지 경로와 필수 파일만 검사하며, 유효한 filename 안에 들어간 secret content까지 찾아내거나 secret-free를 보증하지 않습니다. source와 tarball content를 수동 검토하고, production artifact에 test/CI/check-package, credential, session log, `.opencode`가 없는지 확인합니다.
 
-새 OpenCode process에서 `opencode debug agent <role>`의 model/variant/steps/permission을 필요한 필드만 확인하고, `opencode debug skill`로 role별 skill 접근을 확인합니다. Plan permission과 reserved subagent 정의 전체의 교체(model/variant와 유효한 양의 정수 steps는 보존)는 관리되는 변경으로 기록하고, 기존 options 등과 이름 충돌도 확인합니다. Plan의 기타 설정과 Plan/Build model 및 Build tool permission 및 사용자의 credential/provider/MCP 변경 여부는 별도로 확인합니다. model 목록 조회는 live-call·품질 PASS가 아니며, cost metadata가 없거나 0인 것은 무료 실행의 증거가 아닙니다.
+새 OpenCode process에서 `opencode debug agent <role>`의 model/variant/steps/permission을 필요한 필드만 확인하고, `opencode debug skill`로 role별 skill 접근을 확인합니다. Plan permission, Build coordinator-only permission, reserved subagent 정의 전체의 교체(model/variant와 유효한 양의 정수 steps는 보존)는 관리되는 변경으로 기록하고, 기존 options 등과 이름 충돌도 확인합니다. Plan의 기타 설정과 Plan/Build model 및 사용자의 credential/provider/MCP 변경 여부는 별도로 확인합니다. model 목록 조회는 live-call·품질 PASS가 아니며, cost metadata가 없거나 0인 것은 무료 실행의 증거가 아닙니다.
 
 ## Audit의 의미
 

@@ -7,15 +7,25 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
 const packageData = JSON.parse(await readFile(join(root, "package.json"), "utf8"))
-const roles = ["explore", "plan-reviewer", "developer", "developer-complex", "test-runner", "reviewer"]
+const roles = ["explore", "developer", "test-runner", "reviewer", "research"]
+// design-task is a hidden subagent sharing agents/design.md, so it has no own
+// prompt file above, but the install gate must still assert its registration.
+const hiddenRoles = ["design-task"]
+const INSTALL_CHECK_ROLES = [...roles, ...hiddenRoles]
 const REQUIRED_PACKAGE_FILES = [
   "index.mjs",
   "src/agents.mjs",
   "src/contracts.mjs",
   "src/audit-metrics.mjs",
   "src/delegation.mjs",
+  "src/continuity.mjs",
+  "src/continuity-context.mjs",
+  "bin/ksi-continuity-inject.mjs",
+  "src/evidence-tools.mjs",
+  "src/env-probe.mjs",
   "instructions/harness.md",
   "agents/design.md",
+  "agents/build.md",
   ...roles.map((role) => `agents/${role}.md`),
   "README.md",
   "INSTALL.md",
@@ -148,10 +158,11 @@ export default async function loadConfig() {
     const config = await consumerModule.default()
     assert.equal(config.agent?.design?.mode, "primary", "installed plugin is missing Design Primary")
     assert.ok(config.agent.design.prompt, "installed plugin is missing Design prompt")
-    for (const role of roles) {
+    for (const role of INSTALL_CHECK_ROLES) {
       assert.equal(config.agent?.[role]?.mode, "subagent", `installed plugin is missing role: ${role}`)
       assert.ok(config.agent[role].prompt, `installed plugin is missing prompt for role: ${role}`)
     }
+    assert.equal(config.agent?.["design-task"]?.hidden, true, "installed plugin is missing hidden design-task registration")
     for (const command of ["complete", "review"]) {
       assert.equal(config.command?.[command]?.agent, "build", `installed plugin is missing default command: ${command}`)
     }
@@ -168,4 +179,4 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   console.log("Package verification passed: manifest, offline installation, plugin hooks, roles, commands, and policy reference.")
 }
 
-export { REQUIRED_PACKAGE_FILES, npmInvocation, policyReferenceMatches, validateManifest }
+export { REQUIRED_PACKAGE_FILES, INSTALL_CHECK_ROLES, npmInvocation, policyReferenceMatches, validateManifest }

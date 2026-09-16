@@ -24,7 +24,7 @@ git diff --check
 - 제외: tests, CI configuration, `scripts/check-package.mjs`, `.opencode`, session logs, credentials/secrets, private scratch artifacts. 이 목록과 filename/path gate만으로 secret content 부재를 보증할 수 없으므로 source와 tarball content를 수동 검토하며, secret-free라고 단정하지 않습니다.
 - source에 있었던 legacy deletion은 소유권을 확인한 뒤에만 기록합니다. unknown owned file이나 다른 작업자의 변경은 삭제하지 않고 escalate합니다.
 
-검사 결과에는 package file list, package-name import, offline install, plugin hooks/roles/commands/policy reference를 포함합니다. Plan permission 교체와 여섯 reserved subagent 정의의 교체 범위를 기록합니다. reserved role은 model/variant와 유효한 양의 정수 steps를 보존하고 나머지 fields를 관리하므로 options/disable 등의 변화와 이름 충돌을 검토합니다. Plan의 기타 설정과 Plan/Build model 및 Build tool permission은 보존되는지 확인합니다. secret-bearing debug output과 raw session log를 artifact나 release note에 복사하지 않습니다.
+검사 결과에는 package file list, package-name import, offline install, plugin hook, 여섯 role, command와 policy reference를 확인합니다. Plan permission 교체, Build coordinator-only permission 교체, 여섯 reserved subagent 정의의 교체 범위를 기록합니다. reserved role은 model/variant와 유효한 양의 정수 steps를 보존하고 나머지 fields를 관리하므로 options/disable 등의 변화와 이름 충돌을 검토합니다. Plan의 기타 설정과 Plan/Build model이 보존되는지 확인합니다. secret-bearing debug output과 raw session log를 artifact나 release note에 복사하지 않습니다.
 
 ## 3. Documentation and source pin discipline
 

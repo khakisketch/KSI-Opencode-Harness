@@ -28,14 +28,46 @@ test("installs Design as an independent native Primary with the artifact-first d
   assert.equal(config.agent.design.permission.external_directory, "ask")
   assert.equal(config.agent.design.permission.webfetch, "ask")
   assert.equal(config.agent.design.permission["playwright_*"], "ask")
+  assert.equal(config.agent.design.permission["mobbin_*"], "ask")
+  assert.equal(config.agent.design.permission["gpt_imagegen"], "ask")
+  assert.equal(config.agent.design.permission["context7_*"], "ask")
   assert.equal(config.agent.design.permission.task, "deny")
   assert.equal(config.agent.design.permission.skill.brainstorming, "allow")
   assert.equal(config.agent.design.permission.skill["ui-ux-pro-max"], "allow")
   assert.equal(config.agent.design.permission.skill["test-driven-development"], undefined)
   assert.match(config.agent.design.prompt, /artifact-first/i)
   assert.equal("default_agent" in config, false)
-  assert.deepEqual(ROLES, ["explore", "plan-reviewer", "developer", "developer-complex", "test-runner", "reviewer"])
+  assert.deepEqual(ROLES, ["explore", "developer", "test-runner", "reviewer", "research", "design-task"])
   assert.equal("design" in CALLS, false)
+})
+
+test("unblocks dead Design tools while keeping other roles narrow", async () => {
+  const hooks = await plugin()
+  const config = {}
+  hooks.config(config)
+  for (const tool of ["mobbin_*", "gpt_imagegen", "context7_*"]) {
+    assert.equal(config.agent.design.permission[tool], "ask")
+    assert.equal(config.agent["design-task"].permission[tool], "ask")
+  }
+  for (const name of ["explore", "developer", "test-runner", "reviewer"]) {
+    assert.equal(config.agent[name].permission["mobbin_*"], undefined, `${name} must not gain mobbin grant`)
+    assert.equal(config.agent[name].permission["gpt_imagegen"], undefined, `${name} must not gain gpt_imagegen grant`)
+  }
+})
+
+test("mandates the visual loop and review mode with mockup-only image outputs", async () => {
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /capture desktop 1280x800 plus mobile 390x844/i)
+  assert.match(prompt, /READ each PNG via vision/i)
+  assert.match(prompt, /list findings vs brief\/tokens\/direction/i)
+  assert.match(prompt, /re-capture and re-read at least one full iteration/i)
+  assert.match(prompt, /single verified capture suffices for established-pattern reuse/i)
+  assert.match(prompt, /no handoff without it/i)
+  assert.match(prompt, /gpt_imagegen outputs are mockups\/assets only, never evidence/i)
+  assert.match(prompt, /review mode.*read-only/i)
+  assert.match(prompt, /VISUAL PASS\/FAIL\/BLOCKED-no-render/i)
+  assert.match(prompt, /never Human approval/i)
+  assert.ok(prompt.length < 4000, `design prompt stays concise, got ${prompt.length} chars`)
 })
 
 test("anchors the generated preview permission to the native worktree-relative path", async () => {
@@ -72,7 +104,10 @@ test("keeps explicit project edit paths native and requires complete preview con
   assert.equal(config.agent.design.permission.edit[nativePreviewPattern(worktree, directory)], "ask")
 
   const incomplete = await plugin({ directory })
-  assert.throws(() => incomplete.config({}), /Design preview permission requires native directory and worktree context/)
+  const fallbackConfig = {}
+  assert.doesNotThrow(() => incomplete.config(fallbackConfig))
+  assert.equal(fallbackConfig.agent.design.permission.edit["design-previews/**"], "ask")
+  assert.equal(fallbackConfig.agent["design-task"].permission.edit["design-previews/**"], "ask")
 })
 
 test("rejects preview contexts outside the native worktree or without absolute roots", async () => {
@@ -232,6 +267,110 @@ test("keeps Design permission configuration cloned and stable with scalar overri
   const snapshot = structuredClone(first)
   hooks.config(first)
   assert.deepEqual(first, snapshot)
+})
+
+test("encodes ordered OpenDesign-inspired gates with brief and token Evidence", async () => {
+  const [prompt, guide] = await Promise.all([
+    readFile(new URL("../agents/design.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/design.md", import.meta.url), "utf8"),
+  ])
+  assert.match(prompt, /1\) collect brief/i)
+  assert.match(prompt, /user, purpose, density, exclusions/i)
+  assert.match(prompt, /ask on unknowns, never guess/i)
+  assert.match(prompt, /2\) lock token block/i)
+  assert.match(prompt, /reuse existing tokens\/components first, no invented hex/i)
+  assert.match(prompt, /3\) lock one explicit aesthetic direction/i)
+  assert.match(prompt, /4\) settle hierarchy then prototype/i)
+  assert.match(prompt, /real states and responsive viewports/i)
+  assert.match(prompt, /5\) self-review/i)
+  assert.match(prompt, /640\/768\/1024\/1280/)
+  assert.match(prompt, /no indigo defaults, no purple-blue gradients, no emoji-as-icons/i)
+  assert.match(prompt, /6\) hand off.*Human approval/i)
+  assert.match(prompt, /design-task Evidence cites brief version plus token block/i)
+  assert.match(prompt, /paraphrased.*OpenDesign concepts.*Apache-2\.0/i)
+  assert.ok(prompt.length < 4000, `design prompt stays concise, got ${prompt.length} chars`)
+
+  assert.match(guide, /Brief gate/i)
+  assert.match(guide, /Token block prerequisite/i)
+  assert.match(guide, /Aesthetic direction lock/i)
+  assert.match(guide, /Hierarchy then prototype/i)
+  assert.match(guide, /Self-review checklist/i)
+  assert.match(guide, /640\/768\/1024\/1280/)
+  assert.match(guide, /no indigo defaults, no purple-blue gradients, no emoji-as-icons/i)
+  assert.match(guide, /design-task Evidence must cite brief version plus token block/i)
+  assert.match(guide, /adapted in our own words from OpenDesign concepts \(Apache-2\.0\)/i)
+})
+
+test("handoff template carries brief version, token block, and self-review", async () => {
+  const handoff = await readFile(new URL("../examples/design-handoff.md", import.meta.url), "utf8")
+  assert.match(handoff, /Brief version:/)
+  assert.match(handoff, /Token block:/)
+  assert.match(handoff, /Aesthetic direction:/)
+  assert.match(handoff, /## Self-review/)
+  assert.match(handoff, /640\/768\/1024\/1280/)
+  assert.match(handoff, /no indigo defaults, no purple-blue gradients, no emoji-as-icons/i)
+})
+
+test("enforces a separate read-only design review permission", async () => {
+  const { DESIGN_REVIEW_PERMISSION, DESIGN_TASK_REVIEW_MODE } = await import("../src/agents.mjs")
+  assert.equal(DESIGN_TASK_REVIEW_MODE, "review")
+  assert.equal(DESIGN_REVIEW_PERMISSION.edit["*"], "deny")
+  assert.equal(DESIGN_REVIEW_PERMISSION["design-previews/**"], undefined)
+  assert.equal(DESIGN_REVIEW_PERMISSION.task, "deny")
+  assert.equal(DESIGN_REVIEW_PERMISSION.external_directory, "deny")
+  assert.equal(DESIGN_REVIEW_PERMISSION.bash, "deny")
+  assert.equal(DESIGN_REVIEW_PERMISSION.lsp, "deny")
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /review mode uses DESIGN_REVIEW_PERMISSION/i)
+})
+
+test("review mode declares the Mode review plus Allowed write paths none marker", async () => {
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /Mode:\s*review.*Allowed write paths:\s*none/is)
+})
+
+test("scopes gate 6 to the Design primary with a design-task return rule", async () => {
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /gate 6 applies to the user-facing Design primary/i)
+  assert.match(prompt, /design-task returns.*instead of waiting for Human approval/i)
+})
+
+test("defines the established-pattern exception with evidence", async () => {
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /established-pattern exception.*existing approved artifact.*token-identical reuse.*cited artifact version/i)
+  assert.match(prompt, /else full loop/i)
+})
+
+test("requires an intermediate viewport capture when layout changes", async () => {
+  const prompt = await readFile(new URL("../agents/design.md", import.meta.url), "utf8")
+  assert.match(prompt, /at least one intermediate.*capture plus READ when layout changes across breakpoints/i)
+  assert.match(prompt, /else state why not applicable/i)
+})
+
+test("requires design-task fidelity review after Developer UI integration", async () => {
+  const build = await readFile(new URL("../agents/build.md", import.meta.url), "utf8")
+  assert.match(build, /design-task fidelity review after Developer UI integration before completion/i)
+  assert.match(build, /FAIL becomes work items/i)
+  assert.match(build, /applies to UI completions/i)
+  assert.match(build, /inputs.*artifact version plus diff plus PNGs/i)
+  assert.match(build, /BLOCKED-no-render escalates to user/i)
+  assert.match(build, /max two fix rounds then escalates/i)
+})
+
+test("scopes external_directory deny for design-task review docs", async () => {
+  const guide = await readFile(new URL("../docs/design.md", import.meta.url), "utf8")
+  assert.match(guide, /external_directory.*Design primary.*ask.*design-task.*deny/si)
+})
+
+test("requires Developer UI work to cite the approved artifact without invented values", async () => {
+  const developer = await readFile(new URL("../agents/developer.md", import.meta.url), "utf8")
+  assert.match(developer, /cite the approved artifact version for UI work/i)
+  assert.match(developer, /no invented visual values/i)
+})
+
+test("requires Reviewer to flag invented tokens on UI diffs", async () => {
+  const reviewer = await readFile(new URL("../agents/reviewer.md", import.meta.url), "utf8")
+  assert.match(reviewer, /flag invented tokens.*approved artifact on UI diffs/i)
 })
 
 test("rejects every incoming and outgoing Design task attempt even with helper mode", async () => {

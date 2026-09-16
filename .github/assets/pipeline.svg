@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" role="img" aria-label="Pipeline: Plan, Design, Build, Verify, State — with human gates for plan agreement and visual approval">
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrowhead" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <style>
+    :root {
+      --card: #ffffff;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #59636e;
+      --accent: #0969da;
+      --arrow: #8c959f;
+      --gate: #9a6700;
+      --gate-soft: #fff8c5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card: #161b22;
+        --border: #30363d;
+        --text: #e6edf3;
+        --muted: #9198a1;
+        --accent: #4493f8;
+        --arrow: #6e7681;
+        --gate: #d29922;
+        --gate-soft: #2b2413;
+      }
+    }
+    text { font-family: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .kicker { font-size: 11px; font-weight: 600; letter-spacing: .22em; fill: var(--muted); }
+    .card { fill: var(--card); stroke: var(--border); stroke-width: 1.5; }
+    .rule { stroke: var(--border); stroke-width: 1; }
+    .stage { font-size: 15px; font-weight: 700; letter-spacing: .14em; fill: var(--text); }
+    .sub { font-size: 12.5px; fill: var(--muted); }
+    .chip { font-size: 11.5px; font-weight: 500; fill: var(--text); }
+    .dot { fill: var(--accent); }
+    .arrow { stroke: var(--arrow); stroke-width: 2; fill: none; }
+    .arrowhead { fill: #8c959f; }
+    .gate-line { stroke: var(--gate); stroke-width: 1.5; stroke-dasharray: 4 4; fill: none; }
+    .gate-pill { fill: var(--gate-soft); stroke: var(--gate); stroke-width: 1.2; }
+    .gate-text { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; fill: var(--gate); }
+    .caption { font-size: 12px; fill: var(--muted); }
+    @media (prefers-color-scheme: dark) {
+      .arrowhead { fill: #6e7681; }
+    }
+  </style>
+
+  <text class="kicker" x="28" y="38">KSI HARNESS &#183; DELIVERY PIPELINE</text>
+
+  <g>
+    <rect class="card" x="28" y="64" width="200" height="118" rx="12"/>
+    <text class="stage" x="46" y="98">PLAN</text>
+    <text class="sub" x="46" y="120">scope + acceptance</text>
+    <line class="rule" x1="46" y1="134" x2="210" y2="134"/>
+    <circle class="dot" cx="52" cy="158" r="3"/>
+    <text class="chip" x="62" y="162">plan ledger</text>
+  </g>
+
+  <g>
+    <rect class="card" x="264" y="64" width="200" height="118" rx="12"/>
+    <text class="stage" x="282" y="98">DESIGN</text>
+    <text class="sub" x="282" y="120">rendered artifact</text>
+    <line class="rule" x1="282" y1="134" x2="446" y2="134"/>
+    <circle class="dot" cx="288" cy="158" r="3"/>
+    <text class="chip" x="298" y="162">approved handoff</text>
+  </g>
+
+  <g>
+    <rect class="card" x="500" y="64" width="200" height="118" rx="12"/>
+    <text class="stage" x="518" y="98">BUILD</text>
+    <text class="sub" x="518" y="120">one writer at a time</text>
+    <line class="rule" x1="518" y1="134" x2="682" y2="134"/>
+    <circle class="dot" cx="524" cy="158" r="3"/>
+    <text class="chip" x="534" y="162">bounded contracts</text>
+  </g>
+
+  <g>
+    <rect class="card" x="736" y="64" width="200" height="118" rx="12"/>
+    <text class="stage" x="754" y="98">VERIFY</text>
+    <text class="sub" x="754" y="120">tests, then review</text>
+    <line class="rule" x1="754" y1="134" x2="918" y2="134"/>
+    <circle class="dot" cx="760" cy="158" r="3"/>
+    <text class="chip" x="770" y="162">evidence, not claims</text>
+  </g>
+
+  <g>
+    <rect class="card" x="972" y="64" width="200" height="118" rx="12"/>
+    <text class="stage" x="990" y="98">STATE</text>
+    <text class="sub" x="990" y="120">resume anywhere</text>
+    <line class="rule" x1="990" y1="134" x2="1154" y2="134"/>
+    <circle class="dot" cx="996" cy="158" r="3"/>
+    <text class="chip" x="1006" y="162">checkpoint + product-state</text>
+  </g>
+
+  <line class="arrow" x1="232" y1="123" x2="258" y2="123" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="468" y1="123" x2="494" y2="123" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="704" y1="123" x2="730" y2="123" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="940" y1="123" x2="966" y2="123" marker-end="url(#arrowhead)"/>
+
+  <line class="gate-line" x1="128" y1="186" x2="128" y2="210"/>
+  <rect class="gate-pill" x="65" y="210" width="126" height="24" rx="12"/>
+  <text class="gate-text" x="128" y="226" text-anchor="middle">HUMAN AGREEMENT</text>
+
+  <line class="gate-line" x1="364" y1="186" x2="364" y2="210"/>
+  <rect class="gate-pill" x="278" y="210" width="172" height="24" rx="12"/>
+  <text class="gate-text" x="364" y="226" text-anchor="middle">HUMAN VISUAL APPROVAL</text>
+
+  <text class="caption" x="600" y="300" text-anchor="middle">One writer per worktree &#183; no recursive delegation &#183; writers stop before independent tests</text>
+  <text class="caption" x="600" y="322" text-anchor="middle">Completion = task evidence + human acceptance &#183; the harness never picks your model</text>
+</svg>

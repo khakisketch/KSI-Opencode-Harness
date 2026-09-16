@@ -56,3 +56,19 @@ test("observational audit retains developer variants without expected routes", (
 
   assert.deepEqual([...analysis.developerVariants.entries()], [["careful", 1], ["fast", 1]])
 })
+
+test("example model routing covers every reserved role with approved models", async () => {
+  const { readFile } = await import("node:fs/promises")
+  const routing = JSON.parse(await readFile(new URL("../examples/model-routing.json", import.meta.url), "utf8"))
+  assert.deepEqual(Object.keys(routing).sort(), [...ROLES].sort())
+  for (const name of ROLES) {
+    assert.equal(typeof routing[name].model, "string", `missing model for ${name}`)
+    assert.doesNotMatch(routing[name].model, /openai/i, `openai reference for ${name}`)
+  }
+  assert.deepEqual(routing.developer, { model: "opencode-go/muse-spark-1.3-contributor", variant: "high" })
+  assert.deepEqual(routing.reviewer, { model: "opencode-go/muse-spark-1.3-contributor", variant: "xhigh" })
+  assert.deepEqual(routing.research, { model: "opencode-go/muse-spark-1.3-contributor", variant: "medium" })
+  assert.deepEqual(routing.explore, { model: "ollama/nanbeige4.2-3b-32k:latest" })
+  assert.deepEqual(routing["test-runner"], { model: "ollama/nanbeige4.2-3b-32k:latest" })
+  assert.deepEqual(routing["design-task"], { model: "opencode-go/muse-spark-1.3-contributor" })
+})

@@ -9,6 +9,8 @@
 - Status: `NOT visually approved`
 - Artifact/version: `<name>@<version>`
 - Approved scope: `<specific screen/component/story and allowed paths>`
+- Brief version: `<brief v1: user, purpose, density, exclusions>`
+- Token block: `<reused tokens/components; no invented hex>`
 - Approver and date: `<human / YYYY-MM-DD>`
 - Inspection evidence: `<PNG path(s), viewport(s), state(s)>`
 
@@ -21,10 +23,18 @@
 ## Decisions
 
 - Hierarchy/layout: `<decision>`
+- Aesthetic direction: `<one locked direction>`
 - Visual tokens/components: `<decision>`
 - Relevant props/events: `<prop/event and expected behavior>`
 - Loading/empty/error/permission states: `<state behavior>`
 - Unresolved constraints: `<none or list>`
+
+## Self-review
+
+- States: `<loading/empty/error/permission verified>`
+- Contrast: `<readable>`
+- Viewports: `<640/768/1024/1280, no unintended overflow>`
+- Anti-AI-patterns: `<no indigo defaults, no purple-blue gradients, no emoji-as-icons>`
 
 ## Build integration acceptance
 
