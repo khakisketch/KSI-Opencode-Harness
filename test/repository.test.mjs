@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { execFile as execFileCallback } from "node:child_process"
-import { chmod, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
+import { chmod, mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { promisify } from "node:util"
@@ -43,7 +43,8 @@ test("status identifies the actual Git root and bounded dirty summary from a sub
     const result = await createRepositoryService({ worktree: nested }).status()
 
     assert.equal(result.supported, true)
-    assert.equal(result.root, root)
+    const expectedRoot = await realpath(root)
+    assert.equal(result.root, expectedRoot)
     assert.equal(result.head.unborn, false)
     assert.equal(result.summary.unstaged, 1)
     assert.deepEqual(result.paths.map((entry) => entry.path), ["tracked.txt"])

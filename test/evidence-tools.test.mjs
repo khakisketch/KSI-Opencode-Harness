@@ -181,7 +181,13 @@ test("ksi_env_probe delegates to the fixed env probe with bounded output", async
   assert.ok(Buffer.byteLength(JSON.stringify(result), "utf8") <= MAX_TOOL_BYTES)
 })
 
-test("ksi_audit_summary aggregates counts only, never titles or costs", async () => {
+test("ksi_audit_summary aggregates counts only, never titles or costs", async (t) => {
+  try {
+    await import("node:sqlite")
+  } catch {
+    t.skip("node:sqlite unavailable")
+    return
+  }
   const { DatabaseSync } = await import("node:sqlite")
   const dir = await mkdtemp(join(tmpdir(), "ksi-ev-audit-"))
   try {

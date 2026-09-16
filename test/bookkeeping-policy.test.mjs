@@ -2,7 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, parse } from "node:path"
 import plugin from "../index.mjs"
 
 test("allows session-directory bookkeeping when worktree is an ancestor root", async () => {
@@ -63,7 +63,8 @@ test("reads the checkpoint at the directory root when worktree is an ancestor ro
   try {
     await mkdir(join(fakeHome, ".opencode"), { recursive: true })
     await writeFile(join(fakeHome, ".opencode", "working-state.md"), "# Working State\n\nfixture-marker-ancestor-root\n", "utf8")
-    const hooks = await plugin({ directory: fakeHome, worktree: "/" })
+    const worktreeRoot = parse(fakeHome).root
+    const hooks = await plugin({ directory: fakeHome, worktree: worktreeRoot })
     hooks.config({})
     const output = { system: [] }
     await hooks["experimental.chat.system.transform"]({ sessionID: "bookkeeping-fixture" }, output)
