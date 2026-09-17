@@ -97,6 +97,7 @@ Complex developer work uses the default 80 steps; Build may approve an explicit 
 - `<worktree>/.opencode/working-state.md` — a rolling checkpoint (≤80 lines, ≤6 KiB): the resume pointer, read before continuing, rewritten at milestones only.
 - `docs/superpowers/product-state.md` — the per-project source of truth: goal, milestones, current slice + acceptance, and backlog. Updated only at slice close.
 - `docs/superpowers/plans/<date>-<topic>.md` — one execution ledger per workstream; `done` requires recorded verification evidence.
+- **Goals stay native.** Long-running work can run under each tool's own `/goal` (built-in in Claude and Codex; OpenCode via the pinned companion plugin `@prevalentware/opencode-goal-plugin@0.1.49`) while the checkpoint carries one canonical `Goal:` line, so every tool sees the same objective.
 
 Sessions receive the checkpoint and the current slice automatically (≤5000 bytes combined, labeled untrusted, read-only, non-blocking when absent) — natively in OpenCode, and in Codex or Claude through the bundled CLI registered as a SessionStart hook:
 

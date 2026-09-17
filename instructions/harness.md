@@ -76,11 +76,13 @@ Updated: YYYY-MM-DD
 ("(none)" is allowed when the backlog is empty.)
 ```
 - checkpoint 추가 라인: `Slice: <name> | acceptance: <한 줄> | ledger: <path>`
+- checkpoint Goal 라인: `Goal: <active|paused|done> — <one-line objective> (evidence: <path or sha>)`
 - Rules (3도구 동일 문구):
   - 제품 상태: 각 프로젝트의 `docs/superpowers/product-state.md`가 Goal·Milestone·현재 Slice+acceptance·Backlog의 SSOT다. 세션 시작 시 checkpoint와 함께 읽고, slice 마감에서만 갱신한다.
   - 완료: task 증거 + slice acceptance(사용자 end-to-end 확인) 둘 다 필요하다. 다음 작업은 product-state의 다음 미완 slice에서 선택한다.
   - Backlog: 새로 발견된 문제가 현재 slice acceptance를 막지 않으면 현재 작업에 넣지 않는다. Backlog에 기록하고 현재 milestone을 계속한다. slice 마감 시에만 트리아지한다.
   - .ksi는 레거시다. 새 상태 기록은 product-state와 ledger로만 하고, 기존 .ksi 파일은 archive로 보존한다.
+- goal: 장기 실행은 각 도구의 native /goal로 수행한다(OpenCode는 pinned goal plugin). goal은 세션 스코프 실행 계약이며 product-state를 대체하지 않는다 — 승인된 ledger/slice를 참조하고, 자동 완료는 KSI 완료가 아니다(증거 + slice 마감 시 사용자 acceptance 필요). plan/design 세션은 실행형 goal을 시작하지 않는다. 체크포인트에 Goal: <active|paused|done> — <한 줄 objective> (evidence: <path or sha>) 한 줄로 기록한다.
 - durable specs/plans는 docs/superpowers; project AGENTS.md는 라우팅·경계만, 변동 상태 금지.
 - Superpowers는 공유 skill 원본이며 upstream 파일을 수정·복사하지 않음; 운영 규칙은 정책에만; KSI 전용 skill 복사 없음.
-- skill 매핑: brainstorming=미승인 설계; writing-plans=중요 계획; executing-plans/subagent-driven-development=승인 실행; test-driven-development=구현; systematic-debugging=원인 불명 실패; requesting/receiving-code-review=리뷰 왕복; verification-before-completion=완료 주장; using-git-worktrees=격리; dispatching-parallel-agents=독립 병렬; ui-ux-pro-max=신규/대규모 UI 선택; grill-me=명시 요청만; goals=설치 보존, workflow 제외.
+- skill 매핑: brainstorming=미승인 설계; writing-plans=중요 계획; executing-plans/subagent-driven-development=승인 실행; test-driven-development=구현; systematic-debugging=원인 불명 실패; requesting/receiving-code-review=리뷰 왕복; verification-before-completion=완료 주장; using-git-worktrees=격리; dispatching-parallel-agents=독립 병렬; ui-ux-pro-max=신규/대규모 UI 선택; grill-me=명시 요청만; goals=native /goal(Claude·Codex)·pinned plugin(OpenCode) 런타임(스킬 아님), 세션 스코프 실행 계약.

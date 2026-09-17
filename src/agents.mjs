@@ -43,10 +43,21 @@ export const EVIDENCE_TOOLS = [
   "ksi_audit_summary",
 ]
 const evidenceGrants = () => Object.fromEntries(EVIDENCE_TOOLS.map((name) => [name, "allow"]))
+export const GOAL_READ_TOOLS = ["get_goal", "get_goal_history", "list_all_goals"]
+export const GOAL_WRITE_TOOLS = [
+  "create_goal",
+  "set_goal",
+  "update_goal_objective",
+  "update_goal",
+  "update_goal_status",
+  "clear_goal",
+]
+const goalGrants = (names) => Object.fromEntries(names.map((name) => [name, "allow"]))
 export const PLAN_PERMISSION = {
   ...READ_ONLY_PERMISSION, question: "allow", todowrite: "allow", plan_exit: "allow",
   webfetch: "allow", websearch: "allow", lsp: "allow",
   ...evidenceGrants(),
+  ...goalGrants(GOAL_READ_TOOLS),
   skill: rules(["brainstorming", "writing-plans", "systematic-debugging", "ui-ux-pro-max", "customize-opencode"]),
   edit: { "*": "deny", ".opencode/working-state.md": "allow" },
   task: rules(CALLS.plan),
@@ -62,6 +73,7 @@ export const BUILD_PERMISSION = {
   question: "allow", todowrite: "allow",
   webfetch: "allow", websearch: "allow",
   ...evidenceGrants(),
+  ...goalGrants([...GOAL_READ_TOOLS, ...GOAL_WRITE_TOOLS]),
   skill: rules(["subagent-driven-development", "executing-plans", "verification-before-completion", "systematic-debugging"]),
   edit: BUILD_BOOKKEEPING_EDIT,
   bash: "deny", lsp: "deny", external_directory: "deny",

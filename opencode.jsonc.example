@@ -7,6 +7,9 @@
     // Optional execution assistance is OFF by default. If explicitly approved,
     // replace the KSI string above with this native plugin tuple:
     // ["file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs", { "developerTestRunner": true }]
+    // Optional goal federation (OFF by default). OpenCode only; Claude/Codex use built-in /goal.
+    // opencode.jsonc: ["@prevalentware/opencode-goal-plugin@0.1.49", { "restricted_agents": ["plan", "design"] }]
+    // tui.json: "@prevalentware/opencode-goal-plugin@0.1.49" (plain string)
   ],
   // Merge only with approval. KSI enforces strict coordinator-only Build
   // permissions at startup (bookkeeping writes only, no product edits or

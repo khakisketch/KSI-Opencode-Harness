@@ -138,6 +138,17 @@ live model smoke test는 quota/API token과 provider 전송을 일으킬 수 있
 
 Codex·Claude에서 같은 컨텍스트를 공유하려면 저장소의 `bin/ksi-continuity-inject.mjs`를 SessionStart hook으로 등록합니다. hook 등록·신뢰는 각 도구의 사용자 절차이며, 이 저장소의 설치 절차는 `~/.codex`·`~/.claude`를 수정하지 않습니다.
 
+## Companion: goal plugin (선택)
+
+장기 실행은 각 도구의 native `/goal`로 수행합니다(Claude·Codex 내장, OpenCode는 pinned companion plugin). KSI goal 엔진이 아니며 skill 기반 goal은 제외됩니다.
+
+- 고정 pin: `@prevalentware/opencode-goal-plugin@0.1.49`. version을 지어내지 말고 이 revision만 사용합니다.
+- `opencode.jsonc`의 `plugin` 배열에는 nested tuple로 등록합니다: `["@prevalentware/opencode-goal-plugin@0.1.49", { "restricted_agents": ["plan", "design"] }]`.
+- `tui.json`에는 plain string으로 등록합니다: `"@prevalentware/opencode-goal-plugin@0.1.49"`.
+- goal 도구 권한은 `src/agents.mjs`가 소유합니다(Build=read+write, Plan=read-only). 수동 permission 추가는 startup 시 덮어씌워집니다.
+`restricted_agents`는 plan/design goal을 paused로 유지하고 자동 continuation을 억제하며, harness 권한이 이중 잠금합니다(Plan read-only, Design에는 goal 도구 없음).
+- 제거는 두 config 항목을 모두 삭제하고 OpenCode process 전체를 재시작합니다.
+
 ## 업데이트·rollback
 
 새 upstream revision은 source/package를 검토하고 호환성을 확인한 뒤에만 고정합니다. 반복 설치가 plugin/instruction을 중복하지 않는지 확인합니다. 실패 시 기록한 시작 상태에서 **이번 installer가 소유한 plugin/config 변경만** 사용자 승인으로 되돌리고, project work·공유 upstream 설치·Codex/Claude 파일은 되돌리지 않습니다.
