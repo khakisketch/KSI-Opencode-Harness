@@ -8,7 +8,7 @@ import { REQUIRED_PACKAGE_FILES, INSTALL_CHECK_ROLES, npmInvocation, policyRefer
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("declares portable plugin metadata and automatic test discovery", () => {
-  assert.equal(packageJson.version, "0.3.0")
+  assert.equal(packageJson.version, "0.4.0-beta.0")
   assert.equal(packageJson.type, "module")
   assert.equal(packageJson.main, "./index.mjs")
   assert.equal(packageJson.exports, "./index.mjs")
@@ -23,15 +23,59 @@ test("declares portable plugin metadata and automatic test discovery", () => {
 test("ships the Design workflow documentation and model-free examples", () => {
   for (const required of [
     "docs/design.md",
+    "docs/design-system-template.md",
+    "docs/design-critique.md",
     "examples/design.project.jsonc",
     "examples/design-handoff.md",
   ]) {
     assert.ok(REQUIRED_PACKAGE_FILES.includes(required), `package gate does not require ${required}`)
   }
-  assert.ok(packageJson.files.includes("docs/"), "package does not ship the docs directory")
+  const PUBLIC_DOCS = [
+    "docs/architecture.md",
+    "docs/design.md",
+    "docs/design-critique.md",
+    "docs/design-system-template.md",
+    "docs/execution.md",
+    "docs/releasing.md",
+    "docs/troubleshooting.md",
+    "docs/verification.md",
+  ]
+  for (const doc of PUBLIC_DOCS) {
+    assert.ok(packageJson.files.includes(doc), `package does not explicitly ship ${doc}`)
+  }
+  assert.ok(!packageJson.files.includes("docs/"), "package must not ship the whole docs/ directory")
+  assert.ok(!packageJson.files.includes("docs"), "package must not ship the whole docs directory")
   for (const example of ["examples/design.project.jsonc", "examples/design-handoff.md"]) {
     assert.ok(packageJson.files.includes(example), `package does not explicitly ship ${example}`)
   }
+})
+
+test("public docs whitelist is fail-closed against docs/superpowers ledgers and specs", () => {
+  const PUBLIC_DOCS = [
+    "docs/architecture.md",
+    "docs/design.md",
+    "docs/design-critique.md",
+    "docs/design-system-template.md",
+    "docs/execution.md",
+    "docs/releasing.md",
+    "docs/troubleshooting.md",
+    "docs/verification.md",
+  ]
+  for (const doc of PUBLIC_DOCS) {
+    assert.ok(REQUIRED_PACKAGE_FILES.includes(doc), `required public doc is not gated: ${doc}`)
+  }
+  assert.doesNotThrow(() => validateManifest([...REQUIRED_PACKAGE_FILES]))
+  for (const internal of [
+    "docs/superpowers/product-state.md",
+    "docs/superpowers/plans/2026-09-23-human-centered-workflow.md",
+    "docs/superpowers/specs/2026-09-15-long-running-orchestration-design.md",
+  ]) {
+    assert.throws(() => validateManifest([...REQUIRED_PACKAGE_FILES, internal]), /forbidden|superpowers/, internal)
+  }
+  assert.ok(
+    !packageJson.files.some((entry) => entry === "docs" || entry === "docs/" || entry.startsWith("docs/superpowers")),
+    "package whitelist must not reintroduce docs/ or docs/superpowers",
+  )
 })
 
 test("production files allowlist excludes checks, CI, tests, and temporary assets", () => {
@@ -57,8 +101,15 @@ test("accepts the complete manifest and normalizes Windows separators", () => {
   )
 })
 
+test("requires runtime repository service in the package gate", () => {
+  assert.ok(REQUIRED_PACKAGE_FILES.includes("src/repository.mjs"), "package gate does not require src/repository.mjs")
+  assert.throws(
+    () => validateManifest(REQUIRED_PACKAGE_FILES.filter((path) => path !== "src/repository.mjs")),
+    /src\/repository\.mjs/,
+  )
+})
 test("rejects credential artifact basenames but allows an example environment file", () => {
-  for (const filename of [".env", ".env.production", "auth.json", "credentials.json", "credentials-prod.json", "tls.pem", "private.key"]) {
+  for (const filename of [".env", ".env.production", "auth.json", "credentials.json", "credentials-prod.json", "tls.pem", "private.key", "my-credentials-backup.json", "my-auth.json", "nested/dir/MY-AUTH.JSON", "nested/dir/My-Credentials-Backup.JSON", "nested/.env", "config/MY.PEM", "config/Private.KEY"]) {
     assert.throws(
       () => validateManifest([...REQUIRED_PACKAGE_FILES, `config/${filename}`]),
       /forbidden path/,
@@ -66,6 +117,13 @@ test("rejects credential artifact basenames but allows an example environment fi
     )
   }
   assert.doesNotThrow(() => validateManifest([...REQUIRED_PACKAGE_FILES, "config/.env.example"]))
+})
+
+test("syntax-check covers evidence-tools and env-probe without changing package identity", () => {
+  assert.match(packageJson.scripts.check, /node --check src\/evidence-tools\.mjs/)
+  assert.match(packageJson.scripts.check, /node --check src\/env-probe\.mjs/)
+  assert.equal(packageJson.version, "0.4.0-beta.0")
+  assert.equal(packageJson.name, "ksi-opencode-harness")
 })
 
 test("requires npm_execpath and never enables shell execution", () => {
@@ -100,8 +158,10 @@ test("accepts a policy reference through an aliased installed root but rejects a
   }
 })
 
-test("package install gate asserts the hidden design-task registration", () => {
-  assert.ok(INSTALL_CHECK_ROLES.includes("design-task"), "install gate does not assert design-task")
-  assert.ok(!REQUIRED_PACKAGE_FILES.includes("agents/design-task.md"), "design-task shares agents/design.md and needs no own prompt file")
-  assert.ok(REQUIRED_PACKAGE_FILES.includes("agents/design.md"), "shared design-task prompt file is not gated")
+test("package install gate asserts the hidden design-critic registration without design-task", () => {
+  assert.ok(!INSTALL_CHECK_ROLES.includes("design-task"), "removed design-task leaves no install gate")
+  assert.ok(INSTALL_CHECK_ROLES.includes("design-critic"), "install gate does not assert design-critic")
+  assert.ok(!REQUIRED_PACKAGE_FILES.includes("agents/design-task.md"), "removed design-task needs no own prompt file")
+  assert.ok(REQUIRED_PACKAGE_FILES.includes("agents/design.md"), "Design prompt file is not gated")
+  assert.ok(REQUIRED_PACKAGE_FILES.includes("agents/design-critic.md"), "design-critic prompt file is not gated")
 })

@@ -60,8 +60,13 @@ test("observational audit retains developer variants without expected routes", (
 test("example model routing covers every reserved role with approved models", async () => {
   const { readFile } = await import("node:fs/promises")
   const routing = JSON.parse(await readFile(new URL("../examples/model-routing.json", import.meta.url), "utf8"))
-  assert.deepEqual(Object.keys(routing).sort(), [...ROLES].sort())
-  for (const name of ROLES) {
+  const PINNED_ROLES = ["explore", "developer", "test-runner", "reviewer", "research"]
+  assert.deepEqual(Object.keys(routing).sort(), [...PINNED_ROLES].sort())
+  assert.ok(!Object.hasOwn(routing, "design-critic"), "hidden design-critic stays unpinned and inherits the native selected model")
+  assert.ok(!Object.hasOwn(routing, "design-task"), "removed design-task leaves no portable route")
+  assert.ok(ROLES.includes("design-critic"), "hidden design-critic is a reserved role without a portable example route")
+  assert.ok(!ROLES.includes("design-task"), "removed design-task is not a reserved role")
+  for (const name of PINNED_ROLES) {
     assert.equal(typeof routing[name].model, "string", `missing model for ${name}`)
     assert.doesNotMatch(routing[name].model, /openai/i, `openai reference for ${name}`)
   }
@@ -70,5 +75,4 @@ test("example model routing covers every reserved role with approved models", as
   assert.deepEqual(routing.research, { model: "opencode-go/muse-spark-1.3-contributor", variant: "medium" })
   assert.deepEqual(routing.explore, { model: "ollama/nanbeige4.2-3b-32k:latest" })
   assert.deepEqual(routing["test-runner"], { model: "ollama/nanbeige4.2-3b-32k:latest" })
-  assert.deepEqual(routing["design-task"], { model: "opencode-go/muse-spark-1.3-contributor" })
 })

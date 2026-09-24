@@ -1,7 +1,7 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 
-import { contractHint, validateDesignTaskContract, validateDeveloperTaskContract, validateReadTaskContract } from "../src/contracts.mjs"
+import { contractHint, validateDesignCriticContract, validateDeveloperTaskContract, validateReadTaskContract, isReviewerVisualPrompt, validateReviewerVisualContract } from "../src/contracts.mjs"
 
 const completeTask = `Objective: Update the local route.
 Allowed write paths: index.mjs
@@ -70,58 +70,153 @@ test("read/execution role contracts require their own evidence fields", () => {
   }
 })
 
-test("design-task contracts bind prototype scope without full implementation sections", () => {
-  const complete = "Objective: Prototype the empty state.\nAllowed write paths: design-previews/empty\nAcceptance criteria: Rendered artifact inspected.\nEvidence: artifact v3, approved scope."
-  assert.doesNotThrow(() => validateDesignTaskContract({ prompt: complete }))
-  assert.throws(() => validateDesignTaskContract({ prompt: "Objective: Prototype." }), /design-task section/)
-  assert.doesNotThrow(() => validateDesignTaskContract({
-    task_id: "ses_existing",
-    prompt: "Failure: render blocked\nEvidence: missing capture tool",
-  }))
-  assert.throws(() => validateDesignTaskContract({ task_id: "ses_existing", prompt: "Please revise." }), /repair requests require/)
+test("removed design-task contract leaves no validator or review marker", async () => {
+  const contracts = await import("../src/contracts.mjs")
+  assert.equal(contracts.validateDesignTaskContract, undefined, "dead design-task validator remains")
+  assert.equal(contracts.isDesignTaskReviewPrompt, undefined, "dead design-task review marker remains")
+  assert.doesNotMatch(contractHint("design-task", false), /prototype requests require concrete/i)
 })
 
-test("design-task review requests declare Mode review with no write paths", async () => {
-  const { validateDesignTaskContract, isDesignTaskReviewPrompt } = await import("../src/contracts.mjs")
-  const review = "Objective: Review the empty state.\nMode: review\nAllowed write paths: none\nAcceptance criteria: VISUAL PASS/FAIL/BLOCKED-no-render.\nEvidence: artifact v3 plus diff plus PNGs."
-  assert.equal(isDesignTaskReviewPrompt(review), true)
-  assert.doesNotThrow(() => validateDesignTaskContract({ prompt: review }))
+test("reviewer visual-fidelity requests declare Mode visual-fidelity with no write paths and PNG evidence", async () => {
+  const visual = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  assert.equal(isReviewerVisualPrompt(visual), true)
+  assert.doesNotThrow(() => validateReviewerVisualContract({ prompt: visual }))
+  assert.equal(isReviewerVisualPrompt("Objective: inspect\nScope: src\nEvidence: baseline and diff"), false)
   assert.throws(
-    () => validateDesignTaskContract({ prompt: review.replace("Allowed write paths: none", "Allowed write paths: design-previews/x") }),
-    /review requests require `Allowed write paths: none`/i,
+    () => validateReviewerVisualContract({ prompt: visual.replace("Allowed write paths: none", "Allowed write paths: design-previews/x") }),
+    /Allowed write paths: none/i,
   )
   assert.throws(
-    () => validateDesignTaskContract({ prompt: "Objective: Prototype.\nAllowed write paths: none\nAcceptance criteria: rendered\nEvidence: v1" }),
-    /prototype requests require concrete/i,
+    () => validateReviewerVisualContract({ prompt: "Objective: Review.\nScope: src\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: artifact v3 plus integration diff baseline plus design-previews/a-desktop-1280x800.png desktop only." }),
+    /TWO|two PNG|desktop.*mobile|mobile/i,
   )
-  const prototype = "Objective: Prototype the empty state.\nAllowed write paths: design-previews/empty\nAcceptance criteria: Rendered artifact inspected.\nEvidence: artifact v3, approved scope."
-  assert.equal(isDesignTaskReviewPrompt(prototype), false)
-  assert.doesNotThrow(() => validateDesignTaskContract({ prompt: prototype }))
+  const codeReview = "Objective: inspect\nScope: src\nEvidence: baseline and diff"
+  assert.doesNotThrow(() => validateReadTaskContract("reviewer", { prompt: codeReview }))
 })
 
-test("design-task repairs validate the review marker when declared", async () => {
-  const { validateDesignTaskContract } = await import("../src/contracts.mjs")
-  assert.doesNotThrow(() => validateDesignTaskContract({
+test("reviewer visual repairs validate the visual marker when declared", async () => {
+  assert.doesNotThrow(() => validateReviewerVisualContract({
     task_id: "ses_existing",
-    prompt: "Failure: render blocked\nEvidence: missing capture tool",
-  }))
-  assert.doesNotThrow(() => validateDesignTaskContract({
-    task_id: "ses_existing",
-    prompt: "Mode: review\nAllowed write paths: none\nFailure: render blocked\nEvidence: missing capture tool",
+    prompt: "Mode: visual-fidelity\nAllowed write paths: none\nFailure: render blocked\nEvidence: approved artifact v3 plus integration diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.",
   }))
   assert.throws(
-    () => validateDesignTaskContract({
+    () => validateReviewerVisualContract({
       task_id: "ses_existing",
-      prompt: "Mode: review\nAllowed write paths: design-previews/x\nFailure: render blocked\nEvidence: missing capture tool",
+      prompt: "Mode: visual-fidelity\nAllowed write paths: design-previews/x\nFailure: render blocked\nEvidence: approved artifact v3 plus diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.",
     }),
-    /review requests require `Allowed write paths: none`/i,
+    /Allowed write paths: none/i,
   )
   assert.throws(
-    () => validateDesignTaskContract({
+    () => validateReviewerVisualContract({
       task_id: "ses_existing",
-      prompt: "Mode: prototype\nFailure: render blocked\nEvidence: missing capture tool",
+      prompt: "Mode: review\nFailure: render blocked\nEvidence: approved artifact v3 plus diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.",
     }),
-    /must not declare `Mode:`/i,
+    /must not declare `Mode:`|visual-fidelity/i,
+  )
+})
+
+test("ordinary reviewer rejects any stray/malformed/duplicate Mode line fail-closed", () => {
+  const base = "Objective: inspect\nScope: src\nEvidence: baseline and diff"
+  const capture = (prompt) => {
+    try { validateReadTaskContract("reviewer", { prompt }) } catch (error) { return String(error) }
+    assert.fail(`expected ordinary reviewer rejection for: ${prompt}`)
+  }
+  for (const prompt of [
+    `${base}\nMode: visual_fidelity`,
+    `${base}\nMode: review`,
+    `${base}\nMode: visual-fidelity`,
+    `${base}\nMode: visual-fidelity\nMode: visual-fidelity`,
+    `${base}\nMode: review\nMode: visual_fidelity`,
+  ]) {
+    const message = capture(prompt)
+    assert.match(message, /must not declare `Mode:`|visual-fidelity/i)
+    assert.match(message, /Mode: visual-fidelity/)
+    assert.match(message, /Allowed write paths: none/)
+    assert.match(message, /approved artifact\/version/i)
+    assert.match(message, /diff/i)
+    assert.match(message, /TWO.*PNG|two PNG/i)
+  }
+  assert.throws(
+    () => validateReviewerVisualContract({ prompt: `${base}\nMode: review\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.` }),
+    /visual-fidelity/i,
+  )
+  assert.throws(
+    () => validateReviewerVisualContract({ prompt: "Objective: Review.\nScope: src\nMode: visual-fidelity\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile." }),
+    /single|duplicate|ambiguous|multiple/i,
+  )
+  assert.doesNotThrow(() => validateReadTaskContract("reviewer", { prompt: base }))
+  assert.doesNotThrow(() => validateReadTaskContract("reviewer", { prompt: "Objective: critique plan\nScope: plan\nEvidence: agreed requirement in visual mode prose without a formal marker" }))
+  const visual = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  assert.equal(isReviewerVisualPrompt(visual), true)
+  assert.doesNotThrow(() => validateReviewerVisualContract({ prompt: visual }))
+  assert.doesNotThrow(() => validateReviewerVisualContract({
+    task_id: "ses_existing",
+    prompt: "Mode: visual-fidelity\nAllowed write paths: none\nFailure: render blocked\nEvidence: approved artifact v3 plus integration diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.",
+  }))
+})
+
+test("design-critic requires artifact/version plus actual PNG capture evidence", () => {
+  const valid = "Objective: Critique the empty state.\nScope: design-previews/empty, desktop/mobile viewports, no fixes.\nEvidence: artifact v3 brief v2 plus design-previews/empty-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile viewports inspected."
+  assert.doesNotThrow(() => validateDesignCriticContract({ prompt: valid }))
+  assert.throws(() => validateDesignCriticContract({ prompt: "Objective: Critique.\nScope: previews" }), /Evidence/)
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: "Objective: Critique.\nScope: previews\nEvidence: artifact v3 brief v2, no captures yet" }),
+    /PNG|viewport|capture/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: "Objective: Critique.\nScope: previews\nEvidence: placeholder" }),
+    /PNG|viewport|capture|placeholder/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${valid}\n${"x".repeat(12 * 1024)}` }),
+    /12 KiB/i,
+  )
+})
+
+test("design-critic rejects fake, absolute, traversal, single, and multiline Evidence", () => {
+  const base = "Objective: Critique the empty state.\nScope: design-previews/empty, desktop/mobile viewports, no fixes."
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus fake.png desktop` }),
+    /workspace-relative|two PNG|desktop.*mobile|claims/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus /tmp/empty-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile` }),
+    /absolute|workspace-relative/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus ../outside-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile` }),
+    /traversal|workspace-relative/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus design-previews/empty-desktop-1280x800.png desktop viewport inspected.` }),
+    /two PNG|desktop.*mobile|mobile/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus design-previews/a-desktop-1280x800.png and design-previews/b-desktop-1280x800.png desktop viewports` }),
+    /mobile/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ prompt: `${base}\nEvidence: artifact v3 plus design-previews/empty-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile\nEvidence: extra line` }),
+    /single-line|ambiguous|multiple/i,
+  )
+})
+
+test("design-critic Evidence paths are claims, not proof of file existence or approval", () => {
+  assert.match(contractHint("design-critic", false), /claims.*not proof|not proof/i);
+})
+
+test("design-critic repair resumes with failure plus PNG evidence", () => {
+  assert.doesNotThrow(() => validateDesignCriticContract({
+    task_id: "ses_existing",
+    prompt: "Failure: render blocked\nEvidence: artifact v3 plus design-previews/empty-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile viewports inspected.",
+  }))
+  assert.throws(
+    () => validateDesignCriticContract({ task_id: "ses_existing", prompt: "Please revise." }),
+    /repair requests require/i,
+  )
+  assert.throws(
+    () => validateDesignCriticContract({ task_id: "ses_existing", prompt: "Failure: blocked\nEvidence: placeholder" }),
+    /PNG|viewport|capture|placeholder/i,
   )
 })
 
@@ -144,9 +239,9 @@ test("contractHint returns the expected template for each role", () => {
   assert.match(contractHint("reviewer", false), /Evidence:/)
   assert.match(contractHint("research", false), /Evidence:/)
 
-  const designHint = contractHint("design-task", false)
-  for (const label of ["Objective:", "Allowed write paths:", "Acceptance criteria:", "Evidence:"]) {
-    assert.match(designHint, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  const visualHint = contractHint("reviewer", false)
+  for (const label of ["Objective:", "Scope:", "Evidence:"]) {
+    assert.match(visualHint, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
   }
 })
 
@@ -171,7 +266,7 @@ test("every Developer rejection appends its template once", () => {
   assert.match(String(emptyError), /Objective:/)
 })
 
-test("every read-role and design-task rejection appends its template once", () => {
+test("every read-role and reviewer-visual rejection appends its template once", () => {
   const capture = (fn) => {
     try { fn() } catch (error) { return String(error) }
     assert.fail("expected contract rejection")
@@ -187,13 +282,52 @@ test("every read-role and design-task rejection appends its template once", () =
   const reviewerError = capture(() => validateReadTaskContract("reviewer", { prompt: "Objective: only" }))
   assert.match(String(reviewerError), /Evidence:/)
 
-  const designError = capture(() => validateDesignTaskContract({ prompt: "Objective: Prototype." }))
-  assert.match(String(designError), /Allowed write paths:/)
-  assert.match(String(designError), /Acceptance criteria:/)
-  assert.match(String(designError), /Evidence:/)
+  const visualError = capture(() => validateReviewerVisualContract({ prompt: "Objective: Review." }))
+  assert.match(String(visualError), /Scope:/)
+  assert.match(String(visualError), /Evidence:/)
 
-  const designRepairError = capture(() => validateDesignTaskContract({ task_id: "ses_existing", prompt: "Please revise." }))
-  assert.match(String(designRepairError), /task_id/)
-  assert.match(String(designRepairError), /Failure:/)
-  assert.match(String(designRepairError), /Evidence:/)
+  const visualRepairError = capture(() => validateReviewerVisualContract({ task_id: "ses_existing", prompt: "Please revise." }))
+  assert.match(String(visualRepairError), /task_id/)
+  assert.match(String(visualRepairError), /Failure:/)
+  assert.match(String(visualRepairError), /Evidence:/)
+})
+
+test("reviewer visual-fidelity rejects duplicate Evidence or Allowed write paths even when first is valid", () => {
+  const visual = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  assert.doesNotThrow(() => validateReviewerVisualContract({ prompt: visual }))
+  const capture = (prompt, repair = false) => {
+    try {
+      if (repair) validateReviewerVisualContract({ task_id: "ses_existing", prompt })
+      else validateReviewerVisualContract({ prompt })
+    } catch (error) { return String(error) }
+    assert.fail(`expected visual duplicate rejection for: ${prompt}`)
+  }
+  for (const prompt of [
+    `${visual}\nEvidence: contradictory second evidence without png`,
+    `${visual}\nAllowed write paths: src/evil`,
+    `${visual}\nEvidence:\nAllowed write paths:`,
+  ]) {
+    const message = capture(prompt)
+    assert.match(message, /single|duplicate|ambiguous|multiple|empty|nonempty|required/i)
+    assert.match(message, /Mode: visual-fidelity/)
+    assert.match(message, /Allowed write paths: none/)
+    assert.match(message, /approved artifact\/version/i)
+    assert.match(message, /TWO.*PNG|two PNG/i)
+  }
+  for (const prompt of [
+    "Mode: visual-fidelity\nAllowed write paths: none\nFailure: render blocked\nEvidence: approved artifact v3 plus integration diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.\nEvidence: contradictory second line",
+    "Mode: visual-fidelity\nAllowed write paths: none\nAllowed write paths: src/evil\nFailure: render blocked\nEvidence: approved artifact v3 plus diff plus design-previews/a-desktop-1280x800.png desktop and design-previews/a-mobile-390x844.png mobile.",
+  ]) {
+    const message = capture(prompt, true)
+    assert.match(message, /single|duplicate|ambiguous|multiple|empty|nonempty|required/i)
+  }
+  assert.throws(
+    () => validateReviewerVisualContract({ prompt: visual.replace("Evidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile.", "Evidence:") }),
+    /Evidence/i,
+  )
+  assert.throws(
+    () => validateReviewerVisualContract({ prompt: visual.replace("Allowed write paths: none", "Allowed write paths:") }),
+    /Allowed write paths/i,
+  )
+  assert.doesNotThrow(() => validateReadTaskContract("reviewer", { prompt: "Objective: critique plan\nScope: plan\nEvidence: agreed requirement in visual mode prose without a formal marker\nThe evidence discussed above stays in narrative prose and allowed write paths are described without labels." }))
 })

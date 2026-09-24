@@ -8,7 +8,6 @@ const {
   PLAN_PERMISSION,
   BUILD_PERMISSION,
   DESIGN_PERMISSION,
-  DESIGN_REVIEW_PERMISSION,
   ROLES,
   rolePermission,
 } = await import("../src/agents.mjs")
@@ -40,7 +39,6 @@ test("direct permissions grant exactly the approved goal keys (closed world)", (
   assert.deepStrictEqual(goalLikeKeys(PLAN_PERMISSION), [...GOAL_READ_TOOLS].sort())
   assert.deepStrictEqual(goalLikeKeys(BUILD_PERMISSION), [...ALL_GOAL_TOOLS].sort())
   assert.deepStrictEqual(goalLikeKeys(DESIGN_PERMISSION), [])
-  assert.deepStrictEqual(goalLikeKeys(DESIGN_REVIEW_PERMISSION), [])
   for (const name of ROLES) {
     assert.deepStrictEqual(goalLikeKeys(rolePermission(name)), [], `${name} must not grant goal tools`)
   }
@@ -59,10 +57,6 @@ test("direct permissions grant exactly the approved goal keys (closed world)", (
     assert.ok(
       DESIGN_PERMISSION[name] === undefined || DESIGN_PERMISSION[name] === "deny",
       `${name} must be denied/absent in DESIGN`,
-    )
-    assert.ok(
-      DESIGN_REVIEW_PERMISSION[name] === undefined || DESIGN_REVIEW_PERMISSION[name] === "deny",
-      `${name} must be denied/absent in DESIGN review`,
     )
   }
 })

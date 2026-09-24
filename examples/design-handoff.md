@@ -17,8 +17,13 @@
 ## Reproduction
 
 - Source or prototype: `<reviewed path, story, or reproduction command>`
+- Live URL (optional, authorized localhost only): `<http://127.0.0.1:<port>/...>`
+- Baseline vs revision: `<what changed between baseline and this revision>`
 - Viewports: `<for example 1280x800, 390x844>`
 - Interaction: `<short path through the approved state>`
+- Synthetic state evidence: `<fixtures and states shown; synthetic data only, no PII>`
+- Outstanding risk: `<none or list>`
+- Approval waits until the user inspects the actual render: no approval until user inspected; never infer approval from source alone.
 
 ## Decisions
 

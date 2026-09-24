@@ -10,7 +10,7 @@ A plugin that adds **Plan / Design / Build / Verify** boundaries to OpenCode's n
 
 ![Pipeline: Plan, Design, Build, Verify, State — with human gates at plan agreement and visual approval](.github/assets/pipeline.svg)
 
-- **Bounded roles, not role spam.** Six reserved subagents with fixed budgets and permissions. Workers cannot recurse; there is no do-anything agent.
+- **Bounded roles, not role spam.** Six reserved subagents (five workers plus hidden read-only design-critic) with fixed budgets and permissions. Workers cannot recurse; there is no do-anything agent.
 - **One writer at a time.** Product and integration edits go to one Worker per worktree, batched when small; writers stop before independent testing.
 - **Authors never verify themselves.** Test Runner executes the checks; a Reviewer inspects the actual diff, not the producer's reasoning.
 - **Human gates stay human.** Plan agreement and visual design approval are explicit; nothing commits, pushes, or merges itself.
@@ -31,29 +31,45 @@ A plugin that adds **Plan / Design / Build / Verify** boundaries to OpenCode's n
 
 3. **Restart the full OpenCode process.** Your conversation survives; new calls pick up the new permissions.
 
-There is no npm package and no GitHub Release: install from a pinned source commit, and expect the install agent to show you every name collision and changed grant before applying anything.
+Not yet published on the npm registry (404 observed read-only 2026-09-24, not a lasting guarantee) and no GitHub Release: install from a pinned source commit, and expect the install agent to show you every name collision and changed grant before applying anything.
+
+Candidate prerelease scope (provisional, no publication claimed): local source version is `0.4.0-beta.0`. After an actual publish, install KSI and official Superpowers as two INDEPENDENT plugins — `ksi-opencode-harness@0.4.0-beta.0` plus `superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797` — with no bundle, no auto-upgrade, and no fork. The confirmed-immutable-commit Git install stays supported and the file URL stays a mutable development path. The upstream pin is bumped only after source review plus compatibility checks.
 
 ## How a task moves
 
 ```mermaid
 flowchart TB
-    A["Plan: scope + acceptance criteria"] --> B{{"Human agreement"}}
-    B --> C["Design: rendered artifact"]
-    C --> D{{"Human visual approval"}}
-    D --> E["Build: coordinates, never implements"]
-    E --> F["Worker: one writer per worktree"]
-    F --> G["Test Runner: independent checks"]
+    P["Plan: peer Primary — scope + acceptance criteria"] --> B1{{"Human agreement"}}
+    D["Design: peer Primary — rendered artifact"] --> DC["foreground explore + design-critic (read-only)"]
+    DC --> B2{{"Human visual approval"}}
+    B["Build: peer Primary — coordinates, never implements"] --> F["Worker: one writer per worktree"]
+    B1 --> B
+    B2 --> B
+    F["Worker: one writer per worktree"] --> G["Test Runner: independent checks"]
     G --> H["Reviewer: the actual diff"]
     H --> I["Build: verification and completion"]
     I --> J["Checkpoint + product-state update"]
 ```
 
+Plan, Design, and Build are peer user-selected Primaries. Build coordinates workers (Developer including complex work, Explore/Research) but never implements; Design dispatches only foreground local read-only explore plus design-critic with single-line artifact/version plus desktop/mobile PNG Evidence (no Research/external child, developer, recursion, or Design as target); integrated UI fidelity is checked by Reviewer visual-fidelity, and Codex/Claude internal agent structures are untouched.
+
 The diagram encodes rules, not suggestions:
 
 - Product and integration edits are always delegated — even small fixes are batched to one Worker; Build coordinates and verifies but does not implement.
-- Only Plan and Build can call native `task`; workers cannot delegate further, and no general-purpose agent bypasses the graph.
+- Plan/Build dispatch workers and Design dispatches only foreground explore/design-critic; workers cannot delegate further, and no general-purpose agent bypasses the graph.
 - Writers stop before independent tests; reviewers review what actually changed.
 - Completion requires task evidence **and** human acceptance of the slice; `/complete` and `/review` ask for the graph, never for self-approval.
+
+### Starting a design request
+
+Ask the Design Primary for approved visual work: share the screen or scope,
+answer only the decision-changing questions, then open the human-openable
+localhost URL it gives you to inspect baseline vs revision (plus
+desktop/mobile PNGs where authorized). Nothing is approved until you inspect
+the actual render; prototype approval is not production acceptance. Details:
+[docs/design.md](docs/design.md); project token sources:
+[docs/design-system-template.md](docs/design-system-template.md); handoff:
+[examples/design-handoff.md](examples/design-handoff.md).
 
 ## Why so few roles
 
@@ -62,20 +78,20 @@ Agent tooling loves a cast of twelve. Here, a role is a permission boundary and 
 - **No recursion.** Workers cannot spawn workers.
 - **One writer per worktree.** Parallel writers require explicitly separated worktrees and disjoint ownership.
 - **No role theater.** No standing architect, no mandatory critique for tiny changes, no design approval inferred from source code.
-- **Budgets in the open.** Defaults: Build 200, Design 60, Explore 20, Developer 80, Test Runner 24, Reviewer 32, Research 20, Design-task 40 native steps. Your `model`, `variant`, and positive `steps` settings survive installation; unsupported models surface as errors, never as substitutes.
+- **Budgets in the open.** Defaults: Build 200, Design 60, Explore 20, Developer 80, Test Runner 24, Reviewer 32, Research 20, Design-critic 20 native steps. An omitted critic model/variant inherits the native model (could be costly/non-vision). Your `model`, `variant`, and positive `steps` settings survive installation; unsupported models surface as errors, never as substitutes.
 - **A rendered artifact or nothing.** Material visual approval is tied to something the user actually inspected — a real render at a recorded version and scope, not a promise.
 
 ## What this is not
 
 - Not an agent swarm — no dynamic hierarchy, no recursion, no unbounded autonomy.
-- Not a model router — it never selects, substitutes, or auto-upgrades providers, models, variants, or thinking effort.
+- Not a model router — it never selects, substitutes, or auto-upgrades providers, models, variants, or thinking effort. [`examples/model-routing.json`](examples/model-routing.json) is an optional, non-enforcing portable sample: copy and edit only the model/variant keys you need. It may differ from machine-local routing, which stays machine-local and is never promoted to a portable default; the installed plugin never reads or enforces the sample file.
 - Not an autonomous release machine — no commit, push, PR, merge, release, or deploy without explicit human authorization.
 - Not a benchmark — no performance or cost claims; verification is per-task evidence, and unverified boundaries are labeled.
-- Not a skill fork — official Superpowers stays pinned and unmodified as a separate plugin.
+- Not a skill fork — official Superpowers stays pinned and unmodified as a separate plugin installed from upstream at the existing pin, upgraded independently only after version review and compatibility checks; KSI contains no fork or copy.
 
 ## Proof
 
-This repository is developed through the same pipeline it ships: plan ledgers in [`docs/superpowers/plans/`](docs/superpowers/plans/), bounded worker contracts, `npm test` (200+ tests), package checks, and independent review before anything lands. Evidence over vibes — check the repository history and the ledgers.
+This repository is developed through the same pipeline it ships: plan ledgers in `docs/superpowers/plans/` source checkout only (intended public Git repository path `docs/superpowers/plans/` when pushed — not a claim the push exists — the npm tarball ships eight explicit public docs and excludes `docs/superpowers/**`, so an installed package does not contain ledgers or product-state), bounded worker contracts, `npm run check` — whose trailing `node --test` suite is the source of the dated, scoped results recorded in [`docs/verification.md`](docs/verification.md) (not a standing total — consult that file for the applicable revision, platform, and limits; no separate `npm test` invocation is claimed), package checks, and independent review before anything lands. Evidence over vibes — check the repository history and the ledgers.
 
 ## Roles and steps
 
@@ -83,12 +99,14 @@ This repository is developed through the same pipeline it ships: plan ledgers in
 | --- | --- | ---: |
 | `build` (Primary) | user-selected | 200 |
 | `design` (Primary) | user-selected | 60 |
-| `explore` | Plan, Build | 20 |
+| `explore` | Plan, Build, Design (foreground read-only) | 20 |
 | `developer` | Build | 80 |
 | `test-runner` | Build | 24 |
 | `reviewer` | Plan, Build | 32 |
 | `research` | Plan, Build | 20 |
-| `design-task` | Build | 40 |
+| `design-critic` | Design (foreground read-only) | 20 |
+
+The portable example pins only five explicit model entries (explore, developer, test-runner, reviewer, research) with no extra entries and makes no forced mapping/quality claim; the hidden critic stays unpinned and inherits native. Explore cannot approve and the critic never fixes or approves (`BLOCKED-no-render` when PNGs are unreadable or the model is non-vision).
 
 Complex developer work uses the default 80 steps; Build may approve an explicit 120-step condition only when the handoff documents coupled state, concurrency, migration, or deliberate repair scope. `steps` are native iteration budgets — not token budgets, thinking effort, or nested-agent depth. See [docs/execution.md](docs/execution.md).
 
@@ -170,12 +188,12 @@ The CI matrix runs Ubuntu, macOS, and Windows on Node 20 and 22. The badge refle
 영어 문서가 기준입니다. 아래는 빠른 요약입니다.
 
 - **한 줄:** "에이전트를 더 늘리기"가 아니라 **Plan → Design → Build → Verify → State** 파이프라인을 강제하는 OpenCode 플러그인입니다.
-- **역할:** 여섯 reserved subagent는 고정된 step 예산과 권한을 가집니다. 재귀 위임이 없고, 작은 수정도 Worker에게 배치되며, Build는 조정·검증만 합니다.
+- **역할:** 여섯 reserved subagent(다섯 worker + 숨은 read-only design-critic)는 고정된 step 예산과 권한을 가집니다. 재귀 위임이 없고, 작은 수정도 Worker에게 배치되며, Build는 조정·검증만 합니다. Design은 foreground explore/design-critic에만 위임합니다.
 - **작성자≠검증자:** writer가 멈춘 뒤 Test Runner가 검사하고 Reviewer가 실제 diff를 봅니다. 완료는 task 증거 + slice acceptance(사용자 end-to-end 확인) 둘 다 필요합니다.
 - **사람 게이트:** 계획 합의와 시각 디자인 승인은 명시적입니다. 승인 없는 커밋·푸시·merge·배포는 없습니다.
 - **모델 중립:** provider/model/variant/effort를 고르거나 대체하지 않습니다. 없는 모델을 조용히 바꾸지 않습니다.
 - **연속성:** 체크포인트·product-state·ledger를 세션 시작/compaction에 주입합니다(≤5000B, untrusted, 읽기 전용). Codex·Claude는 같은 CLI를 SessionStart hook으로 씁니다.
-- **설치:** npm/Release 없음 — 검토한 커밋으로 pin해 설치하고, 설치 에이전트가 모든 권한 변경을 승인받습니다. [INSTALL.md](INSTALL.md)
+- **설치:** npm registry 미게시(2026-09-24 read-only 404 관측, 지속 보장 아님)/Release 없음 — 검토한 커밋으로 pin해 설치하고, 설치 에이전트가 모든 권한 변경을 승인받습니다. [INSTALL.md](INSTALL.md)
 - **한계:** CI 배지는 게시된 main만 검증합니다. live model smoke·타 PC·human acceptance는 별도입니다.
 
 ## License

@@ -3,10 +3,11 @@
 ## 범위
 
 - 기록된 호환성 기준: OpenCode 1.18.29, Node >=20. 다른 version/OS는 실제 실행 전까지 미검증입니다.
-- 이 문서/package version은 `0.3.0`입니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
+- 이 문서/package candidate version은 `0.4.0-beta.0`입니다(잠정, 게시 주장 없음). 아래 날짜가 있는 과거 entry는 해당 시점의 `0.3.0` 이하 기록으로 그대로 보존하며 current로 다시 쓰지 않습니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
 - 공식 Superpowers pin: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`, package 6.3.0.
 - `npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`, `git diff --check`는 source checkout에서 수행하는 개발/패키지 게이트입니다. 설치된 production package에는 test, CI, `check-package`가 의도적으로 없습니다.
 - CI에 Node 20/22와 OS matrix 설정이 있어도, 설정의 존재는 해당 matrix가 통과했다는 주장이 아닙니다. 실제 실행 결과만 기록합니다.
+- 역할 수 표기: 아래 날짜가 있는 과거 entry는 해당 시점의 역할 수 기록을 current로 다시 쓰지 않습니다(일곱째 표기는 design-task 제거 전 시점의 historical 기록). 현재(design-task 제거 후)는 여섯 reserved subagents(explore, developer, test-runner, reviewer, research, hidden design-critic)를 포함합니다. 기존 budgets/models는 불변, 미지정 critic model/variant는 native를 상속(costly/non-vision 가능), portable 예시는 다섯 explicit model entries(explore, developer, test-runner, reviewer, research)만 둡니다.
 
 ## Evidence-tool compatibility
 
@@ -34,8 +35,8 @@
   truncation notes, degraded (non-fatal) paths, and secret exclusion (no
   titles/prompts/costs in audit output, no environment reads in env-probe,
   no contents/diffs in diffstat). `npm run check`'s `node --check` list is
-  fixed in `package.json` and does not yet include the two new source files;
-  they are syntax-covered by loading them under `node --test`.
+  fixed in `package.json` and now includes `src/evidence-tools.mjs` and
+  `src/env-probe.mjs`; they remain load-covered under `node --test`.
 
 ## 정적·새 process 검사
 
@@ -50,7 +51,7 @@ git diff --check
 
 `npm run check` already ends with `node --test`, so do not run `npm test` again for the same revision.
 
-package gate는 manifest, 실제 tarball, offline local-tarball install, plugin hook, 여섯 role, command와 policy reference를 확인합니다. path/filename gate는 알려진 금지 경로와 필수 파일만 검사하며, 유효한 filename 안에 들어간 secret content까지 찾아내거나 secret-free를 보증하지 않습니다. source와 tarball content를 수동 검토하고, production artifact에 test/CI/check-package, credential, session log, `.opencode`가 없는지 확인합니다.
+package gate는 manifest, 실제 tarball, offline local-tarball install, plugin hook, 여섯 role(현재; 과거 entry의 일곱/여섯 표기는 해당 시점 historical 기록), command와 policy reference를 확인합니다. path/filename gate는 알려진 금지 경로와 필수 파일만 검사하며, secret-like basenames(`my-credentials-backup.json`, `my-auth.json`, `.env`, pem/key 등, nested/case 포함, prefix 무관)를 차단해도 유효한 filename 안에 들어간 secret content까지 찾아내거나 secret-free를 보증하지 않습니다. source와 tarball content를 수동 검토하고, production artifact에 test/CI/check-package, credential, session log, `.opencode`가 없는지 확인합니다.
 
 새 OpenCode process에서 `opencode debug agent <role>`의 model/variant/steps/permission을 필요한 필드만 확인하고, `opencode debug skill`로 role별 skill 접근을 확인합니다. Plan permission, Build coordinator-only permission, reserved subagent 정의 전체의 교체(model/variant와 유효한 양의 정수 steps는 보존)는 관리되는 변경으로 기록하고, 기존 options 등과 이름 충돌도 확인합니다. Plan의 기타 설정과 Plan/Build model 및 사용자의 credential/provider/MCP 변경 여부는 별도로 확인합니다. model 목록 조회는 live-call·품질 PASS가 아니며, cost metadata가 없거나 0인 것은 무료 실행의 증거가 아닙니다.
 
@@ -82,6 +83,10 @@ Live call은 quota/API token을 사용하고 입력을 provider로 보낼 수 �
 
 **Design 0.3.0 로컬 검증:** Linux/Node 24.19.0에서 독립 Test Runner가 65/65 tests, 실제 tarball offline install/import/config hook, pack dry-run(28개 파일), diff whitespace 검사를 통과했습니다. 독립 리뷰에서 발견한 root/blanket 권한·unsafe tool 재허용·상대 경로 범위 문제를 수정하고 재검토했습니다. 이 로컬 실행은 Windows 전용 cross-drive 분기를 실행하지 않으며, 원격 OS/Node 검증은 해당 commit의 CI 결과를 확인해야 합니다.
 
+**Operational-evidence docs 검증 (2026-09-23):** committed HEAD `da8ed9550ea7f13986fbdaa378fb443d25abe4e0`에 docs/state-only 미커밋 변경 5개 경로(`README.md`, `docs/architecture.md`, `docs/troubleshooting.md`, plan ledger, product-state)가 있는 상태에서 독립 Test Runner가 `npm run check` exit 0(222/222 tests), `npm run check:package` exit 0, `npm pack --dry-run` exit 0(38개 파일, 86.4 kB package/272.1 kB unpacked, tarball 없음), `git diff --check` exit 0을 보고했습니다. worktree 상태는 예상된 5개 docs/state 경로뿐이었으며 forbidden 변경·live call이 없었습니다. 이는 clean committed revision의 증거가 아닙니다 — committed HEAD와 dirty worktree를 구분합니다. live model/provider/MCP 호출, quality/cost 판단, user acceptance는 확립되지 않았습니다. 이 실행은 본 entry와 ledger 정정 이전의 worktree에서 수행됐으므로, exact-final-revision 증거는 Primary가 dispatch하는 Test Runner 재실행으로 확인해야 합니다.
+
+**Operational-evidence docs 후속 검증 (2026-09-23):** 같은 committed HEAD `da8ed9550ea7f13986fbdaa378fb443d25abe4e0`에 docs/state-only 미커밋 변경 6개 경로(`README.md`, `docs/architecture.md`, `docs/troubleshooting.md`, `docs/verification.md`, plan ledger, product-state)가 있는 상태에서 독립 Test Runner(session ID omitted)가 `npm run check` 222/222 pass, `npm run check:package` pass, `npm pack --dry-run` pass(38개 파일, 88.0 kB package / 276.4 kB unpacked, shasum `405ccebbe6e6f7f4400ec7022bf21e3bd17726a6`, tarball 없음), `git diff --check` pass를 보고했습니다. forbidden 경로 변경·live call이 없었습니다. 이 실행은 본 follow-up 기록이 추가되기 전 worktree snapshot의 측정값이므로, 기록 추가 후의 resulting tree에 대한 bitwise exact-final coverage를 주장하지 않습니다 — committed HEAD와 dirty worktree를 구분합니다. 실행 간 package 크기 차이(86.4 kB → 87.2 kB → 88.0 kB)는 각 실행 이후 docs가 변경됐기 때문입니다. live model/provider/MCP 호출, quality/cost 판단, user acceptance는 확립되지 않았습니다. 최종 Primary 재실행은 별도로 보고됩니다.
+
 **Execution-control evidence:** native `subagent_depth: 1`이 올바르게 거절되었고, corrected integration 뒤 author-requested helper 4 checks, Developer shell의 `npm test` 4 checks, 별도 root Test Runner 4 checks가 보고되었습니다. Primary는 native parent/child metadata와 author-feedback title도 확인했습니다. 이는 작은 helper lifecycle 검증이지 cost/complexity benchmark가 아닙니다.
 
 **Design browser pipeline evidence:** Linux의 실제 OpenCode Design root에서 named Playwright MCP와 명시적으로 선택한 Astra `high`를 사용했습니다. official `@playwright/mcp@0.0.80`의 manifest를 inspect했고 install lifecycle hook은 없었으며 Playwright/core는 `1.63.0-alpha-2026-08-31`로 pin되어 있었습니다. `--headless --isolated --block-service-workers --browser chrome --caps vision --image-responses allow` 및 local-only allowed origins/output 설정으로 synthetic page를 desktop `1280x800`, mobile `390x844`에서 resize/navigate/screenshot/read/snapshot/click하고 close했습니다. 두 PNG를 Primary가 직접 읽어 selected state와 no horizontal overflow를 관찰했으며 task call/source change는 없었습니다. 이는 browser pipeline과 image inspection의 실제 증거이지 product design approval, quality/cost benchmark, egress isolation의 증거가 아닙니다.
@@ -92,6 +97,10 @@ Browser/MCP 연결, supported browser launch, model이 PNG를 실제로 볼 수 
 
 CI와 source package checks는 browser-free로 유지되어 portable합니다. 위 native browser pipeline의 실제 실행은 현재 Linux에서만 확인했으며, 다른 OS/browser와 remote CI 결과는 이 evidence로 대체하지 않습니다.
 
+**Isolated offline Design plugin/permission metadata smoke (2026-09-23):** 실제 OpenCode 1.18.31에서 task-owned 임시 `HOME`/`XDG`와 후보 단일 file URL만을 가리키는 config로 `debug config`, `debug agent design-critic`, `debug agent design`이 각 exit 0이었으며, 후보 단일 plugin, hidden read-only `design-critic` 기본 20 steps/model 미지정, Design primary 60 steps에 `task` 정확히 `explore`+`design-critic`을 확인했습니다. 이는 CONFIG metadata이며 child dispatch/first-call hook lifecycle, PNG VLM READ, preview, 사용자 승인이 아닙니다. v1.18.30 연구가 v1.18.31 loader 순서를 보장한다고 주장하지 않습니다. Task-owned 임시 경로 2곳은 `external_directory` guard 거부로 미삭제 상태로 기록만 합니다. 과거 entry는 그대로 두며, live pilot·user acceptance는 미검증입니다.
+
 Startup diagnosis는 [troubleshooting.md](troubleshooting.md)에 기록되어 있습니다. health/agent/command/skill/session headless probes와 짧은 new/continue PTY probes는 같은 generic error를 재현하지 못했으며, root cause는 확정되지 않았고 fix도 주장하지 않습니다.
 
 Build가 검증 결과와 실제 native helper 관계를 확인했습니다. 이 기록 시점에 원격 OS matrix·두 번째 PC·live slash-command invocation·품질/비용 benchmark는 미검증입니다. 게시된 commit의 원격 CI 상태는 README의 workflow 링크에서 별도로 확인합니다. 개인 scratch path, raw session ID와 세션 setup narration은 distributable evidence에 포함하지 않습니다.
+
+**Candidate `0.4.0-beta.0` prerelease scope (2026-09-24, provisional):** 위 날짜가 있는 과거 evidence는 그대로 보존되며, 본 candidate 범위는 metadata/docs 준비에 한정됩니다 — `package.json` version bump 외 package name/entry/files/license/engines 불변, KSI `0.4.0-beta.0`와 공식 Superpowers pin의 두 독립 plugin 설치 서술, `next` 태그 publish 게이트 서술. m02는 2026-09-24 accepted/done이며 m03은 in_progress로 live Design visual/Human acceptance가 없고 publish/tag/upload 실행, published link 주장이 없습니다. 최종 full suite/pack/review는 Primary가 독립 수행합니다.

@@ -4,7 +4,7 @@
 
 ## 배포 경로와 고정 revision
 
-- 이 작업은 npm registry나 GitHub Release를 publish하지 않습니다. Primary가 checks 후 source commit을 push하고 remote 존재를 확인하면 source Git distribution은 별도 설치 경로로 유효합니다.
+- 이 작업은 npm registry나 GitHub Release를 publish하지 않습니다. Primary가 checks 후 source commit을 push하고 remote 존재를 확인하면 source Git distribution은 별도 설치 경로로 유효합니다. 후보 prerelease 범위(잠정, 게시 주장 없음): local source version `0.4.0-beta.0`.
 - GitHub repository의 main URL은 source를 찾는 discovery entry일 뿐입니다. 설치 에이전트는 원하는 source를 확인한 뒤 실제 remote에 존재하는 confirmed immutable commit으로 resolve하고 그 revision을 pin합니다. 확인 전에는 tag, version, SHA를 지어내지 않습니다.
 - reviewed source checkout의 `index.mjs`를 가리키는 file URL은 editable한 mutable 개발/검증 경로입니다. remote source pin과 같은 불변 배포로 표현하지 않습니다.
 - 공식 Superpowers는 별도 plugin이며 다음 revision을 그대로 사용합니다: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797` (package 6.3.0). upstream source/skill을 복사·수정·fork하지 않습니다.
@@ -16,10 +16,10 @@
 
 1. 실제 OS, OpenCode 실행 파일/version, `opencode debug paths`가 가리키는 설정 위치, project override와 적용되는 instruction을 확인합니다. Linux home path를 다른 OS에 가정하지 않습니다.
 2. plugin/agent/command/permission 항목과 기존 KSI·Superpowers 설치를 선택적으로 읽습니다. credential이나 전체 provider secret 설정을 출력하지 않습니다.
-3. 설치 전에 설정 소유권을 설명합니다. Plan `permission`은 KSI가 관리하지만 그 밖의 Plan 설정은 보존합니다. Build는 `model`·`variant`·`steps`를 보존하되 tool permission은 coordinator-only 값으로 교체됩니다(실행 기록용 쓰기만 허용, 제품 수정·shell 거부). 여섯 reserved subagent는 `model`, `variant`, 유효한 양의 정수 `steps`를 보존하며, 기존 `mode`, `description`, `prompt`, `permission`, `options`, `disable` 등 나머지 정의는 플러그인의 역할 정의로 교체·관리됩니다. 동일 이름의 사용자 agent가 있다면 이름 충돌과 사라지는 설정을 정확히 보여 주고 설치 승인 또는 거절을 받습니다. credential, 공유 Codex/Claude 설치, 기존 command와 무관한 agent/MCP/provider는 보존 대상입니다.
+3. 설치 전에 설정 소유권을 설명합니다. Plan `permission`은 KSI가 관리하지만 그 밖의 Plan 설정은 보존합니다. Build는 `model`·`variant`·`steps`를 보존하되 tool permission은 coordinator-only 값으로 교체됩니다(실행 기록용 쓰기만 허용, 제품 수정·shell 거부). 여섯 reserved subagent(explore, developer, test-runner, reviewer, research, design-critic)는 `model`, `variant`, 유효한 양의 정수 `steps`를 보존하며, 기존 `mode`, `description`, `prompt`, `permission`, `options`, `disable` 등 나머지 정의는 플러그인의 역할 정의로 교체·관리됩니다. 동일 이름의 사용자 agent가 있다면 이름 충돌과 사라지는 설정을 정확히 보여 주고 설치 승인 또는 거절을 받습니다. credential, 공유 Codex/Claude 설치, 기존 command와 무관한 agent/MCP/provider는 보존 대상입니다.
 4. 사용자가 선택한 native model이 실제로 발견되지 않으면 중단하고 다른 모델을 고르게 합니다. 조용한 provider/model substitute, fallback, 추천표의 자동 적용은 없습니다.
 
-Design은 별도의 primary-only 역할입니다. 같은 이름의 기존 agent가 있다면 mode/description/prompt/permission 변경을 함께 검토합니다. 모델·variant·샘플링 등 native 선택은 보존하며 steps는 양의 정수로 검증합니다. 전체 도구/편집 allow 대신 승인된 UI 경로를 사용하고, task와 unsafe browser code는 허용하지 않습니다.
+Design은 별도의 primary-only 역할입니다. 같은 이름의 기존 agent가 있다면 mode/description/prompt/permission 변경을 함께 검토합니다. 모델·variant·샘플링 등 native 선택은 보존하며 steps는 양의 정수로 검증합니다(Design 60, 숨은 design-critic 20; 미지정 critic model/variant는 native를 물려받아 costly/non-vision일 수 있음). 전체 도구/편집 allow 대신 승인된 UI 경로를 사용하고, unsafe browser code는 허용하지 않습니다.
 
 ## 두 plugin 항목 설치
 
@@ -48,6 +48,17 @@ ksi-opencode-harness@git+https://github.com/khakisketch/KSI-Opencode-Harness#<co
 ```
 
 이 작업의 checks와 Primary의 source push가 끝나기 전에는 이 placeholder를 실제 revision으로 바꾸지 않습니다. npm registry/GitHub Release publication은 이 절차의 대상이 아닙니다.
+
+### KSI: public npm prerelease (실제 publish 이후에만)
+
+실제 publish가 승인·성공하기 전에는 아래를 실행하지 않습니다. publish 이후 KSI와 공식 Superpowers를 **별도 항목**으로 설치합니다. 번들·자동 업그레이드·fork가 없으며, upstream pin은 source 검토와 호환성 확인 뒤에만 별도로 올립니다.
+
+```text
+ksi-opencode-harness@0.4.0-beta.0
+superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+```
+
+confirmed remote commit을 가리키는 source Git option은 계속 지원되며, file URL은 mutable 개발/검증 경로로 유지됩니다.
 
 ### Superpowers: 고정 official package
 
@@ -79,8 +90,10 @@ Design은 여섯 reserved subagent와 별개인 native Primary입니다. 사용�
 Design, Build를 세션별로 선택하고 `/models`에서 native model/variant를 고릅니다.
 현재 Primary의 선택이 child model을 자동으로 binding한다고 가정하지 마세요. child
 model은 native `agent.<role>.model`/`variant`로 따로 설정하고 실제 metadata를
-확인합니다. Design은 v1에서 `task`를 호출하지 않으며, Build만 production 통합을
-담당합니다.
+확인합니다(미지정 critic은 native를 물려받음). Design은 foreground local read-only
+`explore`와 `design-critic`에만 `task`를 호출합니다(단일줄 artifact/version +
+desktop/mobile PNG `Evidence:`; Research/external·developer·
+recursion·Design 대상 금지). Build만 production 통합을 담당합니다.
 
 Build가 decomposition 또는 새 evidence에서 material UI 결정이 미정이라고 판단하면
 누락된 결정·필요 evidence·영향 scope를 사용자에게 보여 주고 Design 전환을 요청합니다.

@@ -8,9 +8,8 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 const root = fileURLToPath(new URL("..", import.meta.url))
 const packageData = JSON.parse(await readFile(join(root, "package.json"), "utf8"))
 const roles = ["explore", "developer", "test-runner", "reviewer", "research"]
-// design-task is a hidden subagent sharing agents/design.md, so it has no own
-// prompt file above, but the install gate must still assert its registration.
-const hiddenRoles = ["design-task"]
+// design-critic is a hidden local read-only critic with its own prompt file.
+const hiddenRoles = ["design-critic"]
 const INSTALL_CHECK_ROLES = [...roles, ...hiddenRoles]
 const REQUIRED_PACKAGE_FILES = [
   "index.mjs",
@@ -23,8 +22,10 @@ const REQUIRED_PACKAGE_FILES = [
   "bin/ksi-continuity-inject.mjs",
   "src/evidence-tools.mjs",
   "src/env-probe.mjs",
+  "src/repository.mjs",
   "instructions/harness.md",
   "agents/design.md",
+  "agents/design-critic.md",
   "agents/build.md",
   ...roles.map((role) => `agents/${role}.md`),
   "README.md",
@@ -35,6 +36,8 @@ const REQUIRED_PACKAGE_FILES = [
   "docs/execution.md",
   "docs/troubleshooting.md",
   "docs/design.md",
+  "docs/design-system-template.md",
+  "docs/design-critique.md",
   "examples/model-routing.json",
   "examples/design.project.jsonc",
   "examples/design-handoff.md",
@@ -42,7 +45,13 @@ const REQUIRED_PACKAGE_FILES = [
   "scripts/audit-routing.mjs",
   "LICENSE",
 ]
-const forbiddenPath = /(?:^|\/)(?:node_modules|\.opencode|test|tests|fixtures|secrets|\.github|tmp|temp)(?:\/|$)|(?:^|\/)(?:legacy|gpu|vllm|benchmark|lease)(?:[-_.\/]|$)|(?:^|\/)(?:\.env(?:\.(?!example$)[^/]*)?|auth\.json|credentials[^/]*\.json|[^/]+(?:\.pem|\.key))$/i
+const forbiddenPath = /(?:^|\/)(?:node_modules|\.opencode|test|tests|fixtures|secrets|\.github|tmp|temp)(?:\/|$)|(?:^|\/)(?:legacy|gpu|vllm|benchmark|lease)(?:[-_.\/]|$)|(?:^|\/)(?:\.env(?:\.(?!example$)[^/]*)?|[^/]*auth[^/]*\.json|[^/]*credentials[^/]*\.json|[^/]+(?:\.pem|\.key))$/i
+// Fail-closed: the source repo keeps project state under docs/superpowers/
+// (product-state, per-workstream plan ledgers, specs). The PUBLIC npm tarball
+// must never contain it, even if someone later re-adds a broad "docs/" files
+// entry or loosens .npmignore. Checked separately from forbiddenPath so the
+// boundary survives unrelated gate edits.
+const internalStatePath = /(?:^|\/)docs\/superpowers(?:\/|$)/i
 
 function npmInvocation(args, cwd, env, npmExecPath = process.env.npm_execpath) {
   if (!npmExecPath) throw new Error("npm_execpath is unavailable; run npm run check:package with npm.")
@@ -88,6 +97,7 @@ function validateManifest(paths) {
   const files = paths.map(normalizedPath)
   for (const required of REQUIRED_PACKAGE_FILES) assert.ok(files.includes(required), `package is missing required file: ${required}`)
   for (const file of files) assert.doesNotMatch(file, forbiddenPath, `package contains forbidden path: ${file}`)
+  for (const file of files) assert.doesNotMatch(file, internalStatePath, `package contains internal project state: ${file}`)
   assert.ok(!files.includes("scripts/check-package.mjs"), "package contains its verification script")
   assert.ok(!files.some((file) => /(?:^|\/)(?:package-lock\.json|npm-shrinkwrap\.json)$/i.test(file)), "package contains an install lockfile")
   return files
@@ -162,7 +172,7 @@ export default async function loadConfig() {
       assert.equal(config.agent?.[role]?.mode, "subagent", `installed plugin is missing role: ${role}`)
       assert.ok(config.agent[role].prompt, `installed plugin is missing prompt for role: ${role}`)
     }
-    assert.equal(config.agent?.["design-task"]?.hidden, true, "installed plugin is missing hidden design-task registration")
+    assert.equal(config.agent?.["design-critic"]?.hidden, true, "installed plugin is missing hidden design-critic registration")
     for (const command of ["complete", "review"]) {
       assert.equal(config.command?.[command]?.agent, "build", `installed plugin is missing default command: ${command}`)
     }

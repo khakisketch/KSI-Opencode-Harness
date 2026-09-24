@@ -1,6 +1,6 @@
 {
   "name": "ksi-opencode-harness",
-  "version": "0.3.0",
+  "version": "0.4.0-beta.0",
   "description": "OpenCode plugin for risk-aware subagent routing and verification policy",
   "type": "module",
   "main": "./index.mjs",
@@ -18,7 +18,14 @@
     "scripts/audit-routing.mjs",
     "README.md",
     "INSTALL.md",
-    "docs/",
+    "docs/architecture.md",
+    "docs/design.md",
+    "docs/design-critique.md",
+    "docs/design-system-template.md",
+    "docs/execution.md",
+    "docs/releasing.md",
+    "docs/troubleshooting.md",
+    "docs/verification.md",
     "examples/model-routing.json",
     "examples/design.project.jsonc",
     "examples/design-handoff.md",
@@ -27,7 +34,7 @@
   ],
   "scripts": {
     "test": "node --test",
-    "check": "node --check index.mjs && node --check src/agents.mjs && node --check src/contracts.mjs && node --check src/audit-metrics.mjs && node --check src/delegation.mjs && node --check src/continuity-context.mjs && node --check bin/ksi-continuity-inject.mjs && node --check scripts/audit-routing.mjs && node --test",
+    "check": "node --check index.mjs && node --check src/agents.mjs && node --check src/contracts.mjs && node --check src/audit-metrics.mjs && node --check src/delegation.mjs && node --check src/continuity-context.mjs && node --check src/evidence-tools.mjs && node --check src/env-probe.mjs && node --check bin/ksi-continuity-inject.mjs && node --check scripts/audit-routing.mjs && node --test",
     "check:package": "node scripts/check-package.mjs",
     "audit": "node scripts/audit-routing.mjs",
     "prepublishOnly": "npm run check && npm run check:package"

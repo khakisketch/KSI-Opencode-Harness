@@ -11,6 +11,13 @@ Fresh headless probes for server health, agent, command, skill, and session
 endpoints returned HTTP 200. Short PTY probes for new and continued sessions
 rendered the UI without reproducing the same message.
 
+Version note: 1.18.29 above is the version of this specific unresolved
+investigation, matching the documented compatibility baseline — not a claim
+about other versions. Where other docs cite a different version (e.g. the
+installed 1.18.31 binary in the evidence-tool compatibility check in
+[verification.md](verification.md)), that is evidence from a distinct
+check/context and does not prove same-run compatibility across versions.
+
 The root cause was **not established**. No fix is claimed. A successful probe
 does not establish provider, session, plugin, or startup correctness for a later
 invocation.
@@ -53,6 +60,25 @@ denied access or prove that a plugin is the root cause.
 After a plugin or configuration change, restart the full OpenCode process before
 testing. A continued conversation may be retained, but calls made before the
 restart can carry historical metadata from the previous process.
+
+## Failure classes and minimal evidence
+
+How the two taxonomies relate: the three categories in `Classify before
+changing anything` are triage directions; the four classes below are the
+evidence to collect once triaged. Mapping: Startup/plugin/schema → class 1;
+Session → class 2 when a call is refused, class 3 when an accepted child
+fails to start or aborts; Provider/auth → class 4. Triage first, then collect
+that class's evidence — so the two lists route diagnosis without duplicating
+or contradicting each other.
+
+Never upload full logs, raw session transcripts, credentials, tokens, or unredacted provider payloads. For every class, record the exact command, working directory, local timestamp, and whether the process was new or continued — then add only the class-specific fields below with sensitive values redacted.
+
+1. **Plugin/startup or role-load:** the process fails while loading configuration or a plugin, before a usable session exists (or a role definition fails to load). Record `opencode --version`, the failing `opencode debug paths` / `opencode debug agent <role>` outcome, the plugin tuple shape (names and pins only), and the offending config key path — never the values. Check JSONC syntax and tuple shape first.
+2. **Task permission/contract rejection:** a hook or contract check refuses the call (product edit/bash attempt by a coordinator, unknown caller, stale/wrong-parent/wrong-role `task_id`, oversized output). Record the calling role, the attempted operation class (e.g. "product edit", "shell", "delegate"), and the task identity state (missing/stale/mismatched) — never file contents or output bodies.
+3. **Child startup/execution failure:** the dispatch is accepted but the child role fails to start or aborts (unsupported model for that role, session-start failure, helper lifecycle rejection). Record the child role, its configured `model`/`variant`/`steps` names only, whether the parent process was new or continued, and the exact short error string. An unsupported-model refusal is a routing fact, not a license to substitute another model.
+4. **Provider/model request failure:** the session starts but a model request fails (auth, quota, routing, transient provider error). Record only redacted `providerID`/`modelID`/`variant` and the provider's own trimmed error code/message with identifiers removed. Do not reset authentication, delete caches, or remove session data to "diagnose" — those destroy evidence.
+
+**Fresh-process guidance (all classes):** after any plugin or configuration change, restart the full OpenCode process before testing; calls made before the restart can carry historical metadata from the previous process. Re-test from a new process using the same command and working directory that failed, and compare against the continued-session behavior explicitly rather than assuming they match.
 
 ## Design browser/MCP failures
 

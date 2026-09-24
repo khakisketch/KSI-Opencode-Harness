@@ -10,28 +10,32 @@ The six reserved roles and their default native `steps` are:
 
 | Role | Primary caller | Default steps |
 | --- | --- | ---: |
-| `explore` | Plan, Build | 20 |
+| `explore` | Plan, Build, Design (foreground read-only local) | 20 |
 | `developer` | Build | 80 |
 | `test-runner` | Build | 24 |
 | `reviewer` | Plan, Build | 32 |
 | `research` | Plan, Build | 20 |
-| `design-task` | Build | 40 |
+| `design-critic` | Design (foreground read-only critique) | 20 |
 
 Complex Developer work uses the same default 80 steps; Build may approve an explicit 120-step condition when the handoff documents coupled state, concurrency, migration or deliberate repair scope.
 
-Design is not one of the six reserved subagents. It is a user-selected native
-Primary with a default of 60 steps, no model/variant injected by KSI, and no
-native `task` calls in v1. `design-task` is a hidden delegated entrypoint that
-shares the Design contract with prototype-only permissions, no approval
-authority, and no recursion. Use `/models` to choose the current Primary's native
+Design is a user-selected native Primary with a default of 60 steps and no
+model/variant injected by KSI. Design dispatches only foreground local
+read-only `explore` and `design-critic` with single-line artifact/version plus
+desktop/mobile PNG Evidence; no Design → Research/external child, developer,
+task recursion, or Design as target. `explore` cannot approve;
+`design-critic` never fixes or approves and returns `BLOCKED-no-render` when
+PNGs are unreadable or the model is non-vision. An omitted critic model/variant inherits the
+native model (which could be costly or non-vision). Use `/models` to choose the current Primary's native
 model/variant; that choice does not automatically bind spawned children.
 
-Design track tool matrix: Design and `design-task` hold `mobbin_*`, `gpt_imagegen`,
-and `context7_*` at `ask` (`design-task` inherits via clone); no other role gains
-`mobbin_*` or `gpt_imagegen`. Review mode is requested with `Mode: review` plus
-`Allowed write paths: none` and hook-enforced under `DESIGN_REVIEW_PERMISSION`
+Design track tool matrix: Design holds `mobbin_*`, `gpt_imagegen`,
+and `context7_*` at `ask`; `design-critic`
+denies them plus shell/edit/task/web/external/MCP (read-only critique); no other role gains
+`mobbin_*` or `gpt_imagegen`. Visual-fidelity review is requested with `Mode: visual-fidelity` plus
+`Allowed write paths: none` under native reviewer read-only
 (`edit: * deny`, `lsp: deny`; denied `edit`/`write`/`apply_patch`/`bash`/`task`/`lsp`,
-cleared on `session.deleted`). Build requires a `design-task` fidelity review after
+cleared on `session.deleted`). Build requires a reviewer visual-fidelity review after
 Developer UI integration before completion on UI completions with inputs artifact version
 plus diff plus PNGs (`FAIL` becomes work items, `BLOCKED-no-render` escalates to user,
 max two fix rounds then escalates).

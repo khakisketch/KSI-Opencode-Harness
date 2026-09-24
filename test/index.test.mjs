@@ -7,11 +7,12 @@ import { ROLES, CALLS, rolePermission } from "../src/agents.mjs"
 const contract = "Objective: Fix a bounded behavior.\nAllowed write paths: src/example.mjs\nForbidden shared files: package-lock.json\nAcceptance criteria: Regression test passes.\nTargeted verification: npm test\nEscalate if: Public contract changes."
 const evidence = "Objective: Inspect.\nScope: src/example.mjs, cwd repository, no external effects.\nCommands: npm test\nEvidence: supplied baseline and changed paths."
 
-test("installs six native roles without choosing a model or variant", async () => {
+test("installs six native roles without choosing a model or variant and without design-task", async () => {
   const hooks = await plugin()
   const config = {}
   hooks.config(config)
-  assert.deepEqual(ROLES, ["explore", "developer", "test-runner", "reviewer", "research", "design-task"])
+  assert.deepEqual(ROLES, ["explore", "developer", "test-runner", "reviewer", "research", "design-critic"])
+  assert.equal("design-task" in config.agent, false, "removed design-task leaves no native agent")
   for (const name of ROLES) {
     assert.equal("model" in config.agent[name], false)
     assert.equal("variant" in config.agent[name], false)
@@ -30,12 +31,6 @@ test("installs six native roles without choosing a model or variant", async () =
   assert.equal(config.agent.research.permission.bash, "deny")
   assert.equal(config.agent.explore.permission.lsp, "allow")
   assert.equal(config.agent.explore.permission.webfetch, "deny")
-  assert.equal(config.agent["design-task"].mode, "subagent")
-  assert.equal(config.agent["design-task"].hidden, true)
-  assert.equal(config.agent["design-task"].permission.task, "deny")
-  assert.equal(config.agent["design-task"].permission.edit["*"], "deny")
-  assert.equal(config.agent["design-task"].permission.edit[".opencode/working-state.md"], undefined)
-  assert.match(config.agent["design-task"].prompt, /artifact-first/i)
 })
 
 test("grants Plan native code intelligence without widening execution", async () => {
@@ -81,7 +76,7 @@ test("enforces strict coordinator-only Build while preserving model and variant"
     assert.equal(config.agent.build.permission.bash, "deny")
     assert.equal(config.agent.build.permission.task.explore, "allow")
     assert.equal(config.agent.build.permission.task.research, "allow")
-    assert.equal(config.agent.build.permission.task["design-task"], "allow")
+    assert.equal("design-task" in config.agent.build.permission.task, false)
     assert.equal(config.agent.build.permission.task["reviewer"], "allow")
     assert.notDeepEqual(config.agent.build.permission, permission)
     assert.equal(config.model, "custom/main")
@@ -141,8 +136,8 @@ test("enforces strict Build permission while preserving top-level denial and com
 
 test("enforces caller/target graph including unknown caller and recursive bypass", async () => {
   const hooks = await plugin()
-  const designContract = "Objective: Prototype.\nAllowed write paths: design-previews/x\nAcceptance criteria: Rendered.\nEvidence: artifact v1."
-  const promptFor = (target) => target.startsWith("developer") ? contract : target === "design-task" ? designContract : evidence
+  const criticContract = "Objective: Critique the empty state.\nScope: design-previews/empty, desktop/mobile viewports, no fixes.\nEvidence: artifact v3 brief v2 plus design-previews/empty-desktop-1280x800.png and design-previews/empty-mobile-390x844.png desktop/mobile viewports inspected."
+  const promptFor = (target) => target.startsWith("developer") ? contract : target === "design-critic" ? criticContract : evidence
   for (const caller of ["plan", "build", ...ROLES, "general", "unknown"]) {
     await hooks["chat.params"]({ sessionID: caller, agent: caller })
     for (const target of [...ROLES, "general", "custom"]) {
@@ -150,6 +145,7 @@ test("enforces caller/target graph including unknown caller and recursive bypass
         subagent_type: target, prompt: promptFor(target),
       } })
       if (CALLS[caller]?.includes(target)) await assert.doesNotReject(invoke)
+      else if (caller === "design-critic") await assert.rejects(invoke, /not allowed|read-only/i)
       else await assert.rejects(invoke, /not allowed/)
     }
   }
@@ -239,83 +235,141 @@ test("allows bookkeeping under either base when both are present", async () => {
   }
 })
 
-test("validates research and design-task contracts on dispatch", async () => {
+test("rejects removed design-task target for Plan Build Design even with user allow override and no native agent", async () => {
   const hooks = await plugin()
+  const config = { agent: { build: { permission: { task: { "design-task": "allow" } } }, "design-task": { model: "custom/x" } } }
+  hooks.config(config)
+  assert.equal("design-task" in config.agent, false, "user design-task agent must not survive")
+  assert.equal(config.agent.build.permission.task["design-task"], undefined, "user design-task allow must not survive")
+  for (const caller of ["plan", "build", "design"]) {
+    await hooks["chat.params"]({ sessionID: `dt-${caller}`, agent: caller })
+    await assert.rejects(() => hooks["tool.execute.before"]({ tool: "task", sessionID: `dt-${caller}` }, { args: {
+      subagent_type: "design-task", prompt: "Objective: Prototype.\nAllowed write paths: design-previews/x\nAcceptance criteria: Rendered.\nEvidence: artifact v1.",
+    } }), /design-task.*not allowed|no native agent|removed/i)
+  }
+})
+
+test("validates research and reviewer contracts on dispatch", async () => {
+  const hooks = await plugin()
+  hooks.config({})
   await hooks["chat.params"]({ sessionID: "b", agent: "build" })
   const invoke = (args) => hooks["tool.execute.before"]({ tool: "task", sessionID: "b" }, { args })
   await assert.rejects(() => invoke({ subagent_type: "research", prompt: "Objective: compare\nScope: docs" }), /Evidence/)
   await assert.doesNotReject(() => invoke({ subagent_type: "research", prompt: "Objective: compare\nScope: docs\nEvidence: v1 sources" }))
-  await assert.rejects(() => invoke({ subagent_type: "design-task", prompt: "Objective: prototype" }), /design-task section/)
-  await assert.doesNotReject(() => invoke({ subagent_type: "design-task", prompt: "Objective: prototype\nAllowed write paths: design-previews/x\nAcceptance criteria: rendered\nEvidence: v1" }))
+  await assert.doesNotReject(() => invoke({ subagent_type: "reviewer", prompt: "Objective: inspect\nScope: src\nEvidence: baseline and diff" }))
+  await assert.rejects(() => invoke({ subagent_type: "reviewer", prompt: "Objective: inspect\nScope: src" }), /Evidence/)
+  const visual = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  await assert.doesNotReject(() => invoke({ subagent_type: "reviewer", prompt: visual }))
+  await assert.rejects(() => invoke({ subagent_type: "reviewer", prompt: "Objective: Review.\nScope: src\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: artifact v3 plus integration diff baseline plus design-previews/a-desktop-1280x800.png desktop only." }), /TWO|two PNG|desktop.*mobile|mobile/i)
   await hooks["chat.params"]({ sessionID: "p", agent: "plan" })
   const planInvoke = (args) => hooks["tool.execute.before"]({ tool: "task", sessionID: "p" }, { args })
   await assert.doesNotReject(() => planInvoke({ subagent_type: "research", prompt: "Objective: compare\nScope: docs\nEvidence: v1 sources" }))
-  await assert.rejects(() => planInvoke({ subagent_type: "design-task", prompt: "Objective: prototype\nAllowed write paths: design-previews/x\nAcceptance criteria: rendered\nEvidence: v1" }), /not allowed/)
+  await assert.doesNotReject(() => planInvoke({ subagent_type: "reviewer", prompt: "Objective: inspect\nScope: src\nEvidence: baseline and diff" }))
+  await assert.rejects(() => planInvoke({ subagent_type: "reviewer", prompt: visual }), /Plan.*visual|not allowed|plan-critique/i)
 })
 
-test("tracks design-task review sessions and denies writers with cleanup", async () => {
+test("build reviewer rejects stray/malformed/duplicate Mode so typos cannot downgrade visual evidence", async () => {
   const hooks = await plugin()
   hooks.config({})
-  await hooks["chat.params"]({ sessionID: "b-review", agent: "build" })
-  const reviewPrompt = "Objective: Review the empty state.\nMode: review\nAllowed write paths: none\nAcceptance criteria: VISUAL PASS/FAIL/BLOCKED-no-render.\nEvidence: artifact v3 plus diff plus PNGs."
-  await assert.doesNotReject(() => hooks["tool.execute.before"](
-    { tool: "task", sessionID: "b-review", callID: "r1" },
-    { args: { subagent_type: "design-task", prompt: reviewPrompt } },
-  ))
-  await hooks["tool.execute.after"](
-    { tool: "task", sessionID: "b-review", callID: "r1", args: { subagent_type: "design-task", prompt: reviewPrompt } },
-    { title: "review", output: "VISUAL PASS", metadata: { sessionId: "review-child-1" } },
-  )
-  await hooks["chat.params"]({ sessionID: "review-child-1", agent: "design-task" })
-  for (const tool of ["edit", "write", "apply_patch", "bash", "task", "lsp"]) {
-    await assert.rejects(
-      () => hooks["tool.execute.before"]({ tool, sessionID: "review-child-1", callID: `rc-${tool}` }, { args: {} }),
-      /design-task review session is read-only/i,
-    )
+  await hooks["chat.params"]({ sessionID: "b-mode", agent: "build" })
+  const invoke = (args) => hooks["tool.execute.before"]({ tool: "task", sessionID: "b-mode" }, { args })
+  const base = "Objective: inspect\nScope: src\nEvidence: baseline and diff"
+  for (const prompt of [
+    `${base}\nMode: visual_fidelity`,
+    `${base}\nMode: review`,
+    `${base}\nMode: visual-fidelity\nMode: visual-fidelity`,
+  ]) {
+    await assert.rejects(() => invoke({ subagent_type: "reviewer", prompt }), /must not declare `Mode:`|visual-fidelity/i)
   }
-  await assert.doesNotReject(() => hooks["tool.execute.before"](
-    { tool: "read", sessionID: "review-child-1", callID: "rc-read" }, { args: {} },
-  ))
-  await hooks.event({ event: { type: "session.deleted", properties: { info: { id: "review-child-1" } } } })
-  await assert.doesNotReject(() => hooks["tool.execute.before"](
-    { tool: "read", sessionID: "review-child-1", callID: "rc-after" }, { args: {} },
-  ))
-
-  const protoPrompt = "Objective: Prototype the empty state.\nAllowed write paths: design-previews/empty\nAcceptance criteria: Rendered artifact inspected.\nEvidence: artifact v3, approved scope."
-  await hooks["tool.execute.after"](
-    { tool: "task", sessionID: "b-review", callID: "p1", args: { subagent_type: "design-task", prompt: protoPrompt } },
-    { title: "prototype", output: "ok", metadata: { sessionId: "proto-child-1" } },
-  )
-  await hooks["chat.params"]({ sessionID: "proto-child-1", agent: "design-task" })
-  await assert.doesNotReject(() => hooks["tool.execute.before"](
-    { tool: "read", sessionID: "proto-child-1", callID: "pc-read" }, { args: {} },
-  ))
+  await assert.doesNotReject(() => invoke({ subagent_type: "reviewer", prompt: base }))
 })
 
-test("fails loudly when a review child session cannot be recorded", async () => {
+test("reviewer visual-fidelity dispatches without after-completion marker and stays native read-only", async () => {
+  const hooks = await plugin()
+  hooks.config({})
+  await hooks["chat.params"]({ sessionID: "b-visual", agent: "build" })
+  const visualPrompt = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  await assert.doesNotReject(() => hooks["tool.execute.before"](
+    { tool: "task", sessionID: "b-visual", callID: "v1" },
+    { args: { subagent_type: "reviewer", prompt: visualPrompt } },
+  ))
+  const afterResult = { title: "visual", output: "VISUAL PASS", metadata: { sessionId: "visual-child-1" } }
+  await assert.doesNotReject(() => hooks["tool.execute.after"](
+    { tool: "task", sessionID: "b-visual", callID: "v1", args: { subagent_type: "reviewer", prompt: visualPrompt } },
+    afterResult,
+  ))
+  assert.equal(afterResult.output, "VISUAL PASS")
+})
+
+test("removed design-task review marker leaves no tracking or untracked error", async () => {
   const hooks = await plugin()
   hooks.config({})
   await hooks["chat.params"]({ sessionID: "b-untracked", agent: "build" })
-  const reviewPrompt = "Objective: Review the empty state.\nMode: review\nAllowed write paths: none\nAcceptance criteria: VISUAL PASS/FAIL/BLOCKED-no-render.\nEvidence: artifact v3 plus diff plus PNGs."
-  await assert.rejects(
-    () => hooks["tool.execute.after"](
-      { tool: "task", sessionID: "b-untracked", callID: "r-missing", args: { subagent_type: "design-task", prompt: reviewPrompt } },
-      { title: "review", output: "VISUAL PASS", metadata: {} },
-    ),
-    /untracked design-task review/i,
-  )
+  const agents = await import("../src/agents.mjs")
+  assert.equal(agents.DESIGN_TASK_REVIEW_MODE, undefined, "dead review Mode marker remains")
+  assert.equal(agents.DESIGN_REVIEW_PERMISSION, undefined, "dead review permission remains")
+  assert.equal(agents.DESIGN_REVIEW_DENIED_TOOLS, undefined, "dead review denied set remains")
+  const visualPrompt = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  await assert.doesNotReject(() => hooks["tool.execute.after"](
+    { tool: "task", sessionID: "b-untracked", callID: "r-missing", args: { subagent_type: "reviewer", prompt: visualPrompt } },
+    { title: "visual", output: "VISUAL PASS", metadata: {} },
+  ))
 })
 
-test("keeps the review denied set explicit and mirrored from the review permission", async () => {
-  const { DESIGN_REVIEW_PERMISSION, DESIGN_REVIEW_DENIED_TOOLS } = await import("../src/agents.mjs")
-  assert.deepEqual([...DESIGN_REVIEW_DENIED_TOOLS], ["edit", "write", "apply_patch", "bash", "task", "lsp"])
-  assert.ok(DESIGN_REVIEW_DENIED_TOOLS.length > 0)
-  for (const tool of DESIGN_REVIEW_DENIED_TOOLS) {
-    const denied = tool === "edit"
-      ? DESIGN_REVIEW_PERMISSION.edit?.["*"] === "deny"
-      : (DESIGN_REVIEW_PERMISSION[tool] ?? DESIGN_REVIEW_PERMISSION["*"]) === "deny"
-    assert.equal(denied, true, `review permission must deny ${tool}`)
+test("removed design-task review permission leaves no denied set", async () => {
+  const agents = await import("../src/agents.mjs")
+  assert.equal(agents.DESIGN_REVIEW_PERMISSION, undefined)
+  assert.equal(agents.DESIGN_REVIEW_DENIED_TOOLS, undefined)
+})
+
+test("keeps the critic denied set explicit and mirrored from the critic permission", async () => {
+  const { DESIGN_CRITIC_PERMISSION, DESIGN_CRITIC_DENIED_TOOLS } = await import("../src/agents.mjs")
+  assert.deepEqual([...DESIGN_CRITIC_DENIED_TOOLS], ["edit", "write", "apply_patch", "bash", "task", "lsp", "skill", "external_directory", "webfetch", "websearch", "mobbin_*", "gpt_imagegen", "playwright_*", "context7_*"])
+  for (const tool of DESIGN_CRITIC_DENIED_TOOLS) {
+    assert.equal((DESIGN_CRITIC_PERMISSION[tool] ?? DESIGN_CRITIC_PERMISSION["*"]), "deny", `critic permission must deny ${tool}`)
   }
+  const hooks = await plugin()
+  assert.doesNotThrow(() => hooks.config({}))
+})
+
+test("denies critic writer, shell, delegation, and network tools by caller identity with cleanup", async () => {
+  const hooks = await plugin()
+  hooks.config({})
+  await hooks["chat.params"]({ sessionID: "critic-1", agent: "design-critic" })
+  for (const tool of ["edit", "write", "apply_patch", "bash", "task", "lsp", "skill", "external_directory", "webfetch", "websearch"]) {
+    await assert.rejects(
+      () => hooks["tool.execute.before"]({ tool, sessionID: "critic-1", callID: `c-${tool}` }, { args: {} }),
+      /design-critic.*read-only/i,
+    )
+  }
+  for (const tool of ["mobbin_design", "gpt_imagegen", "playwright_screenshot", "context7_resolve"]) {
+    await assert.rejects(
+      () => hooks["tool.execute.before"]({ tool, sessionID: "critic-1", callID: `c-${tool}` }, { args: {} }),
+      /design-critic.*read-only/i,
+    )
+  }
+  for (const tool of ["read", "glob", "grep", "list"]) {
+    await assert.doesNotReject(() => hooks["tool.execute.before"]({ tool, sessionID: "critic-1", callID: `r-${tool}` }, { args: {} }))
+  }
+  await hooks.event({ event: { type: "session.deleted", properties: { info: { id: "critic-1" } } } })
+  await assert.doesNotReject(() => hooks["tool.execute.before"](
+    { tool: "read", sessionID: "critic-1", callID: "r-after" }, { args: {} },
+  ))
+})
+
+test("preserves Design scoped preview permissions alongside critic backstop", async () => {
+  const hooks = await plugin()
+  const config = {}
+  hooks.config(config)
+  assert.equal(config.agent.design.permission.bash, "ask")
+  assert.equal(config.agent.design.permission["playwright_browser_run_code_unsafe"], "deny")
+  assert.equal(config.agent.design.permission.task["design-critic"], "allow")
+  await hooks["chat.params"]({ sessionID: "b-visual", agent: "build" })
+  const visualPrompt = "Objective: Review integrated checkout.\nScope: src/checkout, integrated diff vs approved artifact.\nMode: visual-fidelity\nAllowed write paths: none\nEvidence: approved artifact v3 plus integration diff baseline plus design-previews/checkout-desktop-1280x800.png desktop and design-previews/checkout-mobile-390x844.png mobile."
+  await assert.doesNotReject(() => hooks["tool.execute.before"](
+    { tool: "task", sessionID: "b-visual", callID: "v1" },
+    { args: { subagent_type: "reviewer", prompt: visualPrompt } },
+  ))
 })
 
 test("rejects stale task identity and reconciles the first dispatch per session", async () => {
@@ -402,19 +456,19 @@ test("installs approved execution budgets and preserves explicit positive native
     "test-runner": { steps: 11 },
     reviewer: { steps: 12 },
     research: { steps: 13 },
-    "design-task": { steps: 14 },
+    "design-critic": { steps: 15 },
   } }
   hooks.config(config)
   assert.deepEqual(Object.fromEntries(ROLES.map((name) => [name, config.agent[name].steps])), {
     explore: 7, developer: 9, "test-runner": 11, reviewer: 12,
-    research: 13, "design-task": 14,
+    research: 13, "design-critic": 15,
   })
 
   const defaults = {}
   hooks.config(defaults)
   assert.deepEqual(Object.fromEntries(ROLES.map((name) => [name, defaults.agent[name].steps])), {
     explore: 20, developer: 80, "test-runner": 24, reviewer: 32,
-    research: 20, "design-task": 40,
+    research: 20, "design-critic": 20,
   })
   assert.equal(defaults.agent.build.steps, 200)
 })
@@ -641,14 +695,13 @@ test("build prompt dispatches developer only without absorbed role names", async
   assert.match(prompt, /Developer \(including complex work\) for implementation/)
 })
 
-test("grants context7_* to research and Design track without widening other roles", async () => {
+test("grants context7_* to research and Design without widening other roles", async () => {
   const hooks = await plugin()
   const config = {}
   hooks.config(config)
   assert.equal(config.agent.research.permission["context7_*"], "allow")
   assert.equal(rolePermission("research")["context7_*"], "allow")
   assert.equal(config.agent.design.permission["context7_*"], "ask")
-  assert.equal(config.agent["design-task"].permission["context7_*"], "ask")
   for (const name of ["explore", "developer", "test-runner", "reviewer"]) {
     assert.equal(config.agent[name].permission["context7_*"], undefined, `${name} must not gain context7 grant`)
   }
@@ -840,7 +893,7 @@ test("config() does not throw for directory-only sessions and installs the fallb
   const hooks = await plugin({ directory: "/tmp/ksi-dir-only" })
   const config = {}
   assert.doesNotThrow(() => hooks.config(config))
-  assert.equal(config.agent["design-task"].permission.edit["design-previews/**"], "ask")
+  assert.equal(config.agent.design.permission.edit["design-previews/**"], "ask")
 })
 
 test("session.deleted clears the once-per-session injection set", async () => {
@@ -1149,4 +1202,93 @@ test("keeps compaction injection within the shared combined bound with a marker"
   } finally {
     await rm(worktree, { recursive: true, force: true })
   }
+})
+
+test("reports outcome-first with Plan for material choices only", async () => {
+  const [prompt, policy] = await Promise.all([
+    readFile(new URL("../agents/build.md", import.meta.url), "utf8"),
+    readFile(new URL("../instructions/harness.md", import.meta.url), "utf8"),
+  ])
+  for (const text of [prompt, policy]) {
+    assert.match(text, /what a user can/i)
+    assert.match(text, /what.*incomplete/i)
+    assert.match(text, /next product result/i)
+    assert.match(text, /genuinely necessary decisions/i)
+    assert.match(text, /supporting evidence/i)
+    assert.match(text, /material unresolved choices/i)
+    assert.match(text, /not mandatory every iteration/i)
+    assert.match(text, /stale implementation details/i)
+    assert.match(text, /coordinator-only/i)
+    assert.match(text, /human approval for genuine product\/security\/data/i)
+    assert.match(text, /one[- ]writer/i)
+  }
+})
+
+test("links the in-progress slice ledger and product state without completion", async () => {
+  const [ledger, state] = await Promise.all([
+    readFile(new URL("../docs/superpowers/plans/2026-09-23-human-centered-workflow.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/superpowers/product-state.md", import.meta.url), "utf8"),
+  ])
+  assert.match(ledger, /docs\/superpowers\/product-state\.md/)
+  assert.match(ledger, /in-progress/)
+  assert.match(state, /docs\/superpowers\/plans\/2026-09-23-human-centered-workflow\.md/)
+  assert.match(state, /human-centered-workflow/)
+  assert.match(state, /Acceptance \(user-visible end-to-end\)/)
+  assert.doesNotMatch(state, /status.*complete/i)
+})
+
+test("foregrounds failed checks as headline blockers, never buried detail", async () => {
+  const [prompt, policy] = await Promise.all([
+    readFile(new URL("../agents/build.md", import.meta.url), "utf8"),
+    readFile(new URL("../instructions/harness.md", import.meta.url), "utf8"),
+  ])
+  for (const text of [prompt, policy]) {
+    assert.match(text, /Failed.*headline blockers/i)
+    assert.match(text, /incomplete product impact/i)
+    assert.match(text, /never buried/i)
+  }
+})
+
+test("preserves operational-evidence history while adding the human-centered slice", async () => {
+  const [state, troubleshooting, verification, priorLedger] = await Promise.all([
+    readFile(new URL("../docs/superpowers/product-state.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/troubleshooting.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/verification.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/superpowers/plans/2026-09-23-operational-evidence.md", import.meta.url), "utf8"),
+  ])
+  assert.match(state, /\| m01 \|.*\| done \|/)
+  assert.match(state, /\| m02 \|.*Operational evidence consistency.*\| done \|/)
+  assert.match(state, /m02 done and accepted 2026-09-24/)
+  assert.match(state, /docs\/superpowers\/plans\/2026-09-23-operational-evidence\.md/)
+  assert.match(state, /\| m03 \|.*Human-centered workflow.*\| in_progress \|/)
+  assert.match(state, /human-centered-workflow \(m03; m02 done and accepted 2026-09-24, m03 remains in_progress/)
+  assert.match(state, /docs\/superpowers\/plans\/2026-09-23-human-centered-workflow\.md/)
+  assert.doesNotMatch(state, /\| m03 \|.*\| done \|/)
+  assert.match(state, /INSTALL\.md:66/)
+  assert.match(troubleshooting, /Failure classes and minimal evidence/)
+  assert.match(verification, /Operational-evidence docs 검증/)
+  assert.match(verification, /Operational-evidence docs 후속 검증/)
+  assert.match(priorLedger, /Operational evidence consistency/)
+})
+
+test("documents six roles with design-critic 20 steps and no Design Research child", async () => {
+  assert.deepEqual(ROLES.length, 6)
+  assert.deepEqual(CALLS.design, ["explore", "design-critic"])
+  assert.ok(!CALLS.design.includes("research"), "Design must not dispatch research")
+  const [readme, execution, policy, architecture] = await Promise.all([
+    readFile(new URL("../README.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/execution.md", import.meta.url), "utf8"),
+    readFile(new URL("../instructions/harness.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/architecture.md", import.meta.url), "utf8"),
+  ])
+  for (const text of [readme, execution, policy, architecture]) {
+    assert.doesNotMatch(text, /does not dispatch tasks in v1/i)
+    assert.doesNotMatch(text, /Only Plan and Build can call native `task`/)
+  }
+  assert.match(readme, /`design-critic`.*Design \(foreground read-only\)/)
+  assert.match(readme, /Design-critic 20/)
+  assert.match(execution, /`design-critic`.*Design \(foreground read-only critique\)/)
+  assert.match(policy, /Design-critic 20 \(sixth subagent\)/)
+  assert.match(policy, /no Design→Research\/external child, developer, task recursion, or Design as target/)
+  assert.match(architecture, /Design dispatches only foreground local read-only explore plus design-critic/)
 })

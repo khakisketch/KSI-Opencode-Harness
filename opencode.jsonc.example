@@ -30,7 +30,7 @@
         "task": {
           "*": "deny", "explore": "allow", "developer": "allow",
           "test-runner": "allow", "reviewer": "allow",
-          "research": "allow", "design-task": "allow"
+          "research": "allow"
         }
       }
     }

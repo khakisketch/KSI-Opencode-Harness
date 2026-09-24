@@ -1,8 +1,8 @@
 import { fileURLToPath } from "node:url"
 import { readFile } from "node:fs/promises"
 import { isAbsolute, relative, resolve, sep } from "node:path"
-import { CALLS, ROLES, installAgents, DESIGN_REVIEW_PERMISSION, DESIGN_REVIEW_DENIED_TOOLS } from "./src/agents.mjs"
-import { validateDesignTaskContract, validateDeveloperTaskContract, validateReadTaskContract, isDesignTaskReviewPrompt } from "./src/contracts.mjs"
+import { CALLS, ROLES, installAgents, DESIGN_CRITIC_PERMISSION, DESIGN_CRITIC_DENIED_TOOLS } from "./src/agents.mjs"
+import { validateDesignCriticContract, validateDeveloperTaskContract, validateReadTaskContract, isReviewerVisualPrompt, validateReviewerVisualContract } from "./src/contracts.mjs"
 import { createDeveloperTestRunnerGuard } from "./src/delegation.mjs"
 import { createRepositoryService } from "./src/repository.mjs"
 import { createContinuity } from "./src/continuity.mjs"
@@ -28,8 +28,8 @@ function pluginOptions(options) {
 const developerRoles = new Set(["developer"])
 const guardedWriterTools = new Set(["edit", "write", "apply_patch", "bash"])
 
-// Prompts backed by files. design-task shares the Design contract prompt.
-const PROMPT_FILES = ["explore", "developer", "test-runner", "reviewer", "research", "build"]
+// Prompts backed by files.
+const PROMPT_FILES = ["explore", "developer", "test-runner", "reviewer", "research", "build", "design-critic"]
 
 function isInsideWorktree(worktree, filePath) {
   if (typeof filePath !== "string" || !filePath || typeof worktree !== "string" || !worktree) return null
@@ -70,7 +70,6 @@ export default async ({ client, directory, worktree } = {}, options) => {
     name, await readFile(new URL(`./agents/${name}.md`, import.meta.url), "utf8"),
   ])))
   const callers = new Map()
-  const designReviewSessions = new Set()
   const continuityInjectedSessions = new Set()
   let bookkeepingRoot = null
   if (typeof directory === "string" && directory) {
@@ -85,15 +84,20 @@ export default async ({ client, directory, worktree } = {}, options) => {
   } else {
     bookkeepingRoot = null
   }
-  for (const tool of DESIGN_REVIEW_DENIED_TOOLS) {
-    const denied = tool === "edit"
-      ? DESIGN_REVIEW_PERMISSION.edit?.["*"] === "deny"
-      : (DESIGN_REVIEW_PERMISSION[tool] ?? DESIGN_REVIEW_PERMISSION["*"]) === "deny"
+  for (const tool of DESIGN_CRITIC_DENIED_TOOLS) {
+    const denied = (DESIGN_CRITIC_PERMISSION[tool] ?? DESIGN_CRITIC_PERMISSION["*"]) === "deny"
     if (!denied) {
-      throw new Error(`KSI: design-task review denial drifted for tool ${tool}; mirror DESIGN_REVIEW_DENIED_TOOLS from DESIGN_REVIEW_PERMISSION.`)
+      throw new Error(`KSI: design-critic denial drifted for tool ${tool}; mirror DESIGN_CRITIC_DENIED_TOOLS from DESIGN_CRITIC_PERMISSION.`)
     }
   }
-  const designReviewDeniedTools = new Set(DESIGN_REVIEW_DENIED_TOOLS)
+  const designCriticDeniedTools = new Set(DESIGN_CRITIC_DENIED_TOOLS)
+  const isDesignCriticDeniedTool = (tool) => {
+    if (designCriticDeniedTools.has(tool)) return true
+    if (tool.startsWith("mobbin_") && designCriticDeniedTools.has("mobbin_*")) return true
+    if (tool.startsWith("playwright_") && designCriticDeniedTools.has("playwright_*")) return true
+    if (tool.startsWith("context7_") && designCriticDeniedTools.has("context7_*")) return true
+    return false
+  }
   const helperGuard = createDeveloperTestRunnerGuard({ client, callers })
   const repository = typeof bookkeepingRoot === "string" && bookkeepingRoot ? createRepositoryService({ worktree: bookkeepingRoot }) : null
   const continuity = createContinuity({ worktree: bookkeepingRoot, repository })
@@ -150,7 +154,6 @@ export default async ({ client, directory, worktree } = {}, options) => {
         const sessionID = event.properties.info.id
         const role = callers.get(sessionID)
         callers.delete(sessionID)
-        designReviewSessions.delete(sessionID)
         continuityInjectedSessions.delete(sessionID)
         continuity.forgetSession(sessionID)
         if (developerRoles.has(role)) helperGuard.releaseSession(sessionID)
@@ -266,10 +269,13 @@ export default async ({ client, directory, worktree } = {}, options) => {
       if (guardedWriterTools.has(input.tool) && helperGuard.isActive(input.sessionID)) {
         throw new Error("KSI: a Developer Test Runner helper is active; pause edits and shell use until its terminal result is observed.")
       }
-      if (designReviewDeniedTools.has(input.tool) && designReviewSessions.has(input.sessionID)) {
-        throw new Error("KSI: design-task review session is read-only under DESIGN_REVIEW_PERMISSION; return VISUAL PASS/FAIL/BLOCKED-no-render without edits.")
-      }
       const caller = callers.get(input.sessionID)
+      if (input.tool === "task" && output.args?.subagent_type === "design") {
+        throw new Error(`KSI: task route ${caller ?? "unknown"} -> design is not allowed. Design is an independent Primary and sole user-facing approval owner; it is never a task target.`)
+      }
+      if (caller === "design-critic" && isDesignCriticDeniedTool(input.tool)) {
+        throw new Error("KSI: design-critic session is read-only under DESIGN_CRITIC_PERMISSION; return VISUAL PASS/FAIL/BLOCKED-no-render without edits, network, or delegation.")
+      }
       if (caller === "build" && guardedWriterTools.has(input.tool)) {
         const filePath = output.args?.filePath ?? output.args?.path
         if ((input.tool === "edit" || input.tool === "write") && isBookkeepingPath(bookkeepingRoot, filePath)) {
@@ -283,8 +289,31 @@ export default async ({ client, directory, worktree } = {}, options) => {
       }
       if (input.tool !== "task") return
       const target = output.args?.subagent_type
-      if (caller === "design" || target === "design") {
-        throw new Error(`KSI: task route ${caller ?? "unknown"} -> ${target ?? "unknown"} is not allowed. Design is an independent Primary and does not dispatch tasks in v1.`)
+      if (target === "design-task") {
+        throw new Error(`KSI: task route ${caller ?? "unknown"} -> design-task is not allowed. The design-task role was removed; no native agent exists and user allow overrides do not restore it.`)
+      }
+      if (target === "design") {
+        throw new Error(`KSI: task route ${caller ?? "unknown"} -> ${target ?? "unknown"} is not allowed. Design is an independent Primary and sole user-facing approval owner; it is never a task target.`)
+      }
+      if (caller === "design") {
+        if (!CALLS.design.includes(target)) {
+          throw new Error(`KSI: task route design -> ${target ?? "unknown"} is not allowed. Design may dispatch only local read-only explore and design-critic with rendered PNG evidence.`)
+        }
+        if (output.args.background === true) throw new Error("KSI: use foreground native tasks with explicit writer ownership.")
+        if (target === "design-critic") validateDesignCriticContract(output.args)
+        else validateReadTaskContract(target, output.args)
+        const taskId = typeof output.args?.task_id === "string" && output.args.task_id.trim() ? output.args.task_id : null
+        if (taskId) {
+          const resume = await continuity.checkResume({ parentId: input.sessionID, target, taskId })
+          if (!resume.ok) throw new Error(`KSI: ${resume.reason}`)
+          if (resume.unverified && repository) prependPrompt(output, `[Continuity: ${resume.note}. Proceed only with the repair evidence already in this prompt.]`)
+        }
+        const reconciled = await continuity.ensureReconciled({ sessionId: input.sessionID, agent: caller })
+        if (reconciled.fresh && reconciled.summary && !reconciled.degraded) {
+          prependPrompt(output, `[Continuity reconcile]\n${reconciled.summary}`)
+        }
+        await continuity.noteDispatch({ parentId: input.sessionID, target })
+        return
       }
       const helperCall = developerTestRunner && developerRoles.has(caller) && target === "test-runner"
       if (!helperCall && !CALLS[caller]?.includes(target)) {
@@ -300,7 +329,13 @@ export default async ({ client, directory, worktree } = {}, options) => {
         return
       }
       if (typeof target === "string" && target === "developer") validateDeveloperTaskContract(output.args)
-      else if (target === "design-task") validateDesignTaskContract(output.args)
+      else if (target === "design-critic") validateDesignCriticContract(output.args)
+      else if (target === "reviewer" && isReviewerVisualPrompt(output.args?.prompt)) {
+        if (caller === "plan") {
+          throw new Error("KSI: Plan visual-fidelity review is not allowed. Plan reviewer calls stay in plan-critique mode with Objective/Scope/Evidence; only Build may request Mode: visual-fidelity with Allowed write paths: none.")
+        }
+        validateReviewerVisualContract(output.args)
+      }
       else validateReadTaskContract(target, output.args)
       if (caller === "plan" || caller === "build") {
         const taskId = typeof output.args?.task_id === "string" && output.args.task_id.trim() ? output.args.task_id : null
@@ -318,15 +353,6 @@ export default async ({ client, directory, worktree } = {}, options) => {
     },
     "tool.execute.after": async (input, output) => {
       if (input.tool !== "task") return
-      const afterTarget = input.args?.subagent_type ?? output.args?.subagent_type
-      const afterPrompt = input.args?.prompt ?? output.args?.prompt
-      if (afterTarget === "design-task" && isDesignTaskReviewPrompt(afterPrompt)) {
-        const reviewChildId = output?.metadata?.sessionId ?? output?.metadata?.session_id
-        if (reviewChildId === undefined || reviewChildId === null || String(reviewChildId).trim() === "") {
-          throw new Error("KSI: untracked design-task review session: completion metadata has no child session id, so read-only review cannot be enforced; re-dispatch the review.")
-        }
-        designReviewSessions.add(String(reviewChildId))
-      }
       if (helperGuard.releaseAfter({ sessionID: input.sessionID, callID: input.callID })) {
         output.title = `Author-requested Test Runner feedback (not independent acceptance): ${output.title}`
       }
