@@ -4,7 +4,7 @@
 
 ## 배포 경로와 고정 revision
 
-- 이 작업은 npm registry나 GitHub Release를 publish하지 않습니다. Primary가 checks 후 source commit을 push하고 remote 존재를 확인하면 source Git distribution은 별도 설치 경로로 유효합니다. 후보 prerelease 범위(잠정, 게시 주장 없음): local source version `0.4.0-beta.0`.
+- 이 설치 절차는 npm registry나 GitHub Release를 publish하지 않습니다(설치자 권한 경계 — publish 자체가 없었다는 현황 주장이 아님). Public prerelease `ksi-opencode-harness@0.4.0-beta.0`은 2026-09-25 첫 npm publish로 검증됐습니다(GitHub Release 없음). Primary가 checks 후 source commit을 push하고 remote 존재를 확인하면 source Git distribution은 별도 설치 경로로 유효합니다. 과거 "게시 주장 없음" 잠정 범위는 history이며 현재 상태가 아닙니다.
 - GitHub repository의 main URL은 source를 찾는 discovery entry일 뿐입니다. 설치 에이전트는 원하는 source를 확인한 뒤 실제 remote에 존재하는 confirmed immutable commit으로 resolve하고 그 revision을 pin합니다. 확인 전에는 tag, version, SHA를 지어내지 않습니다.
 - reviewed source checkout의 `index.mjs`를 가리키는 file URL은 editable한 mutable 개발/검증 경로입니다. remote source pin과 같은 불변 배포로 표현하지 않습니다.
 - 공식 Superpowers는 별도 plugin이며 다음 revision을 그대로 사용합니다: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797` (package 6.3.0). upstream source/skill을 복사·수정·fork하지 않습니다.
@@ -49,9 +49,9 @@ ksi-opencode-harness@git+https://github.com/khakisketch/KSI-Opencode-Harness#<co
 
 이 작업의 checks와 Primary의 source push가 끝나기 전에는 이 placeholder를 실제 revision으로 바꾸지 않습니다. npm registry/GitHub Release publication은 이 절차의 대상이 아닙니다.
 
-### KSI: public npm prerelease (실제 publish 이후에만)
+### KSI: public npm prerelease (2026-09-25 게시 검증됨)
 
-실제 publish가 승인·성공하기 전에는 아래를 실행하지 않습니다. publish 이후 KSI와 공식 Superpowers를 **별도 항목**으로 설치합니다. 번들·자동 업그레이드·fork가 없으며, upstream pin은 source 검토와 호환성 확인 뒤에만 별도로 올립니다.
+Public prerelease `ksi-opencode-harness@0.4.0-beta.0`이 2026-09-25 첫 npm publish로 검증됐으므로 아래 exact pin을 사용합니다. KSI와 공식 Superpowers를 **별도 항목**으로 설치합니다. 번들·자동 업그레이드·fork가 없으며, upstream pin은 source 검토와 호환성 확인 뒤에만 별도로 올립니다.
 
 ```text
 ksi-opencode-harness@0.4.0-beta.0
@@ -59,6 +59,8 @@ superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2c
 ```
 
 confirmed remote commit을 가리키는 source Git option은 계속 지원되며, file URL은 mutable 개발/검증 경로로 유지됩니다.
+
+> Beta tag warning: bare `npm install ksi-opencode-harness`와 unversioned OpenCode plugin spec은 현재 이 beta를 가리킵니다 — 첫 게시 버전이라 registry가 `latest`와 `next`를 함께 자동 지정한 관측 상태이며(공식 first-version `latest` invariant), silent tag 수정 대상이 아닙니다. 이 beta를 stable이라 부르지 않으며 항상 `ksi-opencode-harness@0.4.0-beta.0` exact pin을 사용합니다. 두 dist-tag는 그대로 두며, 실제 승인된 stable release가 나올 때 `latest`를 이동합니다(발명된 stable version/tag 없음). 불변 tarball 안의 설치 시점 README는 publish 전 문구를 그대로 담고 있어 갱신할 수 없습니다 — 현황은 이 source 문서가 기준이며 tarball 문서는 publish-time snapshot입니다.
 
 ### Superpowers: 고정 official package
 

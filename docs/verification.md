@@ -3,7 +3,7 @@
 ## 범위
 
 - 기록된 호환성 기준: OpenCode 1.18.29, Node >=20. 다른 version/OS는 실제 실행 전까지 미검증입니다.
-- 이 문서/package candidate version은 `0.4.0-beta.0`입니다(잠정, 게시 주장 없음). 아래 날짜가 있는 과거 entry는 해당 시점의 `0.3.0` 이하 기록으로 그대로 보존하며 current로 다시 쓰지 않습니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
+- 이 문서/package version은 `0.4.0-beta.0`이며 2026-09-25 첫 npm publish로 게시 검증됐습니다(GitHub Release 없음). 2026-09-24까지의 "잠정, 게시 주장 없음" 서술은 history이며 현재 상태가 아닙니다. 아래 날짜가 있는 과거 entry는 해당 시점의 `0.3.0` 이하 기록으로 그대로 보존하며 current로 다시 쓰지 않습니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
 - 공식 Superpowers pin: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`, package 6.3.0.
 - `npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`, `git diff --check`는 source checkout에서 수행하는 개발/패키지 게이트입니다. 설치된 production package에는 test, CI, `check-package`가 의도적으로 없습니다.
 - CI에 Node 20/22와 OS matrix 설정이 있어도, 설정의 존재는 해당 matrix가 통과했다는 주장이 아닙니다. 실제 실행 결과만 기록합니다.
@@ -103,4 +103,6 @@ Startup diagnosis는 [troubleshooting.md](troubleshooting.md)에 기록되어 �
 
 Build가 검증 결과와 실제 native helper 관계를 확인했습니다. 이 기록 시점에 원격 OS matrix·두 번째 PC·live slash-command invocation·품질/비용 benchmark는 미검증입니다. 게시된 commit의 원격 CI 상태는 README의 workflow 링크에서 별도로 확인합니다. 개인 scratch path, raw session ID와 세션 setup narration은 distributable evidence에 포함하지 않습니다.
 
-**Candidate `0.4.0-beta.0` prerelease scope (2026-09-24, provisional):** 위 날짜가 있는 과거 evidence는 그대로 보존되며, 본 candidate 범위는 metadata/docs 준비에 한정됩니다 — `package.json` version bump 외 package name/entry/files/license/engines 불변, KSI `0.4.0-beta.0`와 공식 Superpowers pin의 두 독립 plugin 설치 서술, `next` 태그 publish 게이트 서술. m02는 2026-09-24 accepted/done이며 m03은 in_progress로 live Design visual/Human acceptance가 없고 publish/tag/upload 실행, published link 주장이 없습니다. 최종 full suite/pack/review는 Primary가 독립 수행합니다.
+**Candidate `0.4.0-beta.0` prerelease scope (2026-09-24, provisional — history, not current):** 위 날짜가 있는 과거 evidence는 그대로 보존되며, 본 candidate 범위는 metadata/docs 준비에 한정됩니다 — `package.json` version bump 외 package name/entry/files/license/engines 불변, KSI `0.4.0-beta.0`와 공식 Superpowers pin의 두 독립 plugin 설치 서술, `next` 태그 publish 게이트 서술. m02는 2026-09-24 accepted/done이며 m03은 in_progress로 live Design visual/Human acceptance가 없고 publish/tag/upload 실행, published link 주장이 없습니다. 최종 full suite/pack/review는 Primary가 독립 수행합니다.
+
+**Public `0.4.0-beta.0` first publish verified (2026-09-25, current):** registry exact version/integrity와 exact temp-install ESM default async plugin function이 독립 검증됐습니다 — 37 files, no internal docs, KSI와 공식 Superpowers(`b36e0829c6d0140e93cfef2ca599b1b07d4a7797`)의 두 독립 plugin 설치. Registry 관측상 `next`와 `latest`가 모두 이 beta를 가리킵니다: 첫 게시 버전의 자동 `latest` 지정(관측 상태 + 공식 first-version `latest` invariant)이며 silent tag-mutation fix 대상이 아닙니다. Registry tag 변경·재게시·새 version 발행을 하지 않고 두 tag를 그대로 둡니다. 이 beta를 stable이라 부르지 않으며, bare `npm install ksi-opencode-harness`/unversioned plugin spec은 현재 beta를 해석하므로 항상 `ksi-opencode-harness@0.4.0-beta.0` exact pin을 사용합니다. 실제 승인된 stable release가 나올 때 `latest`를 이동합니다(발명된 stable version/tag 없음). 불변 `0.4.0-beta.0` tarball 안의 README는 publish 전 문구를 담고 있어 갱신할 수 없습니다 — 현황 truth는 source 문서이며 tarball 문서는 publish-time snapshot입니다. 본 turn은 registry tag 변경·publish·network·live model/browser를 실행하지 않았습니다.

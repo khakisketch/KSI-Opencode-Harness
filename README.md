@@ -31,9 +31,11 @@ A plugin that adds **Plan / Design / Build / Verify** boundaries to OpenCode's n
 
 3. **Restart the full OpenCode process.** Your conversation survives; new calls pick up the new permissions.
 
-Not yet published on the npm registry (404 observed read-only 2026-09-24, not a lasting guarantee) and no GitHub Release: install from a pinned source commit, and expect the install agent to show you every name collision and changed grant before applying anything.
+Public prerelease `ksi-opencode-harness@0.4.0-beta.0` published 2026-09-25 (first-ever npm publish; registry exact version/integrity and exact temp-install ESM default async plugin function independently verified — no GitHub Release). Install KSI and official Superpowers as two INDEPENDENT plugins — `ksi-opencode-harness@0.4.0-beta.0` plus `superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797` — with no bundle, no auto-upgrade, and no fork. The confirmed-immutable-commit Git install stays supported and the file URL stays a mutable development path. The upstream pin is bumped only after source review plus compatibility checks.
 
-Candidate prerelease scope (provisional, no publication claimed): local source version is `0.4.0-beta.0`. After an actual publish, install KSI and official Superpowers as two INDEPENDENT plugins — `ksi-opencode-harness@0.4.0-beta.0` plus `superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797` — with no bundle, no auto-upgrade, and no fork. The confirmed-immutable-commit Git install stays supported and the file URL stays a mutable development path. The upstream pin is bumped only after source review plus compatibility checks.
+> Beta tag warning: bare `npm install ksi-opencode-harness` and an unversioned OpenCode plugin spec currently resolve this beta, because the npm registry auto-set `latest` as well as `next` on the first published version (observed registry state plus the official first-version `latest` invariant — not a silent tag-mutation fix). This beta is not stable: always pin `ksi-opencode-harness@0.4.0-beta.0` explicitly. Both dist-tags are left untouched; a future accepted stable release moves `latest` then (no stable version or tag invented here).
+
+Historical note: pre-publish snapshots through 2026-09-24 said "not yet published / 404 observed" — preserved as history, not current status. Limitation: the README inside the immutable published `0.4.0-beta.0` tarball still carries that pre-publish wording and cannot be corrected without publishing a new version; this source README is the current truth, while the installed tarball's docs are the frozen publish-time snapshot.
 
 ## How a task moves
 
@@ -193,7 +195,7 @@ The CI matrix runs Ubuntu, macOS, and Windows on Node 20 and 22. The badge refle
 - **사람 게이트:** 계획 합의와 시각 디자인 승인은 명시적입니다. 승인 없는 커밋·푸시·merge·배포는 없습니다.
 - **모델 중립:** provider/model/variant/effort를 고르거나 대체하지 않습니다. 없는 모델을 조용히 바꾸지 않습니다.
 - **연속성:** 체크포인트·product-state·ledger를 세션 시작/compaction에 주입합니다(≤5000B, untrusted, 읽기 전용). Codex·Claude는 같은 CLI를 SessionStart hook으로 씁니다.
-- **설치:** npm registry 미게시(2026-09-24 read-only 404 관측, 지속 보장 아님)/Release 없음 — 검토한 커밋으로 pin해 설치하고, 설치 에이전트가 모든 권한 변경을 승인받습니다. [INSTALL.md](INSTALL.md)
+- **설치:** public prerelease `ksi-opencode-harness@0.4.0-beta.0` 게시됨(2026-09-25 첫 npm publish 검증; GitHub Release 없음) — KSI와 공식 Superpowers를 두 독립 plugin으로 명시적 version pin해 설치하고, 설치 에이전트가 모든 권한 변경을 승인받습니다. bare `npm install ksi-opencode-harness`/unversioned plugin spec은 첫 버전 자동 `latest` 지정으로 현재 beta를 가리키므로 stable이 아닙니다. [INSTALL.md](INSTALL.md)
 - **한계:** CI 배지는 게시된 main만 검증합니다. live model smoke·타 PC·human acceptance는 별도입니다.
 
 ## License
