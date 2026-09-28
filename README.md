@@ -1,203 +1,30 @@
 # KSI OpenCode Harness
 
-[![Check workflow](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml) · [MIT](LICENSE) · Node `>=20`
+KSI is a standalone installer for four optional OpenCode V2 agents: Design, Developer, Test Runner, and Reviewer. OpenCode's own Build, Plan, and Explore remain available with their built-in prompts. This is **not** an OpenCode runtime plugin. The installer does not choose a provider, model, or variant or add slash commands.
 
-A plugin that adds **Plan / Design / Build / Verify** boundaries to OpenCode's native agent and task graph. Model-neutral, evidence-first, and free of role spam — not a model server, not a standalone runtime, and it never picks or silently upgrades your model.
+For material product, visual, or interaction design, start with Design and the project's existing design sources. Design is a selectable Primary, not a required stage for every UI change; Build can handle small changes within approved patterns and owns production integration. Reviewer can independently assess code changes or supplied rendered designs when explicitly asked; visual inspection requires actual image input. Build may work directly or delegate. Design may work in normal authorized workspace paths; `design-previews/` is a convention, not a path gate. Roles are guidance and native permissions, not an OS sandbox or a substitute for Human authority.
 
-> ### More agents is not a strategy.
->
-> A real development pipeline for AI coding agents: every stage has an owner, an artifact, and a gate. Every completion claim is verified before it counts.
+For substantial design, the Design role now uses a product-grounded quality loop: study the real UI and user task, compare genuinely different rendered directions if the choice is open, inspect the selected implementation, optionally seek image-backed Reviewer feedback, and retain only Human-confirmed preference evidence. This is a method, not a guarantee of high-quality output or an automatic approval gate. See [Design guidance](docs/design.md).
 
-![Pipeline: Plan, Design, Build, Verify, State — with human gates at plan agreement and visual approval](.github/assets/pipeline.svg)
+## Try the installer from this checkout
 
-- **Bounded roles, not role spam.** Six reserved subagents (five workers plus hidden read-only design-critic) with fixed budgets and permissions. Workers cannot recurse; there is no do-anything agent.
-- **One writer at a time.** Product and integration edits go to one Worker per worktree, batched when small; writers stop before independent testing.
-- **Authors never verify themselves.** Test Runner executes the checks; a Reviewer inspects the actual diff, not the producer's reasoning.
-- **Human gates stay human.** Plan agreement and visual design approval are explicit; nothing commits, pushes, or merges itself.
-- **Model-neutral by contract.** No provider/model/variant selection, no silent substitution, no local-to-cloud fallback.
-- **Continuity built in.** Checkpoint + product state + plan ledger, injected at session start and after compaction — with a shared CLI for Codex and Claude.
+Use an absolute OpenCode configuration directory. A project-local target is typically `<project>/.opencode`; a global target is the OpenCode configuration directory. The first command only previews exact new/replaced file contents; the second applies. Do not apply to a shared or global target without reviewing the diff and obtaining its owner's approval.
 
-## Quickstart
-
-1. **Ask your agent to install it** — [INSTALL.md](INSTALL.md) travels with the prompt so every collision and permission change is shown before approval (prompt below).
-2. **Or add the plugin yourself**, pinning a reviewed commit:
-
-```jsonc
-"plugin": [
-  "ksi-opencode-harness@git+https://github.com/khakisketch/KSI-Opencode-Harness#<reviewed-commit>",
-  "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
-]
+```sh
+node bin/ksi-opencode.mjs install --target /absolute/path/to/project/.opencode
+node bin/ksi-opencode.mjs install --target /absolute/path/to/project/.opencode --apply
 ```
 
-3. **Restart the full OpenCode process.** Your conversation survives; new calls pick up the new permissions.
+The default installer writes only four `agents/*.md` files under the selected target. Add `--with-design-kit` to preview or install three OpenCode skill directories: `frontend-design`, `impeccable-design-polish`, and `web-design-guidelines`. The first two include task-relevant OpenDesign craft references and a small OpenCode reading guide; the kit remains opt-in. Existing differing managed files stop an apply; after reviewing the preview, `--apply --replace` makes a backup of each replaced file before writing. It refuses replacement of an agent file when existing native frontmatter has `model`, `variant`, or `steps`, pending manual migration of those preferences. A repeat installation with identical files makes no changes. It does not remove older Build/Plan/Explore, Research, Design Critic, or command files automatically. JSONC, provider credentials, MCPs, other plugins, and unrelated files are never rewritten by this CLI. New role files deliberately omit model/variant/steps. See [INSTALL.md](INSTALL.md).
 
-Public prerelease `ksi-opencode-harness@0.4.0-beta.0` published 2026-09-25 (first-ever npm publish; registry exact version/integrity and exact temp-install ESM default async plugin function independently verified — no GitHub Release). Install KSI and official Superpowers as two INDEPENDENT plugins — `ksi-opencode-harness@0.4.0-beta.0` plus `superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797` — with no bundle, no auto-upgrade, and no fork. The confirmed-immutable-commit Git install stays supported and the file URL stays a mutable development path. The upstream pin is bumped only after source review plus compatibility checks.
+The package also carries OpenDesign's pinned Neutral Modern design-system package as a reference. It is not installed by either command, is not a KSI brand, and never replaces a project's tokens or component library. Its provenance, included files, and licenses are recorded in [`vendor/open-design/UPSTREAM.md`](vendor/open-design/UPSTREAM.md).
 
-> Beta tag warning: bare `npm install ksi-opencode-harness` and an unversioned OpenCode plugin spec currently resolve this beta, because the npm registry auto-set `latest` as well as `next` on the first published version (observed registry state plus the official first-version `latest` invariant — not a silent tag-mutation fix). This beta is not stable: always pin `ksi-opencode-harness@0.4.0-beta.0` explicitly. Both dist-tags are left untouched; a future accepted stable release moves `latest` then (no stable version or tag invented here).
+The default Developer cannot delegate. `--developer-test-runner` is an explicit native-file variant and remains off by default. Without the old runtime hook it does **not** guarantee a single helper or pause the writer; use it only after accepting that difference.
 
-Historical note: pre-publish snapshots through 2026-09-24 said "not yet published / 404 observed" — preserved as history, not current status. Limitation: the README inside the immutable published `0.4.0-beta.0` tarball still carries that pre-publish wording and cannot be corrected without publishing a new version; this source README is the current truth, while the installed tarball's docs are the frozen publish-time snapshot.
+## What changed from the plugin design
 
-## How a task moves
+The current source package exposes the installer CLI, not `setup(ctx)`. It ships the four custom agent prompts and, only when requested, three vetted OpenDesign-derived skills with selected craft references. Build/Plan/Explore retain OpenCode's defaults. `/complete` and `/review` are not installed: they were prompt shortcuts, not agent orchestration tools. Automatic checkpoint/product-state injection, six `ksi_*` evidence tools, in-process delegation/signature guards, helper lifecycle tracking, and output archiving were plugin-only features and are unavailable here. Agents can use normal authorized tools and an optional [shared project guidance template](examples/project-AGENTS.md); no equivalent runtime automation is claimed. [Design guidance](docs/design.md), [architecture](docs/architecture.md), and [verification limits](docs/verification.md) give the boundaries.
 
-```mermaid
-flowchart TB
-    P["Plan: peer Primary — scope + acceptance criteria"] --> B1{{"Human agreement"}}
-    D["Design: peer Primary — rendered artifact"] --> DC["foreground explore + design-critic (read-only)"]
-    DC --> B2{{"Human visual approval"}}
-    B["Build: peer Primary — coordinates, never implements"] --> F["Worker: one writer per worktree"]
-    B1 --> B
-    B2 --> B
-    F["Worker: one writer per worktree"] --> G["Test Runner: independent checks"]
-    G --> H["Reviewer: the actual diff"]
-    H --> I["Build: verification and completion"]
-    I --> J["Checkpoint + product-state update"]
-```
+Official Superpowers and any goal plugin are independent user-owned components. KSI does not install, modify, or remove them. OpenChamber managed mode must use the config directory of the server it starts; external-server mode must use that external OpenCode server's config. OpenChamber's orchestration tool remains managed-only.
 
-Plan, Design, and Build are peer user-selected Primaries. Build coordinates workers (Developer including complex work, Explore/Research) but never implements; Design dispatches only foreground local read-only explore plus design-critic with single-line artifact/version plus desktop/mobile PNG Evidence (no Research/external child, developer, recursion, or Design as target); integrated UI fidelity is checked by Reviewer visual-fidelity, and Codex/Claude internal agent structures are untouched.
-
-The diagram encodes rules, not suggestions:
-
-- Product and integration edits are always delegated — even small fixes are batched to one Worker; Build coordinates and verifies but does not implement.
-- Plan/Build dispatch workers and Design dispatches only foreground explore/design-critic; workers cannot delegate further, and no general-purpose agent bypasses the graph.
-- Writers stop before independent tests; reviewers review what actually changed.
-- Completion requires task evidence **and** human acceptance of the slice; `/complete` and `/review` ask for the graph, never for self-approval.
-
-### Starting a design request
-
-Ask the Design Primary for approved visual work: share the screen or scope,
-answer only the decision-changing questions, then open the human-openable
-localhost URL it gives you to inspect baseline vs revision (plus
-desktop/mobile PNGs where authorized). Nothing is approved until you inspect
-the actual render; prototype approval is not production acceptance. Details:
-[docs/design.md](docs/design.md); project token sources:
-[docs/design-system-template.md](docs/design-system-template.md); handoff:
-[examples/design-handoff.md](examples/design-handoff.md).
-
-## Why so few roles
-
-Agent tooling loves a cast of twelve. Here, a role is a permission boundary and a step budget — it has to earn its place:
-
-- **No recursion.** Workers cannot spawn workers.
-- **One writer per worktree.** Parallel writers require explicitly separated worktrees and disjoint ownership.
-- **No role theater.** No standing architect, no mandatory critique for tiny changes, no design approval inferred from source code.
-- **Budgets in the open.** Defaults: Build 200, Design 60, Explore 20, Developer 80, Test Runner 24, Reviewer 32, Research 20, Design-critic 20 native steps. An omitted critic model/variant inherits the native model (could be costly/non-vision). Your `model`, `variant`, and positive `steps` settings survive installation; unsupported models surface as errors, never as substitutes.
-- **A rendered artifact or nothing.** Material visual approval is tied to something the user actually inspected — a real render at a recorded version and scope, not a promise.
-
-## What this is not
-
-- Not an agent swarm — no dynamic hierarchy, no recursion, no unbounded autonomy.
-- Not a model router — it never selects, substitutes, or auto-upgrades providers, models, variants, or thinking effort. [`examples/model-routing.json`](examples/model-routing.json) is an optional, non-enforcing portable sample: copy and edit only the model/variant keys you need. It may differ from machine-local routing, which stays machine-local and is never promoted to a portable default; the installed plugin never reads or enforces the sample file.
-- Not an autonomous release machine — no commit, push, PR, merge, release, or deploy without explicit human authorization.
-- Not a benchmark — no performance or cost claims; verification is per-task evidence, and unverified boundaries are labeled.
-- Not a skill fork — official Superpowers stays pinned and unmodified as a separate plugin installed from upstream at the existing pin, upgraded independently only after version review and compatibility checks; KSI contains no fork or copy.
-
-## Proof
-
-This repository is developed through the same pipeline it ships: plan ledgers in `docs/superpowers/plans/` source checkout only (intended public Git repository path `docs/superpowers/plans/` when pushed — not a claim the push exists — the npm tarball ships eight explicit public docs and excludes `docs/superpowers/**`, so an installed package does not contain ledgers or product-state), bounded worker contracts, `npm run check` — whose trailing `node --test` suite is the source of the dated, scoped results recorded in [`docs/verification.md`](docs/verification.md) (not a standing total — consult that file for the applicable revision, platform, and limits; no separate `npm test` invocation is claimed), package checks, and independent review before anything lands. Evidence over vibes — check the repository history and the ledgers.
-
-## Roles and steps
-
-| Role | Called by | Default native steps |
-| --- | --- | ---: |
-| `build` (Primary) | user-selected | 200 |
-| `design` (Primary) | user-selected | 60 |
-| `explore` | Plan, Build, Design (foreground read-only) | 20 |
-| `developer` | Build | 80 |
-| `test-runner` | Build | 24 |
-| `reviewer` | Plan, Build | 32 |
-| `research` | Plan, Build | 20 |
-| `design-critic` | Design (foreground read-only) | 20 |
-
-The portable example pins only five explicit model entries (explore, developer, test-runner, reviewer, research) with no extra entries and makes no forced mapping/quality claim; the hidden critic stays unpinned and inherits native. Explore cannot approve and the critic never fixes or approves (`BLOCKED-no-render` when PNGs are unreadable or the model is non-vision).
-
-Complex developer work uses the default 80 steps; Build may approve an explicit 120-step condition only when the handoff documents coupled state, concurrency, migration, or deliberate repair scope. `steps` are native iteration budgets — not token budgets, thinking effort, or nested-agent depth. See [docs/execution.md](docs/execution.md).
-
-## Continuity
-
-- `<worktree>/.opencode/working-state.md` — a rolling checkpoint (≤80 lines, ≤6 KiB): the resume pointer, read before continuing, rewritten at milestones only.
-- `docs/superpowers/product-state.md` — the per-project source of truth: goal, milestones, current slice + acceptance, and backlog. Updated only at slice close.
-- `docs/superpowers/plans/<date>-<topic>.md` — one execution ledger per workstream; `done` requires recorded verification evidence.
-- **Goals stay native.** Long-running work can run under each tool's own `/goal` (built-in in Claude and Codex; OpenCode via the pinned companion plugin `@prevalentware/opencode-goal-plugin@0.1.49`) while the checkpoint carries one canonical `Goal:` line, so every tool sees the same objective.
-
-Sessions receive the checkpoint and the current slice automatically (≤5000 bytes combined, labeled untrusted, read-only, non-blocking when absent) — natively in OpenCode, and in Codex or Claude through the bundled CLI registered as a SessionStart hook:
-
-```text
-node <repo>/bin/ksi-continuity-inject.mjs
-```
-
-Hook registration and trust stay with you: the installer does not modify `~/.codex` or `~/.claude`.
-
-## Install
-
-Your agent installs it, with you approving the merge:
-
-```text
-Read INSTALL.md from the reviewed source or Git distribution. Inspect this PC first.
-Install KSI OpenCode Harness and the pinned official Superpowers as two separate
-OpenCode plugins. Preserve my Plan/Build models, credentials, shared Codex/Claude
-installs, and unrelated MCP/provider settings. Explain that KSI manages Plan
-permission, enforces coordinator-only Build permissions (bookkeeping writes only),
-and replaces the six reserved subagent definitions, preserving each definition's
-model/variant and valid positive integer native steps; preserve Plan's other
-settings and Build model/variant/steps. Design is primary-only: preserve its native
-model preferences, and review its managed prompt/permissions and scoped preview/UI
-paths before installation. Show every name collision and changed grant/denial for
-my approval, and stop if I decline a conflict. Do not substitute a missing model.
-Validate, restart the full OpenCode process, continue the conversation if desired,
-and report the result. Ask before any billable live model smoke test.
-```
-
-### What the installer owns
-
-| Area | Install behavior |
-| --- | --- |
-| Plan permission | replaced with the KSI-managed value |
-| Six reserved subagent definitions | replaced by KSI role definitions; only `model`, `variant`, and valid positive integer `steps` survive |
-| Plan's other settings | preserved |
-| Build config | `model`/`variant`/`steps` preserved; tool permissions replaced with coordinator-only (bookkeeping writes only — no product edits, no shell) |
-| Name collisions | every collision and changed grant/denial shown before approval |
-| Credentials, providers/MCP, shared Codex/Claude installs | untouched |
-
-[`opencode.jsonc.example`](opencode.jsonc.example) is a merge reference, not a replacement. Full procedure: [INSTALL.md](INSTALL.md).
-
-## Verification and limits
-
-Source-checkout checks:
-
-```bash
-npm test
-npm run check
-npm run check:package
-git diff --check
-```
-
-The CI matrix runs Ubuntu, macOS, and Windows on Node 20 and 22. The badge reflects the published `main` commit and does not verify uncommitted changes. Not verified by any of this: live model smoke tests, other OS/PC combinations, remote source publication after your pin, or human acceptance. Live calls can consume quota and transmit provider data — they run only with explicit approval.
-
-## Documentation
-
-- [INSTALL.md](INSTALL.md) — agent install, source pinning, merge and migration boundaries
-- [docs/architecture.md](docs/architecture.md) — native role graph and ownership
-- [docs/design.md](docs/design.md) — Design Primary, approval gates, browser pipeline
-- [docs/execution.md](docs/execution.md) — steps, model/variant discovery, opt-in helper lifecycle
-- [docs/verification.md](docs/verification.md) — checks, audit meaning, unverified boundaries
-- [docs/troubleshooting.md](docs/troubleshooting.md) — startup/session/provider diagnostics
-- [docs/releasing.md](docs/releasing.md) — manual publication after a source push
-- [examples/design.project.jsonc](examples/design.project.jsonc) — narrow Design edit paths
-- [examples/design-handoff.md](examples/design-handoff.md) — short handoff template
-
-## 한국어 요약
-
-영어 문서가 기준입니다. 아래는 빠른 요약입니다.
-
-- **한 줄:** "에이전트를 더 늘리기"가 아니라 **Plan → Design → Build → Verify → State** 파이프라인을 강제하는 OpenCode 플러그인입니다.
-- **역할:** 여섯 reserved subagent(다섯 worker + 숨은 read-only design-critic)는 고정된 step 예산과 권한을 가집니다. 재귀 위임이 없고, 작은 수정도 Worker에게 배치되며, Build는 조정·검증만 합니다. Design은 foreground explore/design-critic에만 위임합니다.
-- **작성자≠검증자:** writer가 멈춘 뒤 Test Runner가 검사하고 Reviewer가 실제 diff를 봅니다. 완료는 task 증거 + slice acceptance(사용자 end-to-end 확인) 둘 다 필요합니다.
-- **사람 게이트:** 계획 합의와 시각 디자인 승인은 명시적입니다. 승인 없는 커밋·푸시·merge·배포는 없습니다.
-- **모델 중립:** provider/model/variant/effort를 고르거나 대체하지 않습니다. 없는 모델을 조용히 바꾸지 않습니다.
-- **연속성:** 체크포인트·product-state·ledger를 세션 시작/compaction에 주입합니다(≤5000B, untrusted, 읽기 전용). Codex·Claude는 같은 CLI를 SessionStart hook으로 씁니다.
-- **설치:** public prerelease `ksi-opencode-harness@0.4.0-beta.0` 게시됨(2026-09-25 첫 npm publish 검증; GitHub Release 없음) — KSI와 공식 Superpowers를 두 독립 plugin으로 명시적 version pin해 설치하고, 설치 에이전트가 모든 권한 변경을 승인받습니다. bare `npm install ksi-opencode-harness`/unversioned plugin spec은 첫 버전 자동 `latest` 지정으로 현재 beta를 가리키므로 stable이 아닙니다. [INSTALL.md](INSTALL.md)
-- **한계:** CI 배지는 게시된 main만 검증합니다. live model smoke·타 PC·human acceptance는 별도입니다.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+The public npm `ksi-opencode-harness@0.4.0-beta.0` is an immutable older V1 plugin, **not** this installer. This checkout has not been published as a new package; its manifest is private to prevent an accidental same-version publish. No commit, push, release, global-config edit, or shared-service restart is implied by these instructions.

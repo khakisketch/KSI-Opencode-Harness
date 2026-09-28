@@ -1,7 +1,0 @@
-{
-  "explore": { "model": "ollama/nanbeige4.2-3b-32k:latest" },
-  "developer": { "model": "opencode-go/muse-spark-1.3-contributor", "variant": "high" },
-  "test-runner": { "model": "ollama/nanbeige4.2-3b-32k:latest" },
-  "reviewer": { "model": "opencode-go/muse-spark-1.3-contributor", "variant": "xhigh" },
-  "research": { "model": "opencode-go/muse-spark-1.3-contributor", "variant": "medium" }
-}

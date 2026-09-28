@@ -1,48 +1,15 @@
-# Design handoff
+# Optional Design → Build handoff
 
-> Copy this template for a task; this sample is not an approval. It is
-> intentionally short. A material visual task starts as `NOT visually
-> approved` until the named rendered artifact is actually inspected.
+Keep this as short as the work permits. A link to an artifact plus a few decisions may be enough; a complex flow may need more detail. This example is not approval.
 
-## Status
+- Goal and approved scope: `<what this design addresses>`
+- User task and success/failure case: `<what the person must notice or do; what must not be misread>`
+- Artifact/version: `<path, story, prototype, or inspectable render>`
+- Direction and key behavior: `<chosen direction and why; layout, interaction, important states>`
+- Other directions considered: `<links and the Human's stated reason for choosing/rejecting, if any>`
+- Existing system reused or new decisions: `<component/token sources or explicit changes>`
+- Evidence actually inspected: `<relevant render, width, state, interaction; or not yet inspected>`
+- Human approval: `<approved with date/reference | pending>`
+- Open decisions or integration notes: `<none or concise list>`
 
-- Status: `NOT visually approved`
-- Artifact/version: `<name>@<version>`
-- Approved scope: `<specific screen/component/story and allowed paths>`
-- Brief version: `<brief v1: user, purpose, density, exclusions>`
-- Token block: `<reused tokens/components; no invented hex>`
-- Approver and date: `<human / YYYY-MM-DD>`
-- Inspection evidence: `<PNG path(s), viewport(s), state(s)>`
-
-## Reproduction
-
-- Source or prototype: `<reviewed path, story, or reproduction command>`
-- Live URL (optional, authorized localhost only): `<http://127.0.0.1:<port>/...>`
-- Baseline vs revision: `<what changed between baseline and this revision>`
-- Viewports: `<for example 1280x800, 390x844>`
-- Interaction: `<short path through the approved state>`
-- Synthetic state evidence: `<fixtures and states shown; synthetic data only, no PII>`
-- Outstanding risk: `<none or list>`
-- Approval waits until the user inspects the actual render: no approval until user inspected; never infer approval from source alone.
-
-## Decisions
-
-- Hierarchy/layout: `<decision>`
-- Aesthetic direction: `<one locked direction>`
-- Visual tokens/components: `<decision>`
-- Relevant props/events: `<prop/event and expected behavior>`
-- Loading/empty/error/permission states: `<state behavior>`
-- Unresolved constraints: `<none or list>`
-
-## Self-review
-
-- States: `<loading/empty/error/permission verified>`
-- Contrast: `<readable>`
-- Viewports: `<640/768/1024/1280, no unintended overflow>`
-- Anti-AI-patterns: `<no indigo defaults, no purple-blue gradients, no emoji-as-icons>`
-
-## Build integration acceptance
-
-- Reuse this artifact/source; do not invent a replacement direction.
-- Verify the integrated desktop and mobile viewport/state relevant to this task.
-- Record any integration mismatch and return it to Build for a Design decision.
+Design owns the artifact and communicates intent. Build owns production implementation, integration, and technical checks. Build may return a fidelity question to Design; neither role can infer Human approval from this document.

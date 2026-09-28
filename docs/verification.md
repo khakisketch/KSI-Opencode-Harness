@@ -1,108 +1,35 @@
-# Verification and compatibility
+# Verification and remaining acceptance
 
-## 범위
+The dated catalogs below describe earlier configurations, not the current four-role on-disk setup. Research and Design Critic were later retired; a fresh authenticated shared-service catalog after their removal has not been checked.
 
-- 기록된 호환성 기준: OpenCode 1.18.29, Node >=20. 다른 version/OS는 실제 실행 전까지 미검증입니다.
-- 이 문서/package version은 `0.4.0-beta.0`이며 2026-09-25 첫 npm publish로 게시 검증됐습니다(GitHub Release 없음). 2026-09-24까지의 "잠정, 게시 주장 없음" 서술은 history이며 현재 상태가 아닙니다. 아래 날짜가 있는 과거 entry는 해당 시점의 `0.3.0` 이하 기록으로 그대로 보존하며 current로 다시 쓰지 않습니다. Git 소스 게시, 해당 commit의 CI 통과, npm/GitHub Release 게시는 서로 별도로 확인합니다.
-- 공식 Superpowers pin: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`, package 6.3.0.
-- `npm test`, `npm run check`, `npm run check:package`, `npm pack --dry-run`, `git diff --check`는 source checkout에서 수행하는 개발/패키지 게이트입니다. 설치된 production package에는 test, CI, `check-package`가 의도적으로 없습니다.
-- CI에 Node 20/22와 OS matrix 설정이 있어도, 설정의 존재는 해당 matrix가 통과했다는 주장이 아닙니다. 실제 실행 결과만 기록합니다.
-- 역할 수 표기: 아래 날짜가 있는 과거 entry는 해당 시점의 역할 수 기록을 current로 다시 쓰지 않습니다(일곱째 표기는 design-task 제거 전 시점의 historical 기록). 현재(design-task 제거 후)는 여섯 reserved subagents(explore, developer, test-runner, reviewer, research, hidden design-critic)를 포함합니다. 기존 budgets/models는 불변, 미지정 critic model/variant는 native를 상속(costly/non-vision 가능), portable 예시는 다섯 explicit model entries(explore, developer, test-runner, reviewer, research)만 둡니다.
+`npm run check` covers the four-role native bundle, installer safeguards, the opt-in design-kit file set, and absence of retired plugin entrypoints. `npm run check:package` packs the source and performs an offline local-tarball install in a disposable config directory. `node scripts/verify-native-v2-isolated.mjs` checks the effective agent catalog and the three opt-in skills in a credential-free OpenCode V2 environment. `git diff --check` checks patch whitespace. None of these calls a model or proves behavior in a shared service.
 
-## Evidence-tool compatibility
+On 2026-09-28 after the legacy-source cleanup and review corrections, before the later Design permission fix: `npm run check` passed 21/21; `npm run check:package` passed; `git diff --check` passed. The isolated verifier passed on OpenCode 2.0.18: six native role files and the two opt-in skills installed, built-in roles untouched, no KSI commands installed, expected nine effective role modes, retained user Developer model/steps, visible Design Critic, and default Developer nondelegation. The verifier issued zero provider requests; child egress was not monitored.
 
-- Tool registration shape: `tool({ description, args, execute })` returning the
-  input unchanged, confirmed against `@opencode-ai/plugin@1.15.13`
-  (`dist/tool.js`: `export function tool(input) { return input; }`,
-  `tool.schema = z`) as bundled in the local OpenCode package cache. The
-  installed OpenCode binary is 1.18.31; its `Hooks.tool` map
-  (`{ [key]: ToolDefinition }`) is the registration surface used in
-  `index.mjs`. A readable 1.18.31 plugin `dist` was not available in this
-  environment, so exact shape parity with 1.18.31 remains an unverified
-  boundary (no shell, network, or external-directory access was used to
-  chase it).
-- Offline resolvability: `node -e "import('@opencode-ai/plugin')"` and
-  `import('zod')` both fail with `Cannot find package` in this source
-  checkout, and the packed tarball declares no dependencies, so the offline
-  `npm run check:package` install cannot resolve the native helper either.
-  Adding the dependency would require editing `package.json`, which is
-  outside this change; therefore `src/evidence-tools.mjs` prefers the native
-  helper at runtime and otherwise uses the vendored `{ description, args,
-  execute }` identity shape with a minimal validating schema shim for the
-  bounded scope-enum/paths-array args.
-- Targeted tests: `test/evidence-tools.test.mjs` and `test/env-probe.test.mjs`
-  cover the six-tool registration, arg bounds, 4 KiB output bounds with
-  truncation notes, degraded (non-fatal) paths, and secret exclusion (no
-  titles/prompts/costs in audit output, no environment reads in env-probe,
-  no contents/diffs in diffstat). `npm run check`'s `node --check` list is
-  fixed in `package.json` and now includes `src/evidence-tools.mjs` and
-  `src/env-probe.mjs`; they remain load-covered under `node --test`.
+The old plugin hooks, automatic checkpoint injection, `ksi_*` tools, command shortcuts, and signature guards are not in this source distribution. Earlier plugin and nine-role installer checks are dated history in the [migration ledger](superpowers/plans/2026-09-26-opencode-v2-plugins.md), not evidence for the current package.
 
-## 정적·새 process 검사
+The isolated result is package evidence only. It does not establish the contents or effective role catalog of any user's global OpenCode configuration. In particular, this package check did not change a global Design Critic file, restart a shared `openchamber.service`, authenticate against it, or test it. An unauthenticated HTTP 401 is not acceptance. At that source-only milestone, live model delegation, source editing through Build, OpenChamber UI behavior, visual quality, and Human end-to-end acceptance remained unverified; the product-state m03 slice stayed in progress.
 
-source checkout에서 다음을 실행하고 결과를 기록합니다.
+## Approved global adoption and shared-service catalog (2026-09-28)
 
-```bash
-npm run check
-npm run check:package
-npm pack --dry-run
-git diff --check
-```
+After separate Human approval, the global installer preview showed only one existing-file change (`agents/design-critic.md`: remove `hidden: true`) and five new files for the two skills. The pre-change Critic and unchanged `opencode.jsonc` were privately backed up; `--apply --replace` also created a sibling Critic backup. A repeated installer preview returned zero changes, and the JSONC SHA256 stayed `d1916c10f2c35cb2e59e986eeac4d8b84f71332a889600a49dc6b7b1c87d986e`. No provider/model or credential file was read or changed.
 
-`npm run check` already ends with `node --test`, so do not run `npm test` again for the same revision.
+The approved `openchamber.service` restart returned active. Direct unauthenticated OpenCode `/api/agent` and `/api/skill` requests returned 401, so they are not counted as catalog evidence. Through a fresh, authenticated OpenChamber browser session, the restarted service returned 200 for both catalogs: Build/Plan/Design were Primary; Explore/Developer/Test Runner/Reviewer/Research/Design Critic were Subagent; Critic was visible. Both selected skills resolved to the new global `skills/` paths. The effective Developer model/variant/steps and default no-child permission remained present; Design had workspace edit permission and Critic denied edit/shell/delegation. This is shared-service metadata verification, not a live model delegation, UI quality comparison, or Human acceptance. The browser session was closed without saving authentication state.
 
-package gate는 manifest, 실제 tarball, offline local-tarball install, plugin hook, 여섯 role(현재; 과거 entry의 일곱/여섯 표기는 해당 시점 historical 기록), command와 policy reference를 확인합니다. path/filename gate는 알려진 금지 경로와 필수 파일만 검사하며, secret-like basenames(`my-credentials-backup.json`, `my-auth.json`, `.env`, pem/key 등, nested/case 포함, prefix 무관)를 차단해도 유효한 filename 안에 들어간 secret content까지 찾아내거나 secret-free를 보증하지 않습니다. source와 tarball content를 수동 검토하고, production artifact에 test/CI/check-package, credential, session log, `.opencode`가 없는지 확인합니다.
+## Provider-backed copy pilot and live delegation (2026-09-28)
 
-새 OpenCode process에서 `opencode debug agent <role>`의 model/variant/steps/permission을 필요한 필드만 확인하고, `opencode debug skill`로 role별 skill 접근을 확인합니다. Plan permission, Build coordinator-only permission, reserved subagent 정의 전체의 교체(model/variant와 유효한 양의 정수 steps는 보존)는 관리되는 변경으로 기록하고, 기존 options 등과 이름 충돌도 확인합니다. Plan의 기타 설정과 Plan/Build model 및 사용자의 credential/provider/MCP 변경 여부는 별도로 확인합니다. model 목록 조회는 live-call·품질 PASS가 아니며, cost metadata가 없거나 0인 것은 무료 실행의 증거가 아닙니다.
+With subsequent Human approval for model use, the original `design-previews/index.html` (SHA256 `f107b3c1bfd6877bebbc7a53fe580cd3de651899cf2329a25303360efc2d79b6`) was copied into separate disposable Build and Design locations. Both received the same Korean brief and `opencode-go/muse-spark-1.3-contributor#high` in standalone OpenCode V2 sessions. Both loaded `frontend-design` and `web-design-guidelines` and edited only their local `index.html`. The original hash and global JSONC hash remained unchanged. The HTML candidates and six baseline/Build/Design desktop/mobile PNGs are preserved in `/home/ksi/.local/state/ksi-harness-pilots/2026-09-28-build-design/`.
 
-## Audit의 의미
+The first Design run failed before editing: its then-installed `external_directory: ask` agent rule requested access to the globally installed guidelines reference file, and non-interactive `opencode run` auto-rejected it. A TTY did not change that behavior. A new Design run with `--auto` read that exact file and completed; Build needed no `--auto`. This is a real headless skill-use friction and a comparison caveat, not a claim that the shared OpenChamber client fails. A later project-local role overlay without that ask also failed because the existing global ask persisted as the last effective matching rule. No global role permissions were changed for the pilot.
 
-`npm run audit`는 로컬 OpenCode DB의 assistant metadata(`providerID`, `modelID`, `variant`)를 이용한 관찰용 inventory입니다. model compliance, quality, ROI, cost superiority를 판정하지 않습니다. 최신 route per session만 보고 모든 turn이나 task correctness를 인증하지도 않습니다.
+Playwright loaded all three local HTML files at 1440×900 and 390×844, saved full-page captures, and observed no page errors or horizontal overflow. Build and Design both corrected the Build-first/optional-Plan/optional-Design message. Build's mobile page measured 4454 px high; Design's measured 4852 px. In this one task, Build's shorter three-part explanation better conveyed that delegation is optional; Design retained a five-node arrow sequence and a legacy “Developer·Research 호출은 하지 않음” statement, which should not be promoted as a general role restriction. These observations do not establish overall agent quality or user approval. Neither candidate replaced the original preview.
 
-strict audit는 다음 두 인자를 모두 **명시적으로** 요구합니다.
+Separately, a standalone Build session using `opencode-go/deepseek-v4.1-flash` invoked the configured Developer subagent, which changed an isolated `probe.txt` from `status=pending` to `status=delegated`. A fresh local read confirmed that exact content and that the disposable directory contained only `probe.txt`. This verifies live Developer delegation under the installed global roles in a standalone runtime, not a provider-backed operation against the shared OpenChamber service. Human m03 end-to-end acceptance, shared-service live delegation, and any candidate promotion remain pending. No commit, push, or release was performed.
 
-```bash
-npm run audit -- \
-  --routes=<user-expected-mapping.json> \
-  --since=<post-change ISO timestamp> --strict
-```
+After that finding, source `src/native-roles.mjs` removed only Design's redundant catch-all external-directory ask; OpenCode's own managed-global-config allow remains effective in a fresh isolated install, while its base ask still covers other external paths. A new `checkAgents` regression first failed against the old behavior, then passed; `npm run check` passed 22/22, `npm run check:package` and `git diff --check` passed, and the no-auth isolated OpenCode 2.0.18 verifier passed with a new effective-permission check for the installed guidelines reference. Three preceding verifier attempts timed out during isolated service startup while an unrelated background OpenCode service started by this investigation was running; after that background service was stopped, the verifier passed. The exact cause of the startup contention was not independently proven. The managed `openchamber.service` stayed active. The global Design file still had the old ask at this source-only milestone; the subsequently approved global correction is recorded below.
 
-`--routes`는 사용자가 복사·편집한 기대 mapping이어야 하며 [선택 예시](../examples/model-routing.json)를 모두의 기본 설정으로 간주하지 않습니다. `--since`는 변경 이후 실제 시각이어야 합니다. 명시 mapping이 없거나, 시각이 없거나, 인식된 증거가 0이면 strict는 실패합니다. 일반 audit는 비교 mapping 없이 metadata만 관찰합니다.
+## Approved global Design permission correction (2026-09-28)
 
-## 승인된 live smoke 경계
+After separate Human approval, the live global `agents/design.md` and private pre-change backup `/home/ksi/.local/state/ksi-harness-backups/design-skill-permission-20260928.axtX9s/design.md.before` both matched SHA256 `f3301fac571ccce6cec95c923d906064df65eccdf27473fe8f0269858737c378`. The installer preview showed exactly one conflict: delete the 62-byte `{"action":"external_directory","resource":"*","effect":"ask"},` line. `--with-design-kit --apply --replace` made that one-file change, creating sibling backup `agents/design.md.bak-1790583427430-be3c6107`. The resulting Design SHA256 is `46a5178a0839ca17847deded1153222417dfd5fb02d1edba548039b7b3cb0341`; a repeat preview reported zero changes. Global `opencode.jsonc` remained byte-identical at SHA256 `d1916c10f2c35cb2e59e986eeac4d8b84f71332a889600a49dc6b7b1c87d986e`.
 
-Live call은 quota/API token을 사용하고 입력을 provider로 보낼 수 있습니다. synthetic disposable fixture와 명시적 범위를 사용하며, production data나 credential은 사용하지 않습니다. role graph·tool 경계·실제 diff·독립 test evidence를 각각 기록하되, 한 번의 smoke로 일반 품질·효율·비용 우위나 production readiness를 결론내리지 않습니다.
-
-## 완료 보고 형식
-
-정확한 harness/upstream/runtime version, 실행 platform, source 정적 결과, 실제 호출한 role, upstream integrity, migration 변경, restart 요구와 미검증 경계를 분리해 보고합니다. configured/discovered, live routing, implementation quality, remote publication, Human acceptance를 서로 섞지 않습니다. 실제 publish가 승인·성공하기 전에는 link/tag가 published라고 쓰지 않습니다.
-
-## 날짜가 있는 local evidence의 범위
-
-**이전 0.2 계열 baseline:** 2026-09-08에는 50 tests/24개 패키지 파일을 검증했습니다. 이후 공개 commit `3715dcb`의 51 tests와 6개 OS/Node CI job이 통과했습니다. 이 과거 결과는 아래 Design 0.3.0 변경에 대한 CI 승인이 아닙니다.
-
-**Design 0.3.0 로컬 검증:** Linux/Node 24.19.0에서 독립 Test Runner가 65/65 tests, 실제 tarball offline install/import/config hook, pack dry-run(28개 파일), diff whitespace 검사를 통과했습니다. 독립 리뷰에서 발견한 root/blanket 권한·unsafe tool 재허용·상대 경로 범위 문제를 수정하고 재검토했습니다. 이 로컬 실행은 Windows 전용 cross-drive 분기를 실행하지 않으며, 원격 OS/Node 검증은 해당 commit의 CI 결과를 확인해야 합니다.
-
-**Operational-evidence docs 검증 (2026-09-23):** committed HEAD `da8ed9550ea7f13986fbdaa378fb443d25abe4e0`에 docs/state-only 미커밋 변경 5개 경로(`README.md`, `docs/architecture.md`, `docs/troubleshooting.md`, plan ledger, product-state)가 있는 상태에서 독립 Test Runner가 `npm run check` exit 0(222/222 tests), `npm run check:package` exit 0, `npm pack --dry-run` exit 0(38개 파일, 86.4 kB package/272.1 kB unpacked, tarball 없음), `git diff --check` exit 0을 보고했습니다. worktree 상태는 예상된 5개 docs/state 경로뿐이었으며 forbidden 변경·live call이 없었습니다. 이는 clean committed revision의 증거가 아닙니다 — committed HEAD와 dirty worktree를 구분합니다. live model/provider/MCP 호출, quality/cost 판단, user acceptance는 확립되지 않았습니다. 이 실행은 본 entry와 ledger 정정 이전의 worktree에서 수행됐으므로, exact-final-revision 증거는 Primary가 dispatch하는 Test Runner 재실행으로 확인해야 합니다.
-
-**Operational-evidence docs 후속 검증 (2026-09-23):** 같은 committed HEAD `da8ed9550ea7f13986fbdaa378fb443d25abe4e0`에 docs/state-only 미커밋 변경 6개 경로(`README.md`, `docs/architecture.md`, `docs/troubleshooting.md`, `docs/verification.md`, plan ledger, product-state)가 있는 상태에서 독립 Test Runner(session ID omitted)가 `npm run check` 222/222 pass, `npm run check:package` pass, `npm pack --dry-run` pass(38개 파일, 88.0 kB package / 276.4 kB unpacked, shasum `405ccebbe6e6f7f4400ec7022bf21e3bd17726a6`, tarball 없음), `git diff --check` pass를 보고했습니다. forbidden 경로 변경·live call이 없었습니다. 이 실행은 본 follow-up 기록이 추가되기 전 worktree snapshot의 측정값이므로, 기록 추가 후의 resulting tree에 대한 bitwise exact-final coverage를 주장하지 않습니다 — committed HEAD와 dirty worktree를 구분합니다. 실행 간 package 크기 차이(86.4 kB → 87.2 kB → 88.0 kB)는 각 실행 이후 docs가 변경됐기 때문입니다. live model/provider/MCP 호출, quality/cost 판단, user acceptance는 확립되지 않았습니다. 최종 Primary 재실행은 별도로 보고됩니다.
-
-**Execution-control evidence:** native `subagent_depth: 1`이 올바르게 거절되었고, corrected integration 뒤 author-requested helper 4 checks, Developer shell의 `npm test` 4 checks, 별도 root Test Runner 4 checks가 보고되었습니다. Primary는 native parent/child metadata와 author-feedback title도 확인했습니다. 이는 작은 helper lifecycle 검증이지 cost/complexity benchmark가 아닙니다.
-
-**Design browser pipeline evidence:** Linux의 실제 OpenCode Design root에서 named Playwright MCP와 명시적으로 선택한 Astra `high`를 사용했습니다. official `@playwright/mcp@0.0.80`의 manifest를 inspect했고 install lifecycle hook은 없었으며 Playwright/core는 `1.63.0-alpha-2026-08-31`로 pin되어 있었습니다. `--headless --isolated --block-service-workers --browser chrome --caps vision --image-responses allow` 및 local-only allowed origins/output 설정으로 synthetic page를 desktop `1280x800`, mobile `390x844`에서 resize/navigate/screenshot/read/snapshot/click하고 close했습니다. 두 PNG를 Primary가 직접 읽어 selected state와 no horizontal overflow를 관찰했으며 task call/source change는 없었습니다. 이는 browser pipeline과 image inspection의 실제 증거이지 product design approval, quality/cost benchmark, egress isolation의 증거가 아닙니다.
-
-Browser/MCP 연결, supported browser launch, model이 PNG를 실제로 볼 수 있음은 각각 확인해야 합니다. cached Chromium의 OS sandbox 실패를 `--no-sandbox`로 우회하지 않았고, 이미 설치된 official Chrome을 사용했습니다. browser install은 별도 consent이며 credentials/auth/data permission과는 별개입니다. screenshot 또는 `screenshotwithfilename`의 text path나 output file 존재만으로 visual inspection을 기록하지 않습니다.
-
-**Design prototype 생성 검증:** 비-Git 작업 폴더에서 native worktree-relative 권한 경로를 보정한 후, 실제 Design Primary가 기존 HTML을 읽고 `apply_patch`로 지정한 preview 파일을 생성했습니다. 원본 대비 변경은 요청한 H1과 header 색상뿐이었으며 responsive CSS와 interaction script는 유지됐습니다. Desktop/mobile 렌더를 캡처·READ하고 선택 동작을 확인한 뒤 `NOT visually approved / awaiting Human feedback`으로 반환했습니다. Build가 실제 diff와 PNG를 확인했으며, 생산 코드 반영이나 사용자 승인을 가장하지 않았습니다.
-
-CI와 source package checks는 browser-free로 유지되어 portable합니다. 위 native browser pipeline의 실제 실행은 현재 Linux에서만 확인했으며, 다른 OS/browser와 remote CI 결과는 이 evidence로 대체하지 않습니다.
-
-**Isolated offline Design plugin/permission metadata smoke (2026-09-23):** 실제 OpenCode 1.18.31에서 task-owned 임시 `HOME`/`XDG`와 후보 단일 file URL만을 가리키는 config로 `debug config`, `debug agent design-critic`, `debug agent design`이 각 exit 0이었으며, 후보 단일 plugin, hidden read-only `design-critic` 기본 20 steps/model 미지정, Design primary 60 steps에 `task` 정확히 `explore`+`design-critic`을 확인했습니다. 이는 CONFIG metadata이며 child dispatch/first-call hook lifecycle, PNG VLM READ, preview, 사용자 승인이 아닙니다. v1.18.30 연구가 v1.18.31 loader 순서를 보장한다고 주장하지 않습니다. Task-owned 임시 경로 2곳은 `external_directory` guard 거부로 미삭제 상태로 기록만 합니다. 과거 entry는 그대로 두며, live pilot·user acceptance는 미검증입니다.
-
-Startup diagnosis는 [troubleshooting.md](troubleshooting.md)에 기록되어 있습니다. health/agent/command/skill/session headless probes와 짧은 new/continue PTY probes는 같은 generic error를 재현하지 못했으며, root cause는 확정되지 않았고 fix도 주장하지 않습니다.
-
-Build가 검증 결과와 실제 native helper 관계를 확인했습니다. 이 기록 시점에 원격 OS matrix·두 번째 PC·live slash-command invocation·품질/비용 benchmark는 미검증입니다. 게시된 commit의 원격 CI 상태는 README의 workflow 링크에서 별도로 확인합니다. 개인 scratch path, raw session ID와 세션 setup narration은 distributable evidence에 포함하지 않습니다.
-
-**Candidate `0.4.0-beta.0` prerelease scope (2026-09-24, provisional — history, not current):** 위 날짜가 있는 과거 evidence는 그대로 보존되며, 본 candidate 범위는 metadata/docs 준비에 한정됩니다 — `package.json` version bump 외 package name/entry/files/license/engines 불변, KSI `0.4.0-beta.0`와 공식 Superpowers pin의 두 독립 plugin 설치 서술, `next` 태그 publish 게이트 서술. m02는 2026-09-24 accepted/done이며 m03은 in_progress로 live Design visual/Human acceptance가 없고 publish/tag/upload 실행, published link 주장이 없습니다. 최종 full suite/pack/review는 Primary가 독립 수행합니다.
-
-**Public `0.4.0-beta.0` first publish verified (2026-09-25, current):** registry exact version/integrity와 exact temp-install ESM default async plugin function이 독립 검증됐습니다 — 37 files, no internal docs, KSI와 공식 Superpowers(`b36e0829c6d0140e93cfef2ca599b1b07d4a7797`)의 두 독립 plugin 설치. Registry 관측상 `next`와 `latest`가 모두 이 beta를 가리킵니다: 첫 게시 버전의 자동 `latest` 지정(관측 상태 + 공식 first-version `latest` invariant)이며 silent tag-mutation fix 대상이 아닙니다. Registry tag 변경·재게시·새 version 발행을 하지 않고 두 tag를 그대로 둡니다. 이 beta를 stable이라 부르지 않으며, bare `npm install ksi-opencode-harness`/unversioned plugin spec은 현재 beta를 해석하므로 항상 `ksi-opencode-harness@0.4.0-beta.0` exact pin을 사용합니다. 실제 승인된 stable release가 나올 때 `latest`를 이동합니다(발명된 stable version/tag 없음). 불변 `0.4.0-beta.0` tarball 안의 README는 publish 전 문구를 담고 있어 갱신할 수 없습니다 — 현황 truth는 source 문서이며 tarball 문서는 publish-time snapshot입니다. 본 turn은 registry tag 변경·publish·network·live model/browser를 실행하지 않았습니다.
+The approved `openchamber.service` restart returned active/running with a new main PID. In a separate standalone, provider-backed OpenCode V2 Design run **without `--auto`**, the agent loaded installed `web-design-guidelines`, read its global `references/guidelines.md`, and changed only a disposable `probe.txt` from `status=pending` to `status=read`; the CLI exited zero and a fresh read confirmed the file. Through a fresh authenticated OpenChamber browser session, the restarted shared service returned HTTP 200 agent/skill catalogs: Design remained Primary; the final effective matching `external_directory` rule for the global config path was `allow`; both design skills resolved to global paths. The browser session was closed without saving authentication state. This distinguishes shared-service catalog evidence from the standalone live skill-use result: no model prompt was sent through the shared OpenChamber service, and Human m03 end-to-end acceptance remains pending.

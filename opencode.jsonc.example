@@ -1,56 +1,17 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Resolve the installed harness path on THIS PC; see INSTALL.md.
-  "plugin": [
-    "file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs",
-    "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
-    // Optional execution assistance is OFF by default. If explicitly approved,
-    // replace the KSI string above with this native plugin tuple:
-    // ["file:///ABSOLUTE/PATH/TO/KSI-Opencode-Harness/index.mjs", { "developerTestRunner": true }]
-    // Optional goal federation (OFF by default). OpenCode only; Claude/Codex use built-in /goal.
-    // opencode.jsonc: ["@prevalentware/opencode-goal-plugin@0.1.49", { "restricted_agents": ["plan", "design"] }]
-    // tui.json: "@prevalentware/opencode-goal-plugin@0.1.49" (plain string)
-  ],
-  // Merge only with approval. KSI enforces strict coordinator-only Build
-  // permissions at startup (bookkeeping writes only, no product edits or
-  // shell); the block below documents the previous user-owned shape and is
-  // overridden by the plugin. Review those changes first.
-  "permission": { "*": "deny" },
-  "agent": {
-    // Optional: configure any native role's model and variant here; omitted values inherit through OpenCode.
-    // The harness never selects a provider, model, or effort on your behalf.
-    "build": {
-      "permission": {
-        "*": "deny",
-        "read": "allow", "glob": "allow", "grep": "allow", "list": "allow",
-        "edit": "ask", "bash": "ask", "external_directory": "ask",
-        "question": "allow", "todowrite": "allow", "lsp": "allow",
-        "webfetch": "allow", "websearch": "allow",
-        "skill": { "*": "allow", "grill-me": "deny", "goals": "deny" },
-        "task": {
-          "*": "deny", "explore": "allow", "developer": "allow",
-          "test-runner": "allow", "reviewer": "allow",
-          "research": "allow"
-        }
-      }
+  // KSI's standalone installer writes four custom native agents/*.md files
+  // next to this configuration file. Do not register KSI in plugins.
+  // Built-in Build, Plan, and Explore keep their original system prompts.
+  // Preserve your existing model, variant, positive steps, permissions,
+  // provider, MCP, and unrelated settings when adopting KSI.
+  "agents": {
+    "developer": {
+      "model": "provider/model#variant",
+      "steps": 80
     }
   },
-  // Optional, user-approved local renderer. This does not install a browser
-  // or select a model/provider. See examples/design.project.jsonc for narrow
-  // project-scoped Design edit paths.
-  "mcp": {
-    "playwright": {
-      "type": "local",
-      "command": [
-        "npx", "--yes", "@playwright/mcp@0.0.80",
-        "--headless", "--isolated", "--block-service-workers",
-        "--browser", "chrome", "--caps", "vision",
-        "--image-responses", "allow",
-        "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
-        "--output-dir", "design-previews/artifacts"
-      ],
-      "enabled": true
-    }
-  },
-  "share": "disabled"
+  "plugins": [
+    // Optional, independent user-owned plugins may remain here.
+  ]
 }

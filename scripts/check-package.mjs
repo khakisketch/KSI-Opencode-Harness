@@ -1,70 +1,30 @@
 import assert from "node:assert/strict"
 import { spawn } from "node:child_process"
-import { access, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises"
+import { constants } from "node:fs"
+import { access, mkdtemp, readFile, readdir, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { basename, isAbsolute, join, resolve } from "node:path"
-import { fileURLToPath, pathToFileURL } from "node:url"
+import { basename, isAbsolute, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
-const packageData = JSON.parse(await readFile(join(root, "package.json"), "utf8"))
-const roles = ["explore", "developer", "test-runner", "reviewer", "research"]
-// design-critic is a hidden local read-only critic with its own prompt file.
-const hiddenRoles = ["design-critic"]
-const INSTALL_CHECK_ROLES = [...roles, ...hiddenRoles]
-const REQUIRED_PACKAGE_FILES = [
-  "index.mjs",
-  "src/agents.mjs",
-  "src/contracts.mjs",
-  "src/audit-metrics.mjs",
-  "src/delegation.mjs",
-  "src/continuity.mjs",
-  "src/continuity-context.mjs",
-  "bin/ksi-continuity-inject.mjs",
-  "src/evidence-tools.mjs",
-  "src/env-probe.mjs",
-  "src/repository.mjs",
-  "instructions/harness.md",
-  "agents/design.md",
-  "agents/design-critic.md",
-  "agents/build.md",
-  ...roles.map((role) => `agents/${role}.md`),
-  "README.md",
-  "INSTALL.md",
-  "docs/architecture.md",
-  "docs/verification.md",
-  "docs/releasing.md",
-  "docs/execution.md",
-  "docs/troubleshooting.md",
-  "docs/design.md",
-  "docs/design-system-template.md",
-  "docs/design-critique.md",
-  "examples/model-routing.json",
-  "examples/design.project.jsonc",
-  "examples/design-handoff.md",
-  "opencode.jsonc.example",
-  "scripts/audit-routing.mjs",
-  "LICENSE",
+const required = [
+  "bin/ksi-opencode.mjs", "src/native-bundle.mjs", "src/native-roles.mjs",
+  "templates/agents/design.md", "templates/agents/developer.md", "templates/agents/test-runner.md", "templates/agents/reviewer.md",
+  "examples/project-AGENTS.md", "README.md", "INSTALL.md",
+  "vendor/open-design/UPSTREAM.md", "vendor/open-design/LICENSE",
+  "vendor/open-design/skills/frontend-design/SKILL.md", "vendor/open-design/skills/frontend-design/LICENSE.txt",
+  "vendor/open-design/skills/impeccable-design-polish/SKILL.md",
+  ...["typography", "color", "anti-ai-slop", "state-coverage", "accessibility-baseline", "animation-discipline"].map((name) => `vendor/open-design/craft/${name}.md`),
+  "vendor/open-design/skills/web-design-guidelines/SKILL.md", "vendor/open-design/skills/web-design-guidelines/LICENSE",
+  "vendor/open-design/skills/web-design-guidelines/references/guidelines.md",
+  "vendor/open-design/design-systems/default/manifest.json", "vendor/open-design/design-systems/default/DESIGN.md",
+  "vendor/open-design/design-systems/default/tokens.css", "vendor/open-design/design-systems/default/USAGE.md",
 ]
-const forbiddenPath = /(?:^|\/)(?:node_modules|\.opencode|test|tests|fixtures|secrets|\.github|tmp|temp)(?:\/|$)|(?:^|\/)(?:legacy|gpu|vllm|benchmark|lease)(?:[-_.\/]|$)|(?:^|\/)(?:\.env(?:\.(?!example$)[^/]*)?|[^/]*auth[^/]*\.json|[^/]*credentials[^/]*\.json|[^/]+(?:\.pem|\.key))$/i
-// Fail-closed: the source repo keeps project state under docs/superpowers/
-// (product-state, per-workstream plan ledgers, specs). The PUBLIC npm tarball
-// must never contain it, even if someone later re-adds a broad "docs/" files
-// entry or loosens .npmignore. Checked separately from forbiddenPath so the
-// boundary survives unrelated gate edits.
-const internalStatePath = /(?:^|\/)docs\/superpowers(?:\/|$)/i
+const forbidden = /(?:^|\/)(?:index\.mjs|plugin-v2\.mjs|node_modules|test|tests|docs\/superpowers|\.opencode|design-previews)(?:\/|$)|^(?:src\/agents\.mjs|agents\/|commands\/)|(?:^|\/)(?:\.env(?:\.[^/]*)?|[^/]*credentials[^/]*|[^/]*auth[^/]*\.json)$/i
 
-function npmInvocation(args, cwd, env, npmExecPath = process.env.npm_execpath) {
-  if (!npmExecPath) throw new Error("npm_execpath is unavailable; run npm run check:package with npm.")
-  return { command: process.execPath, args: [npmExecPath, ...args], options: { cwd, env, shell: false } }
-}
-
-function runNpm(args, cwd, env) {
-  const invocation = npmInvocation(args, cwd, env)
-  return new Promise((resolveResult, reject) => {
-    const child = spawn(invocation.command, invocation.args, {
-      ...invocation.options,
-      stdio: ["ignore", "pipe", "pipe"],
-    })
+function run(command, args, cwd, env) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { cwd, env, shell: false, stdio: ["ignore", "pipe", "pipe"] })
     let stdout = ""
     let stderr = ""
     child.stdout.setEncoding("utf8")
@@ -72,121 +32,52 @@ function runNpm(args, cwd, env) {
     child.stdout.on("data", (chunk) => { stdout += chunk })
     child.stderr.on("data", (chunk) => { stderr += chunk })
     child.on("error", reject)
-    child.on("close", (code, signal) => resolveResult({ code, signal, stdout, stderr }))
+    child.on("close", (code) => resolve({ code, stdout, stderr }))
   })
 }
 
-function packageManifest(packOutput) {
-  let records
-  try {
-    records = JSON.parse(packOutput)
-  } catch (error) {
-    throw new Error(`npm pack --json returned invalid JSON: ${error.message}`)
+const work = await mkdtemp(join(tmpdir(), "ksi-native-package-"))
+try {
+  const env = {
+    PATH: process.env.PATH,
+    HOME: work,
+    npm_config_cache: join(work, "npm-cache"),
+    npm_config_offline: "true",
+    npm_config_update_notifier: "false",
   }
-  const record = Array.isArray(records) ? records[0] : undefined
-  assert.ok(record?.filename, "npm pack did not report a tarball filename")
-  assert.ok(Array.isArray(record.files), "npm pack did not report a tarball file manifest")
-  return record
+  const packed = await run("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", work], root, env)
+  assert.equal(packed.code, 0, packed.stderr)
+  const [record] = JSON.parse(packed.stdout)
+  const paths = record.files.map(({ path }) => path.replaceAll("\\", "/"))
+  for (const path of required) assert.ok(paths.includes(path), `missing packaged file: ${path}`)
+  assert.ok(!paths.includes("templates/agents/research.md"), "retired Research role must not be packaged")
+  assert.ok(!paths.includes("templates/agents/design-critic.md"), "retired Design Critic role must not be packaged")
+  for (const path of paths) assert.doesNotMatch(path, forbidden, `forbidden packaged file: ${path}`)
+  const tarball = isAbsolute(record.filename) ? record.filename : join(work, basename(record.filename))
+  await access(tarball)
+  const installRoot = join(work, "consumer")
+  const installed = await run("npm", ["install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--prefix", installRoot, tarball], root, env)
+  assert.equal(installed.code, 0, installed.stderr)
+  const packageDir = join(installRoot, "node_modules", "ksi-opencode-harness")
+  const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
+  assert.equal(manifest.main, undefined)
+  assert.equal(manifest.exports, undefined)
+  assert.equal(manifest.bin["ksi-opencode"], "./bin/ksi-opencode.mjs")
+  const config = join(work, "opencode-config")
+  const executable = join(installRoot, "node_modules", ".bin", "ksi-opencode")
+  await access(executable, constants.X_OK)
+  const ran = await run(executable, ["install", "--target", config, "--apply"], work, env)
+  assert.equal(ran.code, 0, ran.stderr)
+  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
+  assert.deepEqual(await readdir(config), ["agents"])
+  const withKit = join(work, "opencode-with-design-kit")
+  const kitInstall = await run(executable, ["install", "--target", withKit, "--with-design-kit", "--apply"], work, env)
+  assert.equal(kitInstall.code, 0, kitInstall.stderr)
+  assert.deepEqual((await readdir(withKit)).sort(), ["agents", "skills"])
+  assert.deepEqual((await readdir(join(withKit, "skills"))).sort(), ["frontend-design", "impeccable-design-polish", "web-design-guidelines"])
+  assert.match(await readFile(join(withKit, "skills", "frontend-design", "references", "craft", "typography.md"), "utf8"), /Typography craft rules/)
+  assert.match(await readFile(join(withKit, "skills", "web-design-guidelines", "references", "guidelines.md"), "utf8"), /interface|accessibility/i)
+  console.log("Package verification passed: installer-only tarball, offline native install, and opt-in design kit install.")
+} finally {
+  await rm(work, { recursive: true, force: true })
 }
-
-function normalizedPath(path) {
-  return path.replaceAll("\\", "/").replace(/^package\//, "")
-}
-
-function validateManifest(paths) {
-  const files = paths.map(normalizedPath)
-  for (const required of REQUIRED_PACKAGE_FILES) assert.ok(files.includes(required), `package is missing required file: ${required}`)
-  for (const file of files) assert.doesNotMatch(file, forbiddenPath, `package contains forbidden path: ${file}`)
-  for (const file of files) assert.doesNotMatch(file, internalStatePath, `package contains internal project state: ${file}`)
-  assert.ok(!files.includes("scripts/check-package.mjs"), "package contains its verification script")
-  assert.ok(!files.some((file) => /(?:^|\/)(?:package-lock\.json|npm-shrinkwrap\.json)$/i.test(file)), "package contains an install lockfile")
-  return files
-}
-
-async function policyReferenceMatches(references, expectedPath) {
-  const expectedRealPath = await realpath(expectedPath)
-  for (const reference of references) {
-    try {
-      if (await realpath(reference) === expectedRealPath) return true
-    } catch (error) {
-      // Missing paths cannot match; surface permission, I/O and invalid-config errors.
-      if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error
-    }
-  }
-  return false
-}
-
-async function verifyPackage() {
-  const workDir = await mkdtemp(join(tmpdir(), "ksi-opencode-harness-package-"))
-  try {
-    const packDir = join(workDir, "pack")
-    const installDir = join(workDir, "install")
-    const globalNpmrc = join(workDir, "global.npmrc")
-    const userNpmrc = join(workDir, "user.npmrc")
-    await mkdir(packDir)
-    await writeFile(globalNpmrc, "")
-    await writeFile(userNpmrc, "")
-    const env = {
-      ...process.env,
-      npm_config_cache: join(workDir, "npm-cache"),
-      npm_config_globalconfig: globalNpmrc,
-      npm_config_userconfig: userNpmrc,
-      npm_config_update_notifier: "false",
-    }
-
-    const packed = await runNpm(["pack", "--json", "--ignore-scripts", "--pack-destination", packDir], root, env)
-    if (packed.code !== 0) throw new Error(`npm pack failed (${packed.code ?? packed.signal}):\n${packed.stderr}`)
-    const manifest = packageManifest(packed.stdout)
-    validateManifest(manifest.files.map(({ path }) => path))
-
-    const tarball = isAbsolute(manifest.filename)
-      ? manifest.filename
-      : join(packDir, basename(manifest.filename))
-    await access(tarball)
-    const installed = await runNpm(
-      ["install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--prefix", installDir, tarball],
-      root,
-      env,
-    )
-    if (installed.code !== 0) throw new Error(`offline local tarball install failed (${installed.code ?? installed.signal}):\n${installed.stderr}`)
-
-    const packageDirectory = packageData.name.startsWith("@")
-      ? join(installDir, "node_modules", ...packageData.name.split("/"))
-      : join(installDir, "node_modules", packageData.name)
-    const consumerPath = join(installDir, "consumer.mjs")
-    await writeFile(consumerPath, `import plugin from ${JSON.stringify(packageData.name)}
-
-export default async function loadConfig() {
-  const hooks = await plugin()
-  const config = {}
-  hooks.config(config)
-  return config
-}
-`)
-    const consumerModule = await import(pathToFileURL(consumerPath).href)
-    assert.equal(typeof consumerModule.default, "function", "installed package-name import did not export a consumer function")
-    const config = await consumerModule.default()
-    assert.equal(config.agent?.design?.mode, "primary", "installed plugin is missing Design Primary")
-    assert.ok(config.agent.design.prompt, "installed plugin is missing Design prompt")
-    for (const role of INSTALL_CHECK_ROLES) {
-      assert.equal(config.agent?.[role]?.mode, "subagent", `installed plugin is missing role: ${role}`)
-      assert.ok(config.agent[role].prompt, `installed plugin is missing prompt for role: ${role}`)
-    }
-    assert.equal(config.agent?.["design-critic"]?.hidden, true, "installed plugin is missing hidden design-critic registration")
-    for (const command of ["complete", "review"]) {
-      assert.equal(config.command?.[command]?.agent, "build", `installed plugin is missing default command: ${command}`)
-    }
-    const instructionPath = resolve(packageDirectory, "instructions/harness.md")
-    assert.ok(await policyReferenceMatches(config.instructions ?? [], instructionPath), "installed plugin did not reference harness policy")
-    await access(instructionPath)
-  } finally {
-    await rm(workDir, { recursive: true, force: true })
-  }
-}
-
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  await verifyPackage()
-  console.log("Package verification passed: manifest, offline installation, plugin hooks, roles, commands, and policy reference.")
-}
-
-export { REQUIRED_PACKAGE_FILES, INSTALL_CHECK_ROLES, npmInvocation, policyReferenceMatches, validateManifest }
