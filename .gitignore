@@ -1,3 +1,4 @@
 node_modules/
 *.tgz
 .opencode/working-state.md
+.worktrees/
