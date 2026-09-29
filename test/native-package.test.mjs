@@ -5,7 +5,7 @@ import { access, readFile } from "node:fs/promises"
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("native installer has a new publishable npm beta version", () => {
-  assert.equal(packageJson.version, "0.4.0-beta.1")
+  assert.equal(packageJson.version, "0.4.0-beta.2")
   assert.notEqual(packageJson.private, true)
 })
 
@@ -27,6 +27,7 @@ test("package exposes a standalone installer and no OpenCode plugin entrypoint",
   assert.ok(!packageJson.files.includes("templates/agents/design-critic.md"), "retired critic must not ship")
   assert.ok(!packageJson.files.includes("index.mjs"))
   assert.ok(!packageJson.files.includes("src/"))
+  assert.ok(!packageJson.files.includes("docs/releasing.md"), "maintainer release operations are not user-facing package docs")
   assert.ok(!packageJson.scripts.check.includes("plugin-v2"))
 })
 

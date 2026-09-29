@@ -9,4 +9,4 @@
 - `ksi_*` tool missing or no automatic checkpoint injection: expected in the native-only edition. Use normal authorized tools and explicit state reading; do not claim plugin-only behavior remains.
 - HTTP 401 from a local API catalog is an authentication boundary, not evidence that agents or commands loaded successfully. Do not use provider calls or credentials as a shortcut to package verification.
 
-The published `0.4.0-beta.0` is an old V1 plugin, not the new installer. Do not register this source as an OpenCode plugin. Keep any separately installed Superpowers or goal plugin untouched when migrating.
+The removed `0.4.0-beta.0` was an old V1 plugin, not the native V2 installer. Its removal from npm does not uninstall any local V1 files or registration. Do not register this source as an OpenCode plugin. Keep any separately installed Superpowers or goal plugin untouched when migrating.
