@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { spawn } from "node:child_process"
 import { constants } from "node:fs"
-import { access, mkdtemp, readFile, readdir, rm } from "node:fs/promises"
+import { access, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { basename, isAbsolute, join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -60,16 +60,36 @@ try {
   assert.equal(installed.code, 0, installed.stderr)
   const packageDir = join(installRoot, "node_modules", "ksi-opencode-harness")
   const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
+  assert.equal(manifest.version, "0.4.0-beta.1")
+  assert.notEqual(manifest.private, true)
   assert.equal(manifest.main, undefined)
   assert.equal(manifest.exports, undefined)
   assert.equal(manifest.bin["ksi-opencode"], "./bin/ksi-opencode.mjs")
   const config = join(work, "opencode-config")
   const executable = join(installRoot, "node_modules", ".bin", "ksi-opencode")
   await access(executable, constants.X_OK)
+  await assert.rejects(access(join(work, ".config", "opencode")), { code: "ENOENT" }, "package install must not change config")
+  const relative = await run(executable, ["install", "--target", "relative-config", "--apply"], work, env)
+  assert.notEqual(relative.code, 0)
+  await assert.rejects(access(join(work, "relative-config")), { code: "ENOENT" })
+  const preview = await run(executable, ["install", "--target", config], work, env)
+  assert.equal(preview.code, 0, preview.stderr)
+  assert.equal(JSON.parse(preview.stdout).applied, false)
+  await assert.rejects(access(config), { code: "ENOENT" }, "preview must not create target")
   const ran = await run(executable, ["install", "--target", config, "--apply"], work, env)
   assert.equal(ran.code, 0, ran.stderr)
   assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
   assert.deepEqual(await readdir(config), ["agents"])
+  const repeat = await run(executable, ["install", "--target", config, "--apply"], work, env)
+  assert.equal(repeat.code, 0, repeat.stderr)
+  assert.deepEqual(JSON.parse(repeat.stdout).changes, [], "repeated apply must be idempotent")
+  const ownedRole = join(config, "agents", "design.md")
+  const userRouting = "---\nmodel: user-owned/model\n---\nDo not replace this role.\n"
+  await writeFile(ownedRole, userRouting)
+  const conflict = await run(executable, ["install", "--target", config, "--apply", "--replace"], work, env)
+  assert.notEqual(conflict.code, 0, "user routing must block replacement")
+  assert.equal(await readFile(ownedRole, "utf8"), userRouting)
+  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
   const withKit = join(work, "opencode-with-design-kit")
   const kitInstall = await run(executable, ["install", "--target", withKit, "--with-design-kit", "--apply"], work, env)
   assert.equal(kitInstall.code, 0, kitInstall.stderr)
