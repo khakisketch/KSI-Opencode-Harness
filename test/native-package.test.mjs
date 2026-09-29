@@ -4,6 +4,11 @@ import { access, readFile } from "node:fs/promises"
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
+test("native installer has a new publishable npm beta version", () => {
+  assert.equal(packageJson.version, "0.4.0-beta.1")
+  assert.notEqual(packageJson.private, true)
+})
+
 test("package exposes a standalone installer and no OpenCode plugin entrypoint", () => {
   assert.equal(packageJson.bin?.["ksi-opencode"], "./bin/ksi-opencode.mjs")
   assert.equal(packageJson.main, undefined)

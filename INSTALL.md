@@ -2,7 +2,18 @@
 
 KSI is distributed here as a standalone installer for OpenCode V2 native files, not as an OpenCode plugin. First inspect the source and decide which OpenCode configuration directory owns the server you use. For OpenChamber managed mode, use its managed OpenCode server's config; in external-server mode, use the external server's config. The OpenChamber orchestration tool is managed-only and is unrelated to KSI installation.
 
-## Preview and apply
+## Public npm beta: preview and apply
+
+With Node.js 20 or newer, run the native V2 beta installer against an absolute configuration directory. Installing the npm package itself makes no OpenCode configuration changes; only the explicit CLI `--apply` writes files. Until `0.4.0-beta.1` is published and registry-verified, use the source-checkout commands below.
+
+```sh
+npm exec --yes --package=ksi-opencode-harness@0.4.0-beta.1 -- ksi-opencode install --target /absolute/path/to/opencode-config
+npm exec --yes --package=ksi-opencode-harness@0.4.0-beta.1 -- ksi-opencode install --target /absolute/path/to/opencode-config --apply
+```
+
+The optional design kit requires `--with-design-kit` on both preview and apply. This beta does not imply acceptance of real-product visual output.
+
+## Preview and apply from source
 
 From a reviewed source checkout, run:
 
@@ -36,7 +47,7 @@ OpenCode supplies Primary `build` and `plan` and Subagent `explore` without KSI 
 
 Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve Superpowers, the goal plugin, other plugins, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
 
-The old public `ksi-opencode-harness@0.4.0-beta.0` tarball is a V1-only plugin and must not be presented as this V2 installer. The current source has not been published and is marked private. Do not run bare `npm install ksi-opencode-harness` expecting this behavior.
+The old public `ksi-opencode-harness@0.4.0-beta.0` tarball is a V1-only plugin and must not be presented as this V2 installer. Until the registry has been verified with `latest` and `next` pointing to `0.4.0-beta.1`, do not run a bare `npm install ksi-opencode-harness` expecting V2.
 
 ## Runtime and verification boundaries
 
