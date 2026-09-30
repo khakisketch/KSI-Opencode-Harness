@@ -204,8 +204,8 @@ installation, credential sharing, MCP registration, or system configuration is a
 - [x] Reorganize README around purpose, roles, workflow, exact install scope, separate optional tools, and agent onboarding.
 - [x] Document integration reconnect and explicit artifact-entry requirements; replace deployment example with V2 MCP syntax.
 - [x] Flag deployment assets as workstation-specific, including writable credential mounts and internal DB-sync risks.
-- [ ] Verify source/package and independent branch review; commit release documentation.
-- [ ] Publish approved GitHub source/tag/release and npm beta; verify public package installation.
+- [x] Verify source/package and independent branch review; commit release documentation (`79d5a97`).
+- [x] Publish approved GitHub source/tag/release and npm beta; verify public package installation.
 
 Fresh live audit: standalone MCP read succeeded while the project's OpenCode connection was failed with
 `Connection closed`. Disconnect/connect explicitly at the worktree Location restored 22 tools without
@@ -229,3 +229,38 @@ covered by real CLI/package tests. The running machine's older sync script was n
 
 User completed npm web login; `npm whoami` now returns the expected maintainer identity. Release will use
 the `next` dist-tag without silently changing `latest`. GitHub main can fast-forward from `de7f823`.
+
+### Public release evidence
+
+- GitHub main fast-forwarded to `79d5a97`; annotated `v0.5.0-beta.1` and GitHub prerelease published with an
+  installable tarball. A clean consumer downloaded that public asset and installed exactly three agent files.
+- User completed npm's separate interactive publishing approval from this repository (not the home directory).
+  Anonymous public metadata returned `0.5.0-beta.1` and the preserved CLI bin mapping. Published integrity
+  matched the reviewed/local release tarball. `next` selects this beta; `latest` was deliberately left unchanged.
+- Fresh-home/cache `npm exec --package=ksi-opencode-harness@0.5.0-beta.1` preview wrote nothing; apply created
+  only three agents, retained existing config unchanged, and repeat apply was idempotent. No global config
+  or third-party tools were installed. Evidence: `/tmp/opencode/ksi-public-beta-azm41b9g` and
+  `/tmp/opencode/ksi-github-beta-re05u5t4` (local resumability evidence, not shipped assets).
+- npm emitted a misleading bin-normalization warning: source inspection showed it normalizes the leading
+  `./` then assigns the bin target. Public metadata and actual npm-exec installation verified that the CLI
+  was not removed. No manifest/behaviour change was needed.
+
+### MCP idle-exit root cause and approved host adjustment
+
+The live MCP disconnected again without a container restart. Installed upstream `mcp.js` declares a
+30-minute default idle-exit timer; `_resolveMcpStdioIdleExitMs` accepts zero to disable it. Real wrapper
+processes reproduced closure with a 200 ms idle setting; zero stayed connected and listed all 22 tools
+after the same idle period. User explicitly approved adding `OD_MCP_STDIO_IDLE_EXIT_MS=0` to this server's
+global docker-exec command. Private backup made; exact diff verified as that single argument only.
+Project-scoped disconnect/connect restored tools; live project read and process environment confirmed
+the setting. No credentials, unrelated servers, or whole service were changed. Full 30-minute soak and
+automatic recovery from an actual container restart remain unverified.
+
+This operator guidance is a source-only documentation follow-up to the immutable tagged/npm beta; no
+published tarball or release tag is overwritten. Remaining product acceptance is human review of the
+README/workflow and separately of a production design implementation, not a registry availability blocker.
+
+Deferred review minors: unified-diff blank context can trigger whole-range whitespace checks in the stored
+compose patch; a historical ledger contains the maintainer's concrete private-tailnet hostname. Neither is
+a package secret or npm-installed setting. Main-source links, explicit `KSI_ASSETS`, dist-tag clarity, and
+integration-asset package exclusion are now addressed.

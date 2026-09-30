@@ -166,6 +166,7 @@ The tested host retains a compatible older-shaped block; that is not the recomme
         "command": [
           "docker", "exec", "-i",
           "-e", "OD_DAEMON_URL=http://127.0.0.1:7456",
+          "-e", "OD_MCP_STDIO_IDLE_EXIT_MS=0",
           "open-design",
           "sh", "-c", "cd /app && node apps/daemon/dist/cli.js mcp"
         ],
@@ -176,6 +177,14 @@ The tested host retains a compatible older-shaped block; that is not the recomme
   }
 }
 ```
+
+The tested upstream MCP wrapper defaults to exiting after **30 minutes without a request**
+(`DEFAULT_MCP_STDIO_IDLE_EXIT_MS`). Setting `OD_MCP_STDIO_IDLE_EXIT_MS=0` disables that timer for this
+stdio process. It does not keep a killed/restarted container alive or guarantee automatic reconnection.
+Verified with real wrapper processes: a 200 ms idle policy closed the transport; zero stayed connected
+and returned 22 tools after the same idle interval. The live host config was backed up, changed with
+explicit approval, and project-scoped reconnected; process environment and a live project read were checked.
+A full 30-minute no-request soak has not been performed.
 
 ### 7. Remote access
 
@@ -222,6 +231,8 @@ ownership and agent sign-in, then run `opencode mcp list` **from the consuming p
 - Restarting the OpenDesign container drops the `opendesign` MCP connection held by any live OpenCode session;
   use `/mcps` in the consuming project to disconnect/reconnect, then verify a real read. A new session alone
   was not established as sufficient. Explicit project-scoped reconnect restored 22 tools in the live audit.
+- Independently of container restarts, the upstream wrapper's default 30-minute idle exit also closes
+  the connection. The example above disables it; keep explicit reconnect available for other failures.
 - Artifact reads need explicit project and entry-file arguments in the tested deployment; default entry
   lookup failed. Existing successful runs and reads were checked; restart recovery is not automatic.
 - Codex connection tests intermittently failed with a signal/timeout and retries passed; the cause is
