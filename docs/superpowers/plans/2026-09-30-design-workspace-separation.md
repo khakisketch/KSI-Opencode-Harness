@@ -167,9 +167,26 @@ deploy `.env`, systemd unit, removed skills archive, and a copy of the daemon da
 
 The whole deployment is reproducible from the source repository: `integrations/opendesign/` carries the
 upstream compose patch (verified to apply cleanly to `nexu-io/open-design` at `5b19dfa`), the `opencode-cli`
-argv shim, the container OpenCode config, the credential-sync script, the KSI design-system `DESIGN.md`, and a
-README covering prerequisites, steps, operations, and known limitations. Nothing there is part of the
-published npm package.
+argv shim, the container OpenCode config, the credential-sync script, the KSI design-system `DESIGN.md` plus
+its publishing `metadata.json`, and a README covering prerequisites, steps, operations, and known
+limitations. Nothing there is part of the published npm package.
+
+## First real design run and the memory ceiling (2026-09-30)
+
+A realistic KSI screen was generated end to end with the `user:ksi` design system active (project
+`ksi-safety-field-inspection`, entry `field-inspection.html`). The result follows the KSI principles: one
+decision-driving summary line instead of a KPI wall, a single primary object (the inspection list), an
+explicit status vocabulary shown with a label plus shape rather than colour alone, and a next action on every
+actionable row. Screenshot: `design-previews/artifacts/ksi-safety-field-inspection.png` in this repository.
+
+The first attempt failed with `Transport: The socket connection was closed unexpectedly`.
+`docker inspect` showed `OOMKilled=true`: the upstream default container cap of 384 MB with a 192 MB Node heap
+is smaller than a real design run. Raised to 2 GB / 1024 MB heap in `deploy/.env`; the retry succeeded. A
+user design system also defaults to `status: "draft"`, and project creation is rejected with
+`DESIGN_SYSTEM_NOT_PUBLISHED` until `metadata.json` sets `"status": "published"`. Both requirements are
+recorded in the reproduction README.
+
+This is a working design run, not Human acceptance: the screen has not been reviewed or approved by the user.
 
 ## Pending
 

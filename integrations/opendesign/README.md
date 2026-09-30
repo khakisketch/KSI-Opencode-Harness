@@ -50,6 +50,16 @@ bash deploy/scripts/install.sh --non-interactive --port 7456 --image ghcr.io/nex
 The installer writes `deploy/.env` (including a generated `OD_API_TOKEN`), pulls the image, starts the
 container, and creates a `systemd --user` unit.
 
+### 1b. Raise the memory limit
+
+The installer defaults to a 384 MB container cap with a 192 MB Node heap. A real design run exceeds it:
+the container was OOM-killed mid-run and the run failed with
+`Transport: The socket connection was closed unexpectedly`. Raise both in `deploy/.env` before running designs:
+
+```sh
+sed -i 's|^OPEN_DESIGN_MEM_LIMIT=.*|OPEN_DESIGN_MEM_LIMIT=2g|; s|^NODE_OPTIONS=.*|NODE_OPTIONS=--max-old-space-size=1024|' deploy/.env
+```
+
 ### 2. Apply the Linux override patch
 
 Upstream's `deploy/docker-compose.linux.yml` is the documented place for Linux CLI mounts, and both
@@ -148,6 +158,9 @@ docker cp integrations/opendesign/ksi-design-system/. open-design:/app/.od/desig
 It appears in the design-system picker as `user:ksi` and is readable by agents at
 `od://design-systems/user%3Aksi/DESIGN.md`. The package is prose-only: a full manifest requires a compiled
 `tokens.css`, and inventing a KSI token set is worse than shipping none. Add real tokens later if they exist.
+
+`metadata.json` must be present with `"status": "published"`. A user design system defaults to `draft`, and
+projects are rejected with `DESIGN_SYSTEM_NOT_PUBLISHED` until it is published.
 
 ## Operations
 
