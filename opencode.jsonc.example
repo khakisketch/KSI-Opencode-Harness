@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // KSI's standalone installer writes four custom native agents/*.md files
+  // KSI's standalone installer writes three custom native agents/*.md files
   // next to this configuration file. Do not register KSI in plugins.
   // Built-in Build, Plan, and Explore keep their original system prompts.
   // Preserve your existing model, variant, positive steps, permissions,

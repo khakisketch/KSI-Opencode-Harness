@@ -47,6 +47,7 @@ try {
   assert.ok(!paths.includes("templates/agents/research.md"), "retired Research role must not be packaged")
   assert.ok(!paths.includes("templates/agents/design-critic.md"), "retired Design Critic role must not be packaged")
   assert.ok(!paths.some((path) => path.startsWith("vendor/")), "vendored design kit must not be packaged")
+  assert.ok(!paths.some((path) => path.startsWith("integrations/")), "manual deployment assets must not be packaged")
   assert.ok(!paths.some((path) => path.startsWith("docs/design")), "retired design docs must not be packaged")
   assert.ok(!paths.some((path) => path.startsWith("examples/design")), "retired design examples must not be packaged")
   assert.ok(!paths.includes("docs/releasing.md"), "maintainer-only release guide must not be packaged")

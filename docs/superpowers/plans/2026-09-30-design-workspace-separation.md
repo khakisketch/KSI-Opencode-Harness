@@ -1,7 +1,7 @@
 # Design workspace separation — OpenDesign adoption and OpenCode Design retirement
 
 Date: 2026-09-30
-Status: source change complete and package-verified; global migration and Human acceptance pending
+Status: source change and global migration complete; release/documentation closure in progress; Human design acceptance remains separate
 
 **Approved direction (2026-09-30):** OpenDesign is the design workspace for KSI work. The OpenCode harness
 retires its Design primary and the vendored OpenDesign skill kit, and documents an on-demand integration
@@ -193,3 +193,39 @@ This is a working design run, not Human acceptance: the screen has not been revi
 - Human review of the source diff and of real use of OpenDesign as the design workspace.
 - Optional later: a compiled `tokens.css` + `manifest.json` for the KSI design system once real KSI brand
   tokens exist. OpenDesign Cloud and `vela` are explicitly out of scope (Local AI only).
+
+## Release and documentation closure (approved 2026-09-30)
+
+User approved README/workflow clarification and GitHub/npm beta deployment, then clarified that OpenCode,
+OpenDesign, and Superpowers must be separately installed by the user or an authorized agent reading upstream
+documentation. KSI's default installation remains exactly three native agent files. No automatic dependency
+installation, credential sharing, MCP registration, or system configuration is added.
+
+- [x] Reorganize README around purpose, roles, workflow, exact install scope, separate optional tools, and agent onboarding.
+- [x] Document integration reconnect and explicit artifact-entry requirements; replace deployment example with V2 MCP syntax.
+- [x] Flag deployment assets as workstation-specific, including writable credential mounts and internal DB-sync risks.
+- [ ] Verify source/package and independent branch review; commit release documentation.
+- [ ] Publish approved GitHub source/tag/release and npm beta; verify public package installation.
+
+Fresh live audit: standalone MCP read succeeded while the project's OpenCode connection was failed with
+`Connection closed`. Disconnect/connect explicitly at the worktree Location restored 22 tools without
+a whole-service restart. Native live-tool project read, explicit-entry artifact bundle (17,069 bytes),
+successful prior-run status, agent discovery, and KSI resource read succeeded. Prior-run evidence records
+project-selected KSI guidance and exit 0. No fresh generation/write run or automatic restart recovery was
+performed in this audit. The default-entry bundle failed despite metadata having an entryFile.
+
+Claude account restrictions are expected; Codex intermittent connection-test failures are follow-up,
+not release blockers per user. `npm whoami` currently returns E401, so npm publication requires reauthentication.
+Human saw the preview but has not approved its design; do not claim full production implementation acceptance.
+
+Independent review identified a stale four-role statement in the shipped config example and failure-path
+secret persistence in the source-only credential-sync aid. Corrected the example to three. Removed container
+SQL files entirely: API-key SQL now streams over stdin; the private host mktemp file retains EXIT cleanup.
+Two offline boundary tests (DB apply success and failure) failed first on container file creation, then
+passed after the fix; full suite 28/28 and package check pass. Tests use fixture-only Docker/sqlite stand-ins,
+not real credentials or database migration. Added package exclusion assertion for `integrations/`.
+Human prose count does not get a brittle exact-word regression test; three-role installation is already
+covered by real CLI/package tests. The running machine's older sync script was not changed automatically.
+
+User completed npm web login; `npm whoami` now returns the expected maintainer identity. Release will use
+the `next` dist-tag without silently changing `latest`. GitHub main can fast-forward from `de7f823`.

@@ -1,4 +1,4 @@
-# OpenDesign integration (KSI deployment)
+# OpenDesign integration (workstation-specific deployment record)
 
 Reproduction assets for the OpenDesign workspace that this harness uses for design work. These files live in
 the source repository so the deployment can be rebuilt after a machine change; they are **not** part of the
@@ -7,6 +7,27 @@ published npm package (`package.json#files` deliberately excludes `integrations/
 OpenDesign is a separate application. It is not an agent role in this harness, and this repository does not
 vendor, patch, or redistribute any OpenDesign code. Everything here is either a deployment patch for the
 user's own checkout or a file that runs beside it.
+
+**Optional and manual; not installed by KSI.** This is a record of one Ubuntu arm64 host, not a turnkey
+cross-platform setup. Start with upstream documentation. Do not apply these mounts, UID settings, CLI
+shim, or database sync to another host without inspecting them and obtaining approval.
+
+### Security and portability boundaries
+
+- Docker access and host networking are powerful privileges, not a sandbox.
+- The full host `~/.codex` and `~/.gemini` stores are mounted **read-write**. Container agents can alter
+  host sessions/settings/credentials. Prefer dedicated signed-in stores if isolation is required.
+- The compose patch retains a **legacy** `auth.json` mount. It does not provide OpenCode V2 credentials;
+  V2 uses the separate container database. Do not assume that mount authenticates anything.
+- UID/GID and tmpfs ownership must agree. The patch's tmpfs is fixed at `1000:1000`, despite the service's
+  UID variables. Persistent volumes also need matching ownership; the patch does not migrate ownership.
+- Credential sync directly edits an internal SQLite schema, stops container OpenCode, replaces all API-key
+  rows, and writes secret-bearing SQL temporarily on the host (private mktemp file, removed on exit).
+  SQL is streamed to the container without creating a container SQL file. It is an experimental maintenance
+  aid, **not a supported sign-in API**. Back up state and never run during a design job. This safer repository
+  copy is not automatically installed over an older local script; review and replace your copy separately.
+- The shim drops `--pure`; it does **not** recreate the original isolation semantics. Normal design
+  generation was tested, not sandbox isolation or every CLI adapter feature.
 
 ## Architecture
 
@@ -39,6 +60,14 @@ people ──────────────► OpenDesign web UI (local + 
 ## Reproduction
 
 ### 1. Install OpenDesign
+
+The following commands describe the original installation. Current upstream `main` may differ from the
+tested checkout. The patch is tied to commit `5b19dfa`; pin a reviewed compatible checkout before applying it.
+Define `KSI_ASSETS` as the absolute path to this repository's `integrations/opendesign` directory for later steps.
+
+```sh
+export KSI_ASSETS=/absolute/path/to/KSI-Opencode-Harness/integrations/opendesign
+```
 
 ```sh
 mkdir -p ~/opendesign && cd ~/opendesign
@@ -86,7 +115,7 @@ The patch adds, on top of upstream:
 ### 3. Install the OpenCode shim
 
 ```sh
-cp integrations/opendesign/opencode-cli ~/.opencode/bin/opencode-cli
+cp "$KSI_ASSETS/opencode-cli" ~/.opencode/bin/opencode-cli
 chmod +x ~/.opencode/bin/opencode-cli
 ```
 
@@ -102,7 +131,7 @@ The shim translates the argv shape OpenDesign's adapter expects into what OpenCo
 
 ```sh
 mkdir -p ~/opendesign/opencode-config-container
-cp integrations/opendesign/opencode-config-container.jsonc ~/opendesign/opencode-config-container/opencode.jsonc
+cp "$KSI_ASSETS/opencode-config-container.jsonc" ~/opendesign/opencode-config-container/opencode.jsonc
 printf '{\n  "port": 49380\n}\n' > ~/opendesign/opencode-config-container/service.json
 ```
 
@@ -115,7 +144,7 @@ OpenCode 2.x stores credentials in its SQLite `credential` table, **not** in `au
 own database, so it does not inherit the host's providers.
 
 ```sh
-cp integrations/opendesign/sync-opencode-credentials.sh ~/opendesign/
+cp "$KSI_ASSETS/sync-opencode-credentials.sh" ~/opendesign/
 bash ~/opendesign/sync-opencode-credentials.sh
 ```
 
@@ -124,19 +153,27 @@ two stores would invalidate one of them. **Re-run this whenever host credentials
 
 ### 6. Register the MCP server in OpenCode
 
-Add to `~/.config/opencode/opencode.jsonc` (V1-shaped `mcp` block used by this host):
+After reviewing the actual server's configuration, merge this **V2** example without replacing unrelated
+settings. This Docker command is specific to the recorded image/container, not a universal upstream command.
+The tested host retains a compatible older-shaped block; that is not the recommended new configuration.
 
 ```jsonc
-"opendesign": {
-  "type": "local",
-  "command": [
-    "docker", "exec", "-i",
-    "-e", "OD_DAEMON_URL=http://127.0.0.1:7456",
-    "open-design",
-    "sh", "-c", "cd /app && node apps/daemon/dist/cli.js mcp"
-  ],
-  "enabled": true,
-  "timeout": 60000
+{
+  "mcp": {
+    "servers": {
+      "opendesign": {
+        "type": "local",
+        "command": [
+          "docker", "exec", "-i",
+          "-e", "OD_DAEMON_URL=http://127.0.0.1:7456",
+          "open-design",
+          "sh", "-c", "cd /app && node apps/daemon/dist/cli.js mcp"
+        ],
+        "disabled": false,
+        "timeout": { "startup": 60000, "catalog": 60000 }
+      }
+    }
+  }
 }
 ```
 
@@ -152,7 +189,7 @@ API calls pass the origin check.
 ### 8. KSI design guidance
 
 ```sh
-docker cp integrations/opendesign/ksi-design-system/. open-design:/app/.od/design-systems/ksi/
+docker cp "$KSI_ASSETS/ksi-design-system/." open-design:/app/.od/design-systems/ksi/
 ```
 
 It appears in the design-system picker as `user:ksi` and is readable by agents at
@@ -173,13 +210,22 @@ docker exec -u 1000 -e HOME=/home/open-design open-design sh -c 'opencode auth l
 
 Login to the web UI uses username `open-design` and the `OD_API_TOKEN` from `deploy/.env`.
 
+After editing `.env` or compose mounts, recreate the container deliberately from `deploy/` with both
+compose files. Review the generated user-service unit: on this host an invalid user-unit
+`Requires=docker.service` needed removal because Docker is a system service. Verify startup, persistent-volume
+ownership and agent sign-in, then run `opencode mcp list` **from the consuming project** and exercise a read tool.
+
 ## Known limitations
 
 - OpenCode 2.x has no `export --sanitize --pure` or `run --variant`, so those adapter features stay
   unavailable.
 - Restarting the OpenDesign container drops the `opendesign` MCP connection held by any live OpenCode session;
-  a new session reconnects.
-- Codex runs occasionally fail with a signal/timeout under load; retrying succeeds.
+  use `/mcps` in the consuming project to disconnect/reconnect, then verify a real read. A new session alone
+  was not established as sufficient. Explicit project-scoped reconnect restored 22 tools in the live audit.
+- Artifact reads need explicit project and entry-file arguments in the tested deployment; default entry
+  lookup failed. Existing successful runs and reads were checked; restart recovery is not automatic.
+- Codex connection tests intermittently failed with a signal/timeout and retries passed; the cause is
+  unresolved. Load is a hypothesis, not an established cause. This is not a release blocker per the user.
 - Claude Code through this deployment fails on an Anthropic account restriction
   (`organization has disabled Claude subscription access for Claude Code`), not on configuration.
 - OpenDesign Cloud and its `vela` CLI are explicitly out of scope: Local AI only.

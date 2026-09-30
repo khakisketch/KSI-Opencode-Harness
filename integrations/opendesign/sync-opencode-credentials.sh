@@ -41,22 +41,19 @@ fi
 echo "syncing $(grep -c '^INSERT INTO' "$TMP_SQL") API-key credential(s) into ${CONTAINER}"
 
 # The container's OpenCode must not hold the database while it is written.
-# The container root filesystem is read-only, so the SQL is streamed to the
-# writable OpenCode state volume instead of using `docker cp`.
-CRED_SQL_PATH="/home/open-design/.local/share/opencode/credentials-sync.sql"
+# Stream SQL directly to stdin: never persist secret-bearing SQL in the container.
+# The host mktemp file is private and the EXIT trap removes it even if apply fails.
 docker exec -u 1000 -e HOME=/home/open-design "$CONTAINER" sh -c 'opencode service stop >/dev/null 2>&1 || true'
-docker exec -i -u 1000 -e HOME=/home/open-design "$CONTAINER" sh -c "cat > '${CRED_SQL_PATH}'" < "$TMP_SQL"
-docker exec -u 1000 -e HOME=/home/open-design "$CONTAINER" sh -c "
+docker exec -i -u 1000 -e HOME=/home/open-design "$CONTAINER" sh -c "
   cd /app/apps/daemon && node -e \"
 const fs = require('node:fs');
 const Database = require('better-sqlite3');
 const db = new Database('${CONTAINER_DB}');
 db.exec('BEGIN');
-db.exec(fs.readFileSync('${CRED_SQL_PATH}', 'utf8'));
+db.exec(fs.readFileSync(0, 'utf8'));
 db.exec('COMMIT');
 console.log('credential rows now:', db.prepare('SELECT count(*) AS c FROM credential').get().c);
-\""
-docker exec "$CONTAINER" rm -f "$CRED_SQL_PATH"
+\"" < "$TMP_SQL"
 
 echo "result:"
 docker exec -u 1000 -e HOME=/home/open-design "$CONTAINER" sh -c 'opencode auth list 2>&1 | head -10'
