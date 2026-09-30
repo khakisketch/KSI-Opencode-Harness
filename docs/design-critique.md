@@ -1,9 +1,0 @@
-# Optional independent design review
-
-This filename is retained for existing links; the current review role is Reviewer, not a separate Design Critic.
-
-Reviewer is a read-only Subagent for code changes or, when explicitly asked, independent feedback on a supplied visual artifact. It can assess hierarchy, composition, interaction clarity, product/design-system consistency, responsive behavior, and visible accessibility concerns. Build or Design can request it when a critique would help. Design decides what to revise; only the Human approves a design direction. Build separately owns production integration and technical verification.
-
-Give Reviewer the artifact/version, user task, selected or tentative direction, relevant product context, actual PNG/JPEG/WebP captures, and the uncertainty to inspect. OpenCode V2's native `read` can pass supported images to an image-capable model, but a model without image input, an unreadable capture, or mere text saying “image read successfully” cannot establish that Reviewer saw the screen. Explicitly mark that limitation. Distinguish task/interaction problems, visual-craft problems, design-system inconsistency, and subjective alternative tastes. Use relevant states and viewports for the task rather than a universal screenshot count or fixed dimensions. Cite each actionable finding with its location, state, observation, user impact, and a proportionate revision.
-
-Reviewer does not edit the artifact, settle production architecture, or declare merge or user acceptance. Its native role file denies edits and delegation; it is not an OS sandbox. Independent critique is optional for small established-pattern reuse and useful when a material visual or interaction decision is uncertain. Reviewer may use installed project context or a relevant design skill as evidence, but neither turns its opinion into a compliance or quality certification.

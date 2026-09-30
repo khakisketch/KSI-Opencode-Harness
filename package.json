@@ -1,7 +1,7 @@
 {
   "name": "ksi-opencode-harness",
-  "version": "0.4.0-beta.2",
-  "description": "Installer for four optional native OpenCode V2 agents",
+  "version": "0.5.0-beta.1",
+  "description": "Installer for three optional native OpenCode V2 agents",
   "type": "module",
   "bin": { "ksi-opencode": "./bin/ksi-opencode.mjs" },
   "repository": {
@@ -12,22 +12,16 @@
     "bin/ksi-opencode.mjs",
     "src/native-bundle.mjs",
     "src/native-roles.mjs",
-    "vendor/open-design",
-    "templates/agents/design.md",
     "templates/agents/developer.md",
     "templates/agents/test-runner.md",
     "templates/agents/reviewer.md",
     "README.md",
     "INSTALL.md",
     "docs/architecture.md",
-    "docs/design.md",
-    "docs/design-critique.md",
-    "docs/design-system-template.md",
+    "docs/integrations/opendesign.md",
     "docs/execution.md",
     "docs/troubleshooting.md",
     "docs/verification.md",
-    "examples/design.project.jsonc",
-    "examples/design-handoff.md",
     "examples/project-AGENTS.md",
     "opencode.jsonc.example",
     "LICENSE"
@@ -45,6 +39,7 @@
     "opencode",
     "agent",
     "harness",
-    "routing"
+    "routing",
+    "opendesign"
   ]
 }

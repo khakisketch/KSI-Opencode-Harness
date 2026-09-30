@@ -1,4 +1,6 @@
 node_modules/
 *.tgz
 .opencode/working-state.md
+.opencode/artifacts/
+design-previews/
 .worktrees/

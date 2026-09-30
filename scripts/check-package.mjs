@@ -9,16 +9,9 @@ import { fileURLToPath } from "node:url"
 const root = fileURLToPath(new URL("..", import.meta.url))
 const required = [
   "bin/ksi-opencode.mjs", "src/native-bundle.mjs", "src/native-roles.mjs",
-  "templates/agents/design.md", "templates/agents/developer.md", "templates/agents/test-runner.md", "templates/agents/reviewer.md",
+  "templates/agents/developer.md", "templates/agents/test-runner.md", "templates/agents/reviewer.md",
   "examples/project-AGENTS.md", "README.md", "INSTALL.md",
-  "vendor/open-design/UPSTREAM.md", "vendor/open-design/LICENSE",
-  "vendor/open-design/skills/frontend-design/SKILL.md", "vendor/open-design/skills/frontend-design/LICENSE.txt",
-  "vendor/open-design/skills/impeccable-design-polish/SKILL.md",
-  ...["typography", "color", "anti-ai-slop", "state-coverage", "accessibility-baseline", "animation-discipline"].map((name) => `vendor/open-design/craft/${name}.md`),
-  "vendor/open-design/skills/web-design-guidelines/SKILL.md", "vendor/open-design/skills/web-design-guidelines/LICENSE",
-  "vendor/open-design/skills/web-design-guidelines/references/guidelines.md",
-  "vendor/open-design/design-systems/default/manifest.json", "vendor/open-design/design-systems/default/DESIGN.md",
-  "vendor/open-design/design-systems/default/tokens.css", "vendor/open-design/design-systems/default/USAGE.md",
+  "docs/architecture.md", "docs/integrations/opendesign.md",
 ]
 const forbidden = /(?:^|\/)(?:index\.mjs|plugin-v2\.mjs|node_modules|test|tests|docs\/superpowers|\.opencode|design-previews)(?:\/|$)|^(?:src\/agents\.mjs|agents\/|commands\/)|(?:^|\/)(?:\.env(?:\.[^/]*)?|[^/]*credentials[^/]*|[^/]*auth[^/]*\.json)$/i
 
@@ -50,8 +43,12 @@ try {
   const [record] = JSON.parse(packed.stdout)
   const paths = record.files.map(({ path }) => path.replaceAll("\\", "/"))
   for (const path of required) assert.ok(paths.includes(path), `missing packaged file: ${path}`)
+  assert.ok(!paths.includes("templates/agents/design.md"), "retired Design role must not be packaged")
   assert.ok(!paths.includes("templates/agents/research.md"), "retired Research role must not be packaged")
   assert.ok(!paths.includes("templates/agents/design-critic.md"), "retired Design Critic role must not be packaged")
+  assert.ok(!paths.some((path) => path.startsWith("vendor/")), "vendored design kit must not be packaged")
+  assert.ok(!paths.some((path) => path.startsWith("docs/design")), "retired design docs must not be packaged")
+  assert.ok(!paths.some((path) => path.startsWith("examples/design")), "retired design examples must not be packaged")
   assert.ok(!paths.includes("docs/releasing.md"), "maintainer-only release guide must not be packaged")
   for (const path of paths) assert.doesNotMatch(path, forbidden, `forbidden packaged file: ${path}`)
   const tarball = isAbsolute(record.filename) ? record.filename : join(work, basename(record.filename))
@@ -61,7 +58,7 @@ try {
   assert.equal(installed.code, 0, installed.stderr)
   const packageDir = join(installRoot, "node_modules", "ksi-opencode-harness")
   const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
-  assert.equal(manifest.version, "0.4.0-beta.2")
+  assert.equal(manifest.version, "0.5.0-beta.1")
   assert.notEqual(manifest.private, true)
   assert.equal(manifest.main, undefined)
   assert.equal(manifest.exports, undefined)
@@ -73,32 +70,29 @@ try {
   const relative = await run(executable, ["install", "--target", "relative-config", "--apply"], work, env)
   assert.notEqual(relative.code, 0)
   await assert.rejects(access(join(work, "relative-config")), { code: "ENOENT" })
+  const retired = await run(executable, ["install", "--target", config, "--with-design-kit", "--apply"], work, env)
+  assert.notEqual(retired.code, 0, "the removed design-kit flag must fail loudly")
+  assert.match(retired.stderr, /with-design-kit.*removed/i)
+  await assert.rejects(access(config), { code: "ENOENT" }, "a rejected flag must not create the target")
   const preview = await run(executable, ["install", "--target", config], work, env)
   assert.equal(preview.code, 0, preview.stderr)
   assert.equal(JSON.parse(preview.stdout).applied, false)
   await assert.rejects(access(config), { code: "ENOENT" }, "preview must not create target")
   const ran = await run(executable, ["install", "--target", config, "--apply"], work, env)
   assert.equal(ran.code, 0, ran.stderr)
-  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
+  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
   assert.deepEqual(await readdir(config), ["agents"])
   const repeat = await run(executable, ["install", "--target", config, "--apply"], work, env)
   assert.equal(repeat.code, 0, repeat.stderr)
   assert.deepEqual(JSON.parse(repeat.stdout).changes, [], "repeated apply must be idempotent")
-  const ownedRole = join(config, "agents", "design.md")
+  const ownedRole = join(config, "agents", "reviewer.md")
   const userRouting = "---\nmodel: user-owned/model\n---\nDo not replace this role.\n"
   await writeFile(ownedRole, userRouting)
   const conflict = await run(executable, ["install", "--target", config, "--apply", "--replace"], work, env)
   assert.notEqual(conflict.code, 0, "user routing must block replacement")
   assert.equal(await readFile(ownedRole, "utf8"), userRouting)
-  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
-  const withKit = join(work, "opencode-with-design-kit")
-  const kitInstall = await run(executable, ["install", "--target", withKit, "--with-design-kit", "--apply"], work, env)
-  assert.equal(kitInstall.code, 0, kitInstall.stderr)
-  assert.deepEqual((await readdir(withKit)).sort(), ["agents", "skills"])
-  assert.deepEqual((await readdir(join(withKit, "skills"))).sort(), ["frontend-design", "impeccable-design-polish", "web-design-guidelines"])
-  assert.match(await readFile(join(withKit, "skills", "frontend-design", "references", "craft", "typography.md"), "utf8"), /Typography craft rules/)
-  assert.match(await readFile(join(withKit, "skills", "web-design-guidelines", "references", "guidelines.md"), "utf8"), /interface|accessibility/i)
-  console.log("Package verification passed: installer-only tarball, offline native install, and opt-in design kit install.")
+  assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
+  console.log("Package verification passed: installer-only tarball, offline three-role install, and retired design-kit rejection.")
 } finally {
   await rm(work, { recursive: true, force: true })
 }

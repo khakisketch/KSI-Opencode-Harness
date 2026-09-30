@@ -6,10 +6,12 @@ import { fileURLToPath } from "node:url"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
 const roles = {
-  build: "primary", plan: "primary", design: "primary",
+  build: "primary", plan: "primary",
   explore: "subagent", developer: "subagent", "test-runner": "subagent",
   reviewer: "subagent",
 }
+
+export const RETIRED_DESIGN_SKILLS = ["frontend-design", "impeccable-design-polish", "web-design-guidelines"]
 
 export function buildIsolatedEnv(directory, path) {
   return {
@@ -23,7 +25,7 @@ export function buildIsolatedEnv(directory, path) {
   }
 }
 
-export function checkAgents(agents, configRoot) {
+export function checkAgents(agents) {
   const failures = []
   for (const [id, mode] of Object.entries(roles)) {
     const agent = agents.find((item) => item.id === id)
@@ -36,25 +38,10 @@ export function checkAgents(agents, configRoot) {
     : model?.providerID && (model?.id || model?.model) ? `${model.providerID}/${model.id ?? model.model}${model.variant ? `#${model.variant}` : ""}` : null
   if (developer && modelText !== "opencode-go/deepseek-v4.1-flash") failures.push(`developer model not retained: ${String(modelText)}`)
   if (developer && developer.steps !== 47) failures.push(`developer steps not retained: ${String(developer.steps)}`)
-  const design = agents.find((item) => item.id === "design")
-  if (design && !design.permissions?.some((rule) => rule.action === "edit" && rule.resource === "*" && rule.effect === "allow")) {
-    failures.push("design lacks normal workspace edit permission")
-  }
-  if (design && !design.permissions?.some((rule) => rule.action === "subagent" && rule.resource === "explore" && rule.effect === "allow")) {
-    failures.push("design lacks explore delegation")
-  }
-  if (design && !design.permissions?.some((rule) => rule.action === "subagent" && rule.resource === "reviewer" && rule.effect === "allow")) {
-    failures.push("design lacks reviewer delegation")
-  }
+  if (agents.some((item) => item.id === "design")) failures.push("retired design role still installed")
   if (agents.some((item) => item.id === "research")) failures.push("retired research role still installed")
   if (agents.some((item) => item.id === "design-critic")) failures.push("retired design-critic role still installed")
-  if (design && configRoot) {
-    const reference = join(configRoot, "skills", "web-design-guidelines", "references", "guidelines.md")
-    const rules = design.permissions?.filter((rule) => rule.action === "external_directory"
-      && (rule.resource === "*" || (rule.resource.endsWith("*") && reference.startsWith(rule.resource.slice(0, -1))))) ?? []
-    if (rules.at(-1)?.effect !== "allow") failures.push("design installed skill reference requires external-directory approval")
-  }
-  for (const id of ["design", "developer", "test-runner", "reviewer"]) {
+  for (const id of ["developer", "test-runner", "reviewer"]) {
     const agent = agents.find((item) => item.id === id)
     if (agent?.permissions?.some((rule) => rule.action === "skill" && rule.resource === "*" && rule.effect === "deny")) {
       failures.push(`${id} blocks native skill discovery`)
@@ -67,12 +54,10 @@ export function checkAgents(agents, configRoot) {
   return { ok: failures.length === 0, failures }
 }
 
-export function checkSkills(skills, isolatedSkillRoot) {
+export function checkRetiredSkills(skills) {
   const failures = []
-  for (const id of ["frontend-design", "impeccable-design-polish", "web-design-guidelines"]) {
-    const skill = skills.find((item) => item.id === id)
-    if (!skill) failures.push(`${id} absent from effective skill catalog`)
-    else if (skill.path !== join(isolatedSkillRoot, id, "SKILL.md")) failures.push(`${id} not loaded from isolated install`)
+  for (const id of RETIRED_DESIGN_SKILLS) {
+    if (skills.some((item) => item.id === id)) failures.push(`retired design skill still installed: ${id}`)
   }
   return { ok: failures.length === 0, failures }
 }
@@ -150,18 +135,17 @@ async function verify() {
     const config = join(env.XDG_CONFIG_HOME, "opencode")
     await mkdir(config, { recursive: true })
     const cli = join(root, "bin", "ksi-opencode.mjs")
-    parseJson(run(process.execPath, [cli, "install", "--target", config, "--with-design-kit", "--apply"], env, directory), "native installer")
+    parseJson(run(process.execPath, [cli, "install", "--target", config, "--apply"], env, directory), "native installer")
     await writeFile(join(config, "opencode.jsonc"), `${JSON.stringify({ agents: { developer: { model: "opencode-go/deepseek-v4.1-flash", steps: 47 } } }, null, 2)}\n`)
     const source = await readFile(join(config, "agents", "developer.md"), "utf8")
     const installedAgents = (await readdir(join(config, "agents"))).sort()
-    const installedSkills = (await readdir(join(config, "skills"))).sort()
     const configEntries = (await readdir(config)).sort()
     const files = {
-      installed: installedAgents.join(",") === ["design.md", "developer.md", "reviewer.md", "test-runner.md"].join(","),
+      installed: installedAgents.join(",") === ["developer.md", "reviewer.md", "test-runner.md"].join(","),
       modelAndStepsOmitted: !/\n(?:model|steps):/.test(source),
       builtinsUntouched: !installedAgents.some((name) => ["build.md", "plan.md", "explore.md"].includes(name)),
-      skillsInstalled: installedSkills.join(",") === "frontend-design,impeccable-design-polish,web-design-guidelines",
-      commandsNotInstalled: configEntries.join(",") === "agents,opencode.jsonc,skills",
+      noSkillsInstalled: !configEntries.includes("skills"),
+      commandsNotInstalled: configEntries.join(",") === "agents,opencode.jsonc",
     }
     server = startIsolatedServer(env, directory)
     const connection = await server.ready
@@ -170,7 +154,7 @@ async function verify() {
     for (let attempt = 1; attempt <= 8; attempt++) {
       agentAttempts = attempt
       const catalog = await getCatalog(connection, "/api/agent")
-      agents = checkAgents(catalog.data ?? [], config)
+      agents = checkAgents(catalog.data ?? [])
       if (agents.ok) break
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
@@ -179,13 +163,13 @@ async function verify() {
     for (let attempt = 1; attempt <= 8; attempt++) {
       skillAttempts = attempt
       const catalog = await getCatalog(connection, "/api/skill")
-      skills = checkSkills(catalog.data ?? [], join(config, "skills"))
+      skills = checkRetiredSkills(catalog.data ?? [])
       if (skills.ok) break
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
-    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, skills: { ...skills, attempts: skillAttempts }, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
+    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, retiredSkills: { ...skills, attempts: skillAttempts }, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
-    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.skillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok) process.exitCode = 1
+    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.noSkillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok) process.exitCode = 1
   } finally {
     await stopIsolatedServer(server?.child)
     await rm(directory, { recursive: true, force: true })

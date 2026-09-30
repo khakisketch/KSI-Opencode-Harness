@@ -1,8 +1,18 @@
 # Verification and remaining acceptance
 
-The dated catalogs below describe earlier configurations, not the current four-role on-disk setup. Research and Design Critic were later retired; a fresh authenticated shared-service catalog after their removal has not been checked.
+The dated catalogs below describe earlier configurations and are kept as history. Research, Design Critic, and then the Design primary and its vendored skill kit were retired in turn. The current source ships three subagent roles, no design kit, and no design primary role.
 
-`npm run check` covers the four-role native bundle, installer safeguards, the opt-in design-kit file set, and absence of retired plugin entrypoints. `npm run check:package` packs the source and performs an offline local-tarball install in a disposable config directory. `node scripts/verify-native-v2-isolated.mjs` checks the effective agent catalog and the three opt-in skills in a credential-free OpenCode V2 environment. `git diff --check` checks patch whitespace. None of these calls a model or proves behavior in a shared service.
+`npm run check` covers the three-role native bundle, installer safeguards, the explicit rejection of the removed `--with-design-kit` flag, and absence of retired plugin entrypoints. `npm run check:package` packs the source and performs an offline local-tarball install in a disposable config directory. `node scripts/verify-native-v2-isolated.mjs` checks the effective agent catalog in a credential-free OpenCode V2 environment and that the retired design skills have not reappeared. `git diff --check` checks patch whitespace. None of these calls a model or proves behavior in a shared service.
+
+## Design retirement source change (2026-09-30)
+
+The repository now ships Developer, Test Runner, and Reviewer only. `src/native-roles.mjs` lost the `design` primary, `templates/agents/design.md` and `vendor/open-design/` were deleted, `src/native-bundle.mjs` and `bin/ksi-opencode.mjs` lost the design-kit path, and `docs/design.md`, `docs/design-critique.md`, `docs/design-system-template.md`, `examples/design.project.jsonc`, and `examples/design-handoff.md` were removed. [The OpenDesign integration contract](integrations/opendesign.md) replaces them.
+
+Package version moved to `0.5.0-beta.1`. Supplying the retired flag exits non-zero with an explicit message and writes nothing; a legacy installed `agents/design.md` is deliberately left untouched for a separately reviewed migration. Reviewer was reduced to code and behaviour review, and the retired skill IDs are asserted absent in the isolated skill catalog.
+
+This is source-level package evidence only. No global OpenCode configuration was changed, no role was removed from any installed environment, no provider call was made, and no Human acceptance of a real product screen is claimed. The deployed OpenDesign daemon itself is verified separately.
+
+## Dated history (earlier configurations)
 
 On 2026-09-28 after the legacy-source cleanup and review corrections, before the later Design permission fix: `npm run check` passed 21/21; `npm run check:package` passed; `git diff --check` passed. The isolated verifier passed on OpenCode 2.0.18: six native role files and the two opt-in skills installed, built-in roles untouched, no KSI commands installed, expected nine effective role modes, retained user Developer model/steps, visible Design Critic, and default Developer nondelegation. The verifier issued zero provider requests; child egress was not monitored.
 

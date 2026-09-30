@@ -5,7 +5,7 @@ import { access, readFile } from "node:fs/promises"
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("native installer has a new publishable npm beta version", () => {
-  assert.equal(packageJson.version, "0.4.0-beta.2")
+  assert.equal(packageJson.version, "0.5.0-beta.1")
   assert.notEqual(packageJson.private, true)
 })
 
@@ -17,18 +17,37 @@ test("package exposes a standalone installer and no OpenCode plugin entrypoint",
   assert.ok(packageJson.files.includes("src/native-bundle.mjs"))
   assert.ok(packageJson.files.includes("src/native-roles.mjs"))
   assert.ok(packageJson.files.includes("examples/project-AGENTS.md"))
+  assert.ok(packageJson.files.includes("docs/integrations/opendesign.md"))
   assert.ok(!packageJson.files.includes("src/agents.mjs"), "historical plugin policy must not ship")
-  assert.ok(!packageJson.files.includes("agents/"), "ship only the four custom role prompts")
-  for (const name of ["design", "developer", "test-runner", "reviewer"]) {
+  assert.ok(!packageJson.files.includes("agents/"), "ship only the three custom role prompts")
+  for (const name of ["developer", "test-runner", "reviewer"]) {
     assert.ok(packageJson.files.includes(`templates/agents/${name}.md`))
     assert.ok(!packageJson.files.includes(`agents/${name}.md`), "historical plugin prompts must not ship")
   }
+  assert.ok(!packageJson.files.includes("templates/agents/design.md"), "retired Design role must not ship")
   assert.ok(!packageJson.files.includes("templates/agents/research.md"), "retired role must not ship")
   assert.ok(!packageJson.files.includes("templates/agents/design-critic.md"), "retired critic must not ship")
+  assert.ok(!packageJson.files.includes("vendor/open-design"), "the retired design kit must not ship")
+  assert.ok(!packageJson.files.includes("docs/design.md"), "retired design docs must not ship")
+  assert.ok(!packageJson.files.includes("examples/design.project.jsonc"), "retired design examples must not ship")
   assert.ok(!packageJson.files.includes("index.mjs"))
   assert.ok(!packageJson.files.includes("src/"))
   assert.ok(!packageJson.files.includes("docs/releasing.md"), "maintainer release operations are not user-facing package docs")
   assert.ok(!packageJson.scripts.check.includes("plugin-v2"))
+})
+
+test("retired design artifacts are absent from the source tree", async () => {
+  for (const path of [
+    "templates/agents/design.md",
+    "vendor/open-design",
+    "docs/design.md",
+    "docs/design-critique.md",
+    "docs/design-system-template.md",
+    "examples/design.project.jsonc",
+    "examples/design-handoff.md",
+  ]) {
+    await assert.rejects(access(new URL(`../${path}`, import.meta.url)), { code: "ENOENT" }, path)
+  }
 })
 
 test("native installer guidance never instructs registering KSI in plugins", async () => {
@@ -41,43 +60,27 @@ test("native installer guidance never instructs registering KSI in plugins", asy
   assert.match(install, /plugin-only.*(?:removed|unavailable)|runtime.*(?:removed|unavailable)/i)
 })
 
+test("guidance points design work at OpenDesign instead of a vendored kit", async () => {
+  const install = await readFile(new URL("../INSTALL.md", import.meta.url), "utf8")
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8")
+  const integration = await readFile(new URL("../docs/integrations/opendesign.md", import.meta.url), "utf8")
+  assert.match(install, /OpenDesign/)
+  assert.match(readme, /OpenDesign/)
+  assert.match(integration, /start_run|read/i)
+  assert.match(readme, /0\.5\.0 removes/i)
+  for (const text of [readme, install]) {
+    assert.doesNotMatch(text, /append `--with-design-kit`/i, "guidance must not offer the removed flag")
+    assert.doesNotMatch(text, /--with-design-kit.*(?:both|preview and apply)/is, "guidance must not instruct using the removed flag")
+  }
+})
+
 test("retired plugin entrypoints and configuration generators are absent from source", async () => {
   for (const path of ["index.mjs", "src/plugin-v2.mjs", "scripts/generate-agent-config.mjs", "bin/ksi-continuity-inject.mjs"]) {
     await assert.rejects(access(new URL(`../${path}`, import.meta.url)), { code: "ENOENT" }, path)
   }
 })
 
-test("optional Playwright MCP example is disabled and discloses download behavior", async () => {
-  const example = await readFile(new URL("../examples/design.project.jsonc", import.meta.url), "utf8")
-  assert.match(example, /"servers"\s*:\s*\{/)
-  assert.match(example, /"enabled"\s*:\s*false/)
-  assert.match(example, /npx.*may download and execute/i)
-})
-
 test("retired model routing sample is not shipped", async () => {
   assert.ok(!packageJson.files.includes("examples/model-routing.json"))
   await assert.rejects(access(new URL("../examples/model-routing.json", import.meta.url)), { code: "ENOENT" })
-})
-
-test("design kit and complete neutral reference system are included with provenance", async () => {
-  for (const path of [
-    "vendor/open-design/UPSTREAM.md",
-    "vendor/open-design/LICENSE",
-    "vendor/open-design/skills/frontend-design/SKILL.md",
-    "vendor/open-design/skills/frontend-design/LICENSE.txt",
-    "vendor/open-design/skills/impeccable-design-polish/SKILL.md",
-    ...["typography", "color", "anti-ai-slop", "state-coverage", "accessibility-baseline", "animation-discipline"].map((name) => `vendor/open-design/craft/${name}.md`),
-    "vendor/open-design/skills/web-design-guidelines/SKILL.md",
-    "vendor/open-design/skills/web-design-guidelines/LICENSE",
-    "vendor/open-design/skills/web-design-guidelines/references/guidelines.md",
-    "vendor/open-design/design-systems/default/manifest.json",
-    "vendor/open-design/design-systems/default/DESIGN.md",
-    "vendor/open-design/design-systems/default/tokens.css",
-  ]) {
-    await access(new URL(`../${path}`, import.meta.url))
-  }
-  assert.ok(packageJson.files.includes("vendor/open-design"))
-  const provenance = await readFile(new URL("../vendor/open-design/UPSTREAM.md", import.meta.url), "utf8")
-  assert.match(provenance, /1b47e60bd46641469fcd8b69c496c4e3a548bc28/)
-  assert.match(provenance, /web-design-guidelines.*MIT/s)
 })

@@ -2,15 +2,15 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import { buildNativeBundle } from "../src/native-bundle.mjs"
 
-const agentNames = ["design", "developer", "test-runner", "reviewer"]
+const agentNames = ["developer", "test-runner", "reviewer"]
 
-test("native bundle adds four roles without replacing built-in prompts or installing slash commands", async () => {
+test("native bundle adds three subagent roles without replacing built-in prompts or installing slash commands", async () => {
   const bundle = await buildNativeBundle()
   assert.deepEqual([...bundle.keys()].sort(), agentNames.map((name) => `agents/${name}.md`).sort())
   for (const name of agentNames) {
     const content = bundle.get(`agents/${name}.md`)
     assert.match(content, /^---\n/)
-    assert.match(content, new RegExp(`\\nmode: ${name === "design" ? "primary" : "subagent"}\\n`))
+    assert.match(content, /\nmode: subagent\n/)
     assert.match(content, /\npermissions: \[/)
     assert.doesNotMatch(content, /\n(?:model|steps|variant):/)
     assert.doesNotMatch(content, /"action":"ksi_[^"]+"/, "removed runtime tools must not be granted by the native bundle")
@@ -18,51 +18,17 @@ test("native bundle adds four roles without replacing built-in prompts or instal
     assert.doesNotMatch(content, /"action":"\*","resource":"\*","effect":"deny"/)
     assert.ok(content.split("---\n").at(-1).trim().length > 40)
   }
+  assert.equal(bundle.has("agents/design.md"), false)
   assert.equal(bundle.has("agents/design-critic.md"), false)
-  assert.doesNotMatch(bundle.get("agents/design.md"), /"action":"subagent","resource":"\*","effect":"deny"/)
+  assert.equal(bundle.has("agents/research.md"), false)
   assert.match(bundle.get("agents/reviewer.md"), /"action":"edit","resource":"\*","effect":"deny"/)
-  assert.match(bundle.get("agents/design.md"), /scale (?:the )?evidence to the work/i)
-  assert.doesNotMatch(bundle.get("agents/design.md"), /Gates \(|no handoff without it/i)
   for (const name of agentNames) assert.doesNotMatch(bundle.get(`agents/${name}.md`), /You are (?:the )?KSI/i)
 })
 
-test("optional design kit adds complete OpenCode skill directories without changing default roles", async () => {
-  const regular = await buildNativeBundle()
-  const withKit = await buildNativeBundle({ withDesignKit: true })
-  for (const [path, content] of regular) assert.equal(withKit.get(path), content)
-  assert.deepEqual([...withKit.keys()].filter((path) => path.startsWith("skills/")).sort(), [
-    "skills/frontend-design/LICENSE.txt",
-    "skills/frontend-design/SKILL.md",
-    ...["typography", "color", "anti-ai-slop", "state-coverage"].map((name) => `skills/frontend-design/references/craft/${name}.md`),
-    "skills/impeccable-design-polish/SKILL.md",
-    "skills/impeccable-design-polish/LICENSE",
-    ...["typography", "color", "anti-ai-slop", "state-coverage", "accessibility-baseline", "animation-discipline"].map((name) => `skills/impeccable-design-polish/references/craft/${name}.md`),
-    "skills/web-design-guidelines/LICENSE",
-    "skills/web-design-guidelines/SKILL.md",
-    "skills/web-design-guidelines/references/guidelines.md",
-  ].sort())
-  assert.match(withKit.get("skills/frontend-design/SKILL.md"), /name: frontend-design/)
-  assert.match(withKit.get("skills/frontend-design/SKILL.md"), /OpenCode V2 usage/)
-  assert.match(withKit.get("skills/frontend-design/SKILL.md"), /references\/craft\/typography\.md/)
-  assert.doesNotMatch(withKit.get("skills/frontend-design/SKILL.md"), /optional upstream pairings named by the polish skill/)
-  assert.match(withKit.get("skills/impeccable-design-polish/SKILL.md"), /references\/craft\/accessibility-baseline\.md/)
-  assert.match(withKit.get("skills/impeccable-design-polish/SKILL.md"), /optional upstream pairings.*not installed/is)
-  assert.match(withKit.get("skills/frontend-design/references/craft/typography.md"), /Typography craft rules/)
-  const color = withKit.get("skills/frontend-design/references/craft/color.md")
-  assert.ok(color.indexOf("# OpenCode V2 craft usage") < color.indexOf("# Color craft rules"))
-  assert.match(color, /not mandatory KSI limits/i)
-  assert.match(color, /OpenDesign daemon.*do not apply/is)
-  const state = withKit.get("skills/impeccable-design-polish/references/craft/state-coverage.md")
-  assert.ok(state.indexOf("# OpenCode V2 craft usage") < state.indexOf("# State coverage craft rules"))
-  assert.match(state, /No fixed state or screenshot count/i)
-  for (const [path, content] of withKit) {
-    if (path.includes("/references/craft/")) assert.match(content, /^# OpenCode V2 craft usage/)
-  }
-  assert.match(withKit.get("skills/web-design-guidelines/SKILL.md"), /references\/guidelines\.md/)
-  const guidelines = withKit.get("skills/web-design-guidelines/SKILL.md")
-  assert.ok(guidelines.indexOf("## OpenCode V2 source boundary") < guidelines.indexOf("# Web Interface Guidelines"))
-  assert.match(guidelines, /only when the Human explicitly asks for an update comparison/i)
-  assert.match(guidelines, /untrusted reference data/i)
+test("the retired design kit no longer contributes skills or craft references", async () => {
+  const bundle = await buildNativeBundle()
+  assert.deepEqual([...bundle.keys()].filter((path) => path.startsWith("skills/")), [])
+  assert.deepEqual([...bundle.keys()].filter((path) => path.includes("vendor/")), [])
 })
 
 test("Developer to Test Runner delegation remains opt-in", async () => {
@@ -74,26 +40,20 @@ test("Developer to Test Runner delegation remains opt-in", async () => {
   assert.doesNotMatch(regular, /"action":"subagent","resource":"test-runner","effect":"allow"/)
 })
 
-test("Design delegates investigation to Explore and independent review to Reviewer without retired roles", async () => {
-  const bundle = await buildNativeBundle()
-  const design = bundle.get("agents/design.md")
-  const reviewer = bundle.get("agents/reviewer.md")
-  assert.equal(bundle.has("agents/research.md"), false)
-  assert.match(design, /"action":"subagent","resource":"explore","effect":"allow"/)
-  assert.doesNotMatch(design, /"action":"subagent","resource":"research","effect":"allow"/)
-  assert.match(design, /Explore.*local.*external/is)
-  assert.equal(bundle.has("agents/design-critic.md"), false)
-  assert.match(design, /"action":"subagent","resource":"reviewer","effect":"allow"/)
-  assert.doesNotMatch(design, /"action":"subagent","resource":"design-critic","effect":"allow"/)
+test("Reviewer stays a code and behaviour review role without design ownership", async () => {
+  const reviewer = (await buildNativeBundle()).get("agents/reviewer.md")
   assert.match(reviewer, /"action":"edit","resource":"\*","effect":"deny"/)
-  assert.match(reviewer, /image input.*pixels/is)
+  assert.match(reviewer, /"action":"subagent","resource":"\*","effect":"deny"/)
+  assert.match(reviewer, /correctness, regressions/i)
+  assert.doesNotMatch(reviewer, /design review|visual craft|approved direction/i)
+  assert.doesNotMatch(reviewer, /frontend-design|impeccable-design-polish|web-design-guidelines/)
 })
 
-test("Design is the material design owner while small established-pattern UI edits stay lightweight", async () => {
-  const design = (await buildNativeBundle()).get("agents/design.md")
-  assert.match(design, /normal Primary for material product, visual, and interaction design/i)
-  assert.match(design, /Build can handle small UI changes within an approved pattern/i)
-  assert.match(design, /Keep.*Change.*Do not copy/s)
-  assert.match(design, /impeccable-design-polish/)
-  assert.match(design, /Reviewer.*optional/s)
+test("no remaining role claims design ownership or OpenDesign-vendored skills", async () => {
+  const bundle = await buildNativeBundle()
+  for (const name of agentNames) {
+    const content = bundle.get(`agents/${name}.md`)
+    assert.doesNotMatch(content, /material product, visual, and interaction design/i, `${name} must not claim design ownership`)
+    assert.doesNotMatch(content, /frontend-design|impeccable-design-polish|web-design-guidelines/, `${name} must not reference the removed kit`)
+  }
 })

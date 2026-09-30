@@ -1,4 +1,4 @@
-export const NATIVE_ROLE_NAMES = ["design", "developer", "test-runner", "reviewer"]
+export const NATIVE_ROLE_NAMES = ["developer", "test-runner", "reviewer"]
 
 const rule = (action, effect, resource = "*") => ({ action, resource, effect })
 const allow = (...actions) => actions.map((action) => rule(action, "allow"))
@@ -6,16 +6,6 @@ const deny = (...actions) => actions.map((action) => rule(action, "deny"))
 const ask = (...actions) => actions.map((action) => rule(action, "ask"))
 
 const roles = {
-  design: {
-    mode: "primary",
-    description: "Primary for material product, visual, and interaction design; creates inspectable artifacts within scope.",
-    permissions: [
-      ...allow("read", "glob", "grep", "list", "lsp", "edit", "shell", "question", "todowrite"),
-      ...ask("webfetch", "websearch", "playwright_*", "mobbin_*", "context7_*"),
-      rule("subagent", "allow", "explore"), rule("subagent", "allow", "reviewer"),
-      rule("playwright_browser_run_code_unsafe", "deny"),
-    ],
-  },
   developer: {
     mode: "subagent",
     description: "Bounded implementation and repair within an assigned task; report changes and checks.",
@@ -32,7 +22,7 @@ const roles = {
   },
   reviewer: {
     mode: "subagent",
-    description: "Independent read-only review of code changes or supplied design evidence; no approval authority.",
+    description: "Independent read-only review of code changes and behaviour; no approval authority.",
     permissions: [...allow("read", "glob", "grep", "lsp"), ...deny("edit", "subagent")],
   },
 }

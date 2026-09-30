@@ -18,24 +18,46 @@ async function withTarget(fn) {
   try { await fn(root) } finally { await rm(root, { recursive: true, force: true }) }
 }
 
-test("preview is read-only; apply creates only four custom native agents", async () => {
+test("preview is read-only; apply creates only three custom native agents", async () => {
   await withTarget(async (root) => {
     const target = join(root, "config")
     const preview = run(target)
     assert.equal(preview.status, 0, preview.stderr)
     assert.equal(preview.data.applied, false)
-    assert.equal(preview.data.changes.length, 4)
+    assert.equal(preview.data.changes.length, 3)
     await assert.rejects(lstat(target), { code: "ENOENT" })
 
     const applied = run(target, "--apply")
     assert.equal(applied.status, 0, applied.stderr)
     assert.equal(applied.data.applied, true)
     assert.deepEqual((await readdir(target)).sort(), ["agents"])
-    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
+    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
     assert.match(await readFile(join(target, "agents", "developer.md"), "utf8"), /mode: subagent/)
     const again = run(target, "--apply")
     assert.equal(again.status, 0, again.stderr)
     assert.equal(again.data.changes.length, 0)
+  })
+})
+
+test("the removed design-kit flag fails loudly and writes nothing", async () => {
+  await withTarget(async (root) => {
+    const target = join(root, "config")
+    const result = run(target, "--with-design-kit", "--apply")
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /with-design-kit.*removed/i)
+    await assert.rejects(lstat(target), { code: "ENOENT" })
+  })
+})
+
+test("a legacy installed design role is left untouched for explicit migration", async () => {
+  await withTarget(async (root) => {
+    const target = join(root, "config")
+    await mkdir(join(target, "agents"), { recursive: true })
+    await writeFile(join(target, "agents", "design.md"), "legacy KSI Design role\n")
+    const installed = run(target, "--apply")
+    assert.equal(installed.status, 0, installed.stderr)
+    assert.equal(await readFile(join(target, "agents", "design.md"), "utf8"), "legacy KSI Design role\n")
+    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
   })
 })
 
@@ -49,7 +71,7 @@ test("different existing role blocks all writes until explicit replacement; repl
     assert.notEqual(blocked.status, 0)
     assert.match(blocked.stderr, /conflict/i)
     assert.equal(await readFile(role, "utf8"), "existing user Developer\n")
-    await assert.rejects(lstat(join(target, "agents", "design.md")), { code: "ENOENT" })
+    await assert.rejects(lstat(join(target, "agents", "reviewer.md")), { code: "ENOENT" })
 
     const replaced = run(target, "--apply", "--replace")
     assert.equal(replaced.status, 0, replaced.stderr)
@@ -121,55 +143,5 @@ test("installer refuses a symlink in a managed destination", async () => {
     assert.notEqual(result.status, 0)
     assert.match(result.stderr, /symlink/i)
     assert.deepEqual(await readdir(elsewhere), [])
-  })
-})
-
-test("design kit is opt-in and installs full skill directories idempotently", async () => {
-  await withTarget(async (root) => {
-    const target = join(root, "config")
-    const preview = run(target, "--with-design-kit")
-    assert.equal(preview.status, 0, preview.stderr)
-    assert.equal(preview.data.changes.length, 21)
-    await assert.rejects(lstat(target), { code: "ENOENT" })
-    const applied = run(target, "--with-design-kit", "--apply")
-    assert.equal(applied.status, 0, applied.stderr)
-    assert.deepEqual((await readdir(target)).sort(), ["agents", "skills"])
-    assert.deepEqual((await readdir(join(target, "skills"))).sort(), ["frontend-design", "impeccable-design-polish", "web-design-guidelines"])
-    assert.match(await readFile(join(target, "skills", "frontend-design", "references", "craft", "color.md"), "utf8"), /Color craft rules/)
-    assert.match(await readFile(join(target, "skills", "impeccable-design-polish", "references", "craft", "state-coverage.md"), "utf8"), /State coverage craft rules/)
-    assert.match(await readFile(join(target, "skills", "impeccable-design-polish", "LICENSE"), "utf8"), /Apache License/)
-    assert.match(await readFile(join(target, "skills", "web-design-guidelines", "references", "guidelines.md"), "utf8"), /interface|accessibility/i)
-    const again = run(target, "--with-design-kit", "--apply")
-    assert.equal(again.status, 0, again.stderr)
-    assert.equal(again.data.changes.length, 0)
-  })
-})
-
-test("design kit refuses nested symlink and backs up differing skill on explicit replace", async () => {
-  await withTarget(async (root) => {
-    const target = join(root, "config")
-    const skill = join(target, "skills", "web-design-guidelines")
-    const elsewhere = join(root, "elsewhere")
-    await mkdir(skill, { recursive: true })
-    await mkdir(elsewhere)
-    await symlink(elsewhere, join(skill, "references"))
-    const rejected = run(target, "--with-design-kit", "--apply")
-    assert.notEqual(rejected.status, 0)
-    assert.match(rejected.stderr, /symlink/i)
-    await assert.rejects(lstat(join(target, "agents", "design.md")), { code: "ENOENT" })
-  })
-  await withTarget(async (root) => {
-    const target = join(root, "config")
-    const skill = join(target, "skills", "frontend-design")
-    await mkdir(skill, { recursive: true })
-    await writeFile(join(skill, "SKILL.md"), "different user skill\n")
-    const blocked = run(target, "--with-design-kit", "--apply")
-    assert.notEqual(blocked.status, 0)
-    assert.match(blocked.stderr, /conflict/i)
-    const replaced = run(target, "--with-design-kit", "--apply", "--replace")
-    assert.equal(replaced.status, 0, replaced.stderr)
-    const backup = (await readdir(skill)).find((name) => name.startsWith("SKILL.md.bak-"))
-    assert.ok(backup)
-    assert.equal(await readFile(join(skill, backup), "utf8"), "different user skill\n")
   })
 })

@@ -1,12 +1,15 @@
 # Product State - KSI OpenCode Harness
 
-Updated: 2026-09-24
+Updated: 2026-09-30
 
 ## Goal
 
-Human-centered long-running product development leveraging peer Design/Plan/Build plus truthful scoped continuity/verification.
+Long-running product development where OpenDesign owns product/visual design and this harness owns engineering
+execution — Build/Plan leading, truthful scoped continuity and verification, and no duplicated design authority.
 
-Archive: 2026-09-23 m02 goal "Make operational continuity and routing/verification/failure claims understandable and auditable without changing runtime behavior." superseded at m02 slice close 2026-09-24; preserved for audit, not active.
+Archive: 2026-09-23 m02 goal "Make operational continuity and routing/verification/failure claims
+understandable and auditable without changing runtime behavior." superseded at m02 slice close 2026-09-24;
+preserved for audit, not active.
 
 ## Milestones
 
@@ -14,19 +17,20 @@ Archive: 2026-09-23 m02 goal "Make operational continuity and routing/verificati
 | --- | --- | --- | --- |
 | m01 | Long-running orchestration (coordinator-only Build, continuity, Research/design-task) | done | docs/superpowers/plans/2026-09-15-long-running-orchestration.md |
 | m02 | Operational evidence consistency (docs/state only) | done | docs/superpowers/plans/2026-09-23-operational-evidence.md + user acceptance 2026-09-24 |
-| m03 | Human-centered workflow (outcome-first Build, live-preview Design) | in_progress | docs/superpowers/plans/2026-09-23-human-centered-workflow.md |
+| m03 | Human-centered workflow (outcome-first Build, live-preview Design) | superseded | Design-primary premise removed 2026-09-30; docs/superpowers/plans/2026-09-23-human-centered-workflow.md kept as history |
+| m04 | Design workspace separation (retire OpenCode Design + kit, adopt OpenDesign) | in_progress | docs/superpowers/plans/2026-09-30-design-workspace-separation.md |
 
 ## Current slice
 
-- Name: human-centered-workflow (m03; m02 done and accepted 2026-09-24, m03 remains in_progress unaccepted)
-- Acceptance (user-visible end-to-end): Build headline shows what a user can do/see, what is incomplete, and next product result with failures as headline blockers; Design shares a human-openable localhost URL with baseline vs revision plus desktop/mobile PNGs where authorized; peer Plan/Design/Build diagram is visible — human end-to-end live preview/PNG check and approved artifact still pending
-- Plan ledger: docs/superpowers/plans/2026-09-23-human-centered-workflow.md
-- Scope note: m03 is the current in-progress slice; a local candidate may be used globally during evaluation; publication does not equal user acceptance
+- Name: design-workspace-separation (m04; source change, OpenDesign deployment, KSI design guidance, and global Design migration complete; user-visible acceptance pending)
+- Acceptance (user-visible end-to-end): the harness installs only Developer/Test Runner/Reviewer; real design work happens in OpenDesign (people directly, Build through the MCP capability) against the KSI design-system package; the container's OpenCode runs on the user's real providers; and no session has to leave Build for a Design primary — Human end-to-end check still pending
+- Plan ledger: docs/superpowers/plans/2026-09-30-design-workspace-separation.md
+- Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
 
-(none)
+- m04 design-workspace-separation — remaining: Human end-to-end acceptance of the design flow
 
 ## Backlog
 
-- [2026-09-23] `INSTALL.md:66` "권장 mapping" wording vs optional/no-quality-endorsement language elsewhere - source(independent review, ID redacted; reiteration ID redacted) - not blocking (terminology-only; out of slice scope, file outside allowed paths)
+- (none open) — the 2026-09-23 item about `INSTALL.md` "권장 mapping" wording was resolved when INSTALL.md was rewritten on 2026-09-30
