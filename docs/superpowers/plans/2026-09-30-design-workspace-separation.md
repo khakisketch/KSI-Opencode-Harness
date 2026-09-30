@@ -163,6 +163,14 @@ full timestamped backup:
 Backups live in `~/.local/state/ksi-harness-backups/design-retire-<timestamp>/` (config tree, compose file,
 deploy `.env`, systemd unit, removed skills archive, and a copy of the daemon data volume).
 
+## Reproduction assets (2026-09-30)
+
+The whole deployment is reproducible from the source repository: `integrations/opendesign/` carries the
+upstream compose patch (verified to apply cleanly to `nexu-io/open-design` at `5b19dfa`), the `opencode-cli`
+argv shim, the container OpenCode config, the credential-sync script, the KSI design-system `DESIGN.md`, and a
+README covering prerequisites, steps, operations, and known limitations. Nothing there is part of the
+published npm package.
+
 ## Pending
 
 - Human review of the source diff and of real use of OpenDesign as the design workspace.

@@ -1,0 +1,99 @@
+diff --git a/deploy/docker-compose.linux.yml b/deploy/docker-compose.linux.yml
+index a32ab71..d4ee855 100644
+--- a/deploy/docker-compose.linux.yml
++++ b/deploy/docker-compose.linux.yml
+@@ -18,12 +18,26 @@ name: open-design
+ 
+ services:
+   open-design:
++    # Run as the host user. The image default (uid 1001) cannot read host files
++    # that are mode 600 and owned by the host user (OpenCode's auth.json,
++    # opencode.jsonc), which silently hid every authenticated provider. Running
++    # as 1000 makes host bind mounts behave exactly as they do on the host.
++    # Requires the OpenDesign volumes to be owned by the same uid/gid.
++    user: "${OPEN_DESIGN_UID:-1000}:${OPEN_DESIGN_GID:-1000}"
+     # Cap CPU so a busy agent run does not starve the host.
+     cpus: '1.5'
+     # Drop the bridge port mapping — host networking makes it irrelevant.
+     ports: !reset []
+     network_mode: host
+     environment:
++      # uid 1000 is named "node" in the image, so the image would resolve HOME
++      # to /home/node, which does not exist on the read-only rootfs. Every
++      # daemon-spawned agent CLI failed with EROFS: mkdir '/home/node/.config'
++      # until this was pinned to the tmpfs home.
++      HOME: /home/open-design
++      # Codex resolves its home from CODEX_HOME, not from the mounted path, so
++      # the mounted host store must be named explicitly.
++      CODEX_HOME: ${HOME}/.codex
+       # Re-declare both port vars so the daemon listener follows OPEN_DESIGN_PORT
+       # even without the bridge mapping (which normally enforced the remap).
+       OD_PORT: ${OPEN_DESIGN_PORT:-7456}
+@@ -35,6 +49,11 @@ services:
+       # Prepend host-bin mounts so the daemon finds agent CLIs before
+       # any container-local stubs.
+       PATH: /mnt/host-local-bin:/mnt/host-opencode:/usr/local/bin:/usr/bin:/bin
++      # OpenCode state lives in the container's own writable volume; only the
++      # host auth store is mounted read-only. The host data directory is never
++      # written from the container.
++      XDG_DATA_HOME: /home/open-design/.local/share
++      XDG_STATE_HOME: /home/open-design/.local/state
+       # API keys for agent CLIs. Leave blank to omit.
+       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+@@ -47,13 +66,36 @@ services:
+       - ${HOME}/.local/share/claude:${HOME}/.local/share/claude:ro
+       # Claude Code credentials — read-only; never written inside the container.
+       - ${HOME}/.claude:/home/open-design/.claude:ro
++      # Codex standalone install — resolves the ~/.local/bin/codex symlink at its
++      # absolute host path. Read-write: Codex keeps its session, history, log, and
++      # credential state under ~/.codex and fails when that home is read-only.
++      # The container runs as the host uid, so files it writes stay host-owned.
++      # CODEX_HOME in the environment points here as well.
++      - ${HOME}/.codex:${HOME}/.codex
++      # Antigravity CLI credentials and settings. It stores an OAuth token under
++      # ~/.gemini/antigravity-cli and refuses to start without an authenticated
++      # session, so the host's signed-in state is shared read-write.
++      - ${HOME}/.gemini:/home/open-design/.gemini
+       # Full glibc for CLIs that exceed what libc6-compat (gcompat) covers.
+-      # amd64 only — on arm64 replace with /lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:ro
+-      - /lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:ro
+-      - /lib64:/lib64:ro
++      # KSI arm64 (aarch64) host: the stock amd64 paths do not exist here.
++      - /lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:ro
++      # glibc dynamic linker at the path the binaries' PT_INTERP requests.
++      - /lib/ld-linux-aarch64.so.1:/lib/ld-linux-aarch64.so.1:ro
++      # OpenCode state (auth excluded: mounted read-only below). Persists across
++      # container restarts so OpenDesign can resume OpenCode sessions.
++      - open_design_opencode:/home/open-design/.local
++      # Container-owned OpenCode config root. Keeping it separate from the host
++      # config is what makes the two environments independent: the container
++      # gets a minimal config with no host-absolute paths and no MCP servers it
++      # cannot run, and it can write its own service.json beside it.
++      - ${HOME}/opendesign/opencode-config-container:/home/open-design/.config/opencode
++      # OpenCode credentials (read-only file mount at its expected path). The
++      # parent directory stays container-local: never bind a host directory
++      # here, so the host auth store and session DB stay untouched.
++      - ${HOME}/.local/share/opencode/auth.json:/home/open-design/.local/share/opencode/auth.json:ro
+     tmpfs:
+-      # uid/gid must match the base image's open-design user (1001:1001).
+-      - /home/open-design:uid=1001,gid=1001
++      # Must match the uid/gid this container runs as.
++      - /home/open-design:uid=1000,gid=1000
+     healthcheck:
+       # Use wget (available in Alpine) instead of node — faster and does not
+       # compete with the daemon for CPU during startup.
+@@ -62,3 +104,13 @@ services:
+       timeout: 10s
+       retries: 5
+       start_period: 30s  # increased from 20s — glibc host mounts add startup latency
++
++volumes:
++  # OpenCode state produced inside the container (logs, session DB). Kept
++  # separate from the daemon data volume so `uninstall.sh` semantics stay clear.
++  open_design_opencode:
++    name: open-design_opencode_data
++  # Retained for data continuity only: the OpenCode config root is now the
++  # host-side directory mounted above, so nothing mounts this volume anymore.
++  open_design_opencode_config:
++    name: open-design_opencode_config

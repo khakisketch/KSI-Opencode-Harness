@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+// OpenDesign → OpenCode compatibility shim (KSI deployment).
+//
+// OpenDesign's OpenCode adapter targets the older `opencode-cli` argv shape.
+// OpenCode 2.x changed it, so this shim translates before delegating to the
+// real binary that sits beside it:
+//
+//   run --dir <path>   →  the workspace directory becomes a trailing positional
+//   run --pure         →  dropped (2.x has no --pure; it only guards the
+//                         daemon's connection smoke test, not normal runs)
+//   models --verbose   →  dropped (2.x has no --verbose; the daemon accepts the
+//                         plain one-id-per-line list as its documented fallback,
+//                         which is far better than the hardcoded model list)
+//
+// Everything else, and every other subcommand, is passed through unchanged.
+
+const { spawn } = require("node:child_process")
+const { join } = require("node:path")
+
+const real = join(__dirname, "opencode")
+const argv = process.argv.slice(2)
+
+function translate(args) {
+  if (args[0] === "models") {
+    return args.filter((arg) => arg !== "--verbose")
+  }
+  if (args[0] !== "run") return args
+  const out = ["run"]
+  let dir = null
+  for (let i = 1; i < args.length; i++) {
+    const arg = args[i]
+    if (arg === "--dir") {
+      dir = args[++i] ?? null
+      continue
+    }
+    if (arg === "--pure") continue
+    out.push(arg)
+  }
+  if (dir) out.push(dir)
+  return out
+}
+
+const child = spawn(real, translate(argv), { stdio: "inherit" })
+child.on("error", (error) => {
+  process.stderr.write(`opencode-cli shim: ${error.message}\n`)
+  process.exit(127)
+})
+child.on("exit", (code, signal) => {
+  if (signal) process.kill(process.pid, signal)
+  else process.exit(code ?? 0)
+})

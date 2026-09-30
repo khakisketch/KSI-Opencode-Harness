@@ -28,3 +28,7 @@ Version 0.5.0 removes the previously installed **Design** primary agent and the 
 The retired V1 plugin version `0.4.0-beta.0` was removed from npm, but deleting a registry version does not clean up any earlier user's installed plugin registration or files. The native installer does not automatically remove legacy role overrides or commands. Follow [migration guidance](INSTALL.md#migrating-an-existing-ksi-plugin-installation) if you previously applied V1. Former plugin-only checkpoint injection, `ksi_*` tools, delegation guards, and `/complete`/`/review` shortcuts are **not** part of V2.
 
 For a reviewed source checkout, run `node bin/ksi-opencode.mjs install --target "$PWD/.opencode"` (preview) and add `--apply` only after review. See [architecture](docs/architecture.md) and the [OpenDesign integration contract](docs/integrations/opendesign.md).
+
+The source repository also carries deployment reproduction assets for the OpenDesign workspace under
+`integrations/opendesign/` (compose patch, argv shim, credential sync, KSI design-system package). They are
+not part of the published package.

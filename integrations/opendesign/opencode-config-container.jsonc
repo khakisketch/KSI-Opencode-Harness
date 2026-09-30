@@ -1,0 +1,22 @@
+{
+  // OpenCode running inside the OpenDesign container.
+  //
+  // This is deliberately NOT the host engineering config. The container's
+  // OpenCode exists only as the design-generation agent that OpenDesign spawns,
+  // so it carries no engineering roles, no skills, and no MCP servers: the
+  // host's MCP entries (docker exec, npx, host-absolute commands) cannot work
+  // inside the container and only slow startup and pollute the model/tool
+  // catalog. OpenDesign injects whatever MCP context a run needs itself.
+  //
+  // Credentials are shared read-only from the host auth store, so the models
+  // listed here are the user's real authenticated providers.
+  "$schema": "https://opencode.ai/config.json",
+  "share": "disabled",
+  "update": "disable",
+  "tool_output": { "max_lines": 600, "max_bytes": 24576 },
+  "compaction": {
+    "auto": true,
+    "keep": { "tokens": 8192 },
+    "buffer": 4096
+  }
+}
