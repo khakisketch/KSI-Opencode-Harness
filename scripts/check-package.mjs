@@ -59,7 +59,7 @@ try {
   assert.equal(installed.code, 0, installed.stderr)
   const packageDir = join(installRoot, "node_modules", "ksi-opencode-harness")
   const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
-  assert.equal(manifest.version, "0.5.0-beta.1")
+  assert.equal(manifest.version, "0.5.0-beta.2")
   assert.notEqual(manifest.private, true)
   assert.equal(manifest.main, undefined)
   assert.equal(manifest.exports, undefined)

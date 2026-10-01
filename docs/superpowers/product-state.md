@@ -1,6 +1,6 @@
 # Product State - KSI OpenCode Harness
 
-Updated: 2026-09-30
+Updated: 2026-10-01
 
 ## Goal
 
@@ -43,6 +43,8 @@ preserved for audit, not active.
 - EVENTOUCH's separate codex MCP reports Connection closed; design MCP is connected and hosted Local Codex execution previously verified. Do not conflate these integrations; no fix to unrelated MCP configured as part of global guidance change.
 
 ## Delivery checkpoint (2026-10-01)
+
+- User approved Korean workflow-first README renewal and main push + npm0.5.0-beta.2 on next, preserving latest and DGX runtime. Ledger: docs/superpowers/plans/2026-10-01-readme-beta2-release.md. Pre-publication harness64/0fail/1skip, packed consumer, isolated V2 checks and local README links pass; publication evidence will be recorded after registry verification. Human rendered README/design acceptance remains separate.
 
 - User authorized commit/deployment closeout. KSI implementation/docs committed as e72e78f on refactor/retire-design-opendesign; separate daemon/web/contracts changes committed locally as1bd12b5eb. Unrelated upstream critique-opt-out-skill.md preserved untracked.
 - Current DGX deployment verified: health200/ok true, Labs200/active, runtime gateway/connector modules match source. Global45-line policy and on-demand template already applied; no service restart needed. They remain separately managed user configuration, not installer-managed files.

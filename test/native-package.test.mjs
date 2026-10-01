@@ -5,7 +5,7 @@ import { access, readFile } from "node:fs/promises"
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("native installer has a new publishable npm beta version", () => {
-  assert.equal(packageJson.version, "0.5.0-beta.1")
+  assert.equal(packageJson.version, "0.5.0-beta.2")
   assert.notEqual(packageJson.private, true)
 })
 
@@ -67,7 +67,7 @@ test("guidance points design work at OpenDesign instead of a vendored kit", asyn
   assert.match(install, /OpenDesign/)
   assert.match(readme, /OpenDesign/)
   assert.match(integration, /start_run|read/i)
-  assert.match(readme, /0\.5\.0 removes/i)
+  assert.match(readme, /0\.5\.0부터 Design primary와 `--with-design-kit`은 제거되었습니다/)
   for (const text of [readme, install]) {
     assert.doesNotMatch(text, /append `--with-design-kit`/i, "guidance must not offer the removed flag")
     assert.doesNotMatch(text, /--with-design-kit.*(?:both|preview and apply)/is, "guidance must not instruct using the removed flag")

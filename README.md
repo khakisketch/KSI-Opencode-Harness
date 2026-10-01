@@ -1,152 +1,229 @@
 # KSI OpenCode Harness
 
-**A lightweight engineering harness for OpenCode V2 — with clear ownership, scoped delegation, and evidence before completion.**
+### AI에게 일을 맡기되, 방향과 완료의 기준은 사람이 정합니다.
 
-KSI adds three optional native subagents: **Developer**, **Test Runner**, and **Reviewer**. You keep working
-with OpenCode's built-in **Build**, **Plan**, and **Explore**. It is a preview-first installer for agent
-guidance and permissions, **not a runtime plugin or an all-in-one tool installer**. Current release line:
-`0.5.0-beta.1` (beta).
+**KSI는 OpenCode를 대화의 중심에 두고, 필요한 역할과 도구만 연결해 제품을 만듭니다.**
+먼저 무엇을 바꿀지 합의하고, 실제 프로젝트에서 구현하고, 확인한 근거와 남은 일을 함께 보고합니다.
 
-## What it does
+[시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [설치 가이드](INSTALL.md)
 
-- Give bounded implementation, test execution, and independent code review distinct responsibilities.
-- Keep requirements, engineering decisions, integration, and final reporting with Build/Plan.
-- Ask for actual verification evidence; keep human approval separate from a passing test.
-- Leave models, providers, reasoning variants, and step budgets under your control.
+**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.2`** · [MIT](LICENSE)
 
-Native prompts and permissions guide execution; they do not enforce a workflow engine or provide an OS sandbox.
-There is no mandatory delegation on every task.
+> **운영 방식과 설치 범위는 다릅니다.** 아래는 KSI가 일하는 방식입니다.
+> 이 npm 패키지가 설치하는 것은 Developer · Test Runner · Reviewer의 **세 에이전트 파일뿐**입니다.
+> 도구 설치, 디자인 연결, 프로젝트 지침, 자동 배포까지 묶어 주는 올인원 플러그인이 아닙니다.
 
-## How work flows
+---
 
-```text
-You: desired outcome + constraints + acceptance
-                  │
-             Plan / Build
-                  ├── Explore: inspect the existing project when useful
-                  ├── Developer: bounded implementation when useful
-                  ├── Test Runner: run checks and report actual results
-                  └── Reviewer: independent code / behaviour review
-                  │
-             Build integrates and reports evidence + remaining gaps
-                  │
-             You approve the result
+## KSI는 이렇게 작업합니다
 
-Optional design branch:
-Build or you → separately installed design workspace → human-approved artifact
-             → Build implements it in the real product and verifies it
-```
-
-| Role | Owns | Does not own |
-| --- | --- | --- |
-| Build / Plan (built-in) | Requirements, architecture, coordination, integration, honest final claims | User approval or automatic release authority |
-| Explore (built-in) | Repository discovery | Implementation ownership |
-| Developer (KSI) | Assigned implementation and repairs | Unbounded scope expansion; delegation by default |
-| Test Runner (KSI) | Actual check execution and results | Production implementation or acceptance |
-| Reviewer (KSI) | Read-only code and behaviour review | Code edits or visual taste approval |
-| Human | Direction, scope, permissions, final acceptance | — |
-
-For example, ask Build: “Implement this approved change using existing patterns. Delegate where useful;
-report checks actually run, known gaps, and what still needs my acceptance.” These are ordinary requests,
-not KSI slash commands. See [execution guidance](docs/execution.md).
-
-## Exactly what installation changes
-
-After an explicit `--apply`, the default installer writes only these files under **your chosen target**:
+**목표부터 합의 → 필요한 만큼 계획 → 실제 코드에서 구현 → 근거로 검증 → 사람이 승인**
 
 ```text
-agents/developer.md
-agents/test-runner.md
-agents/reviewer.md
+사용자  원하는 결과 · 제약 · 완료 기준
+  │
+  ▼
+Plan / Build  기존 프로젝트를 이해하고 변경 범위를 합의
+  │
+  ├─ 새 화면·큰 재설계라면
+  │    Local Codex → 디자인 시안 → 사용자 승인
+  │                                  │
+  │    승인된 시안을 실제 컴포넌트·토큰에 맞춰 구현 ◀─┘
+  │
+  ▼
+Build  직접 구현하거나, 필요한 역할에 한정된 작업을 위임
+  │      Explore       기존 구조 조사
+  │      Developer     구현·수정
+  │      Test Runner   검사 실행과 결과 보고
+  │      Reviewer      독립적인 코드·동작 검토
+  ▼
+Build  통합 결과 · 실행한 검사 · 미확인 사항 보고
+  │
+  ▼
+사용자  실제 결과 확인과 승인 → 요청한 경우에만 커밋·배포
 ```
 
-**It does not install OpenCode, OpenDesign, Superpowers, Docker, or any model CLI.** It does not configure
-MCP servers, sign in to providers, edit `opencode.jsonc` or `AGENTS.md`, install plugins/skills, select models,
-restart services, or delete an old installation. Downloading the npm package alone changes no OpenCode files.
-An explicit replacement creates backups; see [collision and migration rules](INSTALL.md).
+### 세 가지 원칙
 
-| Component | Who sets it up? | Required? |
+| 원칙 | 실제로는 이렇게 합니다 |
+| --- | --- |
+| **작게 맡기기** | 작은 수정은 Build가 바로 처리합니다. 모든 작업에 팀이나 디자인 단계가 필요한 것은 아닙니다. |
+| **책임을 분리하기** | 구현, 검사, 검토를 구분하되 Build가 통합과 최종 보고를 맡습니다. |
+| **확인한 것만 완료라 하기** | “테스트 통과”, “배포됨”, “사용자가 만족함”을 서로 다른 상태로 보고합니다. |
+
+이 흐름은 운영 원칙입니다. 프롬프트와 권한으로 역할을 안내하지만, 강제 워크플로 엔진이나 OS 샌드박스를 제공하지는 않습니다.
+
+## 누가 무엇을 맡나요
+
+**주 대화는 OpenCode 기본 Build / Plan에서 이어갑니다.** KSI는 이 역할들을 교체하지 않습니다.
+
+| 역할 | 담당 | 경계 |
 | --- | --- | --- |
-| Node.js 20+ and OpenCode V2 | You or your agent, using upstream instructions | Yes |
-| Three KSI agent files | This installer, only after reviewed `--apply` | The package's entire default installation scope |
-| Model/provider credentials | You, through your selected provider's sign-in | For model-backed work; never supplied by KSI |
-| Superpowers | You or your agent, separately | Optional process skills; not bundled |
-| OpenDesign and its MCP connection | You or your agent, separately | Optional, for substantial design work |
-| Project guidance and continuity files | Your project's chosen process | Optional; no automatic injection |
+| **사용자** | 목표, 범위, 권한, 최종 승인 | 테스트가 사용자 승인을 대신하지 않습니다. |
+| **Plan** · 기본 | 조사와 계획, 구현 전 의사결정 정리 | 일반 제품 파일 구현은 Build로 넘깁니다. |
+| **Build** · 기본 | 구현, 필요한 위임, 통합, 결과 보고 | 요청 없이 공개·배포 권한을 얻지 않습니다. |
+| **Explore** · 기본 | 기존 코드와 구조 조사 | 구현 담당이 아닙니다. |
+| **Developer** · KSI | 맡겨진 범위의 구현과 수정 | 스스로 과업을 확장하지 않습니다. |
+| **Test Runner** · KSI | 실제 검사 실행, 성공·실패 근거 보고 | 제품 구현이나 최종 승인 담당이 아닙니다. |
+| **Reviewer** · KSI | 읽기 전용 코드·동작 검토 | 코드를 수정하거나 디자인 취향을 승인하지 않습니다. |
 
-## Quick start (project-local)
+OpenCode에는 General 등 다른 기본 역할도 있습니다. 위 표는 KSI의 대표 작업 흐름에 쓰이는 역할입니다.
+위임은 필요할 때 선택합니다. 모델·provider·reasoning variant·step budget은 사용자가 결정합니다.
 
-First install [OpenCode V2](https://opencode.ai/v2/docs/) and Node.js 20+. From your project's root,
-preview the exact beta package, review the proposed contents, then apply:
+## 실제로 이렇게 요청하세요
+
+명령어를 외울 필요 없이 **결과와 제약을 자연어로 전달**하면 됩니다. 아래는 KSI 전용 슬래시 명령이 아닙니다.
+
+### 01 · 작은 수정 — 기존 패턴으로 바로 처리
+
+> “저장 버튼을 누르면 완료 메시지가 나오게 해줘. 기존 알림 패턴을 재사용하고, 관련 검사 결과도 알려줘.”
+
+Build가 범위를 확인하고 구현·검증합니다. 승인된 UI 패턴 안의 작은 변경에 별도 디자인 작업은 필요하지 않습니다.
+
+### 02 · 큰 기능 — 합의하고 나눠서 구현
+
+> “관리자가 주문을 취소하는 기능이 필요해. 먼저 기존 구조와 예외 상황을 조사해서 계획을 제안해줘. 승인한 뒤 구현하고, 필요하면 구현·검사·검토를 나눠 맡겨줘.”
+
+Plan에서 방향을 합의하고 Build에서 실행합니다. 역할을 나눠도 통합 책임은 Build에 남습니다.
+
+### 03 · 새 디자인 — 시안과 제품 구현을 구분
+
+> “이 프로젝트의 예약 화면을 새로 디자인하고 싶어. 연결된 실제 디자인 프로젝트와 저장 위치를 먼저 확인해줘. Local Codex로 시안을 만들고, 내가 승인하면 기존 제품 컴포넌트에 맞춰 구현해줘.”
+
+디자인 도구가 별도로 설치·연결된 경우의 흐름입니다. 시안은 운영 코드와 자동 동기화되지 않으며,
+원격 환경에서는 접속 PC가 아니라 **실제 연결된 서버·프로젝트**에서 실행될 수 있습니다.
+
+### 04 · 마무리 — 완료 범위를 분명하게
+
+> “바뀐 내용, 실제로 실행한 검사, 아직 확인하지 못한 부분을 정리해줘. 커밋·푸시·배포는 내가 요청할 때만 진행해줘.”
+
+## 바로 시작하기
+
+### 1. 먼저 준비하세요
+
+[OpenCode V2](https://opencode.ai/v2/docs/)와 **Node.js 20+**가 필요합니다.
+모델 provider 연결과 로그인은 별도로 준비합니다. KSI는 도구나 인증 정보를 설치·제공하지 않습니다.
+
+### 2. 변경 내용을 미리 보고 적용하세요
+
+작업할 프로젝트 루트에서 실행합니다. 첫 명령은 **미리보기만**, 두 번째 명령만 파일을 씁니다.
 
 ```sh
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.1 -- ksi-opencode install --target "$PWD/.opencode"
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.1 -- ksi-opencode install --target "$PWD/.opencode" --apply
+# 미리보기 — OpenCode 설정 파일을 변경하지 않습니다
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode"
+
+# 검토 후 적용 — 선택한 프로젝트에 세 역할을 추가합니다
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
-Both commands pin the same release. The target must be absolute. Preview writes nothing; apply is idempotent
-for identical files and refuses differing files unless you explicitly request backed-up replacement.
-For all projects, deliberately choose the configuration directory of the OpenCode server you actually use
-(typically `~/.config/opencode`). OpenChamber managed/external servers can have different config directories.
+미리보기와 적용 모두 같은 버전을 고정합니다. 베타 채널은 `next`이며, `latest`는 다른 이전 버전일 수 있습니다.
+대상 경로는 절대 경로여야 합니다. 같은 파일은 반복 적용해도 변경하지 않으며, 다른 파일은 임의로 덮어쓰지 않습니다.
+명시적인 교체에는 백업이 생성됩니다. [충돌·업그레이드 규칙 →](INSTALL.md)
 
-If the registry version is unavailable, or to inspect a reviewed source checkout:
+### 3. 실제 역할을 확인하세요
+
+OpenCode의 유효 에이전트 목록에서 `developer`, `test-runner`, `reviewer`를 확인하세요.
+파일이 존재하는 것만으로 다른 설정 계층의 덮어쓰기까지 확인된 것은 아닙니다.
+
+전체 프로젝트에 적용하려면 실제 사용하는 **OpenCode 서버의 설정 디렉터리**를 선택하세요.
+보통 `~/.config/opencode`이지만, 관리형·외부 서버 환경에서는 다를 수 있습니다.
+
+<details>
+<summary>검토한 소스 체크아웃에서 설치하려면</summary>
 
 ```sh
 node bin/ksi-opencode.mjs install --target "$PWD/.opencode"
 node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 ```
 
-Then inspect the effective agent catalog in OpenCode. A file existing is not proof that another configuration
-layer has not overridden it. [Full installation guide](INSTALL.md) · [Architecture](docs/architecture.md).
+</details>
 
-## Optional design workspace — separate installation
+## 설치되는 것과 별도로 준비할 것
 
-[OpenDesign](https://github.com/nexu-io/open-design) is a separate application, not a dependency installed by
-KSI. Install it yourself using its upstream instructions. If you want an agent to do that, explicitly approve
-the installation and the configuration/credential sharing it requires.
+**기본 적용 범위는 아래 세 파일입니다.** npm 패키지를 내려받는 것만으로 OpenCode 설정은 바뀌지 않습니다.
 
-After you separately register its MCP server, Build can read an artifact or commission design work without
-switching to a Design primary. For a new screen or substantial redesign: agree the brief, generate/refine
-in the design workspace, approve the direction, then implement against the real project's components and tokens.
-For backend work and small changes inside approved patterns, no design workspace is needed.
+```text
+선택한 설정 디렉터리/
+└── agents/
+    ├── developer.md
+    ├── test-runner.md
+    └── reviewer.md
+```
 
-Read [the integration contract](docs/integrations/opendesign.md) for setup boundaries, connection checks,
-artifact handoff, and recovery. Workstation-specific reproduction assets are available in the
-[source repository](https://github.com/khakisketch/KSI-Opencode-Harness/tree/main/integrations/opendesign);
-they are **not included in npm or automatically applied**, and are not a universal installation recipe.
+| 구성 요소 | 설치·관리 주체 | 언제 필요한가요? |
+| --- | --- | --- |
+| OpenCode V2 · Node.js · 모델 연결 | 사용자, 각 도구의 공식 절차 | 기본 작업 환경 |
+| KSI 세 역할 | 이 설치 도구, 검토 후 `--apply` | 구현·검사·검토를 나눠 맡길 때 |
+| Superpowers | 별도 설치, 사용자 승인 | 계획·디버깅·검증 등의 프로세스 스킬이 필요할 때 |
+| Local Codex · 디자인 MCP 연결 | 별도 준비, 사용자 승인 | 새 UI나 큰 디자인 변경이 필요할 때 |
+| 프로젝트 `AGENTS.md` · 연속성 기록 | 프로젝트의 운영 규칙 | 장기 작업의 맥락과 의사결정을 이어갈 때 |
 
-## For agents reading this repository
+### 디자인은 별도 작업 공간에서
 
-1. Read this README and [INSTALL.md](INSTALL.md); inspect the project's instructions and effective server/config.
-2. Check whether Node.js, OpenCode, and the selected provider are already available. Use current upstream
-   documentation for missing tools, not assumptions about the maintainer's machine.
-3. Propose the smallest setup needed. Ask before system installation, global/shared configuration changes,
-   credential access/sharing, service restarts, or destructive migration. Reading docs is not authorization.
-4. Preview KSI's files. Apply only to the approved target, preserving user model and permission choices.
-5. Set up Superpowers or the separate design workspace **only if requested/needed and approved**. Consult
-   [Superpowers upstream](https://github.com/obra/superpowers) and the design integration guide; do not treat
-   either as installed merely because this repository mentions it.
-6. Verify the effective agents. For design integration, verify MCP tool discovery **and a real read** from
-   the intended workspace. Report configured, connected, and verified as distinct states.
+KSI의 기본 디자인 실행 경로는 **Local Codex**입니다. **OpenDesign Cloud**는 명시적으로 요청한 경우에만 검토합니다.
+둘 모두 이 npm 패키지가 설치하거나 로그인·연결해 주는 기능이 아닙니다.
 
-## Upgrading and limits
+**요구사항 정리 → 시안 생성·수정 → 사용자 승인 → 실제 제품 구현·검증** 순서로 사용합니다.
+백엔드 작업이나 이미 승인된 컴포넌트의 작은 수정에는 별도 디자인 도구가 필요하지 않습니다.
 
-Version 0.5.0 removes the **Design** primary and the `--with-design-kit` option. It ships no vendored design
-skills. Existing files remain until you deliberately retire them. The old V1 plugin is not this package;
-remove legacy registrations only through a reviewed migration. See [upgrade guidance](INSTALL.md).
+연결 확인은 도구 목록 확인에서 끝내지 않고 **대상 프로젝트의 실제 읽기**까지 확인합니다.
+유효한 같은 대상 확인은 재사용하되, 대상 변경·오류·재시작·활성 컨텍스트 만료 시 다시 확인합니다.
+[디자인 연결·인계·복구 가이드 →](docs/integrations/opendesign.md)
 
-No KSI runtime hooks, automatic checkpoint injection, `ksi_*` evidence tools, output archive, or `/complete`
-and `/review` shortcuts are installed. Optional project conventions and separately installed skills can
-support continuity, but cannot be described as built-in enforcement. Passing package tests is not proof of
-production design acceptance or every third-party integration. [Verification limits](docs/verification.md).
+> 저장소의 [환경별 배포 자료](https://github.com/khakisketch/KSI-Opencode-Harness/tree/main/integrations/opendesign)는
+> npm에 포함되거나 자동 적용되지 않습니다. 모든 환경에 그대로 적용하는 설치법도 아닙니다.
 
-## Development
+## 자동으로 하지 않는 일
+
+- OpenCode, 디자인 도구, Superpowers, Docker, 모델 CLI 설치
+- `opencode.jsonc`, `AGENTS.md`, provider, 모델 선택, MCP, credentials 변경
+- 서비스 재시작, 기존 설치 삭제, 사용자 승인 없는 커밋·푸시·배포
+- 강제 팀 구성, 자동 디자인 동기화, 사용자 승인 대행
+
+런타임 훅, 자동 checkpoint 주입, `ksi_*` 근거 도구, 출력 보관소, `/complete`·`/review` 명령도 설치하지 않습니다.
+프로젝트 규칙과 별도 스킬로 작업을 지원할 수 있지만 패키지 내장 기능으로 설명하지 않습니다.
+
+<details>
+<summary>이전 KSI 버전에서 이동한다면</summary>
+
+0.5.0부터 Design primary와 `--with-design-kit`은 제거되었습니다. 예전 역할·스킬·플러그인 등록은
+새 설치가 자동 삭제하지 않습니다. 먼저 소유 경로와 실제 설정을 확인하고 백업 후 별도로 정리하세요.
+기존 모델 설정, Superpowers, 다른 플러그인과 credentials는 보존해야 합니다. [전체 이전 절차 →](INSTALL.md)
+
+</details>
+
+<details>
+<summary>이 저장소를 읽는 에이전트에게</summary>
+
+1. README와 INSTALL, 프로젝트 지침, 실제 서버·설정 위치를 확인하세요.
+2. 이미 준비된 도구를 확인하고, 부족한 도구는 최신 공식 문서로 조사하세요.
+3. 시스템 설치·공유 설정·credentials 접근이나 공유·서비스 변경·삭제는 별도 승인을 받으세요.
+4. 승인된 대상에서 미리보기 후 적용하고, 사용자 모델·권한 선택을 보존하세요.
+5. 별도 스킬·디자인 연결은 필요하고 승인된 경우만 준비하세요. 문서에 등장한다고 설치된 것은 아닙니다.
+6. 역할의 실제 적용과 디자인 프로젝트 읽기를 확인하세요. 설정됨·연결됨·검증됨을 구분해 보고하세요.
+
+Superpowers 설정은 [공식 저장소](https://github.com/obra/superpowers)를 참고하세요.
+
+</details>
+
+## 더 알아보기
+
+| 목적 | 문서 |
+| --- | --- |
+| 설치·충돌·업그레이드 | [INSTALL](INSTALL.md) |
+| 역할과 설치 구조 | [Architecture](docs/architecture.md) |
+| 작업·위임·완료 보고 | [Execution](docs/execution.md) |
+| 디자인 연결과 제품 구현 인계 | [Integration](docs/integrations/opendesign.md) |
+| 선택형 프로젝트 지침 | [AGENTS.md 예시](examples/project-AGENTS.md) |
+| 문제 해결 | [Troubleshooting](docs/troubleshooting.md) |
+| 검증 범위와 한계 | [Verification](docs/verification.md) |
+
+### 개발·검증
 
 ```sh
 npm run check
 npm run check:package
 ```
 
-The package check exercises the packed CLI in isolation: preview, three-file apply, repeat apply, and
-rejection of retired options/user-routing replacement. [Troubleshooting](docs/troubleshooting.md) ·
-[MIT license](LICENSE).
+패키지 검사는 격리된 환경에서 실제 tarball의 미리보기, 세 파일 적용, 반복 적용, 제거된 옵션과
+사용자 설정 덮어쓰기 거부를 확인합니다. 패키지 검사 통과는 실제 제품 디자인 승인이나 모든 외부 연동의 성공을 뜻하지 않습니다.
