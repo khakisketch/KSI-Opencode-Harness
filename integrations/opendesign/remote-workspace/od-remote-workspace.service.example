@@ -1,0 +1,15 @@
+[Unit]
+Description=DGX remote workspace gateway
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node %h/.local/share/od-remote-workspace/service.mjs --config %h/.local/state/od-remote-workspace/config.json
+EnvironmentFile=-%h/.local/state/od-remote-workspace/service.env
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

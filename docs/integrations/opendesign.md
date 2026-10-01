@@ -1,6 +1,6 @@
 # OpenDesign integration
 
-OpenDesign is the design workspace for KSI work. It is a separate local application, not a role in this
+The design workspace is a separately deployed application, not a role in this
 installer and not a vendored skill kit. The installer ships no design skills, design system, or craft
 references; this document defines how the harness expects OpenCode to use the OpenDesign capability.
 
@@ -12,29 +12,46 @@ automatic installer. Superpowers is also separately installed, not a prerequisit
 
 ## Division of responsibility
 
+DGX user-level operating guidance is installed separately in `~/.config/opencode/AGENTS.md`, under
+`Design-to-engineering workflow`. It applies across that user's OpenCode projects; it is not installed
+by the KSI package. The default is **Local Codex** in the connected server's execution environment,
+not the browser client's PC. **OpenDesign Cloud** requires an explicit user request. Agents must verify
+the actual connection, project and storage root before describing execution location or modifying files;
+they must not assume a code repository is already a registered design project. Design-to-product handoff
+is explicit, not automatic synchronization. Existing approved small changes remain engineering work.
+
+The V2 global instruction file is refreshed before the next model request; policy-only changes need
+no service restart. A repository name does not prove registration or folder association: resolve the
+actual target before work, rather than creating a replacement project by default.
+
 | Owner | Responsibility |
 | --- | --- |
 | OpenDesign | Direction, layout, information hierarchy, interaction and visual system, rendered artifacts, critique |
 | OpenCode (Build) | Requirements, code architecture, existing components, production constraints, backend, tests, Git, integration |
 | Human | Direction approval and final acceptance |
 
-OpenCode still makes engineering-particle judgments inside Build: detecting a mismatch with the design,
+OpenCode still makes engineering judgments inside Build: detecting a mismatch with the design,
 broken responsive behaviour, accessibility regressions, component reuse, and conflicts with production
 constraints. Those judgments do not require a separate design primary agent.
 
 ## Prerequisite
 
 An OpenDesign daemon must be reachable and its MCP server registered in the OpenCode configuration the
-session uses. Verify the capability is present before relying on it:
+session uses. Verify on initial use, when the target changes, or after connection errors/restarts:
 
 - the MCP server appears in the active tool catalog, and
 - a read tool such as `list_projects` returns the expected workspace.
+
+Reuse a valid check for the same connection and explicit target; do not repeat setup discovery for every
+design edit. Active context may change or expire, so resolve it when the user's request depends on the
+currently open project/file. A lost connection requires a new read, not automatic write/generation replay.
 
 Check `opencode mcp list` from the **actual project directory**. A healthy web server or a successful
 standalone MCP probe is not proof that the current OpenCode session is connected. If it says
 `Connection closed`, use OpenCode's `/mcps` to disconnect and reconnect this server in that project,
 then recheck tool discovery and a real project read. Container restarts can terminate a live stdio connection;
-automatic recovery has not been verified. A new chat alone is not a proven recovery mechanism.
+the earlier container-local transport cannot recover automatically. A new chat alone is not a proven recovery mechanism.
+The DGX deployment now uses the host-side proxy described below, verified to survive container restart.
 
 For manual V2 configuration use `mcp.servers`, `disabled`, and timeout objects as documented in
 [the V2 MCP guide](https://opencode.ai/v2/docs/mcp-servers). Do not blindly copy older `mcp`/`enabled` examples.
@@ -65,8 +82,8 @@ not invent design artifacts or silently substitute a locally-invented design sys
 Read and inspect:
 
 - `get_artifact` — the entry file plus referenced siblings in one pull. Prefer this over repeated single-file reads.
-  In the tested deployment, specify both `project` and `entry`: the default-entry lookup failed despite
-  metadata showing an entry file. Retrieve project metadata first if the file is unknown.
+  Pass a known project/entry directly. If default-entry lookup fails or the target is unknown, retrieve metadata
+  and pass the explicit project/entry; do not add a metadata lookup to every successful read.
 - `get_file` / `search_files` / `list_files` — a single known file, a literal search, or metadata with change polling.
 - `get_active_context` — the project and file the user currently has open, when that is the right target.
 
@@ -105,3 +122,112 @@ When bringing a design back into production code, report:
   sources remain authoritative.
 - A generated artifact is not design approval, and a passing test is not user acceptance. The Human owns both.
 - Do not claim a design run, file read, or rendered inspection that did not actually occur.
+
+## Optional DGX remote-folder gateway (source-only)
+
+`integrations/opendesign/remote-workspace/` is separately approved host infrastructure, not part of
+the KSI installer. It browses the host home directory, connects only explicitly selected canonical
+project descendants as same-path writable binds, then uses existing folder import/working-directory APIs.
+Home and credential/configuration roots are not selectable projects. This is not an OS sandbox:
+connected roots share the same container and account.
+
+Deployment requires a revision-matched daemon/web overlay, a private configuration using
+`config.example.json`, and the user service example. Pin the installed immutable base image when
+building `Dockerfile.overlay.example`; keep the original image and all effective Compose inputs for rollback.
+The overlay must run with `OD_REMOTE_WORKSPACE_GATEWAY` and the private `OD_REMOTE_DAEMON_TOKEN`;
+omitting the gateway variable intentionally restores native local behavior and removes remote connected-root checks.
+Keep tokens in a private mode-0600 environment file, not in JSON, logs or source control.
+
+Validate source checks before installation:
+
+```sh
+npm test
+# Explicit opt-in: isolated temporary Compose container, never the production service.
+OD_REMOTE_DOCKER_SMOKE=1 node --test integrations/opendesign/remote-workspace/tests/connector-docker-smoke.test.mjs
+```
+
+CLI parity in the patched application:
+
+```sh
+od project browse-server --gateway-url https://YOUR-TAILNET-HOST:7456 --json
+od project open-server /home/YOU/projects/PROJECT --gateway-url https://YOUR-TAILNET-HOST:7456 --json
+```
+
+The gateway listens on loopback; expose it only through the approved tailnet-only Serve mapping.
+Tailnet membership is the remote trust boundary, not knowledge of a Host header. Only the exact
+read-only Labs GET has remote-to-loopback authority translation; normal privileged routes retain their guards.
+
+A new root can recreate the shared container. During connection, generation is blocked container-wide;
+recreate/health waits can each take 120 seconds, and rollback can extend the outage. Existing active or
+unverifiable runs prevent recreation. Polling remains on the stable gateway; duplicates join the operation.
+Root paths are checked before and after recreation. This detects changes and rolls back, but cannot provide
+an atomic filesystem/Docker bind transaction against a hostile same-user process racing path replacement.
+
+On failure, inspect the operation's rollback result. For operator rollback, restore the backed-up image
+override together with the prior project override, recreate only the fixed service, verify health, then
+restore the previous gateway configuration/Serve target if needed. Preserve daemon volumes, provider config,
+agent mounts and unrelated Serve/Funnel routes. Never use `down -v` or broad cleanup as recovery.
+Only container-local stdio (for example, `docker exec`) terminates with container recreation. If that
+connection closes, reconnect through `/mcps` and verify a real read. The gateway does not manage MCP;
+the host-side proxy below survives container recreation and does not need reconnection merely because
+the daemon restarts. Reconnect only if the actual client transport has closed.
+
+### Host-side MCP continuity
+
+Use the existing upstream `runMcpStdio` HTTP proxy **on the host**, not under `docker exec`.
+`mcp-host-entry.ts.example` is a small deployment shim, not a new protocol implementation.
+Build it with the exact daemon source revision and installed dependency closure, bundle for Node,
+and place the generated bundle in a persistent private deployment directory (not a temporary worktree).
+Pin the loopback daemon URL and keep the approved idle-exit setting at zero.
+
+On DGX the host bundle is `~/.local/share/od-mcp-host/proxy.cjs`; the existing MCP command now uses host
+Node instead of Docker. Only that command/comment changed; unrelated configuration and credentials
+were preserved, with a private backup. Container restart no longer terminates its stdio connection.
+Calls during downtime return an error; after health recovery the next call works on the same connection.
+**No write, upload, or generation request is automatically replayed.** Interrupted actions still need a
+conscious retry, using the original request ID for generation when appropriate.
+
+A host proxy crash or host reboot still requires normal client reconnection; this is not universal
+process supervision. Restart/idle test results and limits belong in the
+[technical closeout ledger](../superpowers/plans/2026-10-01-remote-workspace-closeout.md).
+
+### Attachment behavior
+
+The chat attachment input uses `/api/projects/:id/upload`; a request to the separate `files` endpoint
+alone does not exercise that UI. Verify saved bytes in the selected project, visible upload errors and
+conscious retries; do not automatically replay uploads. Reference-file access is separate from model
+interpretation accuracy or support for every format. Check actual outputs rather than terminal status;
+technical JSON reports are not rendered design artifacts. Fixture results are in the closeout ledger.
+
+### Local Codex nested sandbox on Docker
+
+Newer Local Codex uses bubblewrap. Docker's default seccomp denies its user-namespace creation;
+the default AppArmor mount denial also blocks its nested read-only filesystem setup. A healthy
+daemon or terminal run status alone does not prove shell tools can execute or save files.
+
+The optional `ksi-codex-userns.apparmor` and `seccomp-policy.mjs` record the separately approved
+Ubuntu arm64 repair. They are **not automatically installed** and require host security review.
+Start from a reviewed, pinned Moby default-deny seccomp profile; the generator preserves its rules:
+
+```sh
+node integrations/opendesign/remote-workspace/seccomp-policy.mjs reviewed-default.json new-codex.seccomp.json
+```
+
+Use only on the fixed application container, with **all outer capabilities dropped**, no-new-privileges
+retained, and AppArmor enforcement enabled. The added calls permit nested namespaces and bubblewrap
+mount operations; they do not grant host CAP_SYS_ADMIN. Preserve proc/sys restrictions and remaining
+default-deny syscalls. Do not use privileged mode, unconfined profiles, host sysctl changes, or
+`danger-full-access`/legacy sandbox fallbacks to hide failures.
+
+Prove the policy before deployment in a disposable, network-disabled container with no credentials:
+Local Codex sandbox execution succeeds; workspace-write can create a file in the selected root;
+a separate writable Docker bind is read-only inside the sandbox; direct outer-container mount fails.
+Then commission one real Local Codex fixture run and check the resulting bytes on the host.
+These checks prove the tested boundaries, not complete sandbox security or design quality.
+
+The DGX profile is installed at `/etc/apparmor.d/ksi-codex-userns`; its seccomp and Compose override
+are private host runtime files. Back up configuration before adding the security override to the
+connector's pinned Compose file list, so subsequent project connections retain it. Verify actual
+`CapEff=0`, `NoNewPrivs=1`, seccomp filtering and enforced profile after every rollout. Restore the
+previous pinned Compose list and recreate only the application service for rollback; remove the
+optional host profile only when no running container references it.

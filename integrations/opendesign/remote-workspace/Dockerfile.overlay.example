@@ -1,0 +1,6 @@
+# Build context contains generated outputs from the exact installed-image revision.
+# Set BASE_IMAGE to the installed immutable digest, never an unreviewed latest tag.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+COPY --chown=1000:1000 daemon-dist/ /app/apps/daemon/dist/
+COPY --chown=1000:1000 web-out/ /app/apps/web/out/

@@ -264,3 +264,37 @@ Deferred review minors: unified-diff blank context can trigger whole-range white
 compose patch; a historical ledger contains the maintainer's concrete private-tailnet hostname. Neither is
 a package secret or npm-installed setting. Main-source links, explicit `KSI_ASSETS`, dist-tag clarity, and
 integration-asset package exclusion are now addressed.
+
+## Remote DGX project workspace follow-up — design stage
+
+User reported folder-picker HTTP 500 and clarified work/output must happen in an existing DGX project,
+not the connecting device or a reference-only folder. Confirmed actual response: native picker cannot find
+zenity in the headless container; Desktop/project directories are not mounted. Other console errors have
+separate Cloud/missing-file/workspace-context causes.
+
+Initial Desktop/KSI-CCTV-only written spec was approved; implementation planning was interrupted before
+a plan was saved. User then rejected per-project restrictions, clarified home-wide directory browsing
+versus selected-project work, and requested a more proactive approach. Revised spec replaces the fixed
+allowlist with home navigation and selection-driven host connections; KSI-CCTV is only the first smoke target.
+Host connection service manages fixed-container project mounts, preserves existing deployment settings,
+guards active runs and recovers failed reconnects. No home-wide writable mount or agent Docker socket.
+Written spec: `docs/superpowers/specs/2026-09-30-dgx-remote-project-workspace-design.md`.
+Status: revised-spec self-review performed; user revised-spec review and implementation plan/execution approval
+still required. No runtime/mount/CCTV-source changes, no new publish/commit approval inferred.
+
+## Labs setting read diagnosis
+
+User asked whether enabling Design Harness would improve generation and supplied the remote settings page.
+Read-only HTTP comparison: loopback health and rollout status both 200; rollout reports requested/effective
+active with default source. Via the same tailnet HTTPS origin, health remains 200 but rollout status is 403
+with "request host must be a loopback daemon address". Source route requires local-daemon request checks;
+LabsSection maps all read failures to unreadable/off. Thus this is a remote settings-read restriction, not
+evidence the daemon is stopped or the experiment is disabled. Local Codex is in source default eligible
+agents, but task/runtime capability checks still apply; actual per-run use/quality gain not verified.
+No configuration, proxy, security guard, or generation run changed. Preserve this access restriction until
+an authenticated remote-settings design is approved; do not remove all local-daemon guards to silence UI.
+
+User subsequently approved the revised workspace spec and requested server deployment plus the Labs fix.
+Implementation/deployment plan: `docs/superpowers/plans/2026-09-30-dgx-remote-workspace.md`.
+Actual HTTPS 7456 route is tailnet-only Tailscale Serve to loopback daemon, not the separate nginx container.
+Plan review/execution-method selection pending; no runtime changes made during planning.

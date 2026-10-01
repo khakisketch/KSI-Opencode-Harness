@@ -1,0 +1,10 @@
+// Copy into apps/daemon/mcp-host-entry.ts in the exact-revision upstream build tree.
+// Bundle with its installed dependencies; no daemon/server lifecycle import needed.
+import { runMcpStdio } from './src/mcp.js';
+const daemonUrl = process.env.OD_DAEMON_URL ?? 'http://127.0.0.1:7456';
+const target = new URL(daemonUrl);
+if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1' || target.username || target.password || target.pathname !== '/' || target.search || target.hash) throw new Error('Pinned loopback daemon required');
+void runMcpStdio({ daemonUrl }).catch(() => {
+  console.error('Host MCP proxy failed');
+  process.exitCode = 1;
+});

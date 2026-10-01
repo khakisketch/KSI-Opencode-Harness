@@ -1,0 +1,13 @@
+{
+  "origin": "https://your-dgx.your-tailnet.ts.net:7456",
+  "upstream": "http://127.0.0.1:7456",
+  "port": 17456,
+  "workspaceEnabled": false,
+  "home": "/home/your-user",
+  "stateDir": "/home/your-user/.local/state/od-remote-workspace",
+  "composeCwd": "/home/your-user/opendesign/open-design/deploy",
+  "composeProject": "open-design",
+  "service": "open-design",
+  "container": "open-design",
+  "composeFiles": []
+}
