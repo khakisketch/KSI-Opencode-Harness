@@ -63,3 +63,13 @@
 - Actual attachment UI: unique text/PNG fixtures saved byte-for-byte into the selected DGX folder. A controlled503 was visible; exactly one request occurred before conscious re-selection and successful retry.
 - Local Codex: first report read text correctly but misread PNG dimensions; evidence was preserved. A Python follow-up failed because Python was absent; no dependency was installed. Existing Node readUInt32BE produced a new exclusive report independently verified for cwd, text first line and PNG1x1. This demonstrates file access and tested computation, not guaranteed model interpretation or design acceptance.
 - Global policy check: live instruction update observed; EVENTOUCH directory design MCP connected. No same-name design project was found, so repository name alone cannot identify the target. No replacement project was created. Separate code MCP connection failure remains outside this closeout.
+
+## Commit and delivery authorization (2026-10-01)
+
+The user subsequently authorized commit/deployment closeout; the original no-commit constraints above
+describe the earlier execution phase, not this later permission. KSI source/docs commit:e72e78f;
+daemon/web/contracts source commit:1bd12b5eb on the isolated ksi/remote-workspace branch. The latter
+was not pushed to the original upstream repository; unrelated untracked work was preserved.
+Fresh KSI check and packed consumer verification pass; deployed health/Labs and runtime source parity
+rechecked. Global policy/runtime deployment is already active. Existing npm beta/tag/dist-tags unchanged;
+public integration method must be selected before merging/pushing/publishing a new release.
