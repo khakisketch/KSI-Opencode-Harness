@@ -1,6 +1,6 @@
 {
   "name": "ksi-opencode-harness",
-  "version": "0.5.0-beta.2",
+  "version": "0.5.0-beta.3",
   "description": "Installer for three optional native OpenCode V2 agents",
   "type": "module",
   "bin": { "ksi-opencode": "./bin/ksi-opencode.mjs" },
@@ -23,6 +23,7 @@
     "docs/troubleshooting.md",
     "docs/verification.md",
     "examples/project-AGENTS.md",
+    "examples/autonomous-development.md",
     "opencode.jsonc.example",
     "LICENSE"
   ],

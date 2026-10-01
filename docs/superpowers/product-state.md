@@ -20,18 +20,20 @@ preserved for audit, not active.
 | m03 | Human-centered workflow (outcome-first Build, live-preview Design) | superseded | Design-primary premise removed 2026-09-30; docs/superpowers/plans/2026-09-23-human-centered-workflow.md kept as history |
 | m04 | Design workspace separation (retire OpenCode Design + kit, adopt OpenDesign) | in_progress | docs/superpowers/plans/2026-09-30-design-workspace-separation.md |
 | m05 | Three-role beta release and readable onboarding | in_progress | GitHub main Korean README renewal and npm0.5.0-beta.2/next published; clean public consumer verified; user README/workflow acceptance pending; docs/superpowers/plans/2026-10-01-readme-beta2-release.md |
+| m06 | Autonomous local execution with design ownership preserved | in_progress | Approved policy applied to global AGENTS.md; checked/reviewed beta.3 candidate, Git/npm delivery pending; real-development acceptance separate; docs/superpowers/plans/2026-10-01-autonomous-execution.md |
 
 ## Current slice
 
-- Name: three-role-beta-release (m05; publication and installation verification complete; user README/workflow acceptance pending)
-- Acceptance (user-visible): GitHub main source and npm `0.5.0-beta.2` are available; a clean consumer can preview/apply exactly three roles; Korean README explains actual responsibilities, workflow, usage, and separate optional tool installation. Design direction/production implementation acceptance remains separately pending under m04.
-- Plan ledger: docs/superpowers/plans/2026-09-30-design-workspace-separation.md
+- Name: autonomous-local-execution (m06; approved policy applied, source checks/review complete; Git/npm delivery pending)
+- Acceptance (user-visible): Native Build/Plan remain intact; approved local development runs through integration, verification and task-owned commits without routine prompts; scoped prior push/deploy authorization is reused; Local Codex owns material design and UI-reference skills remain supplementary. Live global policy and beta.3/next delivery require concrete evidence; real-development acceptance is separate.
+- Plan ledger: docs/superpowers/plans/2026-10-01-autonomous-execution.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
 
 - m04 design-workspace-separation — remaining: Human end-to-end acceptance of the design flow
 - m05 three-role-beta-release — remaining: user acceptance of the published README/workflow; GitHub/npm publication and public consumer installation verified
+- m06 autonomous-local-execution — remaining: source/public beta.3 delivery and subsequent user real-development acceptance; do not turn package checks into a long-running behavior guarantee
 
 ## Backlog
 

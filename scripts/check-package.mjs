@@ -10,7 +10,7 @@ const root = fileURLToPath(new URL("..", import.meta.url))
 const required = [
   "bin/ksi-opencode.mjs", "src/native-bundle.mjs", "src/native-roles.mjs",
   "templates/agents/developer.md", "templates/agents/test-runner.md", "templates/agents/reviewer.md",
-  "examples/project-AGENTS.md", "README.md", "INSTALL.md",
+  "examples/project-AGENTS.md", "examples/autonomous-development.md", "README.md", "INSTALL.md",
   "docs/architecture.md", "docs/integrations/opendesign.md",
 ]
 const forbidden = /(?:^|\/)(?:index\.mjs|plugin-v2\.mjs|node_modules|test|tests|docs\/superpowers|\.opencode|design-previews)(?:\/|$)|^(?:src\/agents\.mjs|agents\/|commands\/)|(?:^|\/)(?:\.env(?:\.[^/]*)?|[^/]*credentials[^/]*|[^/]*auth[^/]*\.json)$/i
@@ -59,7 +59,7 @@ try {
   assert.equal(installed.code, 0, installed.stderr)
   const packageDir = join(installRoot, "node_modules", "ksi-opencode-harness")
   const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
-  assert.equal(manifest.version, "0.5.0-beta.2")
+  assert.equal(manifest.version, "0.5.0-beta.3")
   assert.notEqual(manifest.private, true)
   assert.equal(manifest.main, undefined)
   assert.equal(manifest.exports, undefined)

@@ -62,6 +62,10 @@ not invent design artifacts or silently substitute a locally-invented design sys
 
 ## When to use OpenDesign
 
+The default design path is Local Codex. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Direction approval is distinct from a routine implementation progress check; after approval, Build continues production integration and verification without per-task permission prompts.
+
+Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If Local Codex is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
+
 - A new screen, view, or page.
 - A material layout or navigation change.
 - A user workflow or information-priority change.

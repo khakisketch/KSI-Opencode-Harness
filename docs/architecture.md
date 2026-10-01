@@ -10,6 +10,8 @@ Each installed custom role owns its description, mode, system prompt, and narrow
 
 No slash command is installed. The former six `ksi_*` evidence tools, output archive, runtime delegation/signature checks, helper lifecycle guard, and continuity hooks are not part of the installer distribution. Agents can use normal authorized OpenCode tools and optional shared `AGENTS.md` guidance, but this is guidance, not the same enforcement or telemetry. The approved product milestone still needs Human end-to-end acceptance; package tests alone do not establish it.
 
+The optional [autonomous development policy](../examples/autonomous-development.md) broadens delegated local execution through verified task-owned commits, not product scope or native permissions. It separates technical completion, user product acceptance and external delivery; already-approved actions do not need repeated approval. The installer ships this reference but does not merge it into `AGENTS.md`. Long-running goal continuation remains a separate explicitly requested native/session capability, not a KSI runtime feature.
+
 The installer never removes a previously installed role. An earlier global installation may still contain `agents/design.md` and the retired design skills; retiring them is a separate, reviewed migration step in the target configuration directory, not a side effect of this package. See [installation and migration](../INSTALL.md).
 
 OpenChamber is a client: managed mode uses its managed OpenCode server's configuration, external-server mode uses the external server's configuration. OpenChamber's orchestration tool is managed-only. Neither UI mode has been accepted from the local package checks.

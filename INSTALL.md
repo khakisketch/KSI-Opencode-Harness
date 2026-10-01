@@ -15,8 +15,8 @@ installation, shared/global settings, credentials, and service changes. KSI inst
 With Node.js 20 or newer, use the current public beta. From the root of the project you want to change, `$PWD/.opencode` is an absolute project-local target. `npm exec` obtains the package through npm's cache; obtaining the package alone makes no OpenCode configuration changes. The first command previews; only the second command's `--apply` writes files.
 
 ```sh
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode"
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.3 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.3 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 Both commands pin the same exact beta. If the registry version is unavailable, use the source commands below.
@@ -58,6 +58,12 @@ Preview native files first. An older installation may still have KSI-provided `a
 The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has been removed from the registry; npm versions cannot be reused. Prefer the pinned beta version above rather than assuming `latest` selects this three-role release. Removing a registry version does not remove any V1 plugin registration, old role files, or commands previously installed on a user's machine. Review and migrate those separately; a bare `npm install ksi-opencode-harness` only downloads the resolved package and does not apply OpenCode files.
 
 ## Runtime and verification boundaries (package scope)
+
+### Optional autonomous local development policy
+
+Review [the shared policy section](examples/autonomous-development.md) and merge it into the server's global `AGENTS.md` or the intended repository's `AGENTS.md` if you want to adopt it. Back up the destination and preserve its existing project rules; do not replace the whole file or assume a Markdown link imports instructions automatically. The installer never performs this merge.
+
+Adoption delegates approved local implementation, bounded helpers, integration, verification and task-owned commits without routine progress/commit questions. Explicit user/repository restrictions still win. Push/publication/deployment require target/effect authorization, which can be granted once and reused unless the target, effects or risk materially change. Native tool/identity approvals remain enforced. Plan stays non-implementing; material design goes through Local Codex and direction approval, while UI-reference skills remain supplementary. This guidance does not change models, permissions, upstream skills or goal settings, guarantee perpetual execution, or authorize new backlog work.
 
 OpenCode supplies Primary `build` and `plan` and Subagent `explore` without KSI replacements. The installer adds visible Subagents `developer`, `test-runner`, and `reviewer`. Their files omit `model`, `variant`, and `steps`: existing preferences remain user-owned. The installer never edits `opencode.jsonc`, `AGENTS.md`, credentials, providers, MCPs, plugins, Codex/Claude configuration, or Superpowers, and does not restart services. A short cross-tool [project guidance template](examples/project-AGENTS.md) is optional and is not applied automatically. Inspect other config layers if a role ID already exists there; file collisions alone do not prove effective precedence.
 
