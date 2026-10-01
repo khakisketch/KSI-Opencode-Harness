@@ -72,4 +72,6 @@ daemon/web/contracts source commit:1bd12b5eb on the isolated ksi/remote-workspac
 was not pushed to the original upstream repository; unrelated untracked work was preserved.
 Fresh KSI check and packed consumer verification pass; deployed health/Labs and runtime source parity
 rechecked. Global policy/runtime deployment is already active. Existing npm beta/tag/dist-tags unchanged;
-public integration method must be selected before merging/pushing/publishing a new release.
+The user selected local main merge: main pulled fast-forward-only and then fast-forwarded to f3e4c18.
+Merged-tree npm check:64 pass/0fail/1 opt-in skip; packed offline consumer verification passed.
+No push or new npm publication; separate upstream worktree and connected fixtures preserved.
