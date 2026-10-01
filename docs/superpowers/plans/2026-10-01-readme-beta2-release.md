@@ -10,7 +10,7 @@ GitHub main push, npm 0.5.0-beta.2 on next; preserve latest and existing DGX ser
 - [x] Update manifest/exact-version checks and pinned installation commands; correct stale release instructions.
 - [x] Run harness, packed consumer, isolated verification, tarball inventory and README link checks.
 - [x] Commit and push main without force (ab95c5e; remote exact HEAD verified).
-- [ ] Publish verified tarball to next only — blocked by registry authentication.
+- [ ] Publish verified tarball to next only — browser login completed, authenticated whoami verified; reverify/repack before publishing.
 - [ ] Verify new registry version and public consumer bytes after publication.
 
 No new runtime functionality or permission changes. Technical publication does not establish
@@ -29,3 +29,7 @@ human acceptance of the rendered README or end-to-end product design.
 - Registry afterward still next0.5.0-beta.1/latest0.4.0-beta.2; beta.2 absent. No tag mutation or version publication confirmed.
 - Public README/INSTALL commands restored to available beta.1; beta.2 manifest/tests remain prepared. Repack after restoring beta.2 pins when publication credentials are ready; do not publish the earlier staged tarball blindly.
 - User must sign in to npm on this server with a package-authorized account. Never request tokens or passwords in chat.
+
+## Authentication recovery
+- User completed agent-started browser login; npm whoami succeeds. Candidate beta.2 still unused; next/latest unchanged before retry.
+- Restore beta.2 install pins, reverify current source and repack; original failed publish did not create a registry version.
