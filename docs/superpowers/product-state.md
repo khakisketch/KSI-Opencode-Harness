@@ -19,12 +19,12 @@ preserved for audit, not active.
 | m02 | Operational evidence consistency (docs/state only) | done | docs/superpowers/plans/2026-09-23-operational-evidence.md + user acceptance 2026-09-24 |
 | m03 | Human-centered workflow (outcome-first Build, live-preview Design) | superseded | Design-primary premise removed 2026-09-30; docs/superpowers/plans/2026-09-23-human-centered-workflow.md kept as history |
 | m04 | Design workspace separation (retire OpenCode Design + kit, adopt OpenDesign) | in_progress | docs/superpowers/plans/2026-09-30-design-workspace-separation.md |
-| m05 | Three-role beta release and readable onboarding | in_progress | GitHub/npm 0.5.0-beta.1 published and clean consumer installation verified; user README/workflow acceptance pending; same release ledger |
+| m05 | Three-role beta release and readable onboarding | in_progress | GitHub main Korean README renewal and npm0.5.0-beta.2/next published; clean public consumer verified; user README/workflow acceptance pending; docs/superpowers/plans/2026-10-01-readme-beta2-release.md |
 
 ## Current slice
 
 - Name: three-role-beta-release (m05; publication and installation verification complete; user README/workflow acceptance pending)
-- Acceptance (user-visible): GitHub source/release and npm `0.5.0-beta.1` are available; a clean consumer can preview/apply exactly three roles; README explains actual responsibilities, usage, and separate optional tool installation. Design direction/production implementation acceptance remains separately pending under m04.
+- Acceptance (user-visible): GitHub main source and npm `0.5.0-beta.2` are available; a clean consumer can preview/apply exactly three roles; Korean README explains actual responsibilities, workflow, usage, and separate optional tool installation. Design direction/production implementation acceptance remains separately pending under m04.
 - Plan ledger: docs/superpowers/plans/2026-09-30-design-workspace-separation.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
@@ -44,7 +44,7 @@ preserved for audit, not active.
 
 ## Delivery checkpoint (2026-10-01)
 
-- User approved Korean workflow-first README renewal and main push + npm0.5.0-beta.2 on next, preserving latest and DGX runtime. Ledger: docs/superpowers/plans/2026-10-01-readme-beta2-release.md. GitHub main push verified; harness64/0fail/1skip, packed consumer, isolated V2 checks and local README links pass. npm publication blocked: publish E404, whoami E401; next remains beta.1/latest0.4.0-beta.2, beta.2 absent. Public install commands use available beta.1; source beta.2 prepared. Human rendered README/design acceptance remains separate.
+- User-approved Korean workflow-first README renewal and main push + npm0.5.0-beta.2/next delivered. Browser login/publish approval resolved earlier authentication blockers. Source200d86e pushed; registry nextbeta.2/latest0.4.0-beta.2 (unchanged), beta.1 retained. Harness64/0fail/1skip, packed consumer and isolated V2 checks pass; fresh public consumer verifies exact tarball/source17 files, no-write preview, exactly3-role apply and repeat idempotence. Public GitHub/npm README bytes match. Ledger: docs/superpowers/plans/2026-10-01-readme-beta2-release.md. No DGX restart; human rendered README/design acceptance remains separate.
 
 - User authorized commit/deployment closeout. KSI implementation/docs committed as e72e78f on refactor/retire-design-opendesign; separate daemon/web/contracts changes committed locally as1bd12b5eb. Unrelated upstream critique-opt-out-skill.md preserved untracked.
 - Current DGX deployment verified: health200/ok true, Labs200/active, runtime gateway/connector modules match source. Global45-line policy and on-demand template already applied; no service restart needed. They remain separately managed user configuration, not installer-managed files.
