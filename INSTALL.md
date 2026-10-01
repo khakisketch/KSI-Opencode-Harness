@@ -15,11 +15,12 @@ installation, shared/global settings, credentials, and service changes. KSI inst
 With Node.js 20 or newer, use the current public beta. From the root of the project you want to change, `$PWD/.opencode` is an absolute project-local target. `npm exec` obtains the package through npm's cache; obtaining the package alone makes no OpenCode configuration changes. The first command previews; only the second command's `--apply` writes files.
 
 ```sh
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode"
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.2 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.1 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.1 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 Both commands pin the same exact beta. If the registry version is unavailable, use the source commands below.
+These commands use the currently published beta; the source manifest's `0.5.0-beta.2` is prepared for the next publication.
 The 0.5.0 beta release uses `next`; `latest` may still resolve to an older version. This beta does not imply acceptance of real-product visual output.
 
 ## Preview and apply from source
