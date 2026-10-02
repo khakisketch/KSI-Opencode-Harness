@@ -24,9 +24,9 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: design-handoff-beta4-delivery (m04 supplement; source/main and public npm beta.4/next/latest delivered and verified; technical delivery complete, no authorized engineering task remains; human workflow acceptance separate)
-- Acceptance (user-visible): OpenCode conditionally researches and transfers inspected references; Local Codex receives accessible images/links/pattern intent without assumed MCP inheritance; direction approval is tied to actual required-file content; Build verifies the real product server separately from the design preview. No new orchestrator/reverse execution/configuration/runtime is added. Guidance/source verification is not live design quality or user workflow acceptance.
-- Plan ledger: docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md
+- Name: ergonomic-global-workflow (m06 supplement; canonical/live policy applied, checks and independent interpretation review pass; local integration/owned-cleanup pending; real workflow acceptance separate)
+- Acceptance (user-visible): User gives outcome-oriented requests rather than administering branches/worktrees or repeating tool instructions. Build owns routine workspace/session/local-integration/owned-cleanup decisions and change-focused browser verification; preserve user work, native modes/permissions and genuine design/auth/external-delivery boundaries. No third-party installation/new runtime/plugin/old-worktree sweep is included. Source/guidance checks do not prove actual browser/a11y/long-running behavior.
+- Plan ledger: docs/superpowers/plans/2026-10-02-ergonomic-workflow.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
@@ -37,6 +37,8 @@ preserved for audit, not active.
 
 ## Backlog
 
+- Optional ergonomic wording polish (non-blocking review): more explicit base-ambiguity/submodule-detection hints if needed in real use; existing HEAD/base inspection and isolation skill cover them. Canonical guide pointer stays authoritative after integration; do not read unrelated product docs as the harness guide.
+- Ergonomic tooling follow-up: evaluate/install portable vendor browser skills and CLI/axe/audit toolkit only under a concrete installation scope; actual desktop/audio screen-reader setup depends on the execution environment. Global guidance is now improved but no new CLI/skill/plugin is installed by this slice. No single-project-only restriction; future capability rollout can be global without rewriting every product repository/CI.
 - Future release polish (non-blocking beta.4 review): clarify packaged conditional latest warning after explicit default promotion, and add exact README/INSTALL version-pin guards. Existing pins/default install are correct; do not republish immutable beta.4 or start a new release implicitly.
 - Codex intermittent connection-test failures: investigate if recurring; not a release blocker per user. Account policy restrictions are expected, not an installation defect.
 - Design integration: DGX MCP now uses host-side exact-revision HTTP proxy; same-client outage and actual container restart/read verified 2026-10-01, no mutation replay. Host-process crash/reboot supervision and default artifact-entry lookup remain unverified/problematic; explicit file arguments work.
