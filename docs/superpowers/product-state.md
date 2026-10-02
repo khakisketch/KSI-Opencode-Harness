@@ -24,7 +24,7 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: ergonomic-global-workflow (m06 supplement; canonical/live policy applied, checks and independent interpretation review pass; local integration/owned-cleanup pending; real workflow acceptance separate)
+- Name: ergonomic-global-workflow (m06 supplement; technical guidance applied and locally integrated as7a2aab4, verification/review pass, owned worktree retired; no engineering work remains in this task, real workflow acceptance pending)
 - Acceptance (user-visible): User gives outcome-oriented requests rather than administering branches/worktrees or repeating tool instructions. Build owns routine workspace/session/local-integration/owned-cleanup decisions and change-focused browser verification; preserve user work, native modes/permissions and genuine design/auth/external-delivery boundaries. No third-party installation/new runtime/plugin/old-worktree sweep is included. Source/guidance checks do not prove actual browser/a11y/long-running behavior.
 - Plan ledger: docs/superpowers/plans/2026-10-02-ergonomic-workflow.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
@@ -48,6 +48,8 @@ preserved for audit, not active.
 - EVENTOUCH's separate codex MCP reports Connection closed; design MCP is connected and hosted Local Codex execution previously verified. Do not conflate these integrations; no fix to unrelated MCP configured as part of global guidance change.
 
 ## Delivery checkpoint (2026-10-01)
+
+- Ergonomic guidance supplement (2026-10-02, local-only): outcome-first comfortable defaults, agent-managed workspace/session/integration/owned-cleanup and change-focused actual-product browser/a11y guidance applied globally. Exact intended edits and86 config/role/upstream-skill preservation hashes verified; independent read-only interpretation review no Critical/Important findings. Source7a2aab4 integrated via fast-forward to main; pre-integration/merged checks64pass/0fail/1opt-in skip and packed consumer pass: /tmp/opencode/ksi-ergonomic-{final,merged}-{check,package}.log. Session returned to main and only proven task-owned ergonomic-workflow tree/merged branch removed non-forced; four unrelated worktrees preserved. No new CLI/skill/plugin/config/permission/service changes or remote/npm delivery; public beta.4 remains unchanged. Human end-to-end/comfort acceptance pending, not a runtime/browser/audio guarantee. Ledger docs/superpowers/plans/2026-10-02-ergonomic-workflow.md.
 
 - Approved main/npm0.5.0-beta.4 delivery completed, including explicitly authorized latest/default promotion after standard browser approvals. Public next/latest bothbeta.4; prior versions retained, no immutable republish. Public reviewed-tarball/SHA512/all18 source+installed bytes, exact-version and unversioned default installs, read-only preview/exactly3roles/repeat/no automatic policy application/GitHub README verified: /tmp/opencode/ksi-beta4-public-latest.log(source82216fd; release contente2263b5). Fresh final check64pass/0fail/1opt-in skip, packed consumer and isolated nativeV2 metadata pass: /tmp/opencode/ksi-beta4-final-{check,package,isolated}.log. Earlier authentication/approval expirations resolved without credential collection, auth bypass or npm modification; no design generation/service changes. Ledger docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md; human workflow acceptance remains separate.
 
