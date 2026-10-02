@@ -10,8 +10,8 @@ User approved the in-chat bounded recommendation on 2026-10-02: conditional Mobb
 - [x] Specify brief reference inputs and a compact handoff record using existing source/ledger records, not a new enforced API/schema.
 - [x] Back up and apply the shared policy globally; preserve all other guidance, native prompts, user configuration and upstream skills.
 - [x] Run full checks/packed consumer/link and policy comparisons; independent read-only review.
-- [ ] Commit and integrate locally; no new push/npm release is inferred from this approval. Previous beta.3 evidence push is separately authorized and already completed.
-- [ ] Record verified application and idle checkpoint; human workflow acceptance remains separate.
+- [x] Commit and integrate locally; no new push/npm release is inferred from this approval. Previous beta.3 evidence push is separately authorized and already completed.
+- [x] Record verified application and idle checkpoint; human workflow acceptance remains separate.
 
 ## Acceptance and boundaries
 - New/material or unresolved visual patterns trigger focused reference research before design; approved-pattern implementation and small fixes do not trigger repeated searches. User-requested/reference-provided exceptions are respected.
@@ -35,3 +35,5 @@ User approved the in-chat bounded recommendation on 2026-10-02: conditional Mobb
 - Exact canonical policy appears once in live AGENTS.md; original guidance retained except the intended Build/Plan wording correction. Harness confirmed instruction refresh. Private backup /home/ksi/.local/state/ksi-harness-backups/design-handoff-20261002.gqM0MS; config/roles/Mobbin/UI/upstream skill hashes unchanged.
 - Local links and handoff anchors checked; tarball inventory remains18 allowed files, no internal state/deployment assets. Registry next=beta.3/latest=0.4.0-beta.2 unchanged; no new release or inner configuration changes.
 - Independent read-only review: no Critical/Important findings, eight textual boundary scenarios covered. Minor WIP spacing/status notes reconciled with actual checks; no rendered/image/live-generation evidence or human workflow acceptance claimed.
+- Source68a0b07 committed with an explicit guidance/source-packaging-only verification boundary, then main fast-forwarded locally. Merged-tree check64/0fail/1skip and packed consumer passed; /tmp/opencode/ksi-design-handoff-merged-{check,package}.log. On-demand global guidance now resolves to the locally integrated current document.
+- Follow-up source is not pushed/published; public beta.3 remains the already-verified earlier source0682659 with closeoutbbfeae4. Never republish immutable beta.3 from this modified tree. A future release/remote update needs its own scoped authorization.

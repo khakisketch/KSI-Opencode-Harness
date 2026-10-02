@@ -24,7 +24,7 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: design-reference-handoff (m04 supplement; approved guidance applied/reviewed, local integration pending; live workflow acceptance separate)
+- Name: design-reference-handoff (m04 supplement; approved guidance applied/reviewed and locally integrated, no technical task remains; live workflow acceptance separate)
 - Acceptance (user-visible): OpenCode conditionally researches and transfers inspected references; Local Codex receives accessible images/links/pattern intent without assumed MCP inheritance; direction approval is tied to actual required-file content; Build verifies the real product server separately from the design preview. No new orchestrator/reverse execution/configuration/runtime is added. Guidance/source verification is not live design quality or user workflow acceptance.
 - Plan ledger: docs/superpowers/plans/2026-10-02-design-reference-handoff.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
@@ -46,7 +46,7 @@ preserved for audit, not active.
 
 ## Delivery checkpoint (2026-10-01)
 
-- Design-reference supplement (2026-10-02): canonical shared policy applied globally and refreshed, original guidance preserved except explicit Build-implements/Plan-reviews clarification; config/roles/Mobbin/UI/upstream hashes unchanged. Check64/0fail/1skip, packed18-file consumer and isolated native V2 metadata passed; independent review no Critical/Important issue. Local source integration pending; no new remote/npm release, design run, inner MCP setup or service restart. Ledger docs/superpowers/plans/2026-10-02-design-reference-handoff.md.
+- Design-reference supplement (2026-10-02): canonical shared policy applied globally and refreshed, original guidance preserved except explicit Build-implements/Plan-reviews clarification; config/roles/Mobbin/UI/upstream hashes unchanged. Source68a0b07 integrated main locally; final/merged check64/0fail/1skip, packed18-file consumer and isolated native V2 metadata passed; independent review no Critical/Important issue. No new remote/npm release, design run, inner MCP setup or service restart. Previous beta.3 evidencebbfeae4 is pushed; follow-up source remains local-only. Ledger docs/superpowers/plans/2026-10-02-design-reference-handoff.md. Human workflow/visual acceptance is separate.
 
 - Autonomous policy source0682659 pushed and beta.3 published to next; latest0.4.0-beta.2 preserved. Public tarball/integrity and18 installed bytes, read-only preview/exactly3 roles/repeat/no automatic policy merge verified. Closeout fresh rerun on2026-10-02: /tmp/opencode/ksi-beta3-closeout-public.log. Native prompts/config/models/permissions/upstream skills and customized live Reviewer preserved; no restart. User real-development acceptance still separate.
 
