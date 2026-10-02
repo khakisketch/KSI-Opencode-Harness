@@ -24,9 +24,9 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: ergonomic-global-workflow (m06 supplement; technical guidance applied and locally integrated as7a2aab4, verification/review pass, owned worktree retired; no engineering work remains in this task, real workflow acceptance pending)
-- Acceptance (user-visible): User gives outcome-oriented requests rather than administering branches/worktrees or repeating tool instructions. Build owns routine workspace/session/local-integration/owned-cleanup decisions and change-focused browser verification; preserve user work, native modes/permissions and genuine design/auth/external-delivery boundaries. No third-party installation/new runtime/plugin/old-worktree sweep is included. Source/guidance checks do not prove actual browser/a11y/long-running behavior.
-- Plan ledger: docs/superpowers/plans/2026-10-02-ergonomic-workflow.md
+- Name: global-browser-toolkit (m06 supplement; user approved tools-first setup, pinned CLIs/official skills installed globally and sandboxed browser/axe capability checks exercised; source/consumer/preservation verification and independent read-only review pass, local documentation commit pending; real-development acceptance separate)
+- Acceptance (user-visible): Existing native Plan/Build/Superpowers/Context7/design-workspace ownership remains intact. Browser commands and official skills are usable across this host/user's projects; Build chooses one driver and proportionate actual-product checks without extra user tool administration. No competing harness, V1 plugin, enforced continuation loop or project dependency/CI rewrite. Disposable setup-fixture evidence is not customer-product auth/API/WCAG or human workflow acceptance.
+- Plan ledger: docs/superpowers/plans/2026-10-02-global-browser-toolkit.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
@@ -38,7 +38,7 @@ preserved for audit, not active.
 ## Backlog
 
 - Optional ergonomic wording polish (non-blocking review): more explicit base-ambiguity/submodule-detection hints if needed in real use; existing HEAD/base inspection and isolation skill cover them. Canonical guide pointer stays authoritative after integration; do not read unrelated product docs as the harness guide.
-- Ergonomic tooling follow-up: evaluate/install portable vendor browser skills and CLI/axe/audit toolkit only under a concrete installation scope; actual desktop/audio screen-reader setup depends on the execution environment. Global guidance is now improved but no new CLI/skill/plugin is installed by this slice. No single-project-only restriction; future capability rollout can be global without rewriting every product repository/CI.
+- Remaining tooling follow-up: global Playwright CLI/agent-browser/official skills and agent-browser's bundled axe are now prepared under user-approved tools-first scope; standalone Lighthouse/virtual-reader tooling and real desktop/audio setup remain separate. V2 native LSP runtime is absent per current migration docs; structural-navigation alternatives need scoped evaluation. A future verification-evidence helper needs a demonstrated gap/approved design, not a new orchestrator or idle auto-fixer. No single-project-only restriction or product dependency/CI rewrite.
 - Future release polish (non-blocking beta.4 review): clarify packaged conditional latest warning after explicit default promotion, and add exact README/INSTALL version-pin guards. Existing pins/default install are correct; do not republish immutable beta.4 or start a new release implicitly.
 - Codex intermittent connection-test failures: investigate if recurring; not a release blocker per user. Account policy restrictions are expected, not an installation defect.
 - Design integration: DGX MCP now uses host-side exact-revision HTTP proxy; same-client outage and actual container restart/read verified 2026-10-01, no mutation replay. Host-process crash/reboot supervision and default artifact-entry lookup remain unverified/problematic; explicit file arguments work.
