@@ -24,7 +24,7 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: design-handoff-beta4-delivery (m04 supplement; guidance applied/reviewed, user now authorized main/beta.4-next delivery; candidate verified, public delivery pending)
+- Name: design-handoff-beta4-delivery (m04 supplement; guidance applied/reviewed, user now authorized main/beta.4-next/latest public delivery; source pushed and candidate verified, npm blocked on browser login)
 - Acceptance (user-visible): OpenCode conditionally researches and transfers inspected references; Local Codex receives accessible images/links/pattern intent without assumed MCP inheritance; direction approval is tied to actual required-file content; Build verifies the real product server separately from the design preview. No new orchestrator/reverse execution/configuration/runtime is added. Guidance/source verification is not live design quality or user workflow acceptance.
 - Plan ledger: docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
@@ -46,7 +46,7 @@ preserved for audit, not active.
 
 ## Delivery checkpoint (2026-10-01)
 
-- User subsequently authorized deferred design-handoff source main push and unused npm0.5.0-beta.4/next delivery. Candidate18-file tarball/source/pins, check64/0fail/1skip, packed consumer and isolated native metadata verified; publication not yet claimed. Preserve latest0.4.0-beta.2 and previous versions; no design generation or service/config change. Delivery ledger docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md supersedes the earlier local-only delivery boundary for this scoped release.
+- User authorized deferred design-handoff source main push and unused npm0.5.0-beta.4/next delivery, then explicitly expanded authorization to latest/default public delivery. Sourcee2263b5 pushed and remote verified; candidate18-file tarball/source/pins, check64/0fail/1skip, packed consumer and isolated native metadata verified. First publication failedE404 and whoamiE401; beta.4 absent, nextbeta.3/latest0.4.0-beta.2 unchanged, standard web login awaiting browser approval. Publish to next, verify exact public consumer, then promote latest and verify default install. Preserve previous versions and beta designation; no design generation or service change. Ledger docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md supersedes earlier local-only/latest-preservation boundaries for this release.
 
 - Design-reference supplement (2026-10-02): canonical shared policy applied globally and refreshed, original guidance preserved except explicit Build-implements/Plan-reviews clarification; config/roles/Mobbin/UI/upstream hashes unchanged. Source68a0b07 integrated main locally; final/merged check64/0fail/1skip, packed18-file consumer and isolated native V2 metadata passed; independent review no Critical/Important issue. No new remote/npm release, design run, inner MCP setup or service restart. Previous beta.3 evidencebbfeae4 is pushed; follow-up source remains local-only. Ledger docs/superpowers/plans/2026-10-02-design-reference-handoff.md. Human workflow/visual acceptance is separate.
 
