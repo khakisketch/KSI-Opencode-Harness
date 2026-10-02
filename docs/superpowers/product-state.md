@@ -24,7 +24,7 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: design-handoff-beta4-delivery (m04 supplement; source/main and public npm beta.4/next delivered and verified; authorized latest promotion blocked on completing its separate browser approval)
+- Name: design-handoff-beta4-delivery (m04 supplement; source/main and public npm beta.4/next delivered and verified; latest promotion blocked on separate browser approval, user confirmed not yet performed)
 - Acceptance (user-visible): OpenCode conditionally researches and transfers inspected references; Local Codex receives accessible images/links/pattern intent without assumed MCP inheritance; direction approval is tied to actual required-file content; Build verifies the real product server separately from the design preview. No new orchestrator/reverse execution/configuration/runtime is added. Guidance/source verification is not live design quality or user workflow acceptance.
 - Plan ledger: docs/superpowers/plans/2026-10-02-design-handoff-beta4-release.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
