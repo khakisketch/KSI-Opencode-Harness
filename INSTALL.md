@@ -15,12 +15,12 @@ installation, shared/global settings, credentials, and service changes. KSI inst
 With Node.js 20 or newer, use the current public beta. From the root of the project you want to change, `$PWD/.opencode` is an absolute project-local target. `npm exec` obtains the package through npm's cache; obtaining the package alone makes no OpenCode configuration changes. The first command previews; only the second command's `--apply` writes files.
 
 ```sh
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.4 -- ksi-opencode install --target "$PWD/.opencode"
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.4 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 Both commands pin the same exact beta. If the registry version is unavailable, use the source commands below.
-The 0.5.0 beta release uses `next`; `latest` may still resolve to an older version. This beta does not imply acceptance of real-product visual output.
+This public beta is released through `next` and the default `latest` channel; default-channel delivery does not make it a stable release. Pin the exact version to avoid later channel movement. This beta does not imply acceptance of real-product visual output.
 
 ## Preview and apply from source
 
@@ -55,7 +55,7 @@ Removing a role can change what a pending plan or session assumed. Re-check any 
 
 Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/design.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve Superpowers, the goal plugin, other plugins, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
 
-The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has been removed from the registry; npm versions cannot be reused. Prefer the pinned beta version above rather than assuming `latest` selects this three-role release. Removing a registry version does not remove any V1 plugin registration, old role files, or commands previously installed on a user's machine. Review and migrate those separately; a bare `npm install ksi-opencode-harness` only downloads the resolved package and does not apply OpenCode files.
+The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has been removed from the registry; npm versions cannot be reused. Prefer the pinned beta version above for reproducible installation even after a later `latest` update. Removing a registry version does not remove any V1 plugin registration, old role files, or commands previously installed on a user's machine. Review and migrate those separately; a bare `npm install ksi-opencode-harness` only downloads the resolved package and does not apply OpenCode files.
 
 ## Runtime and verification boundaries (package scope)
 

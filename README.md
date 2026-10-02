@@ -7,7 +7,7 @@
 
 [시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [설치 가이드](INSTALL.md)
 
-**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.4`** · [MIT](LICENSE)
+**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.5`** · [MIT](LICENSE)
 
 > **운영 방식과 설치 범위는 다릅니다.** 아래는 KSI가 일하는 방식입니다.
 > 이 npm 패키지가 설치하는 것은 Developer · Test Runner · Reviewer의 **세 에이전트 파일뿐**입니다.
@@ -62,6 +62,8 @@ Build  구현·통합·검증·작업 단위 로컬 커밋 → 결과 보고
 푸시·공개·배포는 대상과 영향을 승인받아야 하지만, 처음부터 승인했다면 같은 승인을 다시 묻지 않습니다. 단, 대상·영향·위험이 중대하게 바뀌면 새 승인이 필요합니다. 네이티브 도구·인증 승인은 별개입니다. 기술적 완료·사용자 수락·외부 배포를 구분하며, 수락 대기를 이유로 남은 승인 작업을 멈추거나 새로운 과업을 임의로 시작하지 않습니다.
 
 이 정책은 설치 도구가 자동 적용하지 않습니다. 기본 Build/Plan, 모델·권한·upstream 스킬은 유지합니다. 응답 종료 뒤의 자동 계속 실행은 명시적으로 요청한 세션 목표 등 별도 기능이며, 지침만으로 무제한 실행을 보장하지 않습니다.
+
+채택한 운영 지침에서는 **브랜치·워크트리 생성, 세션 연결, 검증, 안전한 로컬 통합·작업 공간 정리를 Build가 맡습니다.** 사용자가 작업 공간 목록을 보며 단계마다 지시할 필요가 없습니다. UI 변경은 실제 제품 서버에서 필요한 흐름·저장 결과·키보드·화면 크기 등을 확인하되, 작은 수정마다 전체 감사나 중복 브라우저 검증을 강요하지 않습니다. [작업 공간·브라우저 검증 절차 →](docs/execution.md)
 
 ## 누가 무엇을 맡나요
 
@@ -122,13 +124,13 @@ Plan에서 방향을 합의하고 Build에서 실행합니다. 역할을 나눠�
 
 ```sh
 # 미리보기 — OpenCode 설정 파일을 변경하지 않습니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.4 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode"
 
 # 검토 후 적용 — 선택한 프로젝트에 세 역할을 추가합니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.4 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
-미리보기와 적용 모두 같은 버전을 고정합니다. 베타 채널은 `next`이며, `latest`는 다른 이전 버전일 수 있습니다.
+미리보기와 적용 모두 같은 버전을 고정합니다. 이번 공개 베타는 `next`와 기본 채널 `latest`로 배포하며, 기본 채널에서도 베타라는 성격은 유지됩니다. 이후 채널이 바뀌어도 같은 버전을 사용하려면 위처럼 고정하세요.
 대상 경로는 절대 경로여야 합니다. 같은 파일은 반복 적용해도 변경하지 않으며, 다른 파일은 임의로 덮어쓰지 않습니다.
 명시적인 교체에는 백업이 생성됩니다. [충돌·업그레이드 규칙 →](INSTALL.md)
 
@@ -167,6 +169,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 | OpenCode V2 · Node.js · 모델 연결 | 사용자, 각 도구의 공식 절차 | 기본 작업 환경 |
 | KSI 세 역할 | 이 설치 도구, 검토 후 `--apply` | 구현·검사·검토를 나눠 맡길 때 |
 | Superpowers | 별도 설치, 사용자 승인 | 계획·디버깅·검증 등의 프로세스 스킬이 필요할 때 |
+| Playwright CLI · agent-browser · 공식 브라우저 스킬 | 실행 서버/사용자 환경에 별도 준비, 사용자 승인 | 실제 브라우저 조작·검증이 필요할 때; 선택한 도구 하나를 사용하며 패키지가 자동 설치하지 않습니다. [준비·검증 범위 →](docs/execution.md#prepared-global-browser-environment) |
 | Local Codex · 디자인 MCP 연결 | 별도 준비, 사용자 승인 | 새 UI나 큰 디자인 변경이 필요할 때 |
 | 프로젝트 `AGENTS.md` · 연속성 기록 | 프로젝트의 운영 규칙 | 장기 작업의 맥락과 의사결정을 이어갈 때 |
 
