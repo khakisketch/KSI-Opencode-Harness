@@ -14,8 +14,8 @@ The user subsequently requested public delivery of the current version as the ma
 - [x] Commit release candidate, push main without force and verify remote exact HEAD.
 - [x] Publish exact reviewed tarball to next; complete normal browser identity approval if required.
 - [x] Verify public metadata/tags/integrity/source bytes and fresh consumer preview/apply/repeat/no automatic policy merge.
-- [ ] Promote verified beta.4 to latest under expanded authorization; verify next/latest and fresh unversioned default installation.
-- [ ] Record/push evidence and retain idle checkpoint; do not republish immutable versions.
+- [x] Promote verified beta.4 to latest under expanded authorization; verify next/latest and fresh unversioned default installation.
+- [x] Record/push evidence and retain idle checkpoint; do not republish immutable versions.
 
 ## Verification boundaries
 Guidance was independently reviewed in the prior slice with no Critical/Important findings and eight textual scenarios. This release changes only version/pins and delivery records, not the policy, native prompts, runtime or role templates. Source/package/native metadata checks do not prove live Mobbin usefulness, vision support, design quality, product-server behavior or human end-to-end acceptance.
@@ -41,3 +41,10 @@ Guidance was independently reviewed in the prior slice with no Critical/Importan
 - User confirmed readiness for latest-specific approval. Fresh whoami succeeds and tags remain nextbeta.4/latest0.4.0-beta.2. Started one new standard dist-tag promotion only; no republish and no duplicate request. Await approval/completion, then exact/default public verification.
 - User-ready latest-specific attempt also expired after303s with done-endpointPUT404. Fresh public tags still nextbeta.4/latest0.4.0-beta.2. Browser outcome has not been reported; pending202 proves approval was not observed by CLI, not why it was unobserved. No third automatic latest request; ask for actual browser result before choosing next recovery. Public beta.4 unchanged; no active write.
 - User answered browser-outcome question: latest approval was not yet performed("아직 승인하지 않음"). This explains pending approval expiration; no CLI repair/auth bypass is warranted. Await actual readiness to open a newly issued latest-specific link and finish approval within5min. Authorization to promote remains, but cannot substitute for user's required identity approval. No new request issued automatically.
+
+## Final delivery evidence
+- User explicitly requested new latest-specific approval links after prior requests expired. Final standard dist-tag request completed successfully(exit0); public next/latest both0.5.0-beta.4. No immutable package republish or older-version removal; beta designation retained.
+- Full public verifier passes after promotion: exact reviewed tarball/SHA512, all18 source+installed bytes, exact-version and unversioned default public installs, read-only preview, exactly3role apply, repeat idempotence, no automatic policy/config application and public GitHub README bytes. /tmp/opencode/ksi-beta4-public-latest.log; source verification at82216fd, release contente2263b5.
+- Fresh final source check64pass/0fail/1opt-in skip, packed consumer and isolated nativeV2 metadata/retired-skill checks pass. /tmp/opencode/ksi-beta4-final-{check,package,isolated}.log. Verifier issued0provider requests; child egress not monitored. This does not claim live design/product acceptance.
+- Independent bounded release/evidence review: no Critical/Important findings; synchronized version pins, exact guards,18file inventory and public/default-install evidence verified. Two minor future-only improvements deferred: packaged channel wording is conservative after explicit promotion, and README/INSTALL exact-pin tests could be hardened. Do not republish immutable beta.4 for prose polish.
+- Review boundaries reconciled: Primary owns real public/default verification; live visual/long-running acceptance remains unclaimed; ephemeral approval material is not persisted; prior guidance's independent review is reused. Closeout uses the already-authorized main push, not a new release or integration decision. Only repository records change; final remote exact HEAD/clean tracked-tree evidence is retained in the private checkpoint after push.
