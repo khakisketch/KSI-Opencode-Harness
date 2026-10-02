@@ -24,9 +24,9 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: global-browser-toolkit (m06 supplement; pinned CLIs/official skills installed globally, sandboxed browser/axe capability checks and source/consumer/preservation/review verified; source974d97f committed locally, no engineering work remains in this task; real-development acceptance pending)
-- Acceptance (user-visible): Existing native Plan/Build/Superpowers/Context7/design-workspace ownership remains intact. Browser commands and official skills are usable across this host/user's projects; Build chooses one driver and proportionate actual-product checks without extra user tool administration. No competing harness, V1 plugin, enforced continuation loop or project dependency/CI rewrite. Disposable setup-fixture evidence is not customer-product auth/API/WCAG or human workflow acceptance.
-- Plan ledger: docs/superpowers/plans/2026-10-02-global-browser-toolkit.md
+- Name: browser-toolkit-beta5-delivery (m06 supplement; user acknowledges completed setup and explicitly requests application/public delivery; global application reverified, beta.5 candidate checks pass; GitHub main/npm next/latest delivery pending)
+- Acceptance (user-visible): Existing lightweight native roles and already-applied global workspaces/browser policy remain intact. Latest reviewed docs/version reach GitHub main and public npm next/latest, and exact/default consumers match the reviewed tarball. Package installation remains three optional roles only, not automatic browser/tool/AGENTS installation. Real-development/design/auth/API/WCAG/audio acceptance remains separate from setup/release checks.
+- Plan ledger: docs/superpowers/plans/2026-10-02-browser-toolkit-beta5-release.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
