@@ -14,6 +14,8 @@ Technical completion requires the agreed implementation/integration and actual v
 
 Material product, visual, and interaction design belongs to Local Codex through [the design integration contract](integrations/opendesign.md). Build owns production integration and small changes within approved patterns. Direction approval remains a real decision, not routine progress confirmation. ui-ux-pro-max can inform focused review but does not create a competing design direction.
 
+OpenCode performs conditional Mobbin research before new/material or unresolved design and passes inspected pattern intent, canonical links and accessible images in the same agreed brief; no inner-MCP/auth inheritance is assumed. Bind the approved required-file content snapshot in the existing task record before production integration. Keep design previews for direction and actual product-server checks for functionality, with clearly labeled reachable links. Feedback can return as findings/questions, not automatic reverse-session execution or two writers in product files. Follow the [reference and snapshot handoff procedure](integrations/opendesign.md#reference-research-and-brief-transfer).
+
 ## Local commits and external delivery
 
 After adoption, coherent verified task-owned local commits are routine delegated work unless the user or repository forbids them. Inspect the index/diff and preserve unrelated user work, secrets and checkpoints. This does not permit history rewriting, force pushes or destructive cleanup. A helper's role alone does not grant Git or publication authority; Build owns completion.

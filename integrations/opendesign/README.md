@@ -31,6 +31,8 @@ shim, or database sync to another host without inspecting them and obtaining app
 
 ## Architecture
 
+The diagram below records the **original deployment**, not the current operating-role hierarchy. Current guidance uses Local Codex for material design and OpenCode Build/Plan for the outer product-development conversation; see [the current integration contract](../../docs/integrations/opendesign.md). A coding runtime launched inside the design application is an implementation detail, not authority to call or control the outer engineering session. Host MCP/skills/auth are not assumed to be inherited by that inner runtime.
+
 ```text
 people ──────────────► OpenDesign web UI (local + tailnet)
                             │

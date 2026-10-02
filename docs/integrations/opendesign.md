@@ -101,6 +101,23 @@ Commission or extend design work:
 - File writes through the MCP surface are available, but they are not a substitute for a design run when the
   task is actually a design task.
 
+## Reference research and brief transfer
+
+OpenCode owns the existing reference-research integration; Local Codex owns design synthesis. Use focused Mobbin screen/flow/section research before a new screen, material redesign or unresolved pattern when it can inform the task. Do not repeat research for implementation of an already-approved screen, component reuse, small copy/spacing changes or backend work. Respect explicit user requests, supplied references and project constraints. Routine searches/selection inside the authorized design brief do not need a separate user approval for every query.
+
+Select references based on actually inspected images, not app names or metadata alone. Retain canonical Mobbin links and record the specific hierarchy, interaction or state pattern to borrow; do not copy brand assets or product copy. When an image must be embedded, saved or passed into design, use the permitted high-resolution image source rather than the low-resolution inline preview. Image URLs expire; keep permitted selected files in a task-owned reference location when needed. References supplement existing tokens/components and human-approved direction, not replace them.
+
+Send the same agreed requirements/constraints plus this compact reference input in the design brief:
+
+- target screen/flow and the user task;
+- selected canonical links and actually accessible image files (or supported attachments);
+- the useful pattern in each reference and what must not be copied;
+- existing product tokens/components, required empty/loading/error/mobile states and out-of-scope changes.
+
+Verify that the design execution environment can read those files and interpret the image input. A host or client-PC path, external URL, or screenshot filename alone does not prove access or vision support. Use the target project's supported attachment/file mechanism or verified shared reference location; do not expose the home directory or copy authentication stores. An OpenCode MCP connection is not automatically inherited by the design run. Configure an additional inner connection only as a separate authorized change, not as a prerequisite to this reference-transfer workflow.
+
+If Mobbin is absent, unauthorized or unhelpful, report the limitation and use provided references/established patterns where sufficient; do not fabricate results or block every design task by default. If essential design direction remains unresolved, return that decision to the user. Missing Local Codex capability is a separate blocker and does not authorize silent substitution with a UI-reference skill or OpenDesign Cloud.
+
 ## Handoff requirements
 
 When asking OpenDesign for a change, state:
@@ -118,6 +135,32 @@ When bringing a design back into production code, report:
 - what was verified (build, tests, rendered check) and what was not,
 - that the artifact is not user acceptance.
 
+### Minimal snapshot handoff
+
+Keep a small record in the existing task ledger/design decision, not a new central orchestration service. The record below is an operating convention, **not** a native MCP response schema or an enforced API. Do not add duplicate authoritative state files for every handoff.
+
+| Field | Record |
+| --- | --- |
+| Target | Product repository, intended screen/flow and verified design project/storage mapping |
+| Source | Project/artifact identity, relative entry and required files; source preview as a locator |
+| Snapshot | Actual SHA256 of each required file's retrieved bytes; identify any referenced file/asset not included |
+| Direction approval | The user's actual approval evidence tied to that snapshot; missing approval remains pending |
+| Design contract | Required states, responsive rules, existing tokens/components and allowed differences |
+| Open decisions | Material questions still unanswered; absence must not be invented as approval |
+| Implementation evidence | Product revision, actual checks/rendered states, differences and unverified items |
+
+Request the source bundle once when implementation needs it; use explicit project/entry if default selection is absent or ambiguous. Check truncation/skipped files and follow up only for missing required source/assets. Preserve retrieved source bytes when hashing; if only decoded text is available, record its encoding/reconstruction and do not describe the hash as a raw binary-file hash. Binary references, CDN URLs and external dependencies may need separate retrieval/access checks. Never infer that every referenced asset is present just because a bundle request succeeded.
+
+User direction approval may happen in the design workspace or conversation. At approval, bind the agreed artifact to the captured snapshot; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
+
+### Product verification and feedback
+
+The design preview is for direction, composition and prototype states. The actual product server is for authentication, API integration, saving, permissions, routing, error handling and the production component/responsive behavior. Keep both responsibilities: a working prototype button or screenshot does not prove real functionality. No API/backend change is authorized by a design artifact.
+
+Give the user two clearly labeled, actually reachable links when applicable: **Design preview** and **Implemented product**. Preserve the product server; do not migrate or duplicate its runtime inside the design workspace merely to consolidate viewing. Resolve URLs for the actual client/network; daemon-returned localhost URLs are not automatically browser-client-PC URLs. Report inaccessible/uninspected states rather than claiming verification.
+
+Build can return task-scoped product captures, observed differences and constraints for design feedback, excluding credentials/private data. Feedback may propose design revisions or ask for product information; Build adjudicates and implements in its authorized scope. An important redesign goes through the existing direction-approval boundary again. This loop is explicit feedback, not automatic synchronization or execution delegation back into the engineering session.
+
 ## Boundaries
 
 - An approved OpenDesign artifact is the design source of truth for that screen. It does not authorize
@@ -126,6 +169,9 @@ When bringing a design back into production code, report:
   sources remain authoritative.
 - A generated artifact is not design approval, and a passing test is not user acceptance. The Human owns both.
 - Do not claim a design run, file read, or rendered inspection that did not actually occur.
+
+- OpenCode owns the development conversation, production changes, verification and Git. Local Codex is the design specialist. An internal coding runtime used for design is not authorization to launch/resume the outer engineering session, recursively commission more design runs, or change product API/data/Git/deployment.
+- Keep task-owned design/reference outputs and product writes under explicit ownership; never let concurrent design and Build writers modify the same product files. An imported writable project root may technically permit such writes: operating guidance is not a filesystem sandbox. Prefer separate design-output locations or approved isolated workspaces, with existing product sources read-only where practical. Do not silently move/copy the user's project or reconfigure mounts.
 
 ## Optional DGX remote-folder gateway (source-only)
 
