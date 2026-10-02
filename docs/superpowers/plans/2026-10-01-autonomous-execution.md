@@ -30,12 +30,12 @@
 - [x] Add reusable policy, reconcile project guidance/README/execution/design integration and optional installation instructions.
 - [x] Back up and apply the reviewed policy globally without changing user configuration or upstream skills.
 - [x] Run full checks, packed consumer and isolated effective-agent verification; review whole change.
-- [ ] Commit scoped changes, integrate main and push without force.
+- [x] Commit scoped changes, integrate main and push without force.
 
 ### Task 2: Beta release and evidence
-- [ ] Publish exact verified beta.3 tarball to next (the user already authorized delivery); use normal browser approval if npm requires it.
-- [ ] Verify public registry metadata/tags, tarball integrity/bytes, fresh consumer preview/apply/repeat and no policy auto-application.
-- [ ] Record delivery evidence/product state and push evidence commit; preserve previous versions/latest.
+- [x] Publish exact verified beta.3 tarball to next (the user already authorized delivery); use normal browser approval if npm requires it.
+- [x] Verify public registry metadata/tags, tarball integrity/bytes, fresh consumer preview/apply/repeat and no policy auto-application.
+- [x] Record delivery evidence/product state; push this evidence-only closeout under the existing main delivery authorization and verify remote HEAD in the checkpoint.
 
 ## Decisions and evidence
 - Ruling: Treat this as an approved bounded policy change, not a new subsystem; inline completion is requested, so no additional plan/method approval gate. Cost if wrong: user can correct the recorded policy scope; no runtime permissions are widened.
@@ -50,3 +50,11 @@
 - Ruling: Reviewer did not independently rerun checks/registry/global backup comparisons; Primary verifies those with actual commands. Model-continuation reliability, rendered design and human acceptance are outside this guidance-only delivery and remain unclaimed. Cost if wrong: manual evidence might miss a behavior regression; report the verification boundary instead of declaring a runtime guarantee.
 - Human real-development/end-to-end acceptance remains separate from this technical delivery.
 - Post-review final check64/0fail/1skip and packed consumer passed; relative documentation links and paired beta.3 pins verified; whitespace clean. Final logs /tmp/opencode/ksi-autonomy-final-{check,package}.log.
+- Source commit0682659 integrated to main fast-forward, merged-tree check64/0fail/1skip and packed consumer passed; pushed without force and remote exact HEAD verified. Reviewed18-file tarball /tmp/opencode/ksi-opencode-harness-0.5.0-beta.3.tgz.
+- First non-TTY publish returned EOTP, not publication success. Normal npm PTY/browser approval flow started for the same verified tarball; auth is a required identity approval, not a repeated scope decision. Do not republish blindly if success arrives; verify registry state.
+
+## Published delivery evidence (2026-10-02 closeout)
+- User completed normal browser identity approval; npm PTY command reported +ksi-opencode-harness@0.5.0-beta.3. Initial public lookup404 was registry processing, not permission to publish again.
+- Public registry next=0.5.0-beta.3, latest=0.4.0-beta.2 unchanged; beta.2 retained. Reviewed/public tarballs and SHA512 integrity match; all18 source/package/installed files match. Fresh isolated public install verifies read-only preview, exactly3 roles, repeat idempotence and no automatic AGENTS.md policy merge.
+- Public GitHub README at source0682659 matches the reviewed tarball/source bytes. Evidence /tmp/opencode/ksi-autonomy-public-consumer.log; fresh closeout rerun /tmp/opencode/ksi-beta3-closeout-public.log with /tmp/opencode/verify-ksi-autonomy-public.py before any follow-up changes.
+- Policy/global application and technical delivery complete. No service restart, new design generation, model permission change, user configuration replacement or human real-development acceptance is claimed. The Plan-mode interruption postponed only this evidence record/push, not publication.
