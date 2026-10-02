@@ -37,3 +37,6 @@ User approved the in-chat bounded recommendation on 2026-10-02: conditional Mobb
 - Independent read-only review: no Critical/Important findings, eight textual boundary scenarios covered. Minor WIP spacing/status notes reconciled with actual checks; no rendered/image/live-generation evidence or human workflow acceptance claimed.
 - Source68a0b07 committed with an explicit guidance/source-packaging-only verification boundary, then main fast-forwarded locally. Merged-tree check64/0fail/1skip and packed consumer passed; /tmp/opencode/ksi-design-handoff-merged-{check,package}.log. On-demand global guidance now resolves to the locally integrated current document.
 - Follow-up source is not pushed/published; public beta.3 remains the already-verified earlier source0682659 with closeoutbbfeae4. Never republish immutable beta.3 from this modified tree. A future release/remote update needs its own scoped authorization.
+
+## Later delivery authorization
+The user subsequently requested the deferred remote update/public release on2026-10-02. The earlier local-only boundary records that stage, not a prohibition on the newly approved delivery. Beta.3 remains immutable; the new scoped main/beta.4-next delivery and evidence live in [the beta.4 ledger](2026-10-02-design-handoff-beta4-release.md). No live design generation is added.

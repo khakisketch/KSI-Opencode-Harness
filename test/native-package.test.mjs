@@ -5,7 +5,7 @@ import { access, readFile } from "node:fs/promises"
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("native installer has a new publishable npm beta version", () => {
-  assert.equal(packageJson.version, "0.5.0-beta.3")
+  assert.equal(packageJson.version, "0.5.0-beta.4")
   assert.notEqual(packageJson.private, true)
 })
 
