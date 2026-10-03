@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { mkdtemp, rm, stat } from "node:fs/promises"
+import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -136,16 +136,32 @@ test("plugin setup wires hooks, the design_runs tool and one-shot delivery", asy
     assert.equal(syntheticCalls.length, 1, "no duplicate delivery")
 
     const list = JSON.parse((await tools[0].execute({ action: "list" }, { sessionID: SESSION })).content[0].text)
-    assert.equal(list.paused, false)
+    assert.equal(list.paused.global, false)
+    assert.equal(list.paused.forThisSession, false)
     assert.equal(list.bindings.length, 1)
     assert.equal(list.bindings[0].state, "delivered")
     assert.equal(list.bindings[0].runId, RUN_A)
+    assert.ok(list.leadership)
+    assert.equal(list.leadership.isSelf, true)
 
-    await tools[0].execute({ action: "pause" }, {})
-    assert.ok(await stat(join(dir, "paused")))
-    const pausedList = JSON.parse((await tools[0].execute({ action: "list" }, {})).content[0].text)
-    assert.equal(pausedList.paused, true)
-    await tools[0].execute({ action: "resume" }, {})
+    // Per-session pause applies to the calling session only.
+    await tools[0].execute({ action: "pause" }, { sessionID: SESSION })
+    const pausedFile = JSON.parse(await readFile(join(dir, "paused.json"), "utf8"))
+    assert.ok(pausedFile[SESSION], "pause is keyed by session")
+    const sessionPaused = JSON.parse((await tools[0].execute({ action: "list" }, { sessionID: SESSION })).content[0].text)
+    assert.equal(sessionPaused.paused.forThisSession, true)
+    await tools[0].execute({ action: "resume" }, { sessionID: SESSION })
+    assert.deepEqual(JSON.parse(await readFile(join(dir, "paused.json"), "utf8")), {})
+
+    // Global pause scope holds every session.
+    await tools[0].execute({ action: "pause", scope: "all" }, {})
+    const globalPaused = JSON.parse((await tools[0].execute({ action: "list" }, {})).content[0].text)
+    assert.equal(globalPaused.paused.global, true)
+    await tools[0].execute({ action: "resume", scope: "all" }, {})
+
+    // scope=session without a calling session is rejected instead of guessed.
+    const badPause = await tools[0].execute({ action: "pause" }, {})
+    assert.match(badPause.content[0].text, /requires a calling session/)
 
     const watch = await tools[0].execute({ action: "watch", runId: RUN_A }, { sessionID: SESSION })
     assert.match(watch.content[0].text, /"alreadyDelivered":true/)

@@ -86,7 +86,10 @@ async function withHarness(fn, { runs = {}, list = [] } = {}) {
     const setDeliverError = (error) => {
       harness.deliverError = error
     }
-    return await fn({ ...harness, store, notifier, setDeliverError })
+    const advance = (ms) => {
+      state.now += ms
+    }
+    return await fn({ ...harness, store, notifier, setDeliverError, advance })
   } finally {
     await rm(dir, { recursive: true, force: true })
   }
@@ -219,15 +222,59 @@ test("session-not-found orphans the binding without cross-session delivery", asy
   )
 })
 
-test("paused mode admits without auto wake", async () => {
+test("a paused session stores the completion as held without contacting the session", async () => {
   await withHarness(
     async ({ store, notifier, deliveries }) => {
-      await store.setPaused(true)
+      await store.setPaused(SESSION, true)
       await notifier.handleToolBefore(beforeEvent("req-6"))
       await notifier.handleToolAfter(afterEvent("req-6", startResult(RUN_A, "req-6")))
+
+      await notifier.tick()
+      assert.equal(deliveries.length, 0, "no session contact while paused")
+      const held = await store.get(`run:${RUN_A}@${SESSION}`)
+      assert.equal(held.state, "held")
+      assert.equal(typeof held.heldAt, "number")
+      assert.equal(held.lastStatus.status, "succeeded")
+
+      await notifier.tick()
+      assert.equal(deliveries.length, 0, "still held on later ticks")
+
+      await store.setPaused(SESSION, false)
+      await notifier.tick()
+      assert.equal(deliveries.length, 1, "resume delivers the held completion")
+      assert.equal(deliveries[0].message.resume, true)
+      assert.equal((await store.get(`run:${RUN_A}@${SESSION}`)).state, "delivered")
+    },
+    { runs: { [RUN_A]: terminalRun(RUN_A) } },
+  )
+})
+
+test("pausing one session leaves other sessions unaffected", async () => {
+  await withHarness(
+    async ({ store, notifier, deliveries }) => {
+      await store.setPaused(SESSION, true)
+      await notifier.watchRun({ runId: RUN_A, sessionID: SESSION_2 })
       await notifier.tick()
       assert.equal(deliveries.length, 1)
-      assert.equal(deliveries[0].message.resume, false)
+      assert.equal(deliveries[0].sessionID, SESSION_2)
+      assert.equal(deliveries[0].message.resume, true)
+    },
+    { runs: { [RUN_A]: terminalRun(RUN_A) } },
+  )
+})
+
+test("the global pause switch holds and releases every session", async () => {
+  await withHarness(
+    async ({ store, notifier, deliveries }) => {
+      await store.setPaused("*", true)
+      await notifier.watchRun({ runId: RUN_A, sessionID: SESSION })
+      await notifier.tick()
+      assert.equal(deliveries.length, 0)
+      assert.equal((await store.get(`run:${RUN_A}@${SESSION}`)).state, "held")
+      await store.setPaused("*", false)
+      await notifier.tick()
+      assert.equal(deliveries.length, 1)
+      assert.equal(deliveries[0].message.resume, true)
     },
     { runs: { [RUN_A]: terminalRun(RUN_A) } },
   )
@@ -352,6 +399,54 @@ test("concurrent instances admit at most one delivery for a binding (claim)", as
       const binding = await store.get(`run:${RUN_A}@${SESSION}`)
       assert.equal(binding.state, "delivered")
       assert.equal(binding.deliveryClaim, null)
+    },
+    { runs: { [RUN_A]: terminalRun(RUN_A) } },
+  )
+})
+
+test("only the poller leader contacts the daemon and a stale lease is taken over", async () => {
+  await withHarness(
+    async ({ store, daemon, clock, advance }) => {
+      let daemonCalls = 0
+      const countingDaemon = {
+        ...daemon,
+        getRun: (...args) => {
+          daemonCalls += 1
+          return daemon.getRun(...args)
+        },
+      }
+      await store.put(`run:${RUN_A}@${SESSION}`, {
+        key: `run:${RUN_A}@${SESSION}`,
+        kind: "run",
+        runId: RUN_A,
+        sessionID: SESSION,
+        source: "hook",
+        state: "tracking",
+        createdAt: clock() - 60_000,
+        updatedAt: clock() - 60_000,
+      })
+      // Paused so each tick keeps polling (held stays pollable) instead of
+      // delivering once and becoming a no-op.
+      await store.setPaused(SESSION, true)
+      const deliver = async () => {}
+      const first = createNotifier({ store, daemon: countingDaemon, deliver, pollMs: 60_000, clock, log: () => {}, instanceId: "instance-a" })
+      const second = createNotifier({ store, daemon: countingDaemon, deliver, pollMs: 60_000, clock, log: () => {}, instanceId: "instance-b" })
+
+      await first.coordination("test")
+      const afterFirst = daemonCalls
+      assert.equal(afterFirst, 1, "leader polls")
+      await second.coordination("test")
+      assert.equal(daemonCalls, afterFirst, "follower does not poll")
+      assert.equal((await store.readLeadership()).instanceId, "instance-a")
+
+      advance(61_000)
+      await second.coordination("test")
+      assert.equal(daemonCalls, afterFirst + 1, "new leader polls after the stale lease is taken over")
+      assert.equal((await store.readLeadership()).instanceId, "instance-b")
+
+      assert.equal(await first.release(), false, "a non-holder cannot release")
+      assert.equal(await second.release(), true)
+      assert.equal(await store.readLeadership(), null)
     },
     { runs: { [RUN_A]: terminalRun(RUN_A) } },
   )

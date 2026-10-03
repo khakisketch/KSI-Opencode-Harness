@@ -7,15 +7,19 @@
 // terminal state. Result interpretation and any implementation stay with the
 // receiving agent and the user.
 //
-// Load with a global plugins entry, e.g.:
-//   { "plugins": ["/absolute/path/to/plugins/design-notifier"] }
-// Options: { stateDir, daemonUrl, pollMs }.
+// Load from the global OpenCode config directory
+// (`~/.config/opencode/plugins/design-notifier`) or with a plugins entry.
+// Install with `node scripts/install-design-notifier.mjs` so the runtime uses
+// a pinned copy instead of the live development tree.
+// Options: { stateDir, daemonUrl, pollMs, quickPollMs, initialDelayMs,
+// toolNamePrefix, instanceLabel, renewEveryMs, leaseTtlMs }.
 
 import { createDaemon } from "./lib/daemon.js";
 import { createNotifier } from "./lib/notifier.js";
 import { createStore, defaultStateDir } from "./lib/state.js";
 
 const PLUGIN_ID = "ksi.design-notifier";
+const PLUGIN_VERSION = "0.2.0";
 
 const DESIGN_RUNS_SCHEMA = {
   type: "object",
@@ -24,7 +28,12 @@ const DESIGN_RUNS_SCHEMA = {
       type: "string",
       enum: ["list", "watch", "pause", "resume"],
       description:
-        "list: show tracked runs and pause state. watch: deliver this run's completion to the calling session (recovery when the automatic binding was lost). pause: admit completions without waking sessions. resume: restore automatic wake.",
+        "list: show tracked/held runs, pause state and poller leadership. watch: bind an existing run to the calling session (recovery when the automatic binding was lost). pause/resume: control automatic wake permission — paused completions are stored in notifier state and delivered when resumed.",
+    },
+    scope: {
+      type: "string",
+      enum: ["session", "all"],
+      description: "pause/resume scope: this session (default) or every session.",
     },
     runId: {
       type: "string",
@@ -116,6 +125,7 @@ export default {
       quickPollMs,
       initialDelayMs,
       toolNamePrefix,
+      instanceLabel: ctx.location?.directory ?? null,
       log,
     });
     const registrations = [];
@@ -146,6 +156,8 @@ export default {
     const stop = notifier.start();
     log("setup", {
       version: ctx.app?.version ?? null,
+      pluginVersion: PLUGIN_VERSION,
+      instanceId: String(notifier.instanceId).slice(0, 8),
       location: ctx.location?.directory ?? null,
       stateDir,
       daemonUrl,
@@ -154,6 +166,7 @@ export default {
 
     return async () => {
       stop();
+      await notifier.release();
       for (const registration of registrations) {
         try {
           await registration?.dispose?.();

@@ -38,7 +38,7 @@ test("bindings survive a store restart and round-trip through put/get/remove", a
   })
 })
 
-test("concurrent updates do not lose keys (best-effort lock)", async () => {
+test("concurrent updates do not lose keys (serialized lock)", async () => {
   await withTempDir(async (dir) => {
     const store = createStore({ dir })
     await store.init()
@@ -63,16 +63,48 @@ test("a corrupt bindings file is preserved aside and replaced with empty state",
   })
 })
 
-test("pause flag toggles and log rotation caps the events log", async () => {
+test("pause is per session with an optional global switch", async () => {
   await withTempDir(async (dir) => {
     const store = createStore({ dir })
     await store.init()
-    assert.equal(await store.isPaused(), false)
-    await store.setPaused(true)
-    assert.equal(await store.isPaused(), true)
-    await store.setPaused(false)
-    assert.equal(await store.isPaused(), false)
+    assert.equal(await store.isPausedFor("ses_a"), false)
 
+    await store.setPaused("ses_a", true)
+    assert.equal(await store.isPausedFor("ses_a"), true)
+    assert.equal(await store.isPausedFor("ses_b"), false)
+    assert.deepEqual(await store.listPaused(), { global: false, sessions: ["ses_a"] })
+
+    await store.setPaused("*", true)
+    assert.equal(await store.isPausedFor("ses_b"), true)
+    assert.deepEqual(await store.listPaused(), { global: true, sessions: ["ses_a"] })
+
+    await store.setPaused("*", false)
+    assert.equal(await store.isPausedFor("ses_b"), false)
+    assert.equal(await store.isPausedFor("ses_a"), true)
+
+    await store.setPaused("ses_a", false)
+    assert.equal(await store.isPausedFor("ses_a"), false)
+    await assert.rejects(() => store.setPaused("not-a-session", true), /invalid pause key/)
+  })
+})
+
+test("a legacy global paused file is migrated into paused.json on init", async () => {
+  await withTempDir(async (dir) => {
+    const store = createStore({ dir })
+    await store.init()
+    await writeFile(join(dir, "paused"), "2026-01-01T00:00:00.000Z\n")
+    const reopened = createStore({ dir })
+    await reopened.init()
+    assert.equal(await reopened.isPausedFor("ses_any"), true)
+    assert.deepEqual(await reopened.listPaused(), { global: true, sessions: [] })
+    await assert.rejects(() => stat(join(dir, "paused")))
+  })
+})
+
+test("log rotation caps the events log", async () => {
+  await withTempDir(async (dir) => {
+    const store = createStore({ dir })
+    await store.init()
     for (let index = 0; index < 400; index += 1) await store.log("bulk", { index, blob: "x".repeat(1024) })
     const info = await stat(join(dir, "events.log"))
     assert.ok(info.size <= 256 * 1024 + 4096, `log stayed bounded: ${info.size}`)
@@ -81,23 +113,63 @@ test("pause flag toggles and log rotation caps the events log", async () => {
   })
 })
 
-test("reapBindings drops expired final records and enforces the cap", () => {
+test("a contended lock fails the write after the timeout instead of writing unlocked", async () => {
+  await withTempDir(async (dir) => {
+    const store = createStore({ dir, lockTimeoutMs: 120 })
+    await store.init()
+    await writeFile(join(dir, "bindings.lock"), "")
+    await assert.rejects(() => store.put("run:x@ses", { state: "tracking" }), /state lock timeout/)
+    await rm(join(dir, "bindings.lock"), { force: true })
+    await store.put("run:x@ses", { state: "tracking" })
+    assert.equal((await store.get("run:x@ses")).state, "tracking")
+  })
+})
+
+test("leadership is single-holder, renewable, and expireable", async () => {
+  await withTempDir(async (dir) => {
+    let now = 1_700_000_000_000
+    const store = createStore({ dir, now: () => now })
+    await store.init()
+
+    assert.equal(await store.tryAcquireLeadership("inst-a", { ttlMs: 60_000 }), true)
+    assert.equal(await store.tryAcquireLeadership("inst-b", { ttlMs: 60_000 }), false)
+    assert.equal((await store.readLeadership()).instanceId, "inst-a")
+
+    now += 30_000
+    assert.equal(await store.tryAcquireLeadership("inst-a", { ttlMs: 60_000 }), true, "holder renews")
+    assert.equal(await store.tryAcquireLeadership("inst-b", { ttlMs: 60_000 }), false)
+
+    now += 61_000
+    assert.equal(await store.tryAcquireLeadership("inst-b", { ttlMs: 60_000 }), true, "stale lease is taken over")
+    assert.equal(await store.tryAcquireLeadership("inst-a", { ttlMs: 60_000 }), false)
+
+    assert.equal(await store.releaseLeadership("inst-a"), false, "non-holder cannot release")
+    assert.equal(await store.releaseLeadership("inst-b"), true)
+    assert.equal(await store.readLeadership(), null)
+    assert.equal(await store.tryAcquireLeadership("inst-a", { ttlMs: 60_000 }), true)
+  })
+})
+
+test("reapBindings drops expired final records, keeps held records, and enforces the cap", () => {
   const now = 1_000_000_000
   const bindings = {
     "run:a@ses": { state: "delivered", updatedAt: now - 31 * 24 * 60 * 60 * 1000 },
     "run:b@ses": { state: "tracking", updatedAt: now - 400 * 24 * 60 * 60 * 1000 },
     "run:c@ses": { state: "orphaned", updatedAt: now - 91 * 24 * 60 * 60 * 1000 },
+    "run:h@ses": { state: "held", updatedAt: now - 400 * 24 * 60 * 60 * 1000 },
     "run:d@ses": { state: "delivered", updatedAt: now },
   }
   assert.equal(reapBindings(bindings, now), true)
-  assert.deepEqual(Object.keys(bindings).sort(), ["run:b@ses", "run:d@ses"])
+  assert.deepEqual(Object.keys(bindings).sort(), ["run:b@ses", "run:d@ses", "run:h@ses"])
 
   const crowded = {}
   for (let index = 0; index < 12; index += 1) {
     crowded[`run:${index}@ses`] = { state: "delivered", updatedAt: now - index }
   }
   crowded["run:live@ses"] = { state: "tracking", updatedAt: now }
+  crowded["run:held@ses"] = { state: "held", updatedAt: now }
   reapBindings(crowded, now, { recordCap: 5, deliveredTtlMs: Infinity, finalTtlMs: Infinity })
   assert.equal(Object.keys(crowded).length, 5)
   assert.ok("run:live@ses" in crowded, "tracking record survives the cap")
+  assert.ok("run:held@ses" in crowded, "held record survives the cap")
 })

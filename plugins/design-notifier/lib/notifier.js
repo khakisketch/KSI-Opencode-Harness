@@ -5,17 +5,22 @@
 // Lifecycle:
 //   execute.before(opendesign_start_run) → record {requestId, sessionID}
 //   execute.after(opendesign_start_run)  → attach {runId} (or leave for recovery)
-//   poll tick                            → terminal run ⇒ one session delivery
+//   poll tick (leader only)              → session completion delivery
 //
 // Policies:
-//   paused          → admit the notification with resume:false (no auto wake)
-//   active          → queue delivery with resume:true (do not interrupt work)
+//   active          → delivery admitted with auto wake (resume:true, queue)
+//   paused(session) → completion is stored in notifier state only; the session
+//                     is not contacted. `resume` delivers held completions.
 //   session missing → orphaned; never deliver elsewhere or spawn an agent
 //   invalid output  → message instructs verification, never claims success
 //   restart         → state is re-read from disk; delivered runs are not resent
+//
+// Exactly one plugin instance polls and delivers: a state-lock leader lease
+// (`leader.json`) elects a single poller across the per-location instances.
+// Every instance still captures its own sessions' start_run calls.
 
 import { randomUUID } from "node:crypto";
-import { buildDelivery, isTerminalStatus, summarizeRun } from "./messages.js";
+import { buildDelivery, classifyRun, isTerminalStatus, summarizeRun } from "./messages.js";
 import { reapBindings } from "./state.js";
 
 const REQUEST_KEY_PREFIX = "req:";
@@ -115,16 +120,24 @@ export function createNotifier({
   quickPollMs = 4_000,
   initialDelayMs = 1_500,
   toolNamePrefix = "opendesign",
+  instanceId = randomUUID(),
+  instanceLabel = null,
+  renewEveryMs = Math.min(pollMs, 20_000),
+  leaseTtlMs = Math.max(3 * Math.min(pollMs, 20_000), 60_000),
 } = {}) {
   const sightingCounts = new Map();
   let running = false;
   let stopped = true;
-  let intervalTimer = null;
+  let leaderNow = false;
+  let tickDue = false;
+  let lastTickAt = 0;
   let startupTimer = null;
+  let coordinationTimer = null;
   let kickTimer = null;
 
   const requestKey = (requestId) => `${REQUEST_KEY_PREFIX}${requestId}`;
   const runKey = (runId, sessionID) => `${RUN_KEY_PREFIX}${runId}@${sessionID}`;
+  const shortId = (value) => String(value).slice(0, 8);
 
   function sightingsSnapshot() {
     return Object.fromEntries(sightingCounts);
@@ -153,7 +166,7 @@ export function createNotifier({
     await store.mutate((bindings) => {
       const key = requestKey(requestId);
       const existing = bindings[key];
-      if (existing && (existing.state === "tracking" || existing.state === "delivered")) return;
+      if (existing && (existing.state === "tracking" || existing.state === "delivered" || existing.state === "held")) return;
       bindings[key] = {
         ...(existing ?? {}),
         key,
@@ -194,7 +207,7 @@ export function createNotifier({
       if (reqKey && previous) delete bindings[reqKey];
       const targetKey = runKey(runId, resolvedSession);
       const existing = bindings[targetKey];
-      if (existing && existing.state === "delivered") return;
+      if (existing && (existing.state === "delivered" || existing.state === "held")) return;
       bindings[targetKey] = {
         ...(existing ?? {}),
         key: targetKey,
@@ -255,39 +268,68 @@ export function createNotifier({
     const run = await daemon.getRun(runId);
     const key = runKey(runId, sessionID);
     const now = clock();
-    let alreadyDelivered = false;
+    let resultState = null;
     await store.mutate((bindings) => {
-      for (const record of Object.values(bindings)) {
-        if (record && record.runId === runId && record.sessionID === sessionID && record.state === "delivered") {
-          alreadyDelivered = true;
-          break;
+      const existing = bindings[key];
+      if (existing) {
+        resultState = existing.state;
+        if (existing.state === "tracking" || existing.state === "held") {
+          bindings[key] = { ...existing, updatedAt: now };
+          return true;
         }
+        // Delivered or final: keep the record as-is.
+        return false;
       }
-      const previous = bindings[key];
       bindings[key] = {
-        ...(previous ?? {}),
         key,
         kind: "run",
         runId,
         sessionID,
-        projectId: previous?.projectId ?? run.projectId ?? null,
-        requestId: previous?.requestId ?? (typeof run.clientRequestId === "string" ? run.clientRequestId : null),
-        agent: agent ?? previous?.agent ?? null,
-        source: previous?.source ?? "manual",
-        state: alreadyDelivered || previous?.state === "delivered" ? "delivered" : "tracking",
-        createdAt: previous?.createdAt ?? now,
+        projectId: run.projectId ?? null,
+        requestId: typeof run.clientRequestId === "string" ? run.clientRequestId : null,
+        agent: agent ?? null,
+        source: "manual",
+        state: "tracking",
+        createdAt: now,
         updatedAt: now,
       };
+      resultState = "tracking";
+      return true;
     });
-    log("manual-watch", { runId, sessionID, alreadyDelivered });
-    kick();
-    return { runId, status: run.status ?? null, alreadyDelivered };
+    log("manual-watch", { runId, sessionID, state: resultState });
+    if (resultState === "tracking" || resultState === "held") kick();
+    return {
+      runId,
+      status: run.status ?? null,
+      state: resultState,
+      alreadyDelivered: resultState === "delivered",
+    };
   }
 
-  async function attemptDelivery(binding, run, paused) {
+  // Deliver a terminal run to its session, or store it as `held` while the
+  // session's wake permission is paused. Delivery is claimed under the state
+  // lock; the deterministic message id makes a re-send a session-level no-op.
+  async function attemptDelivery(binding, run) {
     const current = (await store.get(binding.key)) ?? binding;
-    if (current.state !== "tracking") return;
+    if (current.state !== "tracking" && current.state !== "held") return;
     const now = clock();
+    const paused = await store.isPausedFor(current.sessionID);
+    if (paused) {
+      if (current.state !== "held") {
+        await patch(current.key, {
+          state: "held",
+          heldAt: now,
+          lastStatus: summarizeRun(run),
+          updatedAt: now,
+        });
+        log("held", {
+          runId: current.runId,
+          sessionID: current.sessionID,
+          classification: classifyRun(run),
+        });
+      }
+      return;
+    }
     if (current.deliveryNextAttemptAt && now < current.deliveryNextAttemptAt) return;
     const claimToken = randomUUID();
     const claimed = await store.claimDelivery(current.key, { now, token: claimToken });
@@ -297,7 +339,7 @@ export function createNotifier({
       sessionID: current.sessionID,
       requestId: current.requestId,
       source: current.source,
-      paused,
+      paused: false,
     });
     try {
       await deliver({ sessionID: current.sessionID, message });
@@ -316,6 +358,7 @@ export function createNotifier({
         messageId: message.id,
         resume: message.resume,
         classification: message.classification,
+        wasHeld: Boolean(current.heldAt),
       });
     } catch (error) {
       if (isSessionMissingError(error)) {
@@ -375,7 +418,8 @@ export function createNotifier({
     }
   }
 
-  async function progressTracking(binding, paused) {
+  // Poll one watched (tracking) or stored (held) run.
+  async function progressTracking(binding) {
     let run;
     try {
       run = await daemon.getRun(binding.runId);
@@ -395,28 +439,29 @@ export function createNotifier({
     const now = clock();
     const snapshot = summarizeRun(run);
     if (!isTerminalStatus(run.status)) {
-      await patch(binding.key, {
-        lastPollAt: now,
-        lastStatus: snapshot,
-        lastError: null,
-        updatedAt: now,
-      });
+      const fields = { lastPollAt: now, lastStatus: snapshot, lastError: null, updatedAt: now };
+      // A held run that became active again (manual resume in OpenDesign)
+      // goes back to tracking and will be delivered at its next terminal end.
+      if (binding.state === "held") {
+        fields.state = "tracking";
+        fields.heldAt = null;
+      }
+      await patch(binding.key, fields);
       return;
     }
     await patch(binding.key, { lastPollAt: now, lastStatus: snapshot, lastError: null, updatedAt: now });
-    await attemptDelivery(binding, run, paused);
+    await attemptDelivery(binding, run);
   }
 
   async function tick({ reason = "interval" } = {}) {
     if (running) return;
     running = true;
     try {
-      const paused = await store.isPaused().catch(() => false);
       const bindings = await store.load();
       for (const binding of Object.values(bindings)) {
         try {
           if (binding.state === "requested") await progressRequested(binding);
-          else if (binding.state === "tracking") await progressTracking(binding, paused);
+          else if (binding.state === "tracking" || binding.state === "held") await progressTracking(binding);
         } catch (error) {
           log("tick-error", { key: binding.key, reason, error: describeError(error) });
         }
@@ -430,11 +475,36 @@ export function createNotifier({
     }
   }
 
+  // One coordination beat: renew or acquire the poller lease, then tick when
+  // this instance holds it and a tick is due. Followers only renew nothing and
+  // stay cheap; they still capture bindings through the tool hooks.
+  // Safe to call directly (tests) — timers are disposed by stop().
+  async function coordination(reason) {
+    let leader = false;
+    try {
+      leader = await store.tryAcquireLeadership(instanceId, { ttlMs: leaseTtlMs });
+    } catch (error) {
+      log("leadership-error", { error: describeError(error) });
+      return;
+    }
+    if (leader && !leaderNow) {
+      log("leader-claimed", { instanceId: shortId(instanceId), label: instanceLabel });
+    }
+    leaderNow = leader;
+    if (!leader) return;
+    const due = tickDue || reason === "startup" || clock() - lastTickAt >= pollMs;
+    if (!due) return;
+    tickDue = false;
+    lastTickAt = clock();
+    await tick({ reason });
+  }
+
   function kick() {
     if (stopped || kickTimer) return;
+    tickDue = true;
     kickTimer = setTimeout(() => {
       kickTimer = null;
-      void tick({ reason: "kick" });
+      void coordination("kick");
     }, quickPollMs);
     if (typeof kickTimer.unref === "function") kickTimer.unref();
   }
@@ -443,20 +513,30 @@ export function createNotifier({
     stopped = false;
     startupTimer = setTimeout(() => {
       startupTimer = null;
-      void tick({ reason: "startup" });
+      void coordination("startup");
     }, initialDelayMs);
     if (typeof startupTimer.unref === "function") startupTimer.unref();
-    intervalTimer = setInterval(() => void tick({ reason: "interval" }), pollMs);
-    if (typeof intervalTimer.unref === "function") intervalTimer.unref();
+    coordinationTimer = setInterval(() => void coordination("interval"), renewEveryMs);
+    if (typeof coordinationTimer.unref === "function") coordinationTimer.unref();
     return () => {
       stopped = true;
       if (startupTimer) clearTimeout(startupTimer);
-      if (intervalTimer) clearInterval(intervalTimer);
+      if (coordinationTimer) clearInterval(coordinationTimer);
       if (kickTimer) clearTimeout(kickTimer);
       startupTimer = null;
-      intervalTimer = null;
+      coordinationTimer = null;
       kickTimer = null;
     };
+  }
+
+  // Best-effort: give the lease back so another instance takes over quickly
+  // (used on plugin unload; a crash leaves the lease to expire by TTL).
+  async function release() {
+    try {
+      return await store.releaseLeadership(instanceId);
+    } catch {
+      return false;
+    }
   }
 
   function compactBinding(binding) {
@@ -469,6 +549,7 @@ export function createNotifier({
       projectId: binding.projectId ?? null,
       status: binding.lastStatus?.status ?? null,
       deliverableValid: binding.lastStatus?.deliverableValid ?? null,
+      heldAt: binding.heldAt ?? null,
       deliveredAt: binding.deliveredAt ?? null,
       updatedAt: binding.updatedAt ?? null,
       lastError: binding.lastError ? String(binding.lastError).slice(0, 160) : null,
@@ -480,12 +561,22 @@ export function createNotifier({
     const text = (value) => ({ content: [{ type: "text", text: value }] });
     if (action === "list") {
       const bindings = await store.load();
-      const paused = await store.isPaused().catch(() => false);
+      const paused = await store.listPaused();
+      const callerSession = typeof toolContext.sessionID === "string" ? toolContext.sessionID : null;
+      const leadership = await store.readLeadership().catch(() => null);
       const rows = Object.values(bindings).map(compactBinding);
       return text(
         JSON.stringify(
           {
-            paused,
+            paused: {
+              global: paused.global,
+              sessions: paused.sessions,
+              forThisSession: callerSession ? await store.isPausedFor(callerSession) : null,
+            },
+            leadership: leadership
+              ? { holder: shortId(leadership.instanceId), isSelf: leadership.instanceId === instanceId, at: leadership.at }
+              : null,
+            instanceId: shortId(instanceId),
             stateDir: store.dir,
             daemon: daemon.baseUrl,
             observedTools: sightingsSnapshot(),
@@ -497,12 +588,19 @@ export function createNotifier({
       );
     }
     if (action === "pause" || action === "resume") {
-      await store.setPaused(action === "pause");
-      log(action === "pause" ? "paused" : "resumed", {});
+      const scope = input.scope === "all" ? "all" : "session";
+      const key = scope === "all" ? "*" : (typeof toolContext.sessionID === "string" && toolContext.sessionID) || null;
+      if (!key) {
+        return text("pause/resume with scope=session requires a calling session; use scope=all for the global switch");
+      }
+      await store.setPaused(key, action === "pause");
+      log(action === "pause" ? "paused" : "resumed", { scope });
+      if (action === "resume") kick();
+      const what = scope === "all" ? "all sessions" : "this session";
       return text(
         action === "pause"
-          ? "Automatic wake-up paused. New completions are admitted into the target session without auto execution until resume."
-          : "Automatic wake-up resumed. Completions will queue a session turn again.",
+          ? `Automatic wake-up paused for ${what}. Terminal runs are kept in notifier state (visible via design_runs list) and the session is not contacted until resume.`
+          : `Automatic wake-up resumed for ${what}. Held completions are delivered with auto wake on the next poll tick.`,
       );
     }
     if (action === "watch") {
@@ -518,11 +616,14 @@ export function createNotifier({
   }
 
   return {
+    instanceId,
     handleToolBefore,
     handleToolAfter,
     watchRun,
     tick,
+    coordination,
     start,
+    release,
     runTool,
     sightings: sightingsSnapshot,
   };
