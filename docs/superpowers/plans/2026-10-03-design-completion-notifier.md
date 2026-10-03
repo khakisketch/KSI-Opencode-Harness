@@ -183,6 +183,13 @@ requests); keep non-dependent work moving while a run or check is pending.
   plugin README.
 - Verification: notifier suite 39/39; full `npm run check` 107 pass / 0 fail /
   1 opt-in skip; pinned copy reinstalled and `--verify` green.
+- Bonus verification the same day: the first **real** (non-test) `start_run` capture
+  occurred — EVENTOUCH session `ses_efe9d3ab…` ("디자인 이어서 개선하기"): request
+  `a3f1c2d4…` recorded 11:38:20Z, run `9443ee43…` attached via the hook, terminal
+  11:50:23Z, delivered `resume:true` 11:50:32Z (≈9 s, within one poll cycle). The
+  session was active, so the queued notification awaited its next input processing
+  (no interruption, as designed); the run's `entry_missing` verdict was classified
+  invalid so the message could not be misread as a successful deliverable.
 - Post-pass independent review (reviewer session `ses_efe8db196ffeoNuUKM6expruqE`,
   no Critical; tests matched claimed numbers). One-scope fixes: pause re-check
   after the delivery claim (narrows the pause-vs-delivery window; the residual
