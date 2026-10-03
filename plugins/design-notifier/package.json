@@ -1,0 +1,8 @@
+{
+  "name": "ksi-design-notifier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "description": "OpenCode V2 plugin: deliver OpenDesign run completion to the originating session"
+}

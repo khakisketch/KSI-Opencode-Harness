@@ -14,7 +14,8 @@ automatic installer. Superpowers is also separately installed, not a prerequisit
 
 DGX user-level operating guidance is installed separately in `~/.config/opencode/AGENTS.md`, under
 `Design-to-engineering workflow`. It applies across that user's OpenCode projects; it is not installed
-by the KSI package. The default is **Local Codex** in the connected server's execution environment,
+by the KSI package. The default is **Local Codex** (OpenDesign's name for its local execution mode;
+not the standalone Codex CLI) in the connected server's execution environment,
 not the browser client's PC. **OpenDesign Cloud** requires an explicit user request. Agents must verify
 the actual connection, project and storage root before describing execution location or modifying files;
 they must not assume a code repository is already a registered design project. Design-to-product handoff
@@ -176,6 +177,36 @@ Normal polling should retain only run state, deliverable verdict, relevant error
 links. Pull full diagnostics only for investigation and the source bundle when context, approval
 snapshot or implementation needs it. Keep internal identifiers in the task record, not product copy;
 do not print raw event streams, credentials or provider telemetry in progress messages.
+
+### Completion notification (host-side notifier)
+
+The optional `plugins/design-notifier/` component closes the loop from the other direction: when a
+design run reaches a terminal state, the originating session receives one advisory notification
+instead of the user having to ask again. Verification, interpretation and any implementation stay
+with the receiving agent and the user; the notifier only observes and notifies.
+
+- Binding is recorded when a session calls `start_run` (request id + session), before the response
+  can be lost; the returned run id is attached afterwards and the record becomes
+  `run:<runId>@<sessionID>`.
+- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) and admits exactly one
+  message per run/session through the native session synthetic inbox (deterministic `msg_...` id).
+- The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
+  deliverable when `deliverableValid` is false, forbids blind regeneration, and asks for direction
+  approval before code integration outside already-approved scope.
+- Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); notifier
+  paused → admitted with `resume:false`; deleted target session → `orphaned`, never delivered
+  elsewhere and never replaced by a new agent; lost start response → reconciled by
+  `clientRequestId` for up to 24 h without starting a replacement run.
+- State is durable under `~/.local/state/opencode-design-notifier/` (atomic JSON bindings, bounded
+  `events.log`, `paused` flag); restart recovery re-reads it and did not resend delivered runs.
+
+Activate by adding the plugin directory to the global `plugins` list (see
+[`opencode.jsonc.example`](../../opencode.jsonc.example)); watched config directories reload
+automatically, otherwise restart the service. The `design_runs` tool lists tracked runs,
+re-watches an existing run as a recovery path, and pauses/resumes automatic wake deliveries.
+Limits: same-host daemon reachability, up to one poll interval of latency, and no knowledge of
+goal/session pause state other than the explicit `paused` flag. This component is not part of the
+npm package and does not install anything by itself.
 
 ### Plan-only design MCP permissions
 
