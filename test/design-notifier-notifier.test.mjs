@@ -316,6 +316,62 @@ test("a failed start_run is recorded and does not create a watched run", async (
   })
 })
 
+test("a run missing on the daemon is marked missing, not orphaned, and is not delivered", async () => {
+  await withHarness(async ({ store, notifier, deliveries }) => {
+    await notifier.handleToolBefore(beforeEvent("req-missing"))
+    await notifier.handleToolAfter(afterEvent("req-missing", startResult(RUN_A, "req-missing")))
+    await notifier.tick()
+    const binding = await store.get(`run:${RUN_A}@${SESSION}`)
+    assert.equal(binding.state, "missing")
+    assert.match(String(binding.lastError), /run not found on daemon/)
+    assert.equal(deliveries.length, 0)
+  })
+})
+
+test("concurrent instances admit at most one delivery for a binding (claim)", async () => {
+  await withHarness(
+    async ({ store, daemon, deliveries, clock }) => {
+      const deliver = async ({ sessionID, message }) => {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+        deliveries.push({ sessionID, message });
+      };
+      const first = createNotifier({ store, daemon, deliver, pollMs: 60_000, clock, log: () => {} });
+      const second = createNotifier({ store, daemon, deliver, pollMs: 60_000, clock, log: () => {} });
+      await store.put(`run:${RUN_A}@${SESSION}`, {
+        key: `run:${RUN_A}@${SESSION}`,
+        kind: "run",
+        runId: RUN_A,
+        sessionID: SESSION,
+        source: "hook",
+        state: "tracking",
+        createdAt: clock() - 60_000,
+        updatedAt: clock() - 60_000,
+      });
+      await Promise.all([first.tick(), second.tick()]);
+      assert.equal(deliveries.length, 1, "only the claiming instance delivers");
+      const binding = await store.get(`run:${RUN_A}@${SESSION}`)
+      assert.equal(binding.state, "delivered")
+      assert.equal(binding.deliveryClaim, null)
+    },
+    { runs: { [RUN_A]: terminalRun(RUN_A) } },
+  )
+})
+
+test("attach without any session id keeps the request record instead of stranding a run key", async () => {
+  await withHarness(async ({ store, notifier }) => {
+    await notifier.handleToolBefore({ ...beforeEvent("req-nosession"), sessionID: undefined })
+    await notifier.handleToolAfter({
+      ...afterEvent("req-nosession", startResult(RUN_A, "req-nosession")),
+      sessionID: undefined,
+    })
+    const request = await store.get("req:req-nosession")
+    assert.equal(request.state, "requested")
+    assert.match(String(request.lastError), /no session id/)
+    const bindings = await store.load()
+    assert.ok(!Object.keys(bindings).some((key) => key.includes(RUN_A)), "no run binding is created")
+  })
+})
+
 test("extractRunId prefers request-matched candidates and rejects ambiguity", () => {
   const result = startResult(RUN_A, "req-1")
   assert.equal(extractRunId(result, "req-1", isValidRunId), RUN_A)
@@ -335,5 +391,15 @@ test("extractRunId prefers request-matched candidates and rejects ambiguity", ()
     extractRunId({ content: JSON.stringify({ id: RUN_A, projectId: "proj-a", requestId: "req-9" }) }, "req-9", isValidRunId),
     RUN_A,
     "a plain string content is parsed too",
+  )
+  assert.equal(
+    extractRunId({ structuredContent: { id: RUN_A, projectId: "proj-a" } }, null, isValidRunId),
+    RUN_A,
+    "structured MCP content is parsed",
+  )
+  assert.equal(
+    extractRunId({ structuredOutput: { id: RUN_B, projectId: "proj-b" } }, null, isValidRunId),
+    RUN_B,
+    "structured output is parsed",
   )
 })

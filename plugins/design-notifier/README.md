@@ -20,7 +20,11 @@ plugin never claims success, never retries generation and never implements.
 - Handles the previous failure modes: `deliverableValid:false` output is
   reported as unverified, a terminal question is relayed for the agent to
   surface, a deleted session is orphaned (never delivered to another session),
-  and duplicate notifications are suppressed by a deterministic `msg_...` id.
+  and duplicate notifications are suppressed by a delivery claim under the
+  state lock plus a deterministic `msg_...` id — OpenCode's synthetic endpoint
+  returns the original admission for a repeated id (verified 2026-10-03), so a
+  crash between admission and marking can re-issue the call without creating a
+  second message.
 
 ## Policy
 
@@ -30,6 +34,7 @@ plugin never claims success, never retries generation and never implements.
 | Session busy | `delivery:"queue"` — does not interrupt the current turn |
 | Notifier paused | message is admitted without auto execution (`resume:false`) |
 | Target session deleted | marked `orphaned`; no cross-session delivery, no new agent |
+| Run missing on daemon | marked `missing`; kept for diagnosis, no delivery |
 | Plan-mode session | wakes, but the message requires analysis/report only |
 | Design output invalid | message forbids claiming a deliverable; no auto retry |
 
@@ -47,19 +52,22 @@ Default directory: `~/.local/state/opencode-design-notifier/`
 
 - `bindings.json` — records keyed `req:<requestId>` or
   `run:<runId>@<sessionID>`; states: `requested`, `tracking`, `delivered`,
-  `orphaned`, `unresolved`.
+  `orphaned`, `missing`, `unresolved`.
 - `paused` — presence pauses automatic wake deliveries.
 - `events.log` — bounded JSONL diagnostics; never stores prompts or content.
 
 Environment overrides: `KSI_DESIGN_NOTIFIER_STATE_DIR`,
-`KSI_DESIGN_NOTIFIER_DAEMON_URL`, `KSI_DESIGN_NOTIFIER_POLL_MS`.
-Plugin options: `{ stateDir, daemonUrl, pollMs }`.
+`KSI_DESIGN_NOTIFIER_DAEMON_URL`, `KSI_DESIGN_NOTIFIER_POLL_MS`,
+`KSI_DESIGN_NOTIFIER_TOOL_PREFIX`. Plugin options: `{ stateDir, daemonUrl,
+pollMs, quickPollMs, initialDelayMs, toolNamePrefix }`. The default state
+directory honors `XDG_STATE_HOME` and `HOME`.
 
 ## `design_runs` tool
 
 - `list` — tracked runs, pause state, state directory.
 - `watch` — bind an existing run to the calling session (recovery path when
-  the automatic binding was lost; also usable to re-notify a session).
+  the automatic binding was lost; a run+session that was already notified is
+  not re-notified).
 - `pause` / `resume` — control automatic wake deliveries globally.
 
 ## Activation
@@ -84,3 +92,7 @@ Add the plugin directory to the global plugin list and let OpenCode reload:
   restarts (state is durable).
 - The notifier does not know about goal-pause state or workspace policy; use
   `paused` for an explicit stop, and Plan mode remains restricted natively.
+- Automatic binding requires the MCP server tool name to contain the configured
+  prefix (default `opendesign`). If your server uses a different prefix, set
+  `toolNamePrefix` or use `design_runs watch`; `design_runs list` shows
+  `observedTools` to diagnose what the hooks actually see.

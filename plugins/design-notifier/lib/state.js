@@ -9,7 +9,7 @@
 // concurrent plugin instances from losing updates; on lock timeout we proceed
 // without the lock rather than dropping the update.
 
-import { appendFile, mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -54,7 +54,11 @@ export function reapBindings(bindings, now, {
       continue;
     }
     const age = now - (record.updatedAt ?? record.createdAt ?? now);
-    const finalState = record.state === "delivered" || record.state === "orphaned" || record.state === "unresolved";
+    const finalState =
+      record.state === "delivered" ||
+      record.state === "orphaned" ||
+      record.state === "unresolved" ||
+      record.state === "missing";
     const ttl = record.state === "delivered" ? deliveredTtlMs : finalTtlMs;
     if (finalState && age > ttl) {
       delete bindings[key];
@@ -64,7 +68,10 @@ export function reapBindings(bindings, now, {
   const keys = Object.keys(bindings);
   if (keys.length > recordCap) {
     const removable = keys
-      .filter((key) => bindings[key].state === "delivered" || bindings[key].state === "orphaned" || bindings[key].state === "unresolved")
+      .filter((key) => {
+        const state = bindings[key].state;
+        return state === "delivered" || state === "orphaned" || state === "unresolved" || state === "missing";
+      })
       .sort((a, b) => (bindings[a].updatedAt ?? 0) - (bindings[b].updatedAt ?? 0));
     while (Object.keys(bindings).length > recordCap && removable.length > 0) {
       delete bindings[removable.shift()];
@@ -82,25 +89,35 @@ export function createStore({ dir, now = () => Date.now() }) {
 
   async function init() {
     await mkdir(dir, { recursive: true });
-  }
-
-  async function readJson(path, fallback) {
+    // Clean up temp files stranded by a crash (best effort).
     try {
-      return JSON.parse(await readFile(path, "utf8"));
-    } catch (error) {
-      if (error?.code === "ENOENT") return fallback;
-      if (error instanceof SyntaxError) {
-        // Corrupt file: preserve it once, then start clean.
-        await rename(path, `${path}.corrupt-${now()}`).catch(() => {});
-        return fallback;
+      const entries = await readdir(dir);
+      for (const name of entries) {
+        if (!name.startsWith(`${BINDINGS_FILE}.tmp-`)) continue;
+        const info = await stat(join(dir, name)).catch(() => null);
+        if (info && now() - info.mtimeMs > 60 * 60 * 1000) {
+          await rm(join(dir, name), { force: true }).catch(() => {});
+        }
       }
-      throw error;
-    }
+    } catch {}
   }
 
   async function load() {
-    const value = await readJson(bindingsPath, {});
-    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    let value;
+    try {
+      value = JSON.parse(await readFile(bindingsPath, "utf8"));
+    } catch (error) {
+      if (error?.code === "ENOENT") return {};
+      if (error instanceof SyntaxError) {
+        await rename(bindingsPath, `${bindingsPath}.corrupt-${now()}`).catch(() => {});
+        return {};
+      }
+      throw error;
+    }
+    if (value && typeof value === "object" && !Array.isArray(value)) return value;
+    // Valid JSON that is not an object would otherwise be silently discarded.
+    await rename(bindingsPath, `${bindingsPath}.corrupt-${now()}`).catch(() => {});
+    return {};
   }
 
   async function save(bindings) {
@@ -143,9 +160,28 @@ export function createStore({ dir, now = () => Date.now() }) {
     return withLock(async () => {
       const bindings = await load();
       const result = await fn(bindings);
-      await save(bindings);
+      // Returning exactly `false` skips the write (used to avoid rewriting
+      // unchanged state on every poll).
+      if (result !== false) await save(bindings);
       return result;
     });
+  }
+
+  // Claim a delivery under the state lock so concurrent plugin instances
+  // (OpenCode loads the global plugin per location) cannot both deliver the
+  // same binding. The claim expires so a crashed instance does not strand it.
+  async function claimDelivery(key, { now: claimedAt = now(), token, ttlMs = 120_000 } = {}) {
+    let claimed = false;
+    await mutate((bindings) => {
+      const record = bindings[key];
+      if (!record || record.state !== "tracking") return false;
+      const claim = record.deliveryClaim;
+      if (claim && typeof claim.at === "number" && claimedAt - claim.at < ttlMs) return false;
+      bindings[key] = { ...record, deliveryClaim: { at: claimedAt, token }, updatedAt: claimedAt };
+      claimed = true;
+      return true;
+    });
+    return claimed;
   }
 
   async function get(key) {
@@ -203,5 +239,5 @@ export function createStore({ dir, now = () => Date.now() }) {
     }
   }
 
-  return { dir, init, load, save, mutate, get, put, remove, isPaused, setPaused, log };
+  return { dir, init, load, save, mutate, claimDelivery, get, put, remove, isPaused, setPaused, log };
 }

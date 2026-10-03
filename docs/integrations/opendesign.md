@@ -187,16 +187,20 @@ with the receiving agent and the user; the notifier only observes and notifies.
 
 - Binding is recorded when a session calls `start_run` (request id + session), before the response
   can be lost; the returned run id is attached afterwards and the record becomes
-  `run:<runId>@<sessionID>`.
-- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) and admits exactly one
-  message per run/session through the native session synthetic inbox (deterministic `msg_...` id).
+  `run:<runId>@<sessionID>`. The tool-name prefix is configurable (`toolNamePrefix`, default
+  `opendesign`); `design_runs list` exposes `observedTools` for diagnosis.
+- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) and admits one message per
+  run/session through the native session synthetic inbox (deterministic `msg_...` id). Concurrent
+  plugin instances — OpenCode loads the global plugin per active location — serialize delivery with a
+  state-lock claim so only one admits; a re-send of the same id is idempotent at the session.
 - The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
   deliverable when `deliverableValid` is false, forbids blind regeneration, and asks for direction
   approval before code integration outside already-approved scope.
 - Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); notifier
   paused → admitted with `resume:false`; deleted target session → `orphaned`, never delivered
-  elsewhere and never replaced by a new agent; lost start response → reconciled by
-  `clientRequestId` for up to 24 h without starting a replacement run.
+  elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for diagnosis,
+  no delivery); lost start response → reconciled by `clientRequestId` for up to 24 h without
+  starting a replacement run.
 - State is durable under `~/.local/state/opencode-design-notifier/` (atomic JSON bindings, bounded
   `events.log`, `paused` flag); restart recovery re-reads it and did not resend delivered runs.
 

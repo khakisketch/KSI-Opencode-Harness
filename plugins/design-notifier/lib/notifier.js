@@ -14,6 +14,7 @@
 //   invalid output  → message instructs verification, never claims success
 //   restart         → state is re-read from disk; delivered runs are not resent
 
+import { randomUUID } from "node:crypto";
 import { buildDelivery, isTerminalStatus, summarizeRun } from "./messages.js";
 import { reapBindings } from "./state.js";
 
@@ -37,10 +38,14 @@ function isSessionMissingError(error) {
   return /session/i.test(text) && /(not.?found|404|missing|deleted)/i.test(text);
 }
 
-function isStartRunTool(name) {
+function isStartRunTool(name, prefix = "opendesign") {
   if (typeof name !== "string" || !name) return false;
-  if (!name.toLowerCase().includes("opendesign")) return false;
+  if (!name.toLowerCase().includes(prefix.toLowerCase())) return false;
   return /(^|[^a-z0-9])start_run$/i.test(name);
+}
+
+function looksLikeDesignTool(name, prefix = "opendesign") {
+  return typeof name === "string" && name.toLowerCase().includes(prefix.toLowerCase());
 }
 
 // The start_run MCP result carries the created run record; be defensive about
@@ -58,6 +63,10 @@ export function extractRunId(result, requestId, isValidRunId) {
     }
   }
   if (result && typeof result.output === "object" && result.output) objects.push(result.output);
+  for (const key of ["structuredContent", "structuredOutput"]) {
+    const value = result?.[key];
+    if (value && typeof value === "object") objects.push(value);
+  }
   for (const text of texts) {
     try {
       const parsed = JSON.parse(text);
@@ -105,6 +114,7 @@ export function createNotifier({
   log = () => {},
   quickPollMs = 4_000,
   initialDelayMs = 1_500,
+  toolNamePrefix = "opendesign",
 } = {}) {
   const sightingCounts = new Map();
   let running = false;
@@ -134,8 +144,8 @@ export function createNotifier({
 
   async function handleToolBefore(event) {
     const name = typeof event?.tool === "string" ? event.tool : "";
-    if (name.toLowerCase().includes("opendesign")) recordSighting(name);
-    if (!isStartRunTool(name)) return;
+    if (looksLikeDesignTool(name, toolNamePrefix)) recordSighting(name);
+    if (!isStartRunTool(name, toolNamePrefix)) return;
     const input = event.input && typeof event.input === "object" ? event.input : {};
     const requestId = typeof input.requestId === "string" && input.requestId ? input.requestId : null;
     if (!requestId) return;
@@ -165,12 +175,24 @@ export function createNotifier({
   async function attachRun({ runId, requestId, sessionID, agent, projectId, source = "hook" }) {
     if (!daemon.isValidRunId(runId)) return false;
     const now = clock();
+    const previousSession = requestId ? (await store.get(requestKey(requestId)))?.sessionID ?? null : null;
+    const resolvedSession = sessionID ?? previousSession ?? null;
+    if (!resolvedSession) {
+      if (requestId) {
+        await patch(requestKey(requestId), {
+          lastError: "run id resolved but no session id is available; cannot deliver",
+          updatedAt: now,
+        });
+      }
+      log("attach-missing-session", { runId, requestId: requestId ?? null });
+      return false;
+    }
     let created = false;
     await store.mutate((bindings) => {
       const reqKey = requestId ? requestKey(requestId) : null;
       const previous = reqKey ? bindings[reqKey] : null;
       if (reqKey && previous) delete bindings[reqKey];
-      const targetKey = runKey(runId, sessionID ?? previous?.sessionID ?? "unknown");
+      const targetKey = runKey(runId, resolvedSession);
       const existing = bindings[targetKey];
       if (existing && existing.state === "delivered") return;
       bindings[targetKey] = {
@@ -180,7 +202,7 @@ export function createNotifier({
         runId,
         requestId: requestId ?? existing?.requestId ?? null,
         projectId: projectId ?? previous?.projectId ?? existing?.projectId ?? null,
-        sessionID: sessionID ?? previous?.sessionID ?? existing?.sessionID ?? null,
+        sessionID: resolvedSession,
         agent: agent ?? previous?.agent ?? existing?.agent ?? null,
         toolCallId: previous?.toolCallId ?? existing?.toolCallId ?? null,
         source: existing?.source ?? previous?.source ?? source,
@@ -196,8 +218,8 @@ export function createNotifier({
 
   async function handleToolAfter(event) {
     const name = typeof event?.tool === "string" ? event.tool : "";
-    if (name.toLowerCase().includes("opendesign")) recordSighting(name);
-    if (!isStartRunTool(name)) return;
+    if (looksLikeDesignTool(name, toolNamePrefix)) recordSighting(name);
+    if (!isStartRunTool(name, toolNamePrefix)) return;
     const input = event.input && typeof event.input === "object" ? event.input : {};
     const requestId = typeof input.requestId === "string" && input.requestId ? input.requestId : null;
     if (event.status === "completed") {
@@ -267,6 +289,9 @@ export function createNotifier({
     if (current.state !== "tracking") return;
     const now = clock();
     if (current.deliveryNextAttemptAt && now < current.deliveryNextAttemptAt) return;
+    const claimToken = randomUUID();
+    const claimed = await store.claimDelivery(current.key, { now, token: claimToken });
+    if (!claimed) return; // another instance is delivering, or the state changed
     const message = buildDelivery({
       run,
       sessionID: current.sessionID,
@@ -282,6 +307,7 @@ export function createNotifier({
         delivery: { messageId: message.id, resume: message.resume, classification: message.classification },
         lastStatus: summarizeRun(run),
         lastError: null,
+        deliveryClaim: null,
         updatedAt: now,
       });
       log("delivered", {
@@ -296,6 +322,7 @@ export function createNotifier({
         await patch(current.key, {
           state: "orphaned",
           lastError: "target session not found; not delivered elsewhere",
+          deliveryClaim: null,
           updatedAt: now,
         });
         log("orphaned", { runId: current.runId, sessionID: current.sessionID });
@@ -307,6 +334,7 @@ export function createNotifier({
         deliveryAttempts: attempts,
         deliveryNextAttemptAt: now + backoff,
         lastError: `delivery failed: ${describeError(error)}`,
+        deliveryClaim: null,
         updatedAt: now,
       });
       log("delivery-error", { runId: current.runId, sessionID: current.sessionID, attempts, error: describeError(error) });
@@ -353,7 +381,11 @@ export function createNotifier({
       run = await daemon.getRun(binding.runId);
     } catch (error) {
       if (error?.status === 404) {
-        await patch(binding.key, { state: "orphaned", lastError: "run not found on daemon", updatedAt: clock() });
+        await patch(binding.key, {
+          state: "missing",
+          lastError: "run not found on daemon (kept for diagnosis; no delivery)",
+          updatedAt: clock(),
+        });
         log("run-missing", { runId: binding.runId });
         return;
       }
@@ -389,9 +421,10 @@ export function createNotifier({
           log("tick-error", { key: binding.key, reason, error: describeError(error) });
         }
       }
-      await store.mutate((current) => {
-        reapBindings(current, clock());
-      });
+      // Skip the write when there is nothing to reap.
+      await store.mutate((current) => reapBindings(current, clock()));
+    } catch (error) {
+      log("tick-fatal", { reason, error: describeError(error) });
     } finally {
       running = false;
     }

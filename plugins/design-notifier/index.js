@@ -77,6 +77,8 @@ export default {
     );
     const quickPollMs = clampInt(options.quickPollMs ?? 4_000, 250, 60_000, 4_000);
     const initialDelayMs = clampInt(options.initialDelayMs ?? 1_500, 0, 60_000, 1_500);
+    const toolNamePrefix =
+      pickString(options.toolNamePrefix, process.env.KSI_DESIGN_NOTIFIER_TOOL_PREFIX) ?? "opendesign";
 
     const store = createStore({ dir: stateDir });
     try {
@@ -106,7 +108,16 @@ export default {
       }
     };
 
-    const notifier = createNotifier({ store, daemon, deliver, pollMs, quickPollMs, initialDelayMs, log });
+    const notifier = createNotifier({
+      store,
+      daemon,
+      deliver,
+      pollMs,
+      quickPollMs,
+      initialDelayMs,
+      toolNamePrefix,
+      log,
+    });
     const registrations = [];
     try {
       registrations.push(await ctx.tool.hook("execute.before", (event) => notifier.handleToolBefore(event)));
