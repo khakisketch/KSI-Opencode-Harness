@@ -6,6 +6,26 @@
   // Preserve your existing model, variant, positive steps, permissions,
   // provider, MCP, and unrelated settings when adopting KSI.
   "agents": {
+    // Optional explicit adoption for the design MCP connection named opendesign.
+    // Plan may inspect designs, but cannot generate, change, delete or cancel.
+    // Last match wins: unknown future tools remain denied. Rename the prefix
+    // if your MCP server has a different name. The installer does not apply this.
+    "plan": {
+      "permissions": [
+        { "action": "opendesign_*", "resource": "*", "effect": "deny" },
+        { "action": "opendesign_get_active_context", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_get_project", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_list_projects", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_list_files", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_get_file", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_get_artifact", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_search_files", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_list_skills", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_list_plugins", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_list_agents", "resource": "*", "effect": "allow" },
+        { "action": "opendesign_get_run", "resource": "*", "effect": "allow" }
+      ]
+    },
     "developer": {
       "model": "provider/model#variant",
       "steps": 80

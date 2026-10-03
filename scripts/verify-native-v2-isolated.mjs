@@ -13,6 +13,15 @@ const roles = {
 
 export const RETIRED_DESIGN_SKILLS = ["frontend-design", "impeccable-design-polish", "web-design-guidelines"]
 
+const designPermissionCases = [
+  ...["get_active_context", "get_project", "list_projects", "list_files", "get_file", "get_artifact", "search_files", "list_skills", "list_plugins", "list_agents", "get_run"]
+    .map((name) => ({ agent: "plan", action: `opendesign_${name}`, expected: "allow" })),
+  ...["start_run", "cancel_run", "write_file", "delete_file", "create_project", "delete_project", "create_artifact", "collect_brief", "confirm_brief", "future_mutation"]
+    .map((name) => ({ agent: "plan", action: `opendesign_${name}`, expected: "deny" })),
+  { agent: "build", action: "opendesign_start_run", expected: "allow" },
+  { agent: "plan", action: "edit", expected: "deny" },
+]
+
 export function buildIsolatedEnv(directory, path) {
   return {
     PATH: path,
@@ -58,6 +67,23 @@ export function checkRetiredSkills(skills) {
   const failures = []
   for (const id of RETIRED_DESIGN_SKILLS) {
     if (skills.some((item) => item.id === id)) failures.push(`retired design skill still installed: ${id}`)
+  }
+  return { ok: failures.length === 0, failures }
+}
+
+export function checkDesignPermissions(decisions) {
+  const failures = []
+  if (!decisions.length) return { ok: false, failures: ["design permissions were not evaluated"] }
+  if (decisions.length !== designPermissionCases.length) failures.push(`expected ${designPermissionCases.length} design permission decisions, got ${decisions.length}`)
+  for (const { agent, action, expected } of designPermissionCases) {
+    const matches = decisions.filter((item) => item.agent === agent && item.action === action)
+    if (matches.length !== 1) {
+      failures.push(`${agent} ${action}: expected one decision, got ${matches.length}`)
+      continue
+    }
+    const decision = matches[0]
+    if (decision.expected !== expected) failures.push(`${agent} ${action}: declared expectation must be ${expected}`)
+    if (decision.effect !== expected) failures.push(`${agent} ${action}: expected ${expected}, got ${String(decision.effect)}`)
   }
   return { ok: failures.length === 0, failures }
 }
@@ -127,6 +153,36 @@ async function getCatalog({ url, password }, path) {
   return response.json()
 }
 
+async function postApi({ url, password }, path, body) {
+  const response = await fetch(`${url}${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Basic ${Buffer.from(`opencode:${password}`).toString("base64")}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+    redirect: "error",
+    signal: AbortSignal.timeout(10000),
+  })
+  if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`)
+  return response.json()
+}
+
+async function evaluateDesignPermissions(connection) {
+  // Native policy evaluation only: no MCP server, tool execution or provider call.
+  const session = await postApi(connection, "/api/session", { title: "Isolated design-permission verification" })
+  const id = session.data?.id
+  if (!id) throw new Error("isolated permission session has no id")
+  const decisions = []
+  for (const item of designPermissionCases) {
+    const result = await postApi(connection, `/api/session/${id}/permission`, {
+      agent: item.agent, action: item.action, resources: ["*"],
+    })
+    decisions.push({ ...item, effect: result.data?.effect })
+  }
+  return { ...checkDesignPermissions(decisions), decisions, toolsInvoked: 0 }
+}
+
 async function verify() {
   const directory = await mkdtemp(join(tmpdir(), "ksi-native-v2-"))
   const env = buildIsolatedEnv(directory, process.env.PATH ?? "")
@@ -136,7 +192,13 @@ async function verify() {
     await mkdir(config, { recursive: true })
     const cli = join(root, "bin", "ksi-opencode.mjs")
     parseJson(run(process.execPath, [cli, "install", "--target", config, "--apply"], env, directory), "native installer")
-    await writeFile(join(config, "opencode.jsonc"), `${JSON.stringify({ agents: { developer: { model: "opencode-go/deepseek-v4.1-flash", steps: 47 } } }, null, 2)}\n`)
+    // The maintained example uses comment-only lines, not arbitrary JSONC parsing.
+    const sampleText = await readFile(join(root, "opencode.jsonc.example"), "utf8")
+    const sample = JSON.parse(sampleText.split("\n").filter((line) => !/^\s*\/\//.test(line)).join("\n"))
+    await writeFile(join(config, "opencode.jsonc"), `${JSON.stringify({ agents: {
+      developer: { model: "opencode-go/deepseek-v4.1-flash", steps: 47 },
+      ...(sample.agents?.plan ? { plan: sample.agents.plan } : {}),
+    } }, null, 2)}\n`)
     const source = await readFile(join(config, "agents", "developer.md"), "utf8")
     const installedAgents = (await readdir(join(config, "agents"))).sort()
     const configEntries = (await readdir(config)).sort()
@@ -167,9 +229,10 @@ async function verify() {
       if (skills.ok) break
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
-    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, retiredSkills: { ...skills, attempts: skillAttempts }, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
+    const designPermissions = await evaluateDesignPermissions(connection)
+    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, retiredSkills: { ...skills, attempts: skillAttempts }, designPermissions, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
-    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.noSkillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok) process.exitCode = 1
+    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.noSkillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok || !designPermissions.ok) process.exitCode = 1
   } finally {
     await stopIsolatedServer(server?.child)
     await rm(directory, { recursive: true, force: true })

@@ -14,6 +14,14 @@ Technical completion requires the agreed implementation/integration and actual v
 
 Material product, visual, and interaction design belongs to Local Codex through [the design integration contract](integrations/opendesign.md). Build owns production integration and small changes within approved patterns. Direction approval remains a real decision, not routine progress confirmation. ui-ux-pro-max can inform focused review but does not create a competing design direction.
 
+Classify new-artifact intake versus existing-artifact refinement before opening a brief card. Reuse
+agreed change requirements and verified project/storage/brand bindings. Interpret physical run status
+with required-output validation and agent explanation: produced output, genuine question, environment
+blocker, verified no-change and incomplete are different outcomes. The [run-result and Plan-permission
+procedure](integrations/opendesign.md#interpret-run-results-before-reporting-completion) retains native
+status, deliberate recovery and explicitly adopted read-only design-MCP access in Plan, without a new
+orchestrator. Recheck effective deployment identity/file-access evidence after relevant changes.
+
 OpenCode performs conditional Mobbin research before new/material or unresolved design and passes inspected pattern intent, canonical links and accessible images in the same agreed brief; no inner-MCP/auth inheritance is assumed. Bind the approved required-file content snapshot in the existing task record before production integration. Keep design previews for direction and actual product-server checks for functionality, with clearly labeled reachable links. Feedback can return as findings/questions, not automatic reverse-session execution or two writers in product files. Follow the [reference and snapshot handoff procedure](integrations/opendesign.md#reference-research-and-brief-transfer).
 
 ## Local commits and external delivery

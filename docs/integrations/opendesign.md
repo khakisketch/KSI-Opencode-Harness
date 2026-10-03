@@ -46,6 +46,28 @@ Reuse a valid check for the same connection and explicit target; do not repeat s
 design edit. Active context may change or expire, so resolve it when the user's request depends on the
 currently open project/file. A lost connection requires a new read, not automatic write/generation replay.
 
+### Resolve once, verify the actual capability
+
+- With an explicit project, read that project directly; do not first resolve an unrelated active tab.
+  Resolve active context only when the user means the currently open design. Once resolved, pin the
+  project/entry for subsequent calls; do not use an expiring active context as a durable task identity.
+- Record the product repository/screen, design project, resolved storage, entry and brand/token source
+  in the existing task ledger. A managed design folder is valid and may intentionally be separate from
+  production code; mark an unverified product linkage as pending, not inferred from a matching name.
+  A null registered design-system id does not negate an existing file-based brand specification.
+- Discover the few needed tools by server namespace/name, then reuse their verified signatures.
+  Page only when the result's next page is relevant. Re-discover after a connection/catalog change;
+  a temporarily empty catalog after a workspace move is not proof the integration was removed.
+- Web health, a connected MCP and an installed agent CLI prove different things; none alone proves
+  the inner agent can read required sources or write task-owned output. Reuse valid same-environment
+  file-access evidence, but invalidate it after image/CLI/security/mount/storage changes or access errors.
+  Any new model-backed smoke run still needs its own authorization; do not silently launch one on every edit.
+- After deployment/recreation, compare the actual image digest, effective Compose file list, storage
+  mounts and enforced security profiles with the approved deployment. Check effective capabilities,
+  no-new-privileges and seccomp as appropriate. Preserve credentials without reading/logging their values.
+  Drift is a blocker for a dependent run, not permission to restart or disable a sandbox. Report the
+  smallest separately authorized recovery action, active-run protection, interruption and rollback scope.
+
 Check `opencode mcp list` from the **actual project directory**. A healthy web server or a successful
 standalone MCP probe is not proof that the current OpenCode session is connected. If it says
 `Connection closed`, use OpenCode's `/mcps` to disconnect and reconnect this server in that project,
@@ -63,6 +85,30 @@ not invent design artifacts or silently substitute a locally-invented design sys
 ## When to use OpenDesign
 
 The default design path is Local Codex. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Direction approval is distinct from a routine implementation progress check; after approval, Build continues production integration and verification without per-task permission prompts.
+
+### Intake versus refinement
+
+Classify the action before opening a brief card:
+
+- **New artifact:** collect and confirm the brief unless the user explicitly waived questions. Prefill
+  supported known answers from the user's actual requirements; do not invent answers or confirm for them.
+- **Existing artifact refinement:** when the target and material direction are already agreed, use a
+  compact change brief rather than open and discard a new-artifact card. Include the current entry,
+  brand/token sources, requested delta, affected screens/states, expected output files and exclusions.
+  Inspect the relevant artifact bundle when its contents are needed; metadata alone does not prove
+  knowledge of the existing composition or CSS. Ask only for a missing material decision.
+- **Approved-pattern engineering edit:** remain in Build; do not commission another design run.
+
+For example, a visual-theme refinement may preserve copy, navigation and information architecture,
+use the existing brand specification, and identify the actual affected screens and required responsive
+states. Touch-target and overflow requirements are constraints to verify in rendered output, not a
+claim established by merely including them in the prompt.
+
+Read the current tool's locale support. The inspected brief-card implementation supports English,
+Simplified/Traditional Chinese and Japanese, with English fallback; Korean product UI does not imply
+a Korean brief card. Preserve the user's Korean requirements in the readable change brief and disclose
+card fallback if a new-artifact card is needed. Do not alter upstream localization or fabricate a
+translated native card. Recheck this limitation after a relevant upstream upgrade.
 
 Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If Local Codex is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
 
@@ -100,6 +146,59 @@ Commission or extend design work:
   user instead of cancelling, and only cancel on an explicit instruction.
 - File writes through the MCP surface are available, but they are not a substitute for a design run when the
   task is actually a design task.
+
+### Interpret run results before reporting completion
+
+Physical terminal status describes execution, not satisfaction of the requested task. Use terminal
+status together with `deliverableValid`/`deliverableValidation`, required output evidence and the inner
+agent's explanation. Do not rewrite native status or add a second continuation controller.
+
+| Observation | User-facing interpretation and next action |
+| --- | --- |
+| Queued/running, including unchanged file mtimes | Still working; poll at the supported interval. Do not cancel/replay. |
+| Failed/canceled, or explicit access/security/environment failure | Blocked/ended without completing the requested output. Report the concrete reason and preserve the prior artifact. Do not infer a missing user requirement or regenerate blindly. |
+| Clean terminal turn asking a genuine material question | User input needed; relay the question. A tool failure is not a question merely because no artifact was produced. |
+| Successful execution, valid deliverable and all required output verified | Design output produced, pending direction approval. Bind preview and required-file snapshot; not product implementation or human acceptance. |
+| Explicit verification-only task, no tool failure, inspected existing output and reasoned no-change result | Review completed without changes. Identify the existing artifact; do not call it newly generated. |
+| Terminal success but no valid required output, no justified question/no-change outcome | Output unverified/incomplete. Inspect the explanation and relevant diagnostic evidence; do not call it complete or attach an old project preview as this run's output. |
+
+If output exists but the run reports a failure, treat it as partial/unapproved until verified; output
+does not override an execution error. A required theme/CSS file missing from an otherwise valid HTML
+deliverable is still incomplete. An artifact manifest marked complete or an old preview returned by
+project metadata cannot override an invalid run-scoped deliverable verdict.
+
+Recovery depends on the cause: clarify a real question, diagnose an environment blocker, or inspect
+missing output. A lost start response uses the original request id/payload after querying the existing
+run; a terminal environment failure must not be blindly replayed. After an authorized repair, determine
+the supported continuation/retry action and authorization without inventing a resume mechanism.
+
+Normal polling should retain only run state, deliverable verdict, relevant error/question and usable
+links. Pull full diagnostics only for investigation and the source bundle when context, approval
+snapshot or implementation needs it. Keep internal identifiers in the task record, not product copy;
+do not print raw event streams, credentials or provider telemetry in progress messages.
+
+### Plan-only design MCP permissions
+
+Native Plan's file-edit restriction is not a deny rule for separately named MCP calls. The optional
+`agents.plan.permissions` block in [the configuration example](../../opencode.jsonc.example) first denies
+`opendesign_*`, then allows the explicitly known read tools. Future unknown tools stay denied. This
+blocks generation, file/project changes, cancellation and interactive brief mutations in Plan while
+retaining source/status discovery. Build's permissions and native system prompts are unchanged.
+
+Adopt the block explicitly and merge it with existing Plan rules; do not replace unrelated settings.
+Use the actual normalized MCP server prefix, and inspect effective configuration in the actual project
+because later project/agent rules may override it. Code Mode checks nested tool permissions too.
+Before adoption, run `opencode mcp list` from the actual project and compare the server name with
+the normalized action names in its tool catalog. After a server rename, update the rule prefix and
+evaluate reads/mutations/unknown actions for that **actual** prefix again. The isolated sample verifier
+checks `opendesign_*` only; passing it does not prove a differently named live connection is protected.
+The installer does **not** apply this policy or modify JSONC. This is a direct design-MCP boundary,
+not an OS sandbox, a blanket shell/subagent restriction or a guarantee about other read-only roles.
+
+`node scripts/verify-native-v2-isolated.mjs` evaluates native Plan read/mutation/unknown-tool decisions,
+Build generation permission and native Plan edit denial in an isolated server without design tools or
+provider calls. Test live adoption with native catalogs/evaluation, not by attempting a real deletion
+or design run. Startup without credentials/MCP and unmonitored child egress remain disclosed limits.
 
 ## Reference research and brief transfer
 
@@ -275,8 +374,10 @@ a separate writable Docker bind is read-only inside the sandbox; direct outer-co
 Then commission one real Local Codex fixture run and check the resulting bytes on the host.
 These checks prove the tested boundaries, not complete sandbox security or design quality.
 
-The DGX profile is installed at `/etc/apparmor.d/ksi-codex-userns`; its seccomp and Compose override
-are private host runtime files. Back up configuration before adding the security override to the
+The reviewed DGX deployment used `/etc/apparmor.d/ksi-codex-userns`; its seccomp and Compose override
+are private host runtime files. This is a deployment record, not proof the current container still
+uses it. Inspect actual image/Compose/security identity after every recreation and compare it with the
+approved connector configuration; health alone does not establish Local Codex readiness. Back up configuration before adding the security override to the
 connector's pinned Compose file list, so subsequent project connections retain it. Verify actual
 `CapEff=0`, `NoNewPrivs=1`, seccomp filtering and enforced profile after every rollout. Restore the
 previous pinned Compose list and recreate only the application service for rollback; remove the

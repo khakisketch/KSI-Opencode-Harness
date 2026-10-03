@@ -71,3 +71,54 @@ test("retired design skills must not reappear in the isolated skill catalog", ()
   assert.match(leaked.failures.join(" "), /frontend-design/)
   assert.match(leaked.failures.join(" "), /impeccable-design-polish/)
 })
+
+function designDecisions() {
+  return [
+    ...["get_active_context", "get_project", "list_projects", "list_files", "get_file", "get_artifact", "search_files", "list_skills", "list_plugins", "list_agents", "get_run"]
+      .map(name => ({ agent: "plan", action: `opendesign_${name}`, expected: "allow", effect: "allow" })),
+    ...["start_run", "cancel_run", "write_file", "delete_file", "create_project", "delete_project", "create_artifact", "collect_brief", "confirm_brief", "future_mutation"]
+      .map(name => ({ agent: "plan", action: `opendesign_${name}`, expected: "deny", effect: "deny" })),
+    { agent: "build", action: "opendesign_start_run", expected: "allow", effect: "allow" },
+    { agent: "plan", action: "edit", expected: "deny", effect: "deny" },
+  ]
+}
+
+test("design permission evidence rejects an allowed Plan mutation and missing evaluation", () => {
+  assert.deepEqual(verifier.checkDesignPermissions(designDecisions()), { ok: true, failures: [] })
+  const decisions = designDecisions()
+  decisions.find(d => d.agent === "plan" && d.action === "opendesign_start_run").effect = "allow"
+  const unsafe = verifier.checkDesignPermissions(decisions)
+  assert.equal(unsafe.ok, false)
+  assert.match(unsafe.failures[0], /plan opendesign_start_run.*expected deny, got allow/)
+  assert.equal(verifier.checkDesignPermissions([]).ok, false)
+})
+
+test("design permission evidence catches a blocked read and an unreported native verdict", () => {
+  const decisions = designDecisions()
+  decisions.find(d => d.action === "opendesign_get_artifact").effect = "deny"
+  delete decisions.find(d => d.action === "opendesign_future_mutation").effect
+  const result = verifier.checkDesignPermissions(decisions)
+  assert.equal(result.ok, false)
+  assert.equal(result.failures.length, 2)
+})
+
+test("design permission evidence rejects dropped and duplicate contract cases", () => {
+  for (const action of ["opendesign_future_mutation", "opendesign_get_artifact", "edit"]) {
+    const missing = designDecisions().filter(d => d.action !== action)
+    assert.equal(verifier.checkDesignPermissions(missing).ok, false, action)
+  }
+  const missingBuild = designDecisions().filter(d => d.agent !== "build")
+  assert.equal(verifier.checkDesignPermissions(missingBuild).ok, false)
+  const duplicate = designDecisions()
+  duplicate[duplicate.findIndex(d => d.action === "opendesign_future_mutation")] = { ...duplicate[0] }
+  assert.equal(duplicate.length, 23)
+  assert.equal(verifier.checkDesignPermissions(duplicate).ok, false)
+})
+
+test("design permission evidence does not trust a rewritten expected verdict", () => {
+  const decisions = designDecisions()
+  const unknown = decisions.find(d => d.action === "opendesign_future_mutation")
+  unknown.expected = "allow"
+  unknown.effect = "allow"
+  assert.equal(verifier.checkDesignPermissions(decisions).ok, false)
+})

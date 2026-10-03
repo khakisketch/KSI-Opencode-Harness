@@ -1,6 +1,6 @@
 # Product State - KSI OpenCode Harness
 
-Updated: 2026-10-02
+Updated: 2026-10-03
 
 ## Goal
 
@@ -18,20 +18,20 @@ preserved for audit, not active.
 | m01 | Long-running orchestration (coordinator-only Build, continuity, Research/design-task) | done | docs/superpowers/plans/2026-09-15-long-running-orchestration.md |
 | m02 | Operational evidence consistency (docs/state only) | done | docs/superpowers/plans/2026-09-23-operational-evidence.md + user acceptance 2026-09-24 |
 | m03 | Human-centered workflow (outcome-first Build, live-preview Design) | superseded | Design-primary premise removed 2026-09-30; docs/superpowers/plans/2026-09-23-human-centered-workflow.md kept as history |
-| m04 | Design workspace separation (retire OpenCode Design + kit, adopt OpenDesign) | in_progress | Conditional Mobbin/brief transfer, snapshot handoff and preview/product ownership guidance applied; user end-to-end flow acceptance separate; docs/superpowers/plans/2026-10-02-design-reference-handoff.md |
+| m04 | Design workspace separation (retire OpenCode Design + kit, adopt OpenDesign) | in_progress | Reference/snapshot guidance plus intake/result/readiness hardening and native Plan design-MCP boundary applied; reviewed deployment restored and one technical file-access fixture verified; user end-to-end flow acceptance separate; docs/superpowers/plans/2026-10-03-design-flow-hardening.md |
 | m05 | Three-role beta release and readable onboarding | in_progress | GitHub main Korean README renewal and npm0.5.0-beta.2/next published; clean public consumer verified; user README/workflow acceptance pending; docs/superpowers/plans/2026-10-01-readme-beta2-release.md |
 | m06 | Autonomous local execution with design ownership preserved | in_progress | Exact approved policy applied globally; source0682659 pushed, npm0.5.0-beta.3/next published and public18-file consumer verified; real-development acceptance separate; docs/superpowers/plans/2026-10-01-autonomous-execution.md |
 
 ## Current slice
 
-- Name: browser-toolkit-beta5-delivery (m06 supplement; technically delivered: current-server global application, GitHub main and public npm beta.5 next/latest with exact/default consumers verified; no required release engineering remains, human real-development/design acceptance separate)
-- Acceptance (user-visible): Existing lightweight native roles and already-applied global workspaces/browser policy remain intact. Latest reviewed docs/version reach GitHub main and public npm next/latest, and exact/default consumers match the reviewed tarball. Package installation remains three optional roles only, not automatic browser/tool/AGENTS installation. Real-development/design/auth/API/WCAG/audio acceptance remains separate from setup/release checks.
-- Plan ledger: docs/superpowers/plans/2026-10-02-browser-toolkit-beta5-release.md
+- Name: design-flow-hardening (m04 supplement; guidance/current-user permissions and separately authorized reviewed-runtime recovery implemented and verified; final local integration pending; no new public delivery authorized)
+- Acceptance (user-visible): Preserve Local Codex design ownership and native OpenCode engineering roles. Reuse existing refinement requirements, distinguish real output/questions/blockers/no-change, retain explicit project/storage/brand/snapshot provenance, block direct design mutations in Plan while keeping reads and Build behavior, and restore actual file-read/output capability without weakening isolation or changing EVENTOUCH. Human design/end-to-end comfort acceptance remains separate.
+- Plan ledger: docs/superpowers/plans/2026-10-03-design-flow-hardening.md
 - Scope note: m03 is superseded rather than completed; its live-preview Design acceptance was never claimed and is no longer the intended workflow
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
 
-- m04 design-workspace-separation — remaining: Human end-to-end acceptance of the design flow; reference/snapshot/preview ownership supplement is applied, no live generation claimed
+- m04 design-workspace-separation — remaining: Human end-to-end acceptance of the design flow; reference/snapshot/preview and run/intake/readiness guidance plus current-user Plan permission boundary applied. One live technical file-access/output fixture verified, not a product-design generation or visual acceptance claim.
 - m05 three-role-beta-release — remaining: user acceptance of the published README/workflow; GitHub/npm publication and public consumer installation verified
 - m06 autonomous-local-execution — remaining: user real-development acceptance; source/public beta.3 delivery verified, not a long-running behavior guarantee
 
@@ -46,6 +46,14 @@ preserved for audit, not active.
 - MCP idle/relaunch verified: same client/process reads after31min idle, isolated proxy termination then normal client relaunch/read pass; /tmp/opencode/od-closeout-idle.log. Automatic host-crash supervision and actual reboot are not claimed.
 - Global design workflow guidance in ~/.config/opencode/AGENTS.md: Local Codex default, actual server/project lookup, DGX execution not client-PC execution, explicit artifact-to-engineering handoff. Verified checks reused only for valid same-target context; changes/errors/restarts or active-context expiry require resolution. Live refresh/static invariants verified; no measured latency improvement claim. Later read-only review found EVENTOUCH registered with a valid HTML artifact in a managed design folder; this does not prove linkage to its product repository. Earlier absent-project observation is superseded, not a reason to create a replacement.
 - EVENTOUCH's separate codex MCP reports Connection closed; design MCP is connected and hosted Local Codex execution previously verified. Do not conflate these integrations; no fix to unrelated MCP configured as part of global guidance change.
+- Design-flow hardening limits: direct Plan design-MCP guard, not an OS/shell/subagent sandbox or proof of every project's config precedence. Future server-prefix changes require live re-evaluation. Verifier's example parsing is intentionally full-line-comment-only and fails closed for unsupported JSONC. Exact cause/actor of deployment drift is unknown; no automatic drift monitor/supervisor installed.
+
+## Design-flow hardening checkpoint (2026-10-03)
+
+- Existing integration guide/shared policy/current-user guidance now distinguish new intake from existing refinement, bind actual project/storage/brand identity, classify physical execution separately from required-output success, and specify cause-based recovery/narrow polling. No upstream application/prompt edits or new orchestrator.
+- Optional sample Plan-only deny/read-allow rules adopted globally after private backup; native isolated and live23-decision evaluation passes, Build catalog unchanged and unrelated configuration bytes preserved. Reviewer coverage finding reproduced RED then fixed; fresh source68pass/0fail/1opt-in Docker skip, packed consumer and isolated native checks pass. Evidence in the active ledger.
+- User separately approved restoring existing reviewed deployment. Same base layers/version/revision confirmed; no active work/invalid roots. Attempt1 safely rolled back after a verifier-command formatting error; attempt2 restored actual reviewed image/5Compose inputs/enforced profile with capabilities0/no-new-privileges/seccomp preserved. Managed volume, three selected mounts and EVENTOUCH source hashes preserved; existing MCP reads recovered without manual reconnect.
+- One authorized technical Local Codex fixture actually read input, computed SHA256 and wrote an exclusive318-byte HTML report; independently verified bytes/hash. Run verdict `entry_not_touched` correctly remains non-delivery because the canonical entry was intentionally unchanged. No EVENTOUCH retry, product design/visual/browser acceptance, new dependency, provider/model reconfiguration, OpenCode service restart, host reboot, push or npm publication. Published beta.5 stays immutable/unchanged.
 
 ## Delivery checkpoint (2026-10-01)
 
