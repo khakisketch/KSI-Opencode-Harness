@@ -143,8 +143,9 @@ event streams and keep polling.
   of the config-dir plugin copy confirmed.
 - Live E2E on the pinned runtime (new scratch session
   `ses_efe919192ffe4GKJ8ivvdT8GFR`, low model; existing terminal run
-  `78da352e…`; no new generation): paused → `held` with **cost 0, inbox 0**
-  (session untouched) → resume → delivered `resume:true wasHeld:true` within one
+  `78da352e…`; no new generation): paused → `held` with **cost 0 and inbox 0**
+  (inbox observed via `GET /api/session/{id}/inbox`; session untouched) → resume → delivered
+  `resume:true wasHeld:true` within one
   leader tick → session executed the turn automatically (cost 0.0021329,
   in/out 21103/82) and reported the invalid verdict correctly; delivered-event
   count stayed 1 across a further tick (dedup). Evidence
@@ -157,3 +158,13 @@ event streams and keep polling.
 - Not included: approval-hash binding (direction approval stays conversational).
 - Known limits: resume latency ≤ one poll cycle; leader takeover ≤ lease TTL
   after a crash; goal-pause state not observed (explicit `paused` only).
+- Post-pass independent review (reviewer session `ses_efe8db196ffeoNuUKM6expruqE`,
+  no Critical; tests matched claimed numbers). One-scope fixes: pause re-check
+  after the delivery claim (narrows the pause-vs-delivery window; the residual
+  window is documented), hook/tool lock-error surfacing (`hook-error`,
+  `pause failed: …`), corrupt `paused.json` preserved aside and logged, installer
+  staged directory swap and argument guards, docs wording corrected ("elected
+  poller", overlap/pause limits). Tests added: concurrent leadership claims
+  (exactly one winner), held→tracking regression on a re-activated run, corrupt
+  `paused.json`. Suite 39/39; full `npm run check` 107 pass / 0 fail / 1 opt-in
+  skip (`/tmp/opencode/ksi-design-notifier-check5.log`).

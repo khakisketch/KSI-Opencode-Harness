@@ -189,12 +189,13 @@ with the receiving agent and the user; the notifier only observes and notifies.
   can be lost; the returned run id is attached afterwards and the record becomes
   `run:<runId>@<sessionID>`. The tool-name prefix is configurable (`toolNamePrefix`, default
   `opendesign`); `design_runs list` exposes `observedTools` for diagnosis.
-- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) through a **single elected
-  poller**: every location instance captures its own sessions' bindings, but one instance holds the
-  state-lock leader lease and does the polling/delivery, so the daemon is not queried per location.
-  Delivery admits one message per run/session through the native session synthetic inbox
-  (deterministic `msg_...` id); a state-lock claim serializes concurrent instances and a re-send of
-  the same id is idempotent at the session.
+- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) through an **elected
+  poller**: every location instance captures its own sessions' bindings, but one instance holds
+  the state-lock leader lease and does the polling/delivery, so the daemon is not queried per
+  location. Overlapping ticks during a slow-tick lease handover are possible and are fenced by the
+  delivery claim. Delivery admits one message per run/session through the native session synthetic
+  inbox (deterministic `msg_...` id); a state-lock claim serializes concurrent instances and a
+  re-send of the same id is idempotent at the session.
 - **Wake permission is per session.** An unpaused session receives the completion with auto wake
   (`resume:true`, `delivery:queue`). A paused session is not contacted at all: the terminal result is
   stored as `held` in notifier state, and `resume` delivers it with auto wake on the next poll tick.
@@ -216,9 +217,10 @@ remove any `plugins` config entry that points at the development tree so only th
 The `design_runs` tool lists tracked/held runs (with leadership and pause state), re-watches an
 existing run as a recovery path, and pauses/resumes wake permission for the calling session
 (`scope:"all"` for every session). Limits: same-host daemon reachability, up to one poll interval of
-latency (including after resume), leader takeover within the lease TTL after a crash, and no
-knowledge of goal pause state other than the explicit switch. This component is not part of the npm
-package and does not install anything by itself.
+latency (including after resume), leader takeover within the lease TTL after a crash, overlapping
+ticks during handover are fenced by the delivery claim, a pause racing an in-flight delivery takes
+effect on the next tick, and no knowledge of goal pause state other than the explicit switch. This
+component is not part of the npm package and does not install anything by itself.
 
 ### Plan-only design MCP permissions
 

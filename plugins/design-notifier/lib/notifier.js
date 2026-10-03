@@ -15,9 +15,10 @@
 //   invalid output  → message instructs verification, never claims success
 //   restart         → state is re-read from disk; delivered runs are not resent
 //
-// Exactly one plugin instance polls and delivers: a state-lock leader lease
-// (`leader.json`) elects a single poller across the per-location instances.
-// Every instance still captures its own sessions' start_run calls.
+// Delivery is performed by a single elected poller (a state-lock lease makes
+// one plugin instance the poller; overlapping ticks during a slow-tick lease
+// handover are possible and are fenced by the delivery claim). Every instance
+// still captures its own sessions' start_run calls.
 
 import { randomUUID } from "node:crypto";
 import { buildDelivery, classifyRun, isTerminalStatus, summarizeRun } from "./messages.js";
@@ -156,6 +157,16 @@ export function createNotifier({
   }
 
   async function handleToolBefore(event) {
+    try {
+      await recordStartRunRequest(event);
+    } catch (error) {
+      // Hooks must not reject into the host tool pipeline; the after-hook can
+      // still attach the run via its own session id.
+      log("hook-error", { phase: "before", tool: event?.tool ?? null, error: describeError(error) });
+    }
+  }
+
+  async function recordStartRunRequest(event) {
     const name = typeof event?.tool === "string" ? event.tool : "";
     if (looksLikeDesignTool(name, toolNamePrefix)) recordSighting(name);
     if (!isStartRunTool(name, toolNamePrefix)) return;
@@ -230,6 +241,15 @@ export function createNotifier({
   }
 
   async function handleToolAfter(event) {
+    try {
+      await processStartRunResult(event);
+      kick();
+    } catch (error) {
+      log("hook-error", { phase: "after", tool: event?.tool ?? null, error: describeError(error) });
+    }
+  }
+
+  async function processStartRunResult(event) {
     const name = typeof event?.tool === "string" ? event.tool : "";
     if (looksLikeDesignTool(name, toolNamePrefix)) recordSighting(name);
     if (!isStartRunTool(name, toolNamePrefix)) return;
@@ -259,7 +279,6 @@ export function createNotifier({
       });
       log("start-failed", { requestId });
     }
-    kick();
   }
 
   async function watchRun({ runId, sessionID, agent }) {
@@ -334,6 +353,26 @@ export function createNotifier({
     const claimToken = randomUUID();
     const claimed = await store.claimDelivery(current.key, { now, token: claimToken });
     if (!claimed) return; // another instance is delivering, or the state changed
+    // Narrow the pause-vs-delivery window: a pause that landed while we were
+    // claiming holds the completion instead of contacting the session. A pause
+    // during the deliver() call itself still takes effect on the next tick.
+    if (await store.isPausedFor(current.sessionID)) {
+      await patch(current.key, {
+        state: "held",
+        heldAt: current.heldAt ?? now,
+        lastStatus: summarizeRun(run),
+        deliveryClaim: null,
+        lastError: null,
+        updatedAt: now,
+      });
+      log("held", {
+        runId: current.runId,
+        sessionID: current.sessionID,
+        classification: classifyRun(run),
+        afterClaim: true,
+      });
+      return;
+    }
     const message = buildDelivery({
       run,
       sessionID: current.sessionID,
@@ -593,7 +632,11 @@ export function createNotifier({
       if (!key) {
         return text("pause/resume with scope=session requires a calling session; use scope=all for the global switch");
       }
-      await store.setPaused(key, action === "pause");
+      try {
+        await store.setPaused(key, action === "pause");
+      } catch (error) {
+        return text(`${action} failed: ${describeError(error)}`);
+      }
       log(action === "pause" ? "paused" : "resumed", { scope });
       if (action === "resume") kick();
       const what = scope === "all" ? "all sessions" : "this session";

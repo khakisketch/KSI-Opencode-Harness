@@ -101,6 +101,20 @@ test("a legacy global paused file is migrated into paused.json on init", async (
   })
 })
 
+test("a corrupt paused.json is preserved aside and treated as not paused", async () => {
+  await withTempDir(async (dir) => {
+    const store = createStore({ dir })
+    await store.init()
+    await writeFile(join(dir, "paused.json"), "{broken")
+    assert.equal(await store.isPausedFor("ses_x"), false)
+    const entries = await readdir(dir)
+    assert.ok(entries.some((name) => name.startsWith("paused.json.corrupt-")), `corrupt copy kept: ${entries}`)
+    // The switch still works after the corrupt copy is set aside.
+    await store.setPaused("ses_x", true)
+    assert.equal(await store.isPausedFor("ses_x"), true)
+  })
+})
+
 test("log rotation caps the events log", async () => {
   await withTempDir(async (dir) => {
     const store = createStore({ dir })
@@ -147,6 +161,21 @@ test("leadership is single-holder, renewable, and expireable", async () => {
     assert.equal(await store.releaseLeadership("inst-b"), true)
     assert.equal(await store.readLeadership(), null)
     assert.equal(await store.tryAcquireLeadership("inst-a", { ttlMs: 60_000 }), true)
+  })
+})
+
+test("concurrent leadership claims produce exactly one holder", async () => {
+  await withTempDir(async (dir) => {
+    const store = createStore({ dir })
+    await store.init()
+    const results = await Promise.all([
+      store.tryAcquireLeadership("inst-x", { ttlMs: 60_000 }),
+      store.tryAcquireLeadership("inst-y", { ttlMs: 60_000 }),
+      store.tryAcquireLeadership("inst-z", { ttlMs: 60_000 }),
+    ])
+    assert.equal(results.filter(Boolean).length, 1, "exactly one concurrent claim wins")
+    const holder = await store.readLeadership()
+    assert.ok(["inst-x", "inst-y", "inst-z"].includes(holder.instanceId))
   })
 })
 

@@ -238,7 +238,17 @@ export function createStore({ dir, now = () => Date.now(), lockTimeoutMs = LOCK_
   // ---- wake permission (per session, with an optional global switch) ----
 
   async function readPausedMap() {
-    return (await readJsonFile(pausedPath)) ?? {};
+    try {
+      const value = JSON.parse(await readFile(pausedPath, "utf8"));
+      if (value && typeof value === "object" && !Array.isArray(value)) return value;
+      throw new SyntaxError("paused.json is not an object");
+    } catch (error) {
+      if (error?.code === "ENOENT") return {};
+      // Preserve a corrupt switch instead of silently discarding it.
+      await rename(pausedPath, `${pausedPath}.corrupt-${now()}`).catch(() => {});
+      await log("paused-corrupt", { error: String(error?.message ?? error).slice(0, 120) });
+      return {};
+    }
   }
 
   async function isPausedFor(sessionID) {

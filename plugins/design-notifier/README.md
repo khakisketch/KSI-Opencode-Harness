@@ -12,9 +12,10 @@ plugin never claims success, never retries generation and never implements.
 - Attaches the returned run id (`execute.after`) and re-keys the record to
   `run:<runId>@<sessionID>`.
 - Polls the local OpenDesign daemon (`GET /api/runs/:id`, default 60 s) through
-  a **single elected poller**: every location instance captures its own
-  sessions' runs, but a state-lock lease (`leader.json`) elects one instance to
-  poll and deliver, so the daemon is not queried per location.
+  an **elected poller**: every location instance captures its own sessions'
+  runs, but a state-lock lease (`leader.json`) elects one instance to poll and
+  deliver, so the daemon is not queried per location. Overlapping ticks during
+  a slow-tick lease handover are possible and are fenced by the delivery claim.
 - **Wake permission is per session.** An unpaused session receives the
   completion with automatic wake (`resume:true`, `delivery:queue`). A paused
   session is not contacted at all: the terminal result is stored as `held` in
@@ -114,6 +115,8 @@ copy loads; the installer refuses to touch a directory that is not this plugin.
 - If the OpenCode server is stopped entirely, deliveries happen after it
   restarts (state is durable). A crashed leader is replaced after its lease
   expires (≤60 s) or immediately on clean unload.
+- A pause that lands while a delivery is already in flight takes effect on the
+  next tick; a post-claim re-check narrows but does not eliminate this window.
 - `paused` is the explicit stop switch; goal-pause state and Plan mode
   restrictions are not observed (Plan remains restricted natively).
 - Automatic binding requires the MCP server tool name to contain the configured

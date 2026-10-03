@@ -50,6 +50,7 @@ async function withHarness(fn, { runs = {}, list = [] } = {}) {
     clock,
     deliveries,
     errors,
+    runs,
     deliverError: null,
     daemon: {
       baseUrl: "http://fake",
@@ -57,7 +58,7 @@ async function withHarness(fn, { runs = {}, list = [] } = {}) {
       getRun: async (runId) => {
         const key = `getRun:${runId}`
         if (errors.has(key)) throw errors.get(key)
-        const run = runs[runId]
+        const run = harness.runs[runId]
         if (!run) {
           const error = new Error("daemon responded 404")
           error.status = 404
@@ -244,6 +245,32 @@ test("a paused session stores the completion as held without contacting the sess
       assert.equal(deliveries.length, 1, "resume delivers the held completion")
       assert.equal(deliveries[0].message.resume, true)
       assert.equal((await store.get(`run:${RUN_A}@${SESSION}`)).state, "delivered")
+    },
+    { runs: { [RUN_A]: terminalRun(RUN_A) } },
+  )
+})
+
+test("a held run that becomes active again returns to tracking and is delivered at the new terminal end", async () => {
+  await withHarness(
+    async ({ store, notifier, deliveries, runs }) => {
+      await store.setPaused(SESSION, true)
+      await notifier.handleToolBefore(beforeEvent("req-back"))
+      await notifier.handleToolAfter(afterEvent("req-back", startResult(RUN_A, "req-back")))
+      await notifier.tick()
+      assert.equal((await store.get(`run:${RUN_A}@${SESSION}`)).state, "held")
+
+      // Manual resume inside OpenDesign makes the run active again.
+      runs[RUN_A] = { ...terminalRun(RUN_A), status: "running" }
+      await notifier.tick()
+      const tracking = await store.get(`run:${RUN_A}@${SESSION}`)
+      assert.equal(tracking.state, "tracking", "held returns to tracking while the run is active")
+      assert.equal(tracking.heldAt ?? null, null)
+
+      runs[RUN_A] = terminalRun(RUN_A)
+      await store.setPaused(SESSION, false)
+      await notifier.tick()
+      assert.equal(deliveries.length, 1, "the new terminal end is delivered once")
+      assert.equal(deliveries[0].message.resume, true)
     },
     { runs: { [RUN_A]: terminalRun(RUN_A) } },
   )

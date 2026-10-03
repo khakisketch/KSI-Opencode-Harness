@@ -12,7 +12,7 @@
 // The manifest (`installed.json`) records the source commit and a SHA256 per
 // file so drift is detectable.
 
-import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
@@ -52,6 +52,8 @@ export async function hashTree(root) {
   const files = await walkFiles(root);
   const hashes = {};
   for (const file of files) {
+    // The manifest itself is not part of the hashed payload.
+    if (file === "installed.json") continue;
     const data = await readFile(join(root, file));
     hashes[file] = createHash("sha256").update(data).digest("hex");
   }
@@ -90,11 +92,19 @@ export async function installDesignNotifier({
   commit = null,
 } = {}) {
   await assertOwnedTarget(targetDir);
-  await rm(targetDir, { recursive: true, force: true });
+  // Stage the copy next to the target, then swap directories so the service
+  // never scans a partially written plugin directory (rm+rename window only).
+  const staging = `${targetDir}.staging-${process.pid}`;
   await mkdir(dirname(targetDir), { recursive: true });
-  await cp(sourceDir, targetDir, { recursive: true, force: true });
-  const pkg = JSON.parse(await readFile(join(targetDir, "package.json"), "utf8"));
-  const files = await hashTree(targetDir);
+  await rm(staging, { recursive: true, force: true });
+  try {
+    await cp(sourceDir, staging, { recursive: true, force: true });
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true }).catch(() => {});
+    throw error;
+  }
+  const pkg = JSON.parse(await readFile(join(staging, "package.json"), "utf8"));
+  const files = await hashTree(staging);
   const manifest = {
     plugin: PLUGIN_NAME,
     version: typeof pkg.version === "string" ? pkg.version : null,
@@ -103,6 +113,8 @@ export async function installDesignNotifier({
     installedAt: now().toISOString(),
     files,
   };
+  await rm(targetDir, { recursive: true, force: true });
+  await rename(staging, targetDir);
   await writeFile(join(targetDir, "installed.json"), `${JSON.stringify(manifest, null, 2)}\n`, {
     mode: 0o600,
   });
@@ -157,8 +169,12 @@ async function main(argv) {
   const args = argv.filter((arg) => arg !== "--");
   const uninstall = args.includes("--uninstall");
   const verify = args.includes("--verify");
-  const targetArg = args.includes("--target") ? args[args.indexOf("--target") + 1] : undefined;
-  const sourceArg = args.includes("--source") ? args[args.indexOf("--source") + 1] : undefined;
+  const targetIndex = args.indexOf("--target");
+  const sourceIndex = args.indexOf("--source");
+  if (targetIndex !== -1 && !args[targetIndex + 1]) throw new Error("--target requires a path");
+  if (sourceIndex !== -1 && !args[sourceIndex + 1]) throw new Error("--source requires a path");
+  const targetArg = targetIndex === -1 ? undefined : args[targetIndex + 1];
+  const sourceArg = sourceIndex === -1 ? undefined : args[sourceIndex + 1];
 
   const sourceDir = sourceArg ? resolve(sourceArg) : resolveSourceDir();
   const targetDir = targetArg ? resolve(targetArg) : resolveTargetDir();
