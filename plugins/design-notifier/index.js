@@ -133,7 +133,13 @@ export default {
     }
 
     const stop = notifier.start();
-    log("setup", { version: ctx.app?.version ?? null, stateDir, daemonUrl, pollMs });
+    log("setup", {
+      version: ctx.app?.version ?? null,
+      location: ctx.location?.directory ?? null,
+      stateDir,
+      daemonUrl,
+      pollMs,
+    });
 
     return async () => {
       stop();

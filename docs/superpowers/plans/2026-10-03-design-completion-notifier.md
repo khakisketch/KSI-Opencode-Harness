@@ -68,4 +68,29 @@ Component: `plugins/design-notifier/` (V2 plugin, pure JS ESM, no deps).
   `/api/runs?projectId=` (host gateway, read-only).
 - Tests: new suite 23 pass / 0 fail; full `npm run check` 91 pass / 0 fail / 1 opt-in skip
   (`/tmp/opencode/ksi-design-notifier-check.log`).
-- (pending) live activation evidence and independent review.
+- Live activation (private backup
+  `/home/ksi/.local/state/ksi-harness-backups/design-notifier-20261003.121883`): global
+  `plugins` entry added; plugin loaded (`events.log` setup records). Seven instances exist
+  because OpenCode loads the global plugin **per active location** (7 project directories);
+  they share the state dir and delivered exactly once in testing. `location` is now recorded
+  in the setup log line for diagnosis.
+- Hook capture verified live: a read-only `opendesign_list_projects` call appeared in
+  `observedTools` (`execute.before` fires for MCP tools, including Code Mode nested calls);
+  raw tool names use the `opendesign_start_run` underscore form, which `isStartRunTool`
+  matches. Real `start_run` capture remains to be observed on the user's next design run
+  (extractRunId matches the verified `ok()` wrapping:
+  `content:[{type:"text", text: JSON.stringify(payload)}]`, `payload.id` = run id).
+- E2E delivery (scratch session `ses_efeac34dfffeiorYtVo7ruF0n3`, model
+  `muse-spark-1.3-contributor#low`; existing terminal runs only, **no new generation**):
+  1. paused + run `78da352e…` → admitted with `resume:false`: inbox item present, context
+     empty, session cost 0 (no execution).
+  2. resumed + run `f64f2576…` → one delivery event with `resume:true`; the idle session
+     executed a turn without user input (cost 0.00213, in/out 21079/79) and reported the
+     `entry_not_touched`/invalid verdict correctly with no regeneration.
+  3. Dedup: exactly two synthetic messages in context, one `delivered` event per run,
+     inbox empty afterwards. Evidence: `/tmp/opencode/ksi-design-notifier-e2e.json`.
+- Guard preserved: `test/native-package.test.mjs` ("never instructs registering KSI in
+  plugins") rejected an example-config mention of the harness plugin path; the example change
+  was reverted instead of relaxing the guard, and activation guidance lives only in
+  `docs/integrations/opendesign.md` + the plugin README.
+- (pending) independent reviewer pass.

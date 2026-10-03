@@ -33,9 +33,5 @@
   },
   "plugins": [
     // Optional, independent user-owned plugins may remain here.
-    // Optional design completion notifier: delivers OpenDesign run completion
-    // to the originating session (bindings, polling, restart recovery, pause).
-    // Point at the repository copy, e.g.:
-    // "/path/to/ksi-opencode-harness/plugins/design-notifier"
   ]
 }

@@ -331,4 +331,9 @@ test("extractRunId prefers request-matched candidates and rejects ambiguity", ()
     "a project id alone is not a run id",
   )
   assert.equal(extractRunId({ content: [{ type: "text", text: JSON.stringify({ id: RUN_B, projectId: RUN_B }) }] }, null, isValidRunId), RUN_B)
+  assert.equal(
+    extractRunId({ content: JSON.stringify({ id: RUN_A, projectId: "proj-a", requestId: "req-9" }) }, "req-9", isValidRunId),
+    RUN_A,
+    "a plain string content is parsed too",
+  )
 })

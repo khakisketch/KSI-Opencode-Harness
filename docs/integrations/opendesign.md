@@ -200,13 +200,12 @@ with the receiving agent and the user; the notifier only observes and notifies.
 - State is durable under `~/.local/state/opencode-design-notifier/` (atomic JSON bindings, bounded
   `events.log`, `paused` flag); restart recovery re-reads it and did not resend delivered runs.
 
-Activate by adding the plugin directory to the global `plugins` list (see
-[`opencode.jsonc.example`](../../opencode.jsonc.example)); watched config directories reload
-automatically, otherwise restart the service. The `design_runs` tool lists tracked runs,
-re-watches an existing run as a recovery path, and pauses/resumes automatic wake deliveries.
-Limits: same-host daemon reachability, up to one poll interval of latency, and no knowledge of
-goal/session pause state other than the explicit `paused` flag. This component is not part of the
-npm package and does not install anything by itself.
+Activate by adding the plugin directory from your harness checkout to the global `plugins` list;
+watched config directories reload automatically, otherwise restart the service. The `design_runs`
+tool lists tracked runs, re-watches an existing run as a recovery path, and pauses/resumes automatic
+wake deliveries. Limits: same-host daemon reachability, up to one poll interval of latency, and no
+knowledge of goal/session pause state other than the explicit `paused` flag. This component is not
+part of the npm package and does not install anything by itself.
 
 ### Plan-only design MCP permissions
 

@@ -40,7 +40,7 @@ function isSessionMissingError(error) {
 function isStartRunTool(name) {
   if (typeof name !== "string" || !name) return false;
   if (!name.toLowerCase().includes("opendesign")) return false;
-  return /(^|[_.])start_run$/i.test(name);
+  return /(^|[^a-z0-9])start_run$/i.test(name);
 }
 
 // The start_run MCP result carries the created run record; be defensive about
@@ -106,7 +106,7 @@ export function createNotifier({
   quickPollMs = 4_000,
   initialDelayMs = 1_500,
 } = {}) {
-  const sightings = new Map();
+  const sightingCounts = new Map();
   let running = false;
   let stopped = true;
   let intervalTimer = null;
@@ -116,9 +116,13 @@ export function createNotifier({
   const requestKey = (requestId) => `${REQUEST_KEY_PREFIX}${requestId}`;
   const runKey = (runId, sessionID) => `${RUN_KEY_PREFIX}${runId}@${sessionID}`;
 
+  function sightingsSnapshot() {
+    return Object.fromEntries(sightingCounts);
+  }
+
   function recordSighting(tool) {
-    const entry = sightings.get(tool);
-    sightings.set(tool, { count: (entry?.count ?? 0) + 1, lastAt: clock() });
+    const entry = sightingCounts.get(tool);
+    sightingCounts.set(tool, { count: (entry?.count ?? 0) + 1, lastAt: clock() });
     if (!entry) log("tool-sighting", { tool });
   }
 
@@ -129,8 +133,9 @@ export function createNotifier({
   }
 
   async function handleToolBefore(event) {
-    if (!isStartRunTool(event?.tool)) return;
-    recordSighting(event.tool);
+    const name = typeof event?.tool === "string" ? event.tool : "";
+    if (name.toLowerCase().includes("opendesign")) recordSighting(name);
+    if (!isStartRunTool(name)) return;
     const input = event.input && typeof event.input === "object" ? event.input : {};
     const requestId = typeof input.requestId === "string" && input.requestId ? input.requestId : null;
     if (!requestId) return;
@@ -190,8 +195,9 @@ export function createNotifier({
   }
 
   async function handleToolAfter(event) {
-    if (!isStartRunTool(event?.tool)) return;
-    recordSighting(event.tool);
+    const name = typeof event?.tool === "string" ? event.tool : "";
+    if (name.toLowerCase().includes("opendesign")) recordSighting(name);
+    if (!isStartRunTool(name)) return;
     const input = event.input && typeof event.input === "object" ? event.input : {};
     const requestId = typeof input.requestId === "string" && input.requestId ? input.requestId : null;
     if (event.status === "completed") {
@@ -443,7 +449,19 @@ export function createNotifier({
       const bindings = await store.load();
       const paused = await store.isPaused().catch(() => false);
       const rows = Object.values(bindings).map(compactBinding);
-      return text(JSON.stringify({ paused, stateDir: store.dir, daemon: daemon.baseUrl, bindings: rows }, null, 2));
+      return text(
+        JSON.stringify(
+          {
+            paused,
+            stateDir: store.dir,
+            daemon: daemon.baseUrl,
+            observedTools: sightingsSnapshot(),
+            bindings: rows,
+          },
+          null,
+          2,
+        ),
+      );
     }
     if (action === "pause" || action === "resume") {
       await store.setPaused(action === "pause");
@@ -473,6 +491,6 @@ export function createNotifier({
     tick,
     start,
     runTool,
-    sightings: () => Object.fromEntries(sightings),
+    sightings: sightingsSnapshot,
   };
 }
