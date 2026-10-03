@@ -2,7 +2,7 @@
 
 Updated: 2026-10-03
 Owner: OpenCode Build (this session)
-Status: implementing
+Status: technically complete; user real-run acceptance pending
 
 ## Objective
 Close the OpenDesign completion loop for the KSI workflow: when an OpenDesign
