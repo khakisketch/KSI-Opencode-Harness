@@ -113,3 +113,47 @@ Component: `plugins/design-notifier/` (V2 plugin, pure JS ESM, no deps).
   a re-send a session-level no-op even across the claim TTL.
 - Post-review suite: notifier tests 26/26; full `npm run check` 94 pass / 0 fail / 1 opt-in skip
   (`/tmp/opencode/ksi-design-notifier-check3.log`).
+
+## Hardening pass 2 (2026-10-03, user approved "그렇게 하자")
+
+Approved direction: keep the thin connector and improve the *safety* of the
+structure — (1) session-level wake permission, (2) no lock-less writes and
+separated held/delivered states, (3) one poller instead of per-location polling,
+(4) a pinned runtime copy instead of point the config at the dev tree, (5) defer
+event streams and keep polling.
+
+- Semantic change: **held completions live in notifier state, not in the
+  session inbox.** The plugin context exposes no inbox list/cancel API, so a
+  paused session is not contacted at all; `resume` delivers held completions
+  with auto wake. (Replaces the pass-1 `resume:false` inbox admission.)
+- Implementation: `be421d9` (plugin 0.2.0) — `paused.json` per-session/global
+  wake permission, `held` state (not TTL-reaped), state-lock leader lease
+  (`leader.json`, 60 s TTL, ≤20 s renew, released on unload) with per-instance
+  capture and single-poller delivery, `withLock` now fails the write after a
+  5 s timeout instead of proceeding unlocked, `scripts/install-design-notifier.mjs`
+  (SHA256 manifest, `--verify`, `--uninstall`, refuses non-plugin targets).
+- Tests: notifier suite 36/36 (held/resume, per-session isolation, global
+  switch, leader gating/takeover/release, lock-timeout failure, legacy pause
+  migration, installer); full `npm run check` 104 pass / 0 fail / 1 opt-in skip
+  (`/tmp/opencode/ksi-design-notifier-check4.log`).
+- Pinned install verified live: manifest commit `be421d9`, 7 files, `--verify`
+  ok; global config entry pointing at the repo removed (private backup
+  `design-notifier-pin-20261003.821d07`); `opencode plugin list` shows only
+  `/home/ksi/.config/opencode/plugins/design-notifier/index.js`; auto-discovery
+  of the config-dir plugin copy confirmed.
+- Live E2E on the pinned runtime (new scratch session
+  `ses_efe919192ffe4GKJ8ivvdT8GFR`, low model; existing terminal run
+  `78da352e…`; no new generation): paused → `held` with **cost 0, inbox 0**
+  (session untouched) → resume → delivered `resume:true wasHeld:true` within one
+  leader tick → session executed the turn automatically (cost 0.0021329,
+  in/out 21103/82) and reported the invalid verdict correctly; delivered-event
+  count stayed 1 across a further tick (dedup). Evidence
+  `/tmp/opencode/ksi-design-notifier-hardening.json`. One `leader-claimed` per
+  reload batch confirms single-poller election with 7 locations.
+- Transition artifact: 7 `tick-fatal: store.isPaused is not a function` entries
+  during a mid-edit reload; no errors after the final reload batches.
+- Deferred by design: daemon event/SSE subscription (item 5) — polling remains
+  the single mechanism until a demonstrated need.
+- Not included: approval-hash binding (direction approval stays conversational).
+- Known limits: resume latency ≤ one poll cycle; leader takeover ≤ lease TTL
+  after a crash; goal-pause state not observed (explicit `paused` only).

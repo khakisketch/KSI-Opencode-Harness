@@ -11,20 +11,23 @@ plugin never claims success, never retries generation and never implements.
   `opendesign_start_run`, before the response can be lost.
 - Attaches the returned run id (`execute.after`) and re-keys the record to
   `run:<runId>@<sessionID>`.
-- Polls the local OpenDesign daemon (`GET /api/runs/:id`, default 60 s) and
-  admits exactly one session notification per run on a terminal status
-  (`succeeded` / `failed` / `canceled`).
+- Polls the local OpenDesign daemon (`GET /api/runs/:id`, default 60 s) through
+  a **single elected poller**: every location instance captures its own
+  sessions' runs, but a state-lock lease (`leader.json`) elects one instance to
+  poll and deliver, so the daemon is not queried per location.
+- **Wake permission is per session.** An unpaused session receives the
+  completion with automatic wake (`resume:true`, `delivery:queue`). A paused
+  session is not contacted at all: the terminal result is stored as `held` in
+  notifier state, and `resume` delivers it with auto wake on the next poll tick.
 - Recovers across restarts: state lives on disk; a lost `start_run` response is
   reconciled by `clientRequestId` (`GET /api/runs?projectId=`) for up to 24 h —
   it never starts a replacement run.
-- Handles the previous failure modes: `deliverableValid:false` output is
-  reported as unverified, a terminal question is relayed for the agent to
-  surface, a deleted session is orphaned (never delivered to another session),
-  and duplicate notifications are suppressed by a delivery claim under the
-  state lock plus a deterministic `msg_...` id — OpenCode's synthetic endpoint
-  returns the original admission for a repeated id (verified 2026-10-03), so a
-  crash between admission and marking can re-issue the call without creating a
-  second message.
+- Failure modes: `deliverableValid:false` output is reported as unverified, a
+  deleted session is orphaned (never delivered to another session), a vanished
+  run is marked `missing`, and duplicates are prevented by a delivery claim
+  under the state lock plus a deterministic `msg_...` id (OpenCode's synthetic
+  endpoint returns the original admission for a repeated id — verified
+  2026-10-03).
 
 ## Policy
 
@@ -32,67 +35,90 @@ plugin never claims success, never retries generation and never implements.
 | --- | --- |
 | Waiting, session idle | queue delivery + auto wake (`resume:true`) |
 | Session busy | `delivery:"queue"` — does not interrupt the current turn |
-| Notifier paused | message is admitted without auto execution (`resume:false`) |
+| Session paused | completion stored as `held`; session untouched until `resume` |
+| Resume with held completions | delivered with auto wake on the next poll tick |
 | Target session deleted | marked `orphaned`; no cross-session delivery, no new agent |
 | Run missing on daemon | marked `missing`; kept for diagnosis, no delivery |
 | Plan-mode session | wakes, but the message requires analysis/report only |
 | Design output invalid | message forbids claiming a deliverable; no auto retry |
 
+Pausing is explicit: `design_runs pause` pauses the calling session,
+`design_runs pause` with `scope:"all"` pauses every session. The plugin does not
+observe the goal plugin's pause state.
+
 ## Files
 
 - `index.js` — plugin entry (`setup`), tool registration, delivery adapter.
-- `lib/notifier.js` — binding capture, polling, delivery policy, recovery.
+- `lib/notifier.js` — binding capture, leader coordination, polling, delivery
+  policy, recovery.
 - `lib/daemon.js` — read-only daemon client (`/api/runs`).
 - `lib/messages.js` — classification and the notification text.
-- `lib/state.js` — durable JSON state (atomic writes, lock, log rotation).
+- `lib/state.js` — durable JSON state (atomic writes, lock, leader lease, log
+  rotation).
 
 ## State
 
 Default directory: `~/.local/state/opencode-design-notifier/`
 
 - `bindings.json` — records keyed `req:<requestId>` or
-  `run:<runId>@<sessionID>`; states: `requested`, `tracking`, `delivered`,
-  `orphaned`, `missing`, `unresolved`.
-- `paused` — presence pauses automatic wake deliveries.
+  `run:<runId>@<sessionID>`; states: `requested`, `tracking`, `held`,
+  `delivered`, `orphaned`, `missing`, `unresolved`. `held` records are not
+  TTL-reaped: they are stored results waiting for wake permission.
+- `paused.json` — `{ "ses_...": {at} }` per-session pauses and/or
+  `{ "*": {at} }` global pause.
+- `leader.json` — single-poller lease `{ instanceId, at }` (60 s TTL, renewed
+  every ≤20 s, released on clean unload).
 - `events.log` — bounded JSONL diagnostics; never stores prompts or content.
 
 Environment overrides: `KSI_DESIGN_NOTIFIER_STATE_DIR`,
 `KSI_DESIGN_NOTIFIER_DAEMON_URL`, `KSI_DESIGN_NOTIFIER_POLL_MS`,
 `KSI_DESIGN_NOTIFIER_TOOL_PREFIX`. Plugin options: `{ stateDir, daemonUrl,
-pollMs, quickPollMs, initialDelayMs, toolNamePrefix }`. The default state
-directory honors `XDG_STATE_HOME` and `HOME`.
+pollMs, quickPollMs, initialDelayMs, toolNamePrefix, instanceLabel,
+renewEveryMs, leaseTtlMs }`. The default state directory honors
+`XDG_STATE_HOME` and `HOME`.
 
 ## `design_runs` tool
 
-- `list` — tracked runs, pause state, state directory.
+- `list` — tracked/held runs, pause state for the calling session, poller
+  leadership, observed tool names.
 - `watch` — bind an existing run to the calling session (recovery path when
   the automatic binding was lost; a run+session that was already notified is
   not re-notified).
-- `pause` / `resume` — control automatic wake deliveries globally.
+- `pause` / `resume` — wake permission for the calling session
+  (`scope:"all"` for every session).
 
-## Activation
+## Install (pinned runtime)
 
-Add the plugin directory to the global plugin list and let OpenCode reload:
+The runtime should not load the live development tree. Copy a verified revision
+into the global OpenCode config directory and let discovery load it:
 
-```jsonc
-{
-  "plugins": [
-    "/path/to/ksi-opencode-harness/plugins/design-notifier"
-  ]
-}
+```sh
+node scripts/install-design-notifier.mjs            # install/update the pinned copy
+node scripts/install-design-notifier.mjs --verify   # compare the copy to its manifest
+node scripts/install-design-notifier.mjs --uninstall
 ```
+
+The copy lands in `~/.config/opencode/plugins/design-notifier/` with an
+`installed.json` manifest (source commit + SHA256 per file). Remove any
+`plugins` config entry that points at the development tree so only the pinned
+copy loads; the installer refuses to touch a directory that is not this plugin.
 
 ## Limits
 
 - Same-host only: the OpenCode server process must reach the daemon gateway
   (default `http://127.0.0.1:7456`).
-- Notifications are pull-based (poll interval); expect up to one poll cycle of
-  latency after a run finishes.
+- Notifications are pull-based; expect up to one poll cycle (default 60 s) of
+  latency after a run finishes, and up to one cycle after `resume` for held
+  completions. A capture in a non-leader location is picked up by the leader's
+  next cycle.
 - If the OpenCode server is stopped entirely, deliveries happen after it
-  restarts (state is durable).
-- The notifier does not know about goal-pause state or workspace policy; use
-  `paused` for an explicit stop, and Plan mode remains restricted natively.
+  restarts (state is durable). A crashed leader is replaced after its lease
+  expires (≤60 s) or immediately on clean unload.
+- `paused` is the explicit stop switch; goal-pause state and Plan mode
+  restrictions are not observed (Plan remains restricted natively).
 - Automatic binding requires the MCP server tool name to contain the configured
   prefix (default `opendesign`). If your server uses a different prefix, set
   `toolNamePrefix` or use `design_runs watch`; `design_runs list` shows
   `observedTools` to diagnose what the hooks actually see.
+- The plugin does not produce approval records; direction approval stays a
+  conversation-level decision.

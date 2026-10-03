@@ -189,27 +189,36 @@ with the receiving agent and the user; the notifier only observes and notifies.
   can be lost; the returned run id is attached afterwards and the record becomes
   `run:<runId>@<sessionID>`. The tool-name prefix is configurable (`toolNamePrefix`, default
   `opendesign`); `design_runs list` exposes `observedTools` for diagnosis.
-- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) and admits one message per
-  run/session through the native session synthetic inbox (deterministic `msg_...` id). Concurrent
-  plugin instances — OpenCode loads the global plugin per active location — serialize delivery with a
-  state-lock claim so only one admits; a re-send of the same id is idempotent at the session.
+- The notifier polls the local daemon (`GET /api/runs/:id`, default 60 s) through a **single elected
+  poller**: every location instance captures its own sessions' bindings, but one instance holds the
+  state-lock leader lease and does the polling/delivery, so the daemon is not queried per location.
+  Delivery admits one message per run/session through the native session synthetic inbox
+  (deterministic `msg_...` id); a state-lock claim serializes concurrent instances and a re-send of
+  the same id is idempotent at the session.
+- **Wake permission is per session.** An unpaused session receives the completion with auto wake
+  (`resume:true`, `delivery:queue`). A paused session is not contacted at all: the terminal result is
+  stored as `held` in notifier state, and `resume` delivers it with auto wake on the next poll tick.
 - The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
   deliverable when `deliverableValid` is false, forbids blind regeneration, and asks for direction
   approval before code integration outside already-approved scope.
-- Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); notifier
-  paused → admitted with `resume:false`; deleted target session → `orphaned`, never delivered
-  elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for diagnosis,
-  no delivery); lost start response → reconciled by `clientRequestId` for up to 24 h without
-  starting a replacement run.
-- State is durable under `~/.local/state/opencode-design-notifier/` (atomic JSON bindings, bounded
-  `events.log`, `paused` flag); restart recovery re-reads it and did not resend delivered runs.
+- Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); paused
+  session → `held` (no session contact until resume); deleted target session → `orphaned`, never
+  delivered elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for
+  diagnosis, no delivery); lost start response → reconciled by `clientRequestId` for up to 24 h
+  without starting a replacement run.
+- State is durable under `~/.local/state/opencode-design-notifier/` (atomic JSON bindings,
+  `paused.json` per-session/global switches, `leader.json` lease, bounded `events.log`); restart
+  recovery re-reads it and does not resend delivered runs.
 
-Activate by adding the plugin directory from your harness checkout to the global `plugins` list;
-watched config directories reload automatically, otherwise restart the service. The `design_runs`
-tool lists tracked runs, re-watches an existing run as a recovery path, and pauses/resumes automatic
-wake deliveries. Limits: same-host daemon reachability, up to one poll interval of latency, and no
-knowledge of goal/session pause state other than the explicit `paused` flag. This component is not
-part of the npm package and does not install anything by itself.
+Install the pinned runtime copy with `node scripts/install-design-notifier.mjs` (writes
+`~/.config/opencode/plugins/design-notifier/` with a SHA256 manifest; `--verify` detects drift) and
+remove any `plugins` config entry that points at the development tree so only the pinned copy loads.
+The `design_runs` tool lists tracked/held runs (with leadership and pause state), re-watches an
+existing run as a recovery path, and pauses/resumes wake permission for the calling session
+(`scope:"all"` for every session). Limits: same-host daemon reachability, up to one poll interval of
+latency (including after resume), leader takeover within the lease TTL after a crash, and no
+knowledge of goal pause state other than the explicit switch. This component is not part of the npm
+package and does not install anything by itself.
 
 ### Plan-only design MCP permissions
 
