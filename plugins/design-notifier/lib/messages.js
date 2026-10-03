@@ -58,7 +58,7 @@ function buildLines(run) {
 const VERIFY_STEPS = [
   "1. Verify with OpenDesign tools before reporting: call get_run(runId) for the authoritative previewUrl/studioUrl and the inner agent's final message (agentMessage). Terminal status alone is execution-only.",
   "2. If the deliverable is invalid or the run failed: do not claim a design deliverable. Explain the concrete reason, relay a genuine question from agentMessage if present, and do not regenerate, replay or cancel-retry the run.",
-  "3. If the deliverable is valid: summarize the output and preview link. Only continue into code integration for changes the user already approved; otherwise stop and ask for direction approval.",
+  "3. If the deliverable is valid: default to finishing the job. When the change follows the project's existing approved design language and is within the scope the user already authorized, bring it into the product code and report the result with its preview. Stop and ask for direction only when the work introduces a new visual direction, is a client-facing deliverable, or goes beyond the authorized scope — or when the user asked to review the direction first.",
   "4. If this session is in Plan mode, analyze and report only; do not implement.",
   "5. Report to the user in their language, keeping internal runtime identifiers out of product copy except the run reference needed for traceability.",
 ];

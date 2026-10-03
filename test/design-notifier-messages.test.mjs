@@ -55,11 +55,14 @@ test("an invalid deliverable is never reported as success", () => {
   assert.equal(delivery.metadata["ksi.design-notifier"].classification, "invalid")
 })
 
-test("a valid deliverable asks for verification and direction approval, not silent implementation", () => {
+test("a valid deliverable defaults to finishing within authorized scope with a gate for new direction", () => {
   const delivery = buildDelivery({ run: validRun, sessionID: SESSION, requestId: "req-1", source: "hook" })
   assert.equal(delivery.classification, "valid")
   assert.match(delivery.text, /Deliverable: valid/)
-  assert.match(delivery.text, /Only continue into code integration for changes the user already approved/)
+  assert.match(delivery.text, /default to finishing the job/)
+  assert.match(delivery.text, /Stop and ask for direction only when/)
+  assert.match(delivery.text, /new visual direction/)
+  assert.match(delivery.text, /client-facing deliverable/)
   assert.match(delivery.text, /call get_run\(runId\)/)
 })
 

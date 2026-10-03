@@ -158,6 +158,31 @@ event streams and keep polling.
 - Not included: approval-hash binding (direction approval stays conversational).
 - Known limits: resume latency ≤ one poll cycle; leader takeover ≤ lease TTL
   after a crash; goal-pause state not observed (explicit `paused` only).
+
+## Policy alignment — finish-and-report default (2026-10-03, user-directed)
+
+User approved the clarified flow ("이렇게 개선해봐"): one instruction → brief →
+design → implementation → tests → result report without intermediate "shall I?"
+gates; the design is shown together with the implemented result; stop only for
+external delivery, irreversible/costly actions, and new brand/identity-level
+direction (plus client-facing deliverables and explicit "review first"
+requests); keep non-dependent work moving while a run or check is pending.
+
+- Global `~/.config/opencode/AGENTS.md` updated after private backup
+  (`design-autonomy-20261003.0445ff`, original sha256 `50659393…`): the design
+  bullets now default to finishing and reporting with the preview, gate only
+  the listed cases, keep non-dependent engineering moving while waiting, and
+  state that visual design quality comes from OpenDesign's harness (Build does
+  not substitute its own design). "Local Codex" phrasing clarified as
+  OpenDesign's local execution mode.
+- Notifier message step 3 (`lib/messages.js`) and its test now instruct the
+  receiving agent to default to finishing within authorized scope and to stop
+  only for new direction / client deliverable / out-of-scope (or an explicit
+  user request). Docs aligned: `docs/integrations/opendesign.md`
+  (result-interpretation row, handoff approval paragraph, notifier section) and
+  plugin README.
+- Verification: notifier suite 39/39; full `npm run check` 107 pass / 0 fail /
+  1 opt-in skip; pinned copy reinstalled and `--verify` green.
 - Post-pass independent review (reviewer session `ses_efe8db196ffeoNuUKM6expruqE`,
   no Critical; tests matched claimed numbers). One-scope fixes: pause re-check
   after the delivery claim (narrows the pause-vs-delivery window; the residual

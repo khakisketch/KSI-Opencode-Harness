@@ -159,7 +159,7 @@ agent's explanation. Do not rewrite native status or add a second continuation c
 | Queued/running, including unchanged file mtimes | Still working; poll at the supported interval. Do not cancel/replay. |
 | Failed/canceled, or explicit access/security/environment failure | Blocked/ended without completing the requested output. Report the concrete reason and preserve the prior artifact. Do not infer a missing user requirement or regenerate blindly. |
 | Clean terminal turn asking a genuine material question | User input needed; relay the question. A tool failure is not a question merely because no artifact was produced. |
-| Successful execution, valid deliverable and all required output verified | Design output produced, pending direction approval. Bind preview and required-file snapshot; not product implementation or human acceptance. |
+| Successful execution, valid deliverable and all required output verified | Design output produced. Bind the preview and required-file snapshot now; on the default path (existing approved design language, authorized scope) continue to implementation and report the result, and preview-and-wait only for a new visual direction, a client deliverable, or out-of-scope changes. Implementation and human acceptance stay separate from the design verdict. |
 | Explicit verification-only task, no tool failure, inspected existing output and reasoned no-change result | Review completed without changes. Identify the existing artifact; do not call it newly generated. |
 | Terminal success but no valid required output, no justified question/no-change outcome | Output unverified/incomplete. Inspect the explanation and relevant diagnostic evidence; do not call it complete or attach an old project preview as this run's output. |
 
@@ -200,8 +200,10 @@ with the receiving agent and the user; the notifier only observes and notifies.
   (`resume:true`, `delivery:queue`). A paused session is not contacted at all: the terminal result is
   stored as `held` in notifier state, and `resume` delivers it with auto wake on the next poll tick.
 - The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
-  deliverable when `deliverableValid` is false, forbids blind regeneration, and asks for direction
-  approval before code integration outside already-approved scope.
+  deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
+  the job (implementation plus a result report with its preview) when the change follows the existing
+  approved design language and authorized scope; it previews-and-waits only for a new visual
+  direction, a client-facing deliverable, or out-of-scope changes.
 - Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); paused
   session → `held` (no session contact until resume); deleted target session → `orphaned`, never
   delivered elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for
@@ -295,7 +297,7 @@ Keep a small record in the existing task ledger/design decision, not a new centr
 
 Request the source bundle once when implementation needs it; use explicit project/entry if default selection is absent or ambiguous. Check truncation/skipped files and follow up only for missing required source/assets. Preserve retrieved source bytes when hashing; if only decoded text is available, record its encoding/reconstruction and do not describe the hash as a raw binary-file hash. Binary references, CDN URLs and external dependencies may need separate retrieval/access checks. Never infer that every referenced asset is present just because a bundle request succeeded.
 
-User direction approval may happen in the design workspace or conversation. At approval, bind the agreed artifact to the captured snapshot; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
+User direction approval may happen in the design workspace or conversation. On the default path (existing approved design language, authorized scope) no separate pre-implementation approval is required: record the verification snapshot with the result report. When the change was gated (new visual direction, client deliverable, out-of-scope), bind the agreed artifact to the captured snapshot at approval; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
 
 ### Product verification and feedback
 

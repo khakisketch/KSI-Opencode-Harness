@@ -123,5 +123,7 @@ copy loads; the installer refuses to touch a directory that is not this plugin.
   prefix (default `opendesign`). If your server uses a different prefix, set
   `toolNamePrefix` or use `design_runs watch`; `design_runs list` shows
   `observedTools` to diagnose what the hooks actually see.
-- The plugin does not produce approval records; direction approval stays a
-  conversation-level decision.
+- The plugin does not produce approval records; the gated direction check
+  (new visual direction, client deliverable, out-of-scope) stays a
+  conversation-level decision, while default-path changes proceed to
+  implementation and a result report.
