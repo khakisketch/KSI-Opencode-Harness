@@ -93,4 +93,23 @@ Component: `plugins/design-notifier/` (V2 plugin, pure JS ESM, no deps).
   plugins") rejected an example-config mention of the harness plugin path; the example change
   was reverted instead of relaxing the guard, and activation guidance lives only in
   `docs/integrations/opendesign.md` + the plugin README.
-- (pending) independent reviewer pass.
+- Independent review (`reviewer`, read-only, session `ses_efea9685affeFhcLf5rSzOcnBP`): ran
+  23/23 tests; one Critical (multi-instance check-then-deliver race; "exactly one" doc overclaim),
+  Important items (watch/re-notify doc contradiction; `orphaned` conflated a daemon-missing run;
+  prefix matching undocumented), and minor robustness notes (structured MCP output, corrupt
+  non-object JSON, tmp-file cleanup, tick fatal handling, options docs). One-scope fix pass:
+  - Delivery claim under the state lock (`store.claimDelivery`, 120 s TTL) → concurrent instances
+    cannot both deliver; `store.mutate` now skips the write when nothing changed; tick failures are
+    logged (`tick-fatal`); corrupt non-object JSON is preserved; stale temp files are reaped; attach
+    without any session id keeps the request record instead of keying `@unknown`.
+  - New `missing` state (run absent on the daemon) distinct from `orphaned` (deleted session);
+    reap/cap treat both as final.
+  - `extractRunId` also reads `structuredContent`/`structuredOutput`; `toolNamePrefix` option/env
+    for renamed MCP servers (default `opendesign`), documented with `observedTools` diagnosis.
+  - Docs corrected: claim + deterministic id semantics, no "re-notify" claim for `watch`, states and
+    options/env lists, prefix limitation.
+- Server dedup verified empirically (probe `msg_454415d7…`): posting the same synthetic `id` twice
+  returned the original admission and the inbox held exactly one item — the deterministic id makes
+  a re-send a session-level no-op even across the claim TTL.
+- Post-review suite: notifier tests 26/26; full `npm run check` 94 pass / 0 fail / 1 opt-in skip
+  (`/tmp/opencode/ksi-design-notifier-check3.log`).
