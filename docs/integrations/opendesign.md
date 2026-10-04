@@ -168,6 +168,13 @@ does not override an execution error. A required theme/CSS file missing from an 
 deliverable is still incomplete. An artifact manifest marked complete or an old preview returned by
 project metadata cannot override an invalid run-scoped deliverable verdict.
 
+Project hygiene before commissioning: confirm the project has a meaningful declared entry
+(`get_project` → `entryFile`). Without one, validation falls back to file inference, and a project
+with ambiguous root HTML (for example two root HTML files) reports `entry_missing` for every run
+regardless of the produced output — a project-config gap, not an output verdict. Declare the
+canonical entry (`PATCH /api/projects/:id` metadata `entryFile`, preserving existing metadata keys)
+or create the artifact entry through the design workspace.
+
 Recovery depends on the cause: clarify a real question, diagnose an environment blocker, or inspect
 missing output. A lost start response uses the original request id/payload after querying the existing
 run; a terminal environment failure must not be blindly replayed. After an authorized repair, determine
