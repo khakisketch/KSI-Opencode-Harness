@@ -6,13 +6,19 @@ Plan supports understanding the project, comparing alternatives, analyzing risks
 
 The optional [autonomous local execution policy](../examples/autonomous-development.md) delegates the agreed outcome through implementation, bounded helpers, integration, verification and task-owned local commits. Merge it into the appropriate global/project `AGENTS.md` only after adopting it; package installation does not apply it. This is operating guidance, not permission enforcement or a new runtime.
 
+### Project judgment, not a replacement Plan role
+
+Latest approved requirements and user decisions define intended behavior; code, tests, Git and observed checks establish actual implementation state. Report discrepancies rather than letting existing implementation or a passing check redefine the product requirement. A checkpoint loses to fresh repository evidence about state, not to implementation about what the product should do.
+
+When asked for next development tasks or priorities, compare the current approved milestone and acceptance criteria with relevant implementation and verification evidence. Recommend by contribution to that goal, dependencies and actual blockers, not by unfinished-plan order alone. If a missing/conflicting goal materially affects the choice, ask for that decision. Keep clearly scoped requests focused unless a material conflict requires escalation; neither a recommendation nor technical completion authorizes new scope or interrupts remaining authorized work. Apply this criterion to Plan and Build without making Plan a mandatory gate or requiring full-product audits for small changes.
+
 Do not ask "should I continue?" between authorized tasks. Report meaningful progress and continue. Resolve reversible implementation details inside the agreed contracts; record significant assumptions. Reopen a decision only when material scope, target, effects or risk change, not because a file, test cycle or plan task ended.
 
 ## Technical completion and human acceptance
 
 Technical completion requires the agreed implementation/integration and actual verification evidence, plus scoped local commits when allowed by the adopted policy. Report failing/unrun checks honestly. Human product acceptance and external delivery are distinct states: tests do not establish user satisfaction, and pending acceptance does not block remaining authorized engineering work. Technical completion does not authorize a new milestone or unrelated backlog work.
 
-Material product, visual, and interaction design belongs to Local Codex through [the design integration contract](integrations/opendesign.md). Build owns production integration and small changes within approved patterns. Direction approval remains a real decision, not routine progress confirmation. ui-ux-pro-max can inform focused review but does not create a competing design direction.
+Material product, visual, and interaction design belongs to Local Codex through [the design integration contract](integrations/opendesign.md). Build owns production integration and small changes within approved patterns. Default to finish-and-report within the existing approved design language and authorized scope; preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request. Continue non-dependent engineering while waiting. Direction approval at those gates remains a real decision, not routine progress confirmation. ui-ux-pro-max can inform focused review but does not create a competing design direction.
 
 Classify new-artifact intake versus existing-artifact refinement before opening a brief card. Reuse
 agreed change requirements and verified project/storage/brand bindings. Interpret physical run status
@@ -22,7 +28,7 @@ procedure](integrations/opendesign.md#interpret-run-results-before-reporting-com
 status, deliberate recovery and explicitly adopted read-only design-MCP access in Plan, without a new
 orchestrator. Recheck effective deployment identity/file-access evidence after relevant changes.
 
-OpenCode performs conditional Mobbin research before new/material or unresolved design and passes inspected pattern intent, canonical links and accessible images in the same agreed brief; no inner-MCP/auth inheritance is assumed. Bind the approved required-file content snapshot in the existing task record before production integration. Keep design previews for direction and actual product-server checks for functionality, with clearly labeled reachable links. Feedback can return as findings/questions, not automatic reverse-session execution or two writers in product files. Follow the [reference and snapshot handoff procedure](integrations/opendesign.md#reference-research-and-brief-transfer).
+OpenCode performs conditional Mobbin research before new/material or unresolved design and passes inspected pattern intent, canonical links and accessible images in the same agreed brief; no inner-MCP/auth inheritance is assumed. Record the actual required-file snapshot and verification in the existing task record; bind human direction approval to the snapshot before production integration only when gated. Keep design previews for direction and actual product-server checks for functionality, with clearly labeled reachable links. Feedback can return as findings/questions, not automatic reverse-session execution or two writers in product files. Follow the [reference and snapshot handoff procedure](integrations/opendesign.md#reference-research-and-brief-transfer).
 
 ## Local commits and external delivery
 

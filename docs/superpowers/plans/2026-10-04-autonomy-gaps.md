@@ -46,6 +46,12 @@ C. Deliberately not built: a separate goal-completion watcher/notifier. Goal
 - AGENTS.md diff reviewed; private backup kept.
 
 ## Notes
+- The mandatory-limit wording in Objective/Actions/Verification above records the
+  original decision, not current policy. Later the same day the user explicitly
+  chose generous safety rails, no-progress auto-pause as the primary brake, and
+  user-adjustable/removable limits for product-critical work. The stop-report
+  contract remains required. No global cap or existing-goal change is implied.
+  Reconciled in `2026-10-04-guidance-alignment.md`; retain earlier evidence as history.
 - Usage costs only cover metered providers; subscription sessions show tokens
   with cost 0 (tokens remain the primary signal).
 - The report is on-demand; the durable "no reminder needed" pieces are the

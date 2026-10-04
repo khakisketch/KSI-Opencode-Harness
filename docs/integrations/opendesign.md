@@ -85,7 +85,7 @@ not invent design artifacts or silently substitute a locally-invented design sys
 
 ## When to use OpenDesign
 
-The default design path is Local Codex. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Direction approval is distinct from a routine implementation progress check; after approval, Build continues production integration and verification without per-task permission prompts.
+The default design path is Local Codex. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request; direction approval at those gates is distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
 
 ### Intake versus refinement
 
@@ -159,7 +159,7 @@ agent's explanation. Do not rewrite native status or add a second continuation c
 | Queued/running, including unchanged file mtimes | Still working; poll at the supported interval. Do not cancel/replay. |
 | Failed/canceled, or explicit access/security/environment failure | Blocked/ended without completing the requested output. Report the concrete reason and preserve the prior artifact. Do not infer a missing user requirement or regenerate blindly. |
 | Clean terminal turn asking a genuine material question | User input needed; relay the question. A tool failure is not a question merely because no artifact was produced. |
-| Successful execution, valid deliverable and all required output verified | Design output produced. Bind the preview and required-file snapshot now; on the default path (existing approved design language, authorized scope) continue to implementation and report the result, and preview-and-wait only for a new visual direction, a client deliverable, or out-of-scope changes. Implementation and human acceptance stay separate from the design verdict. |
+| Successful execution, valid deliverable and all required output verified | Design output produced. Bind the preview and required-file snapshot now; on the default path (existing approved design language, authorized scope) continue to implementation and report the result, and preview-and-wait only for a new visual direction, a client deliverable, out-of-scope changes or an explicit review-first request. Implementation and human acceptance stay separate from the design verdict. |
 | Explicit verification-only task, no tool failure, inspected existing output and reasoned no-change result | Review completed without changes. Identify the existing artifact; do not call it newly generated. |
 | Terminal success but no valid required output, no justified question/no-change outcome | Output unverified/incomplete. Inspect the explanation and relevant diagnostic evidence; do not call it complete or attach an old project preview as this run's output. |
 
@@ -210,7 +210,7 @@ with the receiving agent and the user; the notifier only observes and notifies.
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
   approved design language and authorized scope; it previews-and-waits only for a new visual
-  direction, a client-facing deliverable, or out-of-scope changes.
+   direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request.
 - Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); paused
   session → `held` (no session contact until resume); deleted target session → `orphaned`, never
   delivered elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for
@@ -297,14 +297,14 @@ Keep a small record in the existing task ledger/design decision, not a new centr
 | Target | Product repository, intended screen/flow and verified design project/storage mapping |
 | Source | Project/artifact identity, relative entry and required files; source preview as a locator |
 | Snapshot | Actual SHA256 of each required file's retrieved bytes; identify any referenced file/asset not included |
-| Direction approval | The user's actual approval evidence tied to that snapshot; missing approval remains pending |
+| Direction approval, when gated | The user's actual approval evidence tied to that snapshot; missing required approval remains pending. On the default path, record the verified snapshot with the result report instead of adding a gate |
 | Design contract | Required states, responsive rules, existing tokens/components and allowed differences |
 | Open decisions | Material questions still unanswered; absence must not be invented as approval |
 | Implementation evidence | Product revision, actual checks/rendered states, differences and unverified items |
 
 Request the source bundle once when implementation needs it; use explicit project/entry if default selection is absent or ambiguous. Check truncation/skipped files and follow up only for missing required source/assets. Preserve retrieved source bytes when hashing; if only decoded text is available, record its encoding/reconstruction and do not describe the hash as a raw binary-file hash. Binary references, CDN URLs and external dependencies may need separate retrieval/access checks. Never infer that every referenced asset is present just because a bundle request succeeded.
 
-User direction approval may happen in the design workspace or conversation. On the default path (existing approved design language, authorized scope) no separate pre-implementation approval is required: record the verification snapshot with the result report. When the change was gated (new visual direction, client deliverable, out-of-scope), bind the agreed artifact to the captured snapshot at approval; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
+User direction approval may happen in the design workspace or conversation. On the default path (existing approved design language, authorized scope) no separate pre-implementation approval is required: record the verification snapshot with the result report. When the change was gated (new visual direction, client deliverable, out-of-scope or explicit review-first request), bind the agreed artifact to the captured snapshot at approval; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
 
 ### Product verification and feedback
 
