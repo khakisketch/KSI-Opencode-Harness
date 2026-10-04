@@ -60,6 +60,7 @@ test("summarizeGoals normalizes the v2 goals.json shape and sorts by recency", (
   assert.equal(goals[1].objective, "first objective", "newlines collapsed")
   assert.equal(goals[1].tokensUsed, 393061352)
   assert.equal(goals[1].updatedAt, 1790990000 * 1000, "second-based goal timestamps become milliseconds")
+  assert.equal(goals[1].maxDurationSeconds, null)
 })
 
 test("summarizeBindings lists pending runs first and keeps classification", () => {

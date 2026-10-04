@@ -94,6 +94,7 @@ export function summarizeGoals(raw) {
       tokenBudget: numberOrNull(goal.tokenBudget),
       autoTurns: numberOrNull(goal.autoTurns),
       maxAutoTurns: numberOrNull(goal.maxAutoTurns),
+      maxDurationSeconds: numberOrNull(goal.maxDurationSeconds),
       updatedAt: toMillis(goal.updatedAt),
     }))
     .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
@@ -227,8 +228,10 @@ export function renderReport(report) {
   for (const goal of report.goals) {
     const tokens = `${formatTokens(goal.tokensUsed ?? 0)}${goal.tokenBudget ? `/${formatTokens(goal.tokenBudget)}` : ""}`;
     const turns = goal.autoTurns === null ? "?" : `${goal.autoTurns}${goal.maxAutoTurns ? `/${goal.maxAutoTurns}` : ""}`;
+    const unbounded =
+      goal.tokenBudget === null && goal.maxAutoTurns === null && goal.maxDurationSeconds === null;
     lines.push(
-      `  - [${goal.status}] ${goal.sessionID ? goal.sessionID.slice(0, 16) : "?"}  tokens ${tokens}  turns ${turns}  ${formatTime(goal.updatedAt)}`,
+      `  - [${goal.status}] ${goal.sessionID ? goal.sessionID.slice(0, 16) : "?"}  tokens ${tokens}  turns ${turns}  ${formatTime(goal.updatedAt)}${unbounded ? "  [!unbounded: no token/turn/time limits]" : ""}`,
     );
     lines.push(`      ${goal.objective}`);
   }
