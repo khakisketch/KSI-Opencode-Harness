@@ -1,7 +1,7 @@
 # Guidance alignment — workstream ledger
 
 Updated: 2026-10-04
-Status: technically verified; local integration pending
+Status: technically complete locally; real-work acceptance pending
 Owner: OpenCode Build
 
 ## Approved scope
@@ -28,7 +28,7 @@ No model, permission, custom-role, plugin, goal, publication or deployment chang
 - [x] Align guidance and current state; annotate superseded historical decisions.
 - [x] Independent read-only review of scope, contradictions and judgment scenarios.
 - [x] Independent final source/package verification and configuration preservation.
-- [ ] Verified local commit, integration, affected checks and owned-workspace cleanup.
+- [x] Verified local commit, integration, affected checks and owned-workspace cleanup.
 
 ## Verification contract
 
@@ -63,4 +63,23 @@ not a live product acceptance or proof of improved average model behavior.
   the added ledger. Logs: `/tmp/opencode/ksi-guidance-alignment-final-{check,package,diff}.log`.
   Six config/custom-role hashes still match. Global AGENTS.md is an intentional,
   separately reviewed edit, not one of those preserved paths.
-  Integrated checks remain pending; no improved model-quality claim.
+  No improved model-quality claim.
+- Commit `84bbbc50b163ed1c7ad38a7b5870663c1639ce94` fast-forwarded into canonical
+  `main`; same independent test-runner verified that exact integrated HEAD:
+  `npm run check` exit 0 (112 tests / 111 pass / 0 fail / 1 opt-in skip),
+  `npm run check:package` exit 0, `git diff --check` exit 0; six preservation
+  hashes match. Logs: `/tmp/opencode/ksi-guidance-alignment-merged-{check,package,diff}.log`.
+- Session returned to canonical main. Owned task workspace was inspected including
+  ignored files; its only unique ignored checkpoint was copied to the private
+  backup before removal. Non-forced worktree removal and merged-branch deletion
+  succeeded. Four pre-existing unrelated worktrees retained.
+- No push, npm publication, native prompt/model/permission/role/plugin change,
+  service restart, goal mutation or provider/behavioral probe. Global AGENTS.md
+  changes were observed as native instruction updates in this session.
+- Next acceptance candidate: observe scoped fixes and next-task decisions during
+  real authorized work (m06), plus existing design-flow human acceptance (m04).
+- Final evidence-only delta independently checked by the same test-runner:
+  `git diff --cached --check` exit 0; only this ledger and product-state changed
+  after the integrated checks, both excluded from package.files; six config/role
+  hashes remain matched. Log: `/tmp/opencode/ksi-guidance-alignment-closeout-diff.log`.
+  Test-runner session rebound to canonical main after owned-workspace cleanup.
