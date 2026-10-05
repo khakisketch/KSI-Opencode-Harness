@@ -14,8 +14,9 @@ automatic installer. Superpowers is also separately installed, not a prerequisit
 
 DGX user-level operating guidance is installed separately in `~/.config/opencode/AGENTS.md`, under
 `Design-to-engineering workflow`. It applies across that user's OpenCode projects; it is not installed
-by the KSI package. The default is **Local Codex** (OpenDesign's name for its local execution mode;
-not the standalone Codex CLI) in the connected server's execution environment,
+by the KSI package. The default is **OpenDesign's local execution** (OpenDesign labels this mode
+"Local Codex"; the execution agent/model is chosen per run — not the standalone Codex CLI) in the
+connected server's execution environment,
 not the browser client's PC. **OpenDesign Cloud** requires an explicit user request. Agents must verify
 the actual connection, project and storage root before describing execution location or modifying files;
 they must not assume a code repository is already a registered design project. Design-to-product handoff
@@ -85,7 +86,7 @@ not invent design artifacts or silently substitute a locally-invented design sys
 
 ## When to use OpenDesign
 
-The default design path is Local Codex. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request; direction approval at those gates is distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
+The default design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request; direction approval at those gates is distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
 
 ### Intake versus refinement
 
@@ -120,7 +121,7 @@ a Korean brief card. Preserve the user's Korean requirements in the readable cha
 card fallback if a new-artifact card is needed. Do not alter upstream localization or fabricate a
 translated native card. Recheck this limitation after a relevant upstream upgrade.
 
-Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If Local Codex is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
+Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If OpenDesign's local execution is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
 
 - A new screen, view, or page.
 - A material layout or navigation change.
@@ -265,7 +266,7 @@ or design run. Startup without credentials/MCP and unmonitored child egress rema
 
 ## Reference research and brief transfer
 
-OpenCode owns the existing reference-research integration; Local Codex owns design synthesis. Use focused Mobbin screen/flow/section research before a new screen, material redesign or unresolved pattern when it can inform the task. Do not repeat research for implementation of an already-approved screen, component reuse, small copy/spacing changes or backend work. Respect explicit user requests, supplied references and project constraints. Routine searches/selection inside the authorized design brief do not need a separate user approval for every query.
+OpenCode owns the existing reference-research integration; OpenDesign's local execution owns design synthesis. Use focused Mobbin screen/flow/section research before a new screen, material redesign or unresolved pattern when it can inform the task. Do not repeat research for implementation of an already-approved screen, component reuse, small copy/spacing changes or backend work. Respect explicit user requests, supplied references and project constraints. Routine searches/selection inside the authorized design brief do not need a separate user approval for every query.
 
 Select references based on actually inspected images, not app names or metadata alone. Retain canonical Mobbin links and record the specific hierarchy, interaction or state pattern to borrow; do not copy brand assets or product copy. When an image must be embedded, saved or passed into design, use the permitted high-resolution image source rather than the low-resolution inline preview. Image URLs expire; keep permitted selected files in a task-owned reference location when needed. References supplement existing tokens/components and human-approved direction, not replace them.
 
@@ -278,13 +279,13 @@ Send the same agreed requirements/constraints plus this compact reference input 
 
 Verify that the design execution environment can read those files and interpret the image input. A host or client-PC path, external URL, or screenshot filename alone does not prove access or vision support. Use the target project's supported attachment/file mechanism or verified shared reference location; do not expose the home directory or copy authentication stores. An OpenCode MCP connection is not automatically inherited by the design run. Configure an additional inner connection only as a separate authorized change, not as a prerequisite to this reference-transfer workflow.
 
-If Mobbin is absent, unauthorized or unhelpful, report the limitation and use provided references/established patterns where sufficient; do not fabricate results or block every design task by default. If essential design direction remains unresolved, return that decision to the user. Missing Local Codex capability is a separate blocker and does not authorize silent substitution with a UI-reference skill or OpenDesign Cloud.
+If Mobbin is absent, unauthorized or unhelpful, report the limitation and use provided references/established patterns where sufficient; do not fabricate results or block every design task by default. If essential design direction remains unresolved, return that decision to the user. Missing local design-execution capability is a separate blocker and does not authorize silent substitution with a UI-reference skill or OpenDesign Cloud.
 
 ## Handoff requirements
 
 ### Product-aware frontend improvement
 
-Local Codex can improve an existing product's UI; a separate design folder is not
+OpenDesign's local execution can improve an existing product's UI; a separate design folder is not
 proof of product-source access, and a design artifact is not an automatic product
 integration. Build supplies the actual implementation context so design work does
 not become an unrelated mockup that engineering has to redesign. When verified write
@@ -370,7 +371,7 @@ actual required-file hashes and necessary differences in the existing handoff.
 
 Compare the design preview and the real product at corresponding relevant states
 and viewports. Verify actual navigation, callbacks, keyboard/focus and persistence
-where changed. Important design compromises return to Local Codex with the exact
+where changed. Important design compromises return to OpenDesign's local execution with the exact
 source snapshot, product capture and constraint; routine adapters do not require
 another design run. Recheck after integration fixes. This is a scoped feedback loop,
 not automatic synchronization, recursive generation or mandatory pixel-perfect scoring.
@@ -391,7 +392,7 @@ for real product frontend work over mockup-then-reimplement.
   writes). A separate worktree is optional convenience, not a requirement: use one
   when the user's working tree must stay untouched or concurrent writers would
   otherwise collide.
-- Keep one writer at a time on the delegated UI paths. Local Codex owns the UI source
+- Keep one writer at a time on the delegated UI paths. OpenDesign's local execution owns the UI source
   edits; Build owns requirements/contracts, actual verification, integration and Git.
   Sequential handoff is the default; concurrent writers need disjoint files and
   separate workspaces (a worktree keeps the checkouts separate).
@@ -469,7 +470,7 @@ Build can return task-scoped product captures, observed differences and constrai
 - A generated artifact is not design approval, and a passing test is not user acceptance. The Human owns both.
 - Do not claim a design run, file read, or rendered inspection that did not actually occur.
 
-- OpenCode owns the development conversation, production changes, verification and Git. Local Codex is the design specialist. An internal coding runtime used for design is not authorization to launch/resume the outer engineering session, recursively commission more design runs, or change product API/data/Git/deployment.
+- OpenCode owns the development conversation, production changes, verification and Git. OpenDesign's local execution is the design specialist. An internal coding runtime used for design is not authorization to launch/resume the outer engineering session, recursively commission more design runs, or change product API/data/Git/deployment.
 - Keep task-owned design/reference outputs and product writes under explicit ownership; never let concurrent design and Build writers modify the same product files. With verified source access, prefer direct edits in the actual product repository (one writer at a time); without it, keep separate design-output locations with existing product sources read-only where practical. An imported writable project root may technically permit such writes: operating guidance is not a filesystem sandbox. Do not silently move/copy the user's project or reconfigure mounts.
 
 ## Optional DGX remote-folder gateway (source-only)
@@ -548,9 +549,9 @@ conscious retries; do not automatically replay uploads. Reference-file access is
 interpretation accuracy or support for every format. Check actual outputs rather than terminal status;
 technical JSON reports are not rendered design artifacts. Fixture results are in the closeout ledger.
 
-### Local Codex nested sandbox on Docker
+### Local execution nested sandbox on Docker
 
-Newer Local Codex uses bubblewrap. Docker's default seccomp denies its user-namespace creation;
+The local design execution agent uses bubblewrap. Docker's default seccomp denies its user-namespace creation;
 the default AppArmor mount denial also blocks its nested read-only filesystem setup. A healthy
 daemon or terminal run status alone does not prove shell tools can execute or save files.
 
@@ -569,15 +570,15 @@ default-deny syscalls. Do not use privileged mode, unconfined profiles, host sys
 `danger-full-access`/legacy sandbox fallbacks to hide failures.
 
 Prove the policy before deployment in a disposable, network-disabled container with no credentials:
-Local Codex sandbox execution succeeds; workspace-write can create a file in the selected root;
+The local execution sandbox succeeds; workspace-write can create a file in the selected root;
 a separate writable Docker bind is read-only inside the sandbox; direct outer-container mount fails.
-Then commission one real Local Codex fixture run and check the resulting bytes on the host.
+Then commission one real local-execution fixture run and check the resulting bytes on the host.
 These checks prove the tested boundaries, not complete sandbox security or design quality.
 
 The reviewed DGX deployment used `/etc/apparmor.d/ksi-codex-userns`; its seccomp and Compose override
 are private host runtime files. This is a deployment record, not proof the current container still
 uses it. Inspect actual image/Compose/security identity after every recreation and compare it with the
-approved connector configuration; health alone does not establish Local Codex readiness. Back up configuration before adding the security override to the
+approved connector configuration; health alone does not establish local-execution readiness. Back up configuration before adding the security override to the
 connector's pinned Compose file list, so subsequent project connections retain it. Verify actual
 `CapEff=0`, `NoNewPrivs=1`, seccomp filtering and enforced profile after every rollout. Restore the
 previous pinned Compose list and recreate only the application service for rollback; remove the
