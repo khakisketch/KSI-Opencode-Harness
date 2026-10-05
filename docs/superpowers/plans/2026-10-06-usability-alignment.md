@@ -1,7 +1,7 @@
 # Usability alignment Implementation Plan
 
 Updated: 2026-10-06
-Status: verified technically; local commit/closeout pending
+Status: technically complete locally; runtime adoption and human real-use acceptance separate
 
 > **For agentic workers:** Use executing-plans inline; one whole-change reviewer and independent final test-runner. Checklist below is the workstream ledger.
 
@@ -69,7 +69,7 @@ Files: global `AGENTS.md`, examples, execution/integration guides, README, curre
 - [x] Reconcile prior review-once integration/verification evidence and current active work; retain dated history as superseded, not current policy.
 - [x] Whole-change reviewer; repair actionable findings with RED→GREEN where code changes.
 - [x] Independent test-runner: `npm run check`, `npm run check:package`, `git diff --check`, controlled CLI fixtures, six hash preservation.
-- [ ] Task-owned local commits only; refresh idle checkpoint. No push/npm/runtime installation.
+- [x] Task-owned local commits only; refresh idle checkpoint. No push/npm/runtime installation.
 
 ## Evidence / Progress
 
@@ -84,3 +84,4 @@ Files: global `AGENTS.md`, examples, execution/integration guides, README, curre
 - Final: Ruling: review's unexercised live runtime/catalog/product/browser/visual behavior is not verified by this task — those surfaces are unchanged or outside local source checks; runtime adoption/real-use acceptance stay explicit follow-ups — cost if wrong: deployment behavior may require further validation before delivery.
 - Independent test-runner `ses_ef32a4baeffe4tsUBw0A2JSqG0` on main ea8b514 +17 task paths: `npm run check` exit0 (129/128 pass/0 fail/1 optional skip), `npm run check:package` exit0, `git diff --check` exit0; all fixture categories included. Six config/role hashes match; global diff exactly three intended hunks. Installed notifier messages remain byte-identical to ea8b514 baseline (no runtime update).
 - Source CLI status/doctor JSON exit0; actual HEAD/recorded-active matched, pending acceptance/local-ahead delivery separated, all-present doctor still unverified. Independent strace doctor check: no child exec/network calls. Evidence `/tmp/opencode/ksi-usability-final-{check,package,diff}.log`, `ksi-usability-final-{status,doctor}.json`, `ksi-usability-final-doctor-strace.log`.
+- Local implementation committed as `f57f211` on main. No workspace created/moved/merged or removed; four unrelated worktrees preserved. Closeout updates only this ledger/product-state; checkpoint remains private/uncommitted. Current global policy is applied, notifier source changes are not installed, GitHub/npm unchanged. Native pause orchestration is guidance, not a newly enforced/atomic API; no actual task/goal pause was performed.
