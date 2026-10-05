@@ -34,7 +34,7 @@ release.
 - [x] Confirm scope; create owned workspace; baseline check (112/111/0/1).
 - [x] Apply the three approved edits.
 - [x] Independent review and source/package/preservation checks.
-- [ ] Commit/integration, integrated check, cleanup and checkpoint.
+- [x] Commit/integration, integrated check, cleanup and checkpoint.
 
 ## Verification
 
@@ -49,6 +49,15 @@ release.
   --check` exit 0; six preserved config/role hashes match; global AGENTS.md differs
   by exactly the one inserted bullet; repo changes confined to docs/examples plus
   the ledger. Logs: `/tmp/opencode/ksi-system-pass-{check,package,diff}.log`.
+- Implementation `d4b084fa8f45c4fada74dd13c7154e9fa0e92f56` fast-forwarded into
+  canonical main; the same test-runner (rebound to main) re-ran fresh checks:
+  check 112/111/0/1, package pass, diff exit 0, six hashes match, committed change
+  set docs/examples only, global diff exactly the one bullet. Logs:
+  `/tmp/opencode/ksi-system-pass-merged-{check,package,diff}.log`.
+- Owned workspace inspected including ignored files; the unique checkpoint was
+  copied to the private backup before non-forced removal; merged branch deleted.
+  Four unrelated worktrees retained. Change is local only — not pushed to GitHub,
+  no npm release; the global rule is live immediately.
 
 ## Verification limits
 
