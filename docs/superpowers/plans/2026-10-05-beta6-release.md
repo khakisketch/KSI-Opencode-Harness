@@ -30,13 +30,13 @@ restart, runtime/tool installation or replacement of the user-customized roles.
   behavior change.
 - [x] Source/packed/isolated checks pass; tarball reviewed (18 files, integrity,
   byte-identical README/INSTALL/docs, pinned beta.6).
-- [ ] Commit release content; commit records; push main without force; verify remote
+- [x] Commit release content; commit records; push main without force; verify remote
   HEAD.
-- [ ] Publish the reviewed tarball to npm next with standard browser approval; verify
+- [x] Publish the reviewed tarball to npm next with standard browser approval; verify
   public bytes/integrity.
-- [ ] Promote latest with standard browser approval; verify next/latest and a fresh
+- [x] Promote latest with standard browser approval; verify next/latest and a fresh
   consumer.
-- [ ] Record delivery evidence; final verification.
+- [x] Record delivery evidence; final verification.
 
 ## Evidence
 
@@ -52,9 +52,26 @@ restart, runtime/tool installation or replacement of the user-customized roles.
   `50c0e65198aa1b22d5905c25cfdb1e65ff925c25a63738554878ae0cb352b4d2`. README/INSTALL/
   opendesign.md/execution.md byte-identical to source; pins at beta.6. Pack record
   /tmp/opencode/ksi-beta6-pack.json.
-- Publication and promotion evidence to be recorded after the authorized writes.
 
 ## Delivery evidence
 
-Pending. No user product/design acceptance claim; this release carries documentation,
-guidance and installer content only.
+- Push: release content `7db2c46` + preparation record `a600480`; GitHub main
+  advanced `c35a57a..a600480` and the verified remote HEAD matches local. No force
+  push; four unrelated worktrees untouched.
+- Registry: login completed via standard browser approval (identity `ksi-corp`);
+  `0.5.0-beta.6` published with tag `next` (exact reviewed tarball), then promoted to
+  `latest` via the same standard approval path. Public state: `latest` and `next`
+  both `0.5.0-beta.6`; all previous versions retained; published integrity
+  `sha512-+IRDbChj…t7RV04b72chZA==` and shasum `44964fcd…` match the reviewed tarball.
+  No republish, no auth bypass, no credential collection.
+- Fresh public consumer checks at beta.6: exact-version preview wrote nothing →
+  apply created exactly the three role files → repeat returned `changes: []`;
+  unversioned default install followed the same flow and wrote only `agents/`.
+  Logs under /tmp/opencode/ksi-beta6-consumer.* and ksi-beta6-default.* dirs.
+- Note: initial `npm exec` verification attempts returned 127 because the local
+  packument cache predated the publish; `npm view --prefer-online` revalidation
+  resolved it (a local cache effect, not a package defect — plain install and the
+  revalidated exec both succeed). One long verification command was interrupted
+  mid-run earlier; it was re-run bounded (`timeout`) and completed.
+- This release carries documentation, guidance and installer content only; it is not
+  evidence of live product design quality or user design acceptance.
