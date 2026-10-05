@@ -40,7 +40,7 @@ Foundation: docs/superpowers/plans/2026-10-05-source-direct-feasibility.md
   execution, architecture and examples.
 - [x] Record product-state entry and spike-ledger forward link.
 - [x] Independent review and source/package/preservation checks.
-- [ ] Local commit/integration, integrated check, owned-workspace cleanup and
+- [x] Local commit/integration, integrated check, owned-workspace cleanup and
   checkpoint.
 
 ## Verification
@@ -57,6 +57,18 @@ Foundation: docs/superpowers/plans/2026-10-05-source-direct-feasibility.md
   exactly the three intentional bullets and no other drift; all repo changes
   confined to docs/examples. Logs:
   `/tmp/opencode/ksi-source-direct-flow-{check,package,diff}.log`.
+- Implementation `4c702399bf00bd4e071f6d1f90b8237c10d1c7b1` fast-forwarded into
+  canonical main; the same test-runner (rebound to main) re-ran fresh checks:
+  check 112/111/0/1, package pass, diff exit 0, six hashes match, committed change
+  set docs/examples only, global bullets present. Logs:
+  `/tmp/opencode/ksi-source-direct-flow-merged-{check,package,diff}.log`.
+- Session returned to canonical main; owned workspace inspected including ignored
+  files, only the unique checkpoint copied to the private backup, then non-forced
+  worktree removal and merged-branch deletion succeeded. Four unrelated pre-existing
+  worktrees retained.
+- This completes operating-policy and documentation alignment. It does not connect
+  a real product repository, run a generation, or change mounts/container/security;
+  real-product source-direct use remains a separate scoped step.
 
 ## Applied changes
 
