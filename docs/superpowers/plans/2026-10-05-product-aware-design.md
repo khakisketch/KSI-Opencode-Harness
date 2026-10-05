@@ -1,7 +1,7 @@
 # Product-aware design workflow — workstream ledger
 
 Updated: 2026-10-05
-Status: technically verified; local integration pending
+Status: technically complete locally; live product/design acceptance pending
 Owner: OpenCode Build
 
 ## Approved outcome
@@ -28,7 +28,7 @@ is a capability-dependent, separately scoped option, not assumed or enabled here
 - [x] Define product-context inputs, supported output contract and faithful integration.
 - [x] Tighten approved-pattern exception and completion evidence without new approval gates.
 - [x] Independent scenario review and source/package/preservation checks.
-- [ ] Local commit/integration, integrated checks and safe owned-workspace cleanup.
+- [x] Local commit/integration, integrated checks and safe owned-workspace cleanup.
 
 ## Verification limits
 
@@ -65,4 +65,30 @@ remains pending until a separately authorized product task uses the flow.
   Logs: `/tmp/opencode/ksi-product-aware-design-{check,package,diff}.log`.
 - Initial background reviewer/test-runner were cancelled without findings or
   verification; bounded foreground replacements supplied the evidence above.
-  No result from cancelled helpers is treated as verification. Integrated check pending.
+  No result from cancelled helpers is treated as verification.
+- Implementation `39835f1d280b1b3a00697c9745f9b352c6e38fdf` fast-forwarded into
+  canonical main. Same independent test-runner (rebound to main) ran fresh
+  `npm run check` exit 0 (112/111/0/1), `npm run check:package` exit 0,
+  `git diff --check` exit 0; six config/role hashes still match.
+  Logs: `/tmp/opencode/ksi-product-aware-design-merged-{check,package,diff}.log`.
+- Session returned to canonical main; owned task workspace inspected including
+  ignored files. Only unique ignored checkpoint copied to the private backup,
+  then removed; non-forced worktree removal and merged-branch deletion succeeded.
+  Four unrelated pre-existing worktrees retained.
+- Global AGENTS.md native instruction update observed in this session. Installer
+  remains opt-in for policy; shipped examples do not automatically apply it.
+  No design generation, actual product component/capture transfer, framework
+  capability test, mount/security change, product write, service restart, push or
+  publication occurred. This is a completed operating-policy/handoff improvement,
+  not a claim of an enforced runtime or better visual results already measured.
+- Final evidence-only ledger/product-state delta independently checked by the
+  same test-runner: cached diff exit 0, both records excluded from package.files,
+  no code/packaged inputs changed and six preservation hashes match. Log:
+  `/tmp/opencode/ksi-product-aware-design-closeout-diff.log`.
+
+## Next acceptance candidates (not execution authorization)
+
+- m04: apply this flow to one authorized existing frontend improvement, verifying
+  actual product inputs, supported output and design-to-product fidelity.
+- Source-direct UI capability: only investigate in a separately authorized scoped
+  isolated target if needed; not prerequisite to the default artifact/integration path.
