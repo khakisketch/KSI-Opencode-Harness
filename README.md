@@ -7,7 +7,7 @@
 
 [시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [설치 가이드](INSTALL.md)
 
-**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.5`** · [MIT](LICENSE)
+**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.6`** · [MIT](LICENSE)
 
 > **운영 방식과 설치 범위는 다릅니다.** 아래는 KSI가 일하는 방식입니다.
 > 이 npm 패키지가 설치하는 것은 Developer · Test Runner · Reviewer의 **세 에이전트 파일뿐**입니다.
@@ -123,10 +123,10 @@ Plan에서 방향을 합의하고 Build에서 실행합니다. 역할을 나눠�
 
 ```sh
 # 미리보기 — OpenCode 설정 파일을 변경하지 않습니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode"
 
 # 검토 후 적용 — 선택한 프로젝트에 세 역할을 추가합니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.5 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 미리보기와 적용 모두 같은 버전을 고정합니다. 이번 공개 베타는 `next`와 기본 채널 `latest`로 배포하며, 기본 채널에서도 베타라는 성격은 유지됩니다. 이후 채널이 바뀌어도 같은 버전을 사용하려면 위처럼 고정하세요.
