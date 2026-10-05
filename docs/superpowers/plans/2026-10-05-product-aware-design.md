@@ -88,6 +88,14 @@ remains pending until a separately authorized product task uses the flow.
 
 ## Next acceptance candidates (not execution authorization)
 
+User-requested final closeout recheck: independent test-runner
+`ses_ef527c73bffefHke78G4z40Hpi` at main `f482f5d` found clean tracked state;
+`npm run check` exit 0 (112/111/0/1), `npm run check:package` exit 0 and
+`git diff --check` exit 0. Six config/role hashes match; actual global rules
+present, owned workspace absent and four unrelated worktrees preserved. Logs:
+`/tmp/opencode/ksi-product-aware-design-closeout-final-{check,package,diff}.log`.
+This added record is unshipped evidence only; no operating or packaged inputs changed.
+
 - m04: apply this flow to one authorized existing frontend improvement, verifying
   actual product inputs, supported output and design-to-product fidelity.
 - Source-direct UI capability: only investigate in a separately authorized scoped
