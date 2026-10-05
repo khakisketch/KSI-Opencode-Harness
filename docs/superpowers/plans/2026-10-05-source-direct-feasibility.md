@@ -122,6 +122,10 @@ or the global default workflow. No main-product writer is enabled by this record
 
 ## Recommendation and unverified scope
 
+User approved the simplified flow the same day (direct repo edits, worktree optional,
+one writer) and the guidance was updated in the follow-up record
+`docs/superpowers/plans/2026-10-05-source-direct-flow.md`.
+
 Direct source editing is feasible in the inspected environment; a separate mockup
 and manual reimplementation are not intrinsic requirements. Prefer per-target
 isolated source-direct UI ownership when real source access, trusted build/runtime,

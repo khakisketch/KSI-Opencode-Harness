@@ -287,7 +287,9 @@ If Mobbin is absent, unauthorized or unhelpful, report the limitation and use pr
 Local Codex can improve an existing product's UI; a separate design folder is not
 proof of product-source access, and a design artifact is not an automatic product
 integration. Build supplies the actual implementation context so design work does
-not become an unrelated mockup that engineering has to redesign.
+not become an unrelated mockup that engineering has to redesign. When verified write
+access to the actual product working directory exists, prefer the direct
+product-source path below over copying sources.
 
 Use this existing-task flow:
 
@@ -373,22 +375,40 @@ source snapshot, product capture and constraint; routine adapters do not require
 another design run. Recheck after integration fixes. This is a scoped feedback loop,
 not automatic synchronization, recursive generation or mandatory pixel-perfect scoring.
 
-#### Direct product-source work: conditional, not enabled by this policy
+#### Direct product-source work: verified, simplified preferred path
 
-An explicitly scoped isolated frontend workspace can be a future supported output
-target; it is not inherently impossible because the design system is separate.
-Before using that path, verify the actual project/storage binding, inner read/write
-and framework render/check capability, allowed files and single-writer ownership.
-Local Codex would own only the delegated UI paths; Build would still own integration
-and real product verification. Neither may concurrently write those paths.
+Source-direct frontend work is verified in this deployment: a probe run imported an
+existing host folder (`metadata.baseDir`), edited the actual React TSX/CSS in the real
+working directory, built it and produced a renderable canonical entry; Build then
+independently verified the diff, build output and rendered interaction
+(`docs/superpowers/plans/2026-10-05-source-direct-feasibility.md`). Prefer this path
+for real product frontend work over mockup-then-reimplement.
 
-Do not point a design run at main or assume arbitrary framework execution from
-successful HTML rendering. Source-direct operation, workspace/mount/security changes
-and capability probes need their own scoped authorization where not already granted.
-No API/data/auth/Git/deployment or dependency changes are delegated implicitly. Current
-default remains product-aware output with explicit Build integration; unsupported
-source-direct access is not a blocker for that default. Preserve source and prior
-artifacts; the operating rules are not an OS sandbox.
+- Point the run at the actual product repository — the real working directory, a
+  dedicated branch, or the user's normal checkout. A dedicated branch keeps a
+  review/rollback point and is the default suggestion; the user's checkout is
+  acceptable when they prefer it (record the base revision before substantive
+  writes). A separate worktree is optional convenience, not a requirement: use one
+  when the user's working tree must stay untouched or concurrent writers would
+  otherwise collide.
+- Keep one writer at a time on the delegated UI paths. Local Codex owns the UI source
+  edits; Build owns requirements/contracts, actual verification, integration and Git.
+  Sequential handoff is the default; concurrent writers need disjoint files and
+  separate workspaces (a worktree keeps the checkouts separate).
+- Real boundaries remain: home/credential roots and unrelated projects stay out of
+  agent access (the gateway refuses them as selectable new projects; connected-root
+  scope is still prompt-scoped, not an OS allowlist — see the last bullet); new root
+  connections keep their own scoped approval, active-run protection and rollback
+  scope; API/data/auth, dependencies, Git history and push/deploy changes are not
+  delegated implicitly.
+- For source-direct runs, completion evidence is the actual source diff plus a real
+  build/render check of the changed flow. The deliverable validator is entry-centric:
+  when the canonical HTML entry is intentionally untouched, `entry_not_touched`/
+  invalid can be the correct physical outcome — do not fabricate an entry regeneration,
+  and do not treat that verdict alone as task failure. Build's verification of the real
+  product remains the authority for "done".
+- Run scope is prompt-scoped, not an OS sandbox: the inner agent's tools span its
+  connected root. Keep sensitive non-product material out of connected roots.
 
 When asking OpenDesign for a change, state:
 
@@ -450,7 +470,7 @@ Build can return task-scoped product captures, observed differences and constrai
 - Do not claim a design run, file read, or rendered inspection that did not actually occur.
 
 - OpenCode owns the development conversation, production changes, verification and Git. Local Codex is the design specialist. An internal coding runtime used for design is not authorization to launch/resume the outer engineering session, recursively commission more design runs, or change product API/data/Git/deployment.
-- Keep task-owned design/reference outputs and product writes under explicit ownership; never let concurrent design and Build writers modify the same product files. An imported writable project root may technically permit such writes: operating guidance is not a filesystem sandbox. Prefer separate design-output locations or approved isolated workspaces, with existing product sources read-only where practical. Do not silently move/copy the user's project or reconfigure mounts.
+- Keep task-owned design/reference outputs and product writes under explicit ownership; never let concurrent design and Build writers modify the same product files. With verified source access, prefer direct edits in the actual product repository (one writer at a time); without it, keep separate design-output locations with existing product sources read-only where practical. An imported writable project root may technically permit such writes: operating guidance is not a filesystem sandbox. Do not silently move/copy the user's project or reconfigure mounts.
 
 ## Optional DGX remote-folder gateway (source-only)
 
