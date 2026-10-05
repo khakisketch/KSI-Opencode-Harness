@@ -321,7 +321,7 @@ Use this existing-task flow:
 | --- | --- |
 | Identity and revision | Actual product repository/worktree/revision, target route/component paths, design project/storage/entry; pending changes that affect the input |
 | Product purpose | User task, observed problem, accepted outcome and exclusions; do not invent objectives from screenshots |
-| Relevant source | Screen/components and necessary imports/styles; existing reusable patterns, tokens, fonts and permitted assets |
+| Relevant source | Screen/components and necessary imports/styles; for multi-screen work, a screen/file map; existing reusable patterns, tokens, fonts and permitted assets |
 | Framework constraints | Actual framework/conventions, component boundaries and available trusted render/check commands; preserve dependencies unless separately approved |
 | Integration contracts | Props/types, data shape, route destinations, event/callback semantics, permission/disabled behavior; credentials and live private data excluded |
 | State evidence | Relevant wide/narrow captures and sanitized empty/loading/error/stale/permission fixtures; distinguish observed and proposed states |
@@ -410,6 +410,27 @@ for real product frontend work over mockup-then-reimplement.
   product remains the authority for "done".
 - Run scope is prompt-scoped, not an OS sandbox: the inner agent's tools span its
   connected root. Keep sensitive non-product material out of connected roots.
+
+#### Multi-screen visual-system pass
+
+When several screens show accumulated drift (patch-built layouts, an
+exception-heavy theme, missing shared components), fix the system before the
+screens instead of continuing per-screen patches:
+
+1. Audit the screens and map each to its files; inventory existing tokens and
+   components.
+2. Define tokens plus shared components (card, panel, button, stats, empty
+   state) with spacing and type scales. The direction-approval snapshot binds
+   this system definition, not a full mockup set.
+3. Implement one representative screen in the real source; verify build, tests
+   and rendered states.
+4. Roll out screen by screen with per-stage checks; finish with a full
+   build/test/render pass on the whole app.
+
+Do not big-bang rewrite every screen at once. Keep functionality, routing and
+data unchanged, and keep one writer at a time on the UI files. This is the
+preferred recovery when prior work left the product without a unified visual
+language.
 
 When asking OpenDesign for a change, state:
 
