@@ -459,6 +459,32 @@ for real product frontend work over mockup-then-reimplement.
 - Run scope is prompt-scoped, not an OS sandbox: the inner agent's tools span its
   connected root. Keep sensitive non-product material out of connected roots.
 
+#### Registering a source project (this deployment)
+
+Folder-backed projects are registered through the remote-workspace flow, and
+the deployed daemon accepts only an **exact connected path**:
+
+1. **Connect** the project folder — a new path recreates the design container
+   once, with automatic rollback: `POST /api/remote-workspace/connections`
+   with `{ "path": "<absolute path>", "requestId": "<uuid>" }` through the
+   local gateway (or the in-container CLI `od project open-server <path>
+   --gateway-url <origin> --json`), then poll the operation until `ready`.
+   The connector refuses while any design run is non-terminal. Any existing
+   directory under home is selectable except the home root and the credential
+   directories (`.ssh`, `.gnupg`, `.codex`, `.claude`, `.gemini`, `.config`,
+   `.local`).
+2. **Import** it as a project: `POST /api/import/folder` with
+   `{ "baseDir": "<canonical path>", "name": "<name>" }` (or
+   `od project import-folder`). The daemon verifies the connected path
+   server-side — a browser-reported "connected" flag is never trusted — and
+   sets `metadata.baseDir` plus the detected `entryFile`.
+
+Agents perform both steps on demand for the task's project; this is a standing
+capability for every project under home, not a per-project user decision.
+Never mount a broader parent directory as a shortcut: the daemon still requires
+the exact per-project connection, and this deployment deliberately avoids
+Desktop/home-wide mounts. Keep one writer at a time.
+
 #### Multi-screen visual-system pass
 
 When several screens show accumulated drift (patch-built layouts, an
