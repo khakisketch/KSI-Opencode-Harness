@@ -29,10 +29,13 @@ plugin never claims success, never retries generation and never implements.
   under the state lock plus a deterministic `msg_...` id (OpenCode's synthetic
   endpoint returns the original admission for a repeated id — verified
   2026-10-03).
-- Valid deliverables point the receiving agent at the design-quality loop
-  (skill-selected runs, rendered-result evaluation, refinement until the bar —
-  no fixed round cap). Delivery/classification behavior is unchanged; the
-  pinned runtime copy reflects this only after an explicit verified update.
+- Any verified UI output points the receiving agent at design-owned rendered
+  review/refinement, regardless of the canonical artifact verdict. Small visual
+  fixes are design-owned too; OpenCode coordinates and checks evidence/functionality.
+  Report-only/intermediate stages are not UI output or authority for a new run.
+  Metadata `designQuality: "not_assessed"` is advisory, never a computed quality
+  pass. No-improvement rounds mean quality unmet; no fixed round cap is imposed.
+  Delivery/classification is unchanged; pinned copies need a verified update.
 - Strategy chains are followed: when a terminal run maps a follow-up run
   (`strategyTask.terminal === false` + `nextRunId`), that completion is worded
   as intermediate ("not the final completion") and the follow-up is watched for

@@ -20,7 +20,8 @@ connected server's execution environment,
 not the browser client's PC. **OpenDesign Cloud** requires an explicit user request. Agents must verify
 the actual connection, project and storage root before describing execution location or modifying files;
 they must not assume a code repository is already a registered design project. Design-to-product handoff
-is explicit, not automatic synchronization. Existing approved small changes remain engineering work.
+is explicit, not automatic synchronization. Small visual fixes stay design-owned;
+purely nonvisual repairs and mechanical transfers stay engineering-owned.
 
 The V2 global instruction file is refreshed before the next model request; policy-only changes need
 no service restart. A repository name does not prove registration or folder association: resolve the
@@ -88,6 +89,34 @@ not invent design artifacts or silently substitute a locally-invented design sys
 
 The default design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request; direction approval at those gates is distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
 
+### Ownership: design work and engineering work
+
+OpenCode coordinates the task; the design workspace owns **all visual frontend
+work**: UI/UX analysis, composition, component presentation, responsive and
+interaction states, actual UI source/style edits, rendered design review and
+refinement. This includes small CSS/spacing/overflow repairs. Do not route by
+file count or call a visual fix an engineering exception because a pattern exists.
+This is a connected specialist workflow through MCP, not a new native OpenCode
+agent, automatic synchronization or another development Primary.
+
+OpenCode owns purpose/scope, source and reference access, business/API/data/auth
+contracts, functional wiring/verification, integration, Git and reporting. It can
+detect visual defects and provide screenshots/reproduction steps, but sends the
+visual repair back instead of inventing a competing fix. Pure nonvisual logic,
+permissions and persistence defects remain engineering work. For shared files,
+handoff sequentially; one writer at a time. Mechanical integration of a verified
+artifact is allowed without redesign; any visual adaptation returns to design.
+
+For a redesign, separate **invariants** (functionality, data, permissions, route/API
+contracts and agreed brand) from **redesign freedom** (layout, hierarchy, density,
+component composition and responsive presentation within the authorized outcome).
+Preserving behavior does not mean preserving a rejected layout. A request to
+improve substantially requires a diagnosis of the user's task friction and the
+structural change that addresses it, not merely a larger KPI or stronger color.
+Unapproved new brand/direction, client delivery, scope changes and review-first
+requests keep their decision gates; authorized structural improvement alone does
+not require repeated approval of routine iterations.
+
 ### Intake versus refinement
 
 Classify the action before opening a brief card:
@@ -99,16 +128,11 @@ Classify the action before opening a brief card:
   brand/token sources, requested delta, affected screens/states, expected output files and exclusions.
   Inspect the relevant artifact bundle when its contents are needed; metadata alone does not prove
   knowledge of the existing composition or CSS. Ask only for a missing material decision.
-- **Approved-pattern engineering edit:** remain in Build; do not commission another design run.
-
-Classify by the decision being made, not by file count or code size. Implementing
-an approved two-column artifact or restoring its broken responsive behavior is
-engineering; newly deciding column grouping, navigation or primary-action hierarchy
-is design work. Reusing colors/tokens does not establish approval of a new layout.
-For an engineering exception, cite the actual artifact/component pattern briefly
-in the existing task record. If work expands into material design decisions, reroute
-only that part; continue independent engineering. Do not turn this into a full-site
-audit, mandatory Plan stage or another user approval for ordinary approved-pattern fixes.
+- **Small visual repair:** use a compact design refinement with the exact source,
+  defect, reproduction viewport/state and expected fix; no fresh intake interview,
+  mandatory Plan stage, full-site audit or per-fix approval. Scale review to the change.
+- **Nonvisual engineering:** remain in Build; no design run for a pure backend,
+  API/permission/persistence repair or an exact artifact transfer with no visual changes.
 
 For example, a visual-theme refinement may preserve copy, navigation and information architecture,
 use the existing brand specification, and identify the actual affected screens and required responsive
@@ -123,20 +147,16 @@ translated native card. Recheck this limitation after a relevant upstream upgrad
 
 Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If OpenDesign's local execution is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
 
-- A new screen, view, or page.
-- A material layout or navigation change.
-- A user workflow or information-priority change.
-- Repeated user complaints about the look or feel of an existing screen.
-- Visual hierarchy, density, or information-architecture decisions that the repository cannot answer.
-- A responsive restructuring that changes what is shown, not only how wide it is.
+- Any visual UI source/style change, from an existing-component repair to a new screen.
+- Layout, hierarchy, navigation presentation, responsive and interaction-state work.
+- Rendered design analysis, critique, polish and concrete refinement of those outputs.
 
 ## When not to use it
 
-- Typos, copy edits, or spacing tweaks inside an approved pattern.
-- Adding a field or a button to an existing, already-designed component.
-- Reusing an existing component as-is.
-- Backend-only or non-visual work.
-- Anything already covered by an approved OpenDesign artifact for that screen.
+- Backend/API/data/auth and other purely nonvisual business-logic work.
+- Functional verification, Git and mechanical integration that changes no visual design.
+- A literal typo correction changing no layout or UI composition; if it changes the
+  presentation, use the compact visual-refinement path instead.
 
 ## Interface contract
 
@@ -195,54 +215,67 @@ links. Pull full diagnostics only for investigation and the source bundle when c
 snapshot or implementation needs it. Keep internal identifiers in the task record, not product copy;
 do not print raw event streams, credentials or provider telemetry in progress messages.
 
-### Design-quality loop (skills, evaluation, refinement)
+### Design-quality loop (design-owned analysis, review and refinement)
 
-OpenDesign quality comes from its design-craft system, not a single bare request:
-select the skill per stage, evaluate the rendered result, and refine until the
-agreed bar — the loop a designer would run. It is required for design runs that
-produce or refine UI, and it does not impose a fixed round cap.
+The simple flow is **OpenCode task contract → design analysis/implementation →
+design-rendered review/refinement → OpenCode functional verification → report**.
+Design review is a design responsibility, not an optional OpenCode aesthetic
+judgment or a user defect-finding exercise. Scale it to the task; no fixed round cap.
 
-1. **Quality bar and references (before commissioning).** Reuse the agreed
-   requirements; collect reference patterns (Mobbin when useful), current product
-   screens, brand tokens/components, target states and viewports, and write
-   explicit acceptance criteria (token/scale consistency, hierarchy and primary
-   action, empty/loading/error states, responsive behavior, accessibility
-   basics). Record it in the task record; do not evaluate by vibes alone.
-2. **Run configuration.** Choose the execution agent from `list_agents` (this
-   environment's choice is recorded in the task record; agents and skills change
-   over time) and the skill from the actually installed list (`list_skills`).
-   Typical chain — one skill per run, sequential runs: generation
-   (`design-taste-frontend`, `frontend-design`, `frontend-skill`), polish
-   (`impeccable-design-polish`; motion follow-ups such as `emilkowalski-motion`
-   after an interface exists), review (`plan-design-review` for score/slop
-   flags, `design-review` for audit-and-fix, `web-design-guidelines` for
-   compliance). If a skill is unavailable or unsuited, adapt from the live list
-   instead of failing; record what was used.
-3. **Generation run.** Brief as usual: requirements, references, constraints,
-   exclusions.
-4. **Self-evaluation by the coordinating agent (not the user).** On a valid
-   deliverable, inspect the rendered preview at the relevant viewports/states
-   with the browser tooling, compare against references, brand and criteria, and
-   optionally commission a review-skill run. Produce a concrete defect list —
-   what is wrong, what good looks like, which file or state.
-5. **Refinement loop.** Send the defect list with the prior artifact as a
-   refinement run and re-evaluate each round. Stop when the bar is met, when a
-   full round shows no measurable improvement (report the remaining gaps
-   honestly), or on a genuine blocker or material decision. Measurable means
-   criteria-linked defects from the step 1/4 lists actually closed, recorded per
-   round with before/after viewports and states. Round count is quality-driven;
-   do not impose an arbitrary cap that cuts converging work.
-6. **Integrate and verify.** Only after the bar: bring the result into the
-   product source, verify the real product flow, and report with both links.
-   Direction gates (new visual direction, client deliverable, out-of-scope,
-   review-first) are unchanged.
+1. **Compact task contract.** Reuse the agreed purpose and current problem;
+   supply invariants versus redesign freedom, actual source/components/tokens,
+   inspected references and accessible images, sanitized states/viewports, expected
+   files and criteria. Typical criteria cover task visibility/primary action,
+   hierarchy/density, empty/loading/error/disabled states, responsive behavior and
+   accessibility. Do not invent a universal above-the-fold rule or arbitrary score.
+2. **Design execution.** Select the agent and task-appropriate skill from the live
+   `list_agents`/`list_skills`; record the selection. The design execution analyzes
+   the product problem and edits actual UI source where access is verified. For
+   substantive work, use a design review execution as well as generation, rather
+   than the generator's unsupported self-approval. Suitable installed choices may
+   include `frontend-design`, `impeccable-design-polish`, `design-review`,
+   `plan-design-review` or `web-design-guidelines`; select by actual content and
+   task, not name alone. A small repair can render/review/refine in one compact run.
+3. **Actual output and rendered design review.** After the chain's output is
+   verified, send the real source snapshot, corresponding rendered states,
+   references and criteria to the design review. This applies equally to HTML
+   artifacts and successful source-direct edits with an invalid canonical-entry
+   verdict. A report-only/plan-only stage is not UI output. Missing files or render
+   access remain unverified; do not claim a pass from a manifest, run success,
+   screenshot existence or a generic review score. OpenCode checks the evidence
+   and actual integration, not substitutes its own visual fix or taste verdict.
+4. **Concrete refinement and evidence.** Design reviews state what is wrong,
+   where/which state, the user impact and the desired result. Return findings with
+   the prior source/render to design, then have design recheck the changed states.
+   In the existing ledger, keep a small table:
+
+   | Criterion / defect | Design finding and requested change | Revision + viewport/state render evidence | Fixed / open | Functional check |
+   | --- | --- | --- | --- | --- |
+
+   Measurable improvement means a criteria-linked defect demonstrably closed,
+   not lines changed, larger type or stronger color. Continue until the bar is met;
+   a full round with no measurable improvement stops as **quality unmet**, with
+   remaining defects and next options, not “complete, only user acceptance left”.
+   A genuine access/execution blocker or material decision is also a truthful stop.
+5. **Engineering verification and report.** Direct UI source edits can occur
+   before quality pass but remain provisional. OpenCode verifies functional
+   integration/build/routing/permissions/persistence on the actual product and
+   returns presentation issues to design; nonvisual bugs stay engineering-owned.
+   Match the review evidence to the actual files/revision after later changes.
+   Distinguish generated, design-reviewed with evidence, functionally verified
+   and human-accepted; none implies the next. Keep existing direction/client/
+   scope/review-first and representative rollout gates, and reachable preview links.
+
+This is an execution contract, not runtime enforcement. Notifier/unit/package
+checks prove their own behavior, not aesthetic quality or agent obedience. Real-use
+acceptance requires a product session's review/refinement and changed-flow evidence.
 
 **Run mechanics (observed).** A single request may expand into a plan→execute
 run chain: stage 0 produces the direction and working material but no product
 files; the strategy maps the next run (a plan stage with no files is not a task
-result). The completion notification covers only the stage bound to the
-session — track the chain through the run's strategy mapping until it reaches
-terminal, then judge by the actual source diff plus a real render check.
+result). The notifier follows mapped successor stages for the same session;
+verify the chain mapping after a lost binding and judge the final output by the
+actual source diff plus a real render check, not the intermediate completion.
 Strategy outcomes may read `blocked` (`od_next_canonical_deliverable_invalid`)
 for entry-untouched source-direct work; that verdict alone does not mean the
 task failed.
@@ -285,8 +318,11 @@ with the receiving agent and the user; the notifier only observes and notifies.
 - The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
-  approved design language and authorized scope; it previews-and-waits only for a new visual
-    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request. It also points at the design-quality loop (skill-selected runs, rendered-result evaluation, refinement until the bar — no fixed round cap). Intermediate strategy stages are worded as non-final, and the mapped follow-up run is watched for the same session until the chain ends.
+   approved design language and authorized scope; it previews-and-waits only for an unapproved new
+   direction, client delivery, scope change or review-first request. Any verified UI output,
+   including canonical-entry-invalid source edits, requires design-owned rendered review/refinement;
+   `designQuality: "not_assessed"` never declares a quality pass. Intermediate stages are non-final
+   and mapped successors stay watched; report-only stages do not authorize new design work.
   Source notifications distinguish the daemon's artifact verdict from **required product verification**:
   `entry_not_touched` on a succeeded source-direct run is not automatically product failure or success;
   inspect the actual diff/build/changed-flow checks. Read-only reports are not design deliverables.
@@ -382,9 +418,9 @@ Use this existing-task flow:
    entry/output requirements, validate the real files and rendered states, and
    retrieve the complete required bundle for integration. A prototype fixture
    is not a functioning product API/auth/save flow.
-5. Build integrates the output faithfully, connects real data/routes/events and
+5. Build integrates the output faithfully without visual redesign, connects real data/routes/events and
    verifies the actual changed product flow. Compare design and product at relevant
-   viewports/states; feed material design compromises back through refinement.
+   viewports/states; return visual deviations to design for review/refinement, including small repairs.
    Keep the default finish-and-report path and existing direction/review-first gates.
 
 #### Minimum product context
@@ -416,26 +452,32 @@ the existing brief/confirmation rules.
 Target: product worktree/revision + route/component; design project/storage/entry.
 Purpose: user task, observed problem and agreed acceptance criteria.
 Input: relevant source/tokens/assets/captures/fixtures with verified accessible paths.
-Preserve: component interfaces, data/event/route/permission semantics and design direction.
-Change: the scoped hierarchy/layout/interaction improvements and required states/viewports.
+Preserve: functionality, component contracts, data/event/route/permission semantics and agreed brand.
+Redesign freedom: scoped hierarchy/layout/component/interaction presentation and states/viewports;
+                  do not freeze a rejected layout or change business rules.
 Produce: supported UI files/styles, renderable canonical entry, required siblings/assets,
          component-to-product mapping, integration instructions and known limitations.
-Ownership: write only task-owned design outputs; Build owns real product integration.
+Ownership: design owns delegated UI source/styles, rendered review and visual refinement;
+           Build owns nonvisual integration/contracts, functional verification and Git.
+           One writer per file, sequential handoff if UI and domain changes share a file.
 Verify: identify inputs actually read, changed output paths, rendered states/checks performed,
-        and access/output gaps. A success status alone is insufficient.
+        criterion/defect -> revision/render -> fixed/open evidence and access/output gaps.
+        A success status alone is insufficient; report an unmet bar honestly.
 Exclude: product API/data/auth/Git/deployment changes, new dependencies or unrelated screens.
 ```
 
 Output must describe reuse/adaptation of existing product components, required
 imports/assets and synthetic fixtures, and what remains for real data/event wiring.
-Preserve the canonical entry expected by the actual output validator; component
-siblings alone do not prove a valid deliverable. If the supported output cannot
+For an artifact task, preserve the canonical entry expected by the output contract;
+component siblings alone do not prove a valid artifact. For source-direct work,
+verify actual UI source and product renders; do not fabricate entry edits merely
+to change an entry-centric verdict. If the supported output cannot
 satisfy a required state or implementation contract, surface that gap rather than
 silently lowering the contract or launching another generation blindly.
 
 #### Faithful integration and feedback
 
-Build may make routine production adaptations within the agreed design contract,
+Build may make nonvisual/mechanical production adaptations within the agreed design contract,
 but does not invent a different layout, action hierarchy or visual system to make
 integration easier. Preserve accessible semantics, tokens, responsive ordering and
 empty/loading/error/permission behavior. Record artifact-to-component mapping,
@@ -443,9 +485,9 @@ actual required-file hashes and necessary differences in the existing handoff.
 
 Compare the design preview and the real product at corresponding relevant states
 and viewports. Verify actual navigation, callbacks, keyboard/focus and persistence
-where changed. Important design compromises return to OpenDesign's local execution with the exact
-source snapshot, product capture and constraint; routine adapters do not require
-another design run. Recheck after integration fixes. This is a scoped feedback loop,
+where changed. Visual deviations and repairs return to design with the exact
+source snapshot, product capture and constraint; nonvisual/mechanical adapters
+do not require another design run. Recheck after integration fixes. This is a scoped feedback loop,
 not automatic synchronization, recursive generation or mandatory pixel-perfect scoring.
 
 #### Direct product-source work: verified, simplified preferred path
@@ -517,12 +559,13 @@ When several screens show accumulated drift (patch-built layouts, an
 exception-heavy theme, missing shared components), fix the system before the
 screens instead of continuing per-screen patches:
 
-1. Audit the screens and map each to its files; inventory existing tokens and
+1. Have the design workspace audit the screens and map each to its files; inventory existing tokens and
    components.
-2. Define tokens plus shared components (card, panel, button, stats, empty
+2. Have design define tokens plus shared components (card, panel, button, stats, empty
    state) with spacing and type scales.
-3. Implement one representative screen in the real source; verify build, tests
-   and rendered states.
+3. Have design implement and render-review one representative screen in the real
+   source, refining criteria-linked defects; OpenCode verifies evidence, build,
+   tests and actual changed-flow behavior. Direct edits remain provisional until verified.
 4. Present the definition, the scope and the representative screen's real
    result as one review. For internal tools that keep the existing brand, this
    single review replaces a separate plan approval; obtain pre-approval before

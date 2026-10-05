@@ -4,6 +4,16 @@ Updated: 2026-10-06
 Status: in progress
 Owner: OpenCode Build
 
+## Latest disposition (2026-10-06)
+
+User rejected the bold pilot result ("디자인 … 문제 많은데요"). This is not
+representative-screen approval, and no wider rollout is authorized. Source writing
+and rendering worked; the recorded runs do not demonstrate an autonomous,
+criteria-linked design review/refinement loop. The later approved contract routes
+all visual analysis/UI edits/rendered review/refinement to the design workspace,
+with OpenCode coordinating and checking functional/evidence obligations. See
+`2026-10-06-visual-ownership.md`; product refinement stays in the product session.
+
 ## Approved outcome (user 2026-10-06)
 
 "나머지 모두 개선해줘" — implement the design-pipeline improvements discussed
@@ -101,7 +111,7 @@ than the OpenCode-driven one-shot flow:
 - Verification: rendered at 1440×900 and 390×844; console clean except the
   static `/api/health` 404; captures `evbold-after-{desktop,mobile}.png` vs the
   previous `evdesign-agency-{desktop,mobile}.png`.
-- Status: user review pending (bold vs conservative choice). Committed with
+- Status: user rejected this result; neither direction is accepted by this record. Committed with
   "style: bold editorial redesign of agency-home".
 
 ## Harness learnings (pilot 1, 2026-10-06)
@@ -124,7 +134,9 @@ than the OpenCode-driven one-shot flow:
 
 ## Verification limits
 
-- Prose/interpretation and message-text tests only. Real design quality awaits
-  the first real loop (pilot target still open: KSI-CCTV is connected; the
-  EVENTOUCH source project is no longer registered and needs reconnection).
-  No product acceptance or deployment claim.
+- Harness guidance/message/interpretation tests and actual source-write/render
+  observations are recorded above; they do not prove a design-quality pass. The
+  EVENTOUCH source project was re-registered (`aabf3621`), both pilots ran and the
+  bold result was rejected. No criteria-linked autonomous design-review/refinement
+  loop, product acceptance or deployment is claimed. Pipeline staging directories
+  noted as leftovers above were subsequently cleaned; those notes are historical.

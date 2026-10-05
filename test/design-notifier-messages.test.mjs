@@ -151,3 +151,48 @@ test("a terminal strategy stage carries no intermediate note", () => {
   assert.doesNotMatch(delivery.text, /intermediate stage/)
   assert.equal(delivery.metadata["ksi.design-notifier"].strategyTerminal, true)
 })
+
+// These exercise the emitted notification contract, not agent obedience or taste.
+for (const [verdict, valid] of [["valid", true], ["entry_not_touched", false], ["no_artifact", false]]) {
+  test(`UI review advice is output-contract-based even with ${verdict}`, () => {
+    const delivery = buildDelivery({
+      run: { ...validRun, deliverableValid: valid, deliverableValidation: verdict },
+      sessionID: SESSION,
+    })
+    assert.equal(delivery.classification, valid ? "valid" : "invalid")
+    assert.equal(delivery.metadata["ksi.design-notifier"].designQuality, "not_assessed")
+    assert.match(delivery.text, /any verified UI output.*regardless of.*artifact verdict/i)
+    assert.doesNotMatch(delivery.text, /If the deliverable is valid: run the design-quality loop/)
+    assert.match(delivery.text, /design workspace owns.*rendered.*review.*refinement/i)
+    assert.match(delivery.text, /small CSS.*visual.*fixes/i)
+    assert.match(delivery.text, /OpenCode owns.*functional.*verification.*Git/i)
+  })
+}
+
+test("a report-only or intermediate stage does not authorize a UI refinement run", () => {
+  const delivery = buildDelivery({
+    run: { ...validRun, deliverableValid: false, deliverableValidation: "no_artifact", strategyTask: { terminal: false } },
+    sessionID: SESSION,
+  })
+  assert.match(delivery.text, /report-only.*not.*UI output/i)
+  assert.match(delivery.text, /intermediate.*follow.*chain.*do not.*start.*design run/i)
+  assert.match(delivery.text, /notification.*(?:does not|never).*grant.*scope/i)
+  assert.equal(delivery.metadata["ksi.design-notifier"].designQuality, "not_assessed")
+})
+
+test("stalled design refinement remains quality unmet rather than completed", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /no measurable improvement.*quality unmet/i)
+  assert.match(delivery.text, /criterion.*defect.*revision.*render evidence/i)
+  assert.match(delivery.text, /not.*quality.*pass.*(?:tests|artifact)/i)
+})
+
+for (const status of ["failed", "canceled"]) {
+  test(`${status} cannot be promoted to design quality success`, () => {
+    const delivery = buildDelivery({ run: { ...validRun, status }, sessionID: SESSION })
+    assert.equal(delivery.classification, status)
+    assert.equal(delivery.metadata["ksi.design-notifier"].productVerification, "blocked")
+    assert.equal(delivery.metadata["ksi.design-notifier"].designQuality, "not_assessed")
+    assert.match(delivery.text, /do not regenerate, replay or cancel-retry/)
+  })
+}
