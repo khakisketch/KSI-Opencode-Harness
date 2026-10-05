@@ -68,7 +68,18 @@ Foundation: docs/superpowers/plans/2026-10-05-source-direct-feasibility.md
   worktrees retained.
 - This completes operating-policy and documentation alignment. It does not connect
   a real product repository, run a generation, or change mounts/container/security;
-  real-product source-direct use remains a separate scoped step.
+  real-product source-direct use remains a separate scoped step. (Follow-up the same
+  day: EVENTOUCH was connected and imported as source project `EVENTOUCH source`
+  `a819d3a4-a7b9-4254-93af-d5267b5e28d1`; see the canonical checkpoint.)
+- User-requested session closeout recheck: independent test-runner
+  `ses_ef4e8824cffeXWcpOWvDgvo99E` at main `7621b07` verified a clean tracked tree,
+  `npm run check` exit 0 (112/111/0/1), `npm run check:package` exit 0,
+  `git diff --check` exit 0, exactly the three global bullets with no other policy
+  drift, six preserved config/role hashes matching, both EVENTOUCH projects present,
+  container healthy with the approved image/security/mount, only pre-existing
+  worktrees, and 23 local commits ahead of origin with nothing pushed. Logs:
+  `/tmp/opencode/ksi-session-closeout-{check,package,diff}.log`. This added record is
+  unshipped evidence only.
 
 ## Applied changes
 
