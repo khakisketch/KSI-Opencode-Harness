@@ -100,6 +100,15 @@ Classify the action before opening a brief card:
   knowledge of the existing composition or CSS. Ask only for a missing material decision.
 - **Approved-pattern engineering edit:** remain in Build; do not commission another design run.
 
+Classify by the decision being made, not by file count or code size. Implementing
+an approved two-column artifact or restoring its broken responsive behavior is
+engineering; newly deciding column grouping, navigation or primary-action hierarchy
+is design work. Reusing colors/tokens does not establish approval of a new layout.
+For an engineering exception, cite the actual artifact/component pattern briefly
+in the existing task record. If work expands into material design decisions, reroute
+only that part; continue independent engineering. Do not turn this into a full-site
+audit, mandatory Plan stage or another user approval for ordinary approved-pattern fixes.
+
 For example, a visual-theme refinement may preserve copy, navigation and information architecture,
 use the existing brand specification, and identify the actual affected screens and required responsive
 states. Touch-target and overflow requirements are constraints to verify in rendered output, not a
@@ -273,6 +282,114 @@ If Mobbin is absent, unauthorized or unhelpful, report the limitation and use pr
 
 ## Handoff requirements
 
+### Product-aware frontend improvement
+
+Local Codex can improve an existing product's UI; a separate design folder is not
+proof of product-source access, and a design artifact is not an automatic product
+integration. Build supplies the actual implementation context so design work does
+not become an unrelated mockup that engineering has to redesign.
+
+Use this existing-task flow:
+
+1. Identify the user task, observed problem, affected screen/states and approved
+   scope. Inspect the relevant product source and current rendered evidence;
+   distinguish observed defects from assumptions. Reuse existing requirements.
+2. Assemble the minimum necessary product context below. Use already authorized
+   file/attachment mechanisms; verify the design environment can actually read
+   the inputs. Do not infer accessibility from host paths or project metadata.
+3. Confirm the output format supported for this target. Request product-compatible
+   UI components/styles where supported, preserving existing interfaces and tokens.
+   A prompt asking for React/TSX or any framework is not evidence of that capability.
+   If only a standalone HTML/JSX/CSS artifact is supported, state the adaptation
+   needed before the run and constrain it with the same product contracts. No
+   promised ready-to-merge component without actual file/execution evidence.
+4. Commission the existing refinement or new-artifact path, preserve canonical
+   entry/output requirements, validate the real files and rendered states, and
+   retrieve the complete required bundle for integration. A prototype fixture
+   is not a functioning product API/auth/save flow.
+5. Build integrates the output faithfully, connects real data/routes/events and
+   verifies the actual changed product flow. Compare design and product at relevant
+   viewports/states; feed material design compromises back through refinement.
+   Keep the default finish-and-report path and existing direction/review-first gates.
+
+#### Minimum product context
+
+| Input | What Build supplies |
+| --- | --- |
+| Identity and revision | Actual product repository/worktree/revision, target route/component paths, design project/storage/entry; pending changes that affect the input |
+| Product purpose | User task, observed problem, accepted outcome and exclusions; do not invent objectives from screenshots |
+| Relevant source | Screen/components and necessary imports/styles; existing reusable patterns, tokens, fonts and permitted assets |
+| Framework constraints | Actual framework/conventions, component boundaries and available trusted render/check commands; preserve dependencies unless separately approved |
+| Integration contracts | Props/types, data shape, route destinations, event/callback semantics, permission/disabled behavior; credentials and live private data excluded |
+| State evidence | Relevant wide/narrow captures and sanitized empty/loading/error/stale/permission fixtures; distinguish observed and proposed states |
+| Output ownership | Required files/format, canonical renderable entry and permitted output paths; product integration owner and immutable input/output snapshot |
+
+Use selective verified read-only access or minimal task-owned source copies under
+existing authorization, not a full-repository/home-directory export. Remove secrets
+and private customer data before transfer. If required sources cannot be accessed,
+report the specific gap and continue unrelated work; do not silently claim the design
+run used the product or reconfigure mounts/credentials/security to make it work.
+
+#### Compact refinement brief
+
+Populate this in the existing task record/run request from observed facts; it is a
+prompt convention, not a new MCP schema or automatically enforced manifest. Reuse
+known values instead of interviewing the user again. New-artifact intake still follows
+the existing brief/confirmation rules.
+
+```text
+Target: product worktree/revision + route/component; design project/storage/entry.
+Purpose: user task, observed problem and agreed acceptance criteria.
+Input: relevant source/tokens/assets/captures/fixtures with verified accessible paths.
+Preserve: component interfaces, data/event/route/permission semantics and design direction.
+Change: the scoped hierarchy/layout/interaction improvements and required states/viewports.
+Produce: supported UI files/styles, renderable canonical entry, required siblings/assets,
+         component-to-product mapping, integration instructions and known limitations.
+Ownership: write only task-owned design outputs; Build owns real product integration.
+Verify: identify inputs actually read, changed output paths, rendered states/checks performed,
+        and access/output gaps. A success status alone is insufficient.
+Exclude: product API/data/auth/Git/deployment changes, new dependencies or unrelated screens.
+```
+
+Output must describe reuse/adaptation of existing product components, required
+imports/assets and synthetic fixtures, and what remains for real data/event wiring.
+Preserve the canonical entry expected by the actual output validator; component
+siblings alone do not prove a valid deliverable. If the supported output cannot
+satisfy a required state or implementation contract, surface that gap rather than
+silently lowering the contract or launching another generation blindly.
+
+#### Faithful integration and feedback
+
+Build may make routine production adaptations within the agreed design contract,
+but does not invent a different layout, action hierarchy or visual system to make
+integration easier. Preserve accessible semantics, tokens, responsive ordering and
+empty/loading/error/permission behavior. Record artifact-to-component mapping,
+actual required-file hashes and necessary differences in the existing handoff.
+
+Compare the design preview and the real product at corresponding relevant states
+and viewports. Verify actual navigation, callbacks, keyboard/focus and persistence
+where changed. Important design compromises return to Local Codex with the exact
+source snapshot, product capture and constraint; routine adapters do not require
+another design run. Recheck after integration fixes. This is a scoped feedback loop,
+not automatic synchronization, recursive generation or mandatory pixel-perfect scoring.
+
+#### Direct product-source work: conditional, not enabled by this policy
+
+An explicitly scoped isolated frontend workspace can be a future supported output
+target; it is not inherently impossible because the design system is separate.
+Before using that path, verify the actual project/storage binding, inner read/write
+and framework render/check capability, allowed files and single-writer ownership.
+Local Codex would own only the delegated UI paths; Build would still own integration
+and real product verification. Neither may concurrently write those paths.
+
+Do not point a design run at main or assume arbitrary framework execution from
+successful HTML rendering. Source-direct operation, workspace/mount/security changes
+and capability probes need their own scoped authorization where not already granted.
+No API/data/auth/Git/deployment or dependency changes are delegated implicitly. Current
+default remains product-aware output with explicit Build integration; unsupported
+source-direct access is not a blocker for that default. Preserve source and prior
+artifacts; the operating rules are not an OS sandbox.
+
 When asking OpenDesign for a change, state:
 
 - the target project and entry file,
@@ -307,6 +424,15 @@ Request the source bundle once when implementation needs it; use explicit projec
 User direction approval may happen in the design workspace or conversation. On the default path (existing approved design language, authorized scope) no separate pre-implementation approval is required: record the verification snapshot with the result report. When the change was gated (new visual direction, client deliverable, out-of-scope or explicit review-first request), bind the agreed artifact to the captured snapshot at approval; if files changed or cannot be matched to what was approved, mark that uncertainty and obtain a decision rather than invent provenance. Material subsequent changes require updated direction approval; routine production adaptations within the approved contract can be documented without per-file confirmation. A manifest's schema version/status, execution success, mutable preview URL or old screenshot does not identify an immutable approved revision. Fetching source for implementation does not itself approve it.
 
 ### Product verification and feedback
+
+Before reporting overall technical completion, reconcile required design work,
+validated output/snapshot, product integration, changed-flow verification and
+unresolved differences with the agreed acceptance criteria. Missing required design
+or checks remain engineering work/blockers, not “only user confirmation remains.”
+Tests/review findings cover their inspected scope, not design quality. A design-run
+failure or unsupported entry requires cause-specific recovery, not substituting
+Build's own design to save time. Never regenerate solely to tick a process box;
+a verified no-change result can preserve the implementation with its evidence.
 
 The design preview is for direction, composition and prototype states. The actual product server is for authentication, API integration, saving, permissions, routing, error handling and the production component/responsive behavior. Keep both responsibilities: a working prototype button or screenshot does not prove real functionality. No API/backend change is authorized by a design artifact.
 
