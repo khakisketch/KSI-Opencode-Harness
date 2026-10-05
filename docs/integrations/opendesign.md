@@ -420,11 +420,18 @@ screens instead of continuing per-screen patches:
 1. Audit the screens and map each to its files; inventory existing tokens and
    components.
 2. Define tokens plus shared components (card, panel, button, stats, empty
-   state) with spacing and type scales. The direction-approval snapshot binds
-   this system definition, not a full mockup set.
+   state) with spacing and type scales.
 3. Implement one representative screen in the real source; verify build, tests
    and rendered states.
-4. Roll out screen by screen with per-stage checks; finish with a full
+4. Present the definition, the scope and the representative screen's real
+   result as one review. For internal tools that keep the existing brand, this
+   single review replaces a separate plan approval; obtain pre-approval before
+   step 3 only for a new visual direction, a client-facing deliverable, an
+   out-of-scope change or an explicit review-first request. Where a gated
+   approval is used, its snapshot binds the system definition, not a full mockup
+   set.
+5. After the review, roll out screen by screen with per-stage checks, without
+   per-screen user approvals, and report once at completion; finish with a full
    build/test/render pass on the whole app.
 
 Do not big-bang rewrite every screen at once. Keep functionality, routing and
