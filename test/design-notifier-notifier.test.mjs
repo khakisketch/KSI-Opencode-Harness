@@ -525,3 +525,38 @@ test("extractRunId prefers request-matched candidates and rejects ambiguity", ()
     "structured output is parsed",
   )
 })
+
+test("a strategy chain keeps watching: the follow-up run is tracked and delivered as the final stage", async () => {
+  await withHarness(async ({ notifier, store, runs, deliveries }) => {
+    runs[RUN_A] = terminalRun(RUN_A, { strategyTask: { terminal: false, nextRunId: RUN_B } })
+    await notifier.handleToolBefore(beforeEvent("req-chain"))
+    await notifier.handleToolAfter(afterEvent("req-chain", startResult(RUN_A, "req-chain")))
+    await notifier.tick()
+    assert.equal(deliveries.length, 1, "intermediate stage delivered once")
+    assert.match(deliveries[0].message.text, /intermediate stage/)
+    const key = `run:${RUN_B}@${SESSION}`
+    let bindings = await store.load()
+    assert.equal(bindings[key]?.state, "tracking", "follow-up run is watched for the same session")
+    runs[RUN_B] = terminalRun(RUN_B, { strategyTask: { terminal: true } })
+    await notifier.tick()
+    assert.equal(deliveries.length, 2, "final stage delivered")
+    assert.doesNotMatch(deliveries[1].message.text, /intermediate stage/)
+    assert.equal(deliveries[1].sessionID, SESSION)
+    bindings = await store.load()
+    assert.equal(bindings[key]?.state, "delivered")
+  }, { runs: {} })
+})
+
+test("a mapped follow-up run that is not visible yet stays tracked within the chain grace window", async () => {
+  await withHarness(async ({ notifier, store, runs }) => {
+    runs[RUN_A] = terminalRun(RUN_A, { strategyTask: { terminal: false, nextRunId: RUN_B } })
+    await notifier.handleToolBefore(beforeEvent("req-chain-2"))
+    await notifier.handleToolAfter(afterEvent("req-chain-2", startResult(RUN_A, "req-chain-2")))
+    await notifier.tick()
+    await notifier.tick()
+    const key = `run:${RUN_B}@${SESSION}`
+    const bindings = await store.load()
+    assert.equal(bindings[key]?.state, "tracking", "not marked missing before the follow-up appears")
+    assert.match(String(bindings[key]?.lastError ?? ""), /not visible yet/)
+  }, { runs: {} })
+})

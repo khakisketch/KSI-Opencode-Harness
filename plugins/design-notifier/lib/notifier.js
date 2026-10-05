@@ -31,6 +31,7 @@ const RECOVERY_RETRY_MS = 5 * 60 * 1000;
 const RECOVERY_GIVE_UP_MS = 24 * 60 * 60 * 1000;
 const DELIVERY_BASE_BACKOFF_MS = 15 * 1000;
 const DELIVERY_MAX_BACKOFF_MS = 15 * 60 * 1000;
+const CHAIN_START_GRACE_MS = 10 * 60 * 1000;
 
 function describeError(error) {
   const message = error instanceof Error ? error.message : String(error);
@@ -464,6 +465,17 @@ export function createNotifier({
       run = await daemon.getRun(binding.runId);
     } catch (error) {
       if (error?.status === 404) {
+        // A strategy chain may map the follow-up run before the daemon has
+        // materialized it; keep polling within the grace window instead of
+        // parking the chain as `missing`.
+        if (binding.source === "strategy-chain" && clock() - (binding.createdAt ?? 0) < CHAIN_START_GRACE_MS) {
+          await patch(binding.key, {
+            lastPollAt: clock(),
+            lastError: "follow-up run not visible yet; awaiting strategy chain",
+            updatedAt: clock(),
+          });
+          return;
+        }
         await patch(binding.key, {
           state: "missing",
           lastError: "run not found on daemon (kept for diagnosis; no delivery)",
@@ -490,6 +502,39 @@ export function createNotifier({
     }
     await patch(binding.key, { lastPollAt: now, lastStatus: snapshot, lastError: null, updatedAt: now });
     await attemptDelivery(binding, run);
+    await continueStrategyChain(binding, run);
+  }
+
+  // Follow a plan→execute style strategy chain: a terminal stage that maps a
+  // follow-up run keeps the chain watched for the same session, so the final
+  // stage still reaches it (the intermediate notification is worded as
+  // non-final). Idempotent; existing records are never overwritten.
+  async function continueStrategyChain(binding, run) {
+    const nextRunId = run?.strategyTask?.nextRunId;
+    if (run?.strategyTask?.terminal !== false || typeof nextRunId !== "string" || !nextRunId) return;
+    if (!daemon.isValidRunId(nextRunId)) return;
+    if (!binding.sessionID) return;
+    const key = runKey(nextRunId, binding.sessionID);
+    const now = clock();
+    let created = false;
+    await store.mutate((bindings) => {
+      if (bindings[key]) return;
+      bindings[key] = {
+        key,
+        kind: "run",
+        runId: nextRunId,
+        sessionID: binding.sessionID,
+        projectId: run.projectId ?? binding.projectId ?? null,
+        requestId: typeof run.clientRequestId === "string" ? run.clientRequestId : null,
+        agent: binding.agent ?? null,
+        source: "strategy-chain",
+        state: "tracking",
+        createdAt: now,
+        updatedAt: now,
+      };
+      created = true;
+    });
+    if (created) log("strategy-next-run", { runId: binding.runId, nextRunId });
   }
 
   async function tick({ reason = "interval" } = {}) {
@@ -588,6 +633,7 @@ export function createNotifier({
       projectId: binding.projectId ?? null,
       status: binding.lastStatus?.status ?? null,
       deliverableValid: binding.lastStatus?.deliverableValid ?? null,
+      strategyTerminal: binding.lastStatus?.strategyTerminal ?? null,
       heldAt: binding.heldAt ?? null,
       deliveredAt: binding.deliveredAt ?? null,
       updatedAt: binding.updatedAt ?? null,

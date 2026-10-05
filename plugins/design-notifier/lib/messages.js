@@ -55,6 +55,9 @@ function buildLines(run) {
     run.deliverableEntryFile ? `entry=${run.deliverableEntryFile}` : null,
   ].filter(Boolean);
   lines.push(`Flags: ${flags.join("  ")}`);
+  if (run?.strategyTask && run.strategyTask.terminal !== true) {
+    lines.push("Strategy: intermediate stage — the task continues in a follow-up run; this is not the final completion.");
+  }
   return lines;
 }
 
@@ -92,6 +95,8 @@ export function buildDelivery({ run, sessionID, requestId, source, paused = fals
       deliverableValid: run.deliverableValid ?? null,
       deliverableValidation: run.deliverableValidation ?? null,
       requestId: requestId ?? null,
+      strategyTerminal: run?.strategyTask ? run.strategyTask.terminal === true : null,
+      strategyNextRunId: typeof run?.strategyTask?.nextRunId === "string" && run.strategyTask.nextRunId ? run.strategyTask.nextRunId : null,
     },
   };
 
@@ -122,5 +127,7 @@ export function summarizeRun(run) {
     artifactCount: run.artifactCount ?? null,
     terminalAt: run.terminalAt ?? null,
     updatedAt: run.updatedAt ?? null,
+    strategyTerminal: run.strategyTask ? run.strategyTask.terminal === true : null,
+    strategyNextRunId: typeof run.strategyTask?.nextRunId === "string" && run.strategyTask.nextRunId ? run.strategyTask.nextRunId : null,
   };
 }

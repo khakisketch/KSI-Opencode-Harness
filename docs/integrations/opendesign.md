@@ -286,7 +286,7 @@ with the receiving agent and the user; the notifier only observes and notifies.
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
   approved design language and authorized scope; it previews-and-waits only for a new visual
-    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request. It also points at the design-quality loop (skill-selected runs, rendered-result evaluation, refinement until the bar — no fixed round cap).
+    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request. It also points at the design-quality loop (skill-selected runs, rendered-result evaluation, refinement until the bar — no fixed round cap). Intermediate strategy stages are worded as non-final, and the mapped follow-up run is watched for the same session until the chain ends.
   Source notifications distinguish the daemon's artifact verdict from **required product verification**:
   `entry_not_touched` on a succeeded source-direct run is not automatically product failure or success;
   inspect the actual diff/build/changed-flow checks. Read-only reports are not design deliverables.

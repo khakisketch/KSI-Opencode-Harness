@@ -108,8 +108,11 @@ than the OpenCode-driven one-shot flow:
 
 - The notifier delivers only the stage bound to the session; od-next expands one
   request into plan→execute runs, so the follow-up stage must be tracked through
-  the run's strategy mapping (a background watcher was used). Candidate notifier
-  fix: recognize the chain and word intermediate stage completions as non-final.
+  the run's strategy mapping (a background watcher was used). **Fixed the same
+  day:** the notifier now words intermediate stages as non-final and watches the
+  mapped follow-up run for the same session until the chain ends (10-minute
+  visibility grace); commit `feat: follow strategy chains in design completion
+  notifications`; pinned runtime updated.
 - Strategy outcome `blocked` (`od_next_canonical_deliverable_invalid`) and
   `no_artifact` are expected for entry-untouched source-direct work; the source
   diff + render check is the evidence (now documented in the guide).

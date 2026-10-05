@@ -33,6 +33,12 @@ plugin never claims success, never retries generation and never implements.
   (skill-selected runs, rendered-result evaluation, refinement until the bar —
   no fixed round cap). Delivery/classification behavior is unchanged; the
   pinned runtime copy reflects this only after an explicit verified update.
+- Strategy chains are followed: when a terminal run maps a follow-up run
+  (`strategyTask.terminal === false` + `nextRunId`), that completion is worded
+  as intermediate ("not the final completion") and the follow-up is watched for
+  the same session until the chain ends. A mapped run not yet visible on the
+  daemon stays tracked within a 10-minute grace window instead of being parked
+  as `missing`.
 - Artifact verdict and product completion are separate: source notification
   metadata adds `productVerification: required|blocked`. An untouched HTML entry
   is not an automatic product failure/success; Build verifies actual source diff,

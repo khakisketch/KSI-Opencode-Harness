@@ -133,3 +133,21 @@ test("even valid artifacts require verification and respect the representative r
   assert.match(delivery.text, /goal.*pause|paused.*goal/i)
   assert.match(delivery.text, /do not.*(?:create|resume).*goal/i)
 })
+
+test("an intermediate strategy stage is marked non-final with chain metadata", () => {
+  const delivery = buildDelivery({
+    run: { ...validRun, strategyTask: { terminal: false, nextRunId: "22222222-2222-4222-8222-222222222222" } },
+    sessionID: SESSION,
+  })
+  assert.match(delivery.text, /intermediate stage/)
+  assert.match(delivery.text, /not the final completion/)
+  const meta = delivery.metadata["ksi.design-notifier"]
+  assert.equal(meta.strategyTerminal, false)
+  assert.equal(meta.strategyNextRunId, "22222222-2222-4222-8222-222222222222")
+})
+
+test("a terminal strategy stage carries no intermediate note", () => {
+  const delivery = buildDelivery({ run: { ...validRun, strategyTask: { terminal: true } }, sessionID: SESSION })
+  assert.doesNotMatch(delivery.text, /intermediate stage/)
+  assert.equal(delivery.metadata["ksi.design-notifier"].strategyTerminal, true)
+})
