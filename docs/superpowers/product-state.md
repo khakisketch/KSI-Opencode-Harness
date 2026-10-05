@@ -25,11 +25,12 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: visual ownership simplification (approved 2026-10-06; implementation in progress).
+- Name: visual ownership simplification (approved 2026-10-06; implemented and verified locally at `24702e1`; real-use quality validation pending).
 - Acceptance (user-visible): the design workspace owns all visual frontend analysis, actual UI source/styles, rendered review and refinement, including small visual fixes. OpenCode coordinates contracts and checks evidence/product functionality/Git; no substitute visual repairs. Behavior/brand preservation does not freeze a rejected layout. Any verified UI output needs review independent of canonical-entry verdict; a stalled round is quality unmet, not completion. Existing native modes, human gates and no-fixed-round-cap rule stay intact.
 - Plan ledger: docs/superpowers/plans/2026-10-06-visual-ownership.md
 - Scope: harness policy/notifier advice + pinned copy only. No product edits, design runs, other-session mutations, new orchestrator, model change, push or npm publication. EVENTOUCH design refinement belongs to its product session.
 - Evidence boundary: source registration/direct UI writing are verified capabilities, but the user rejected the bold agency-home result. Existing prose/unit/package checks do not establish design quality. The earlier coordinating-agent self-evaluation and small-visual-edit exceptions are superseded by this approved ownership contract; current technical checks are recorded in the active ledger.
+- Technical evidence: reviewer `ses_ef2751567ffeYft7eI70xSrP29` found no implementation conflicts across seven scenario groups; test-runner `ses_ef272f946ffeAQrNnE4Bc7WCm3` independently verified check140/pass139/fail0/skip1, package/targeted37/37/diff, nine config/role hashes, six intended global-policy bullet replacements, source/pinned payload7/7 and installed advice55assertions. Pinned source commit `24702e1`; no live pickup or product design-quality claim.
 
 ## Human acceptance
 
@@ -51,7 +52,7 @@ Not accepted: user explicitly rejected EVENTOUCH's bold agency-home result on 20
 
 ## Backlog
 
-- Usability alignment adoption: pinned notifier runtime was updated to `8aa350e` (chain-follow fix; independent check133/pass132/fail0/skip1, targeted30/30 and install verify). Current task updates ownership/output-contract advice; runtime reload and real design-review behavior must not be inferred from static hashes. No automatic publication/design run. Optional binding-placeholder follow-ups remain separate.
+- Usability alignment adoption: chain-follow fix `8aa350e` retained; pinned notifier updated to `24702e1` for design-owned output-contract advice and `designQuality:not_assessed`. Independent check140/pass139/fail0/skip1, targeted37/37, installed payload7/7 and verify pass. Runtime reload/real-use quality must not be inferred from static hashes or emitted-contract tests. No automatic publication/design run; optional binding-placeholder follow-ups remain separate.
 - Source-registration flow (user-directed 2026-10-06 "전역 설정 하네스 개선", complete): the writable design capability is a standing, agent-executed flow — connect the exact project path (one container recreation for a new path, automatic rollback, refuses while runs are non-terminal), then `import` it as a folder-backed project; scope = every project under home except the home root/credentials; one writer. A transient Desktop parent bind was tested, found redundant (the daemon requires exact per-project connections) and against the deployment boundary, and reverted. `EVENTOUCH source` re-registered (`aabf3621`). Guide + global policy updated. Ledger docs/superpowers/plans/2026-10-06-source-registration-flow.md.
 - Design-quality pilot: EVENTOUCH source edits `5f7b92f` then bold `2270e6e` were rendered at 1440/390, proving source writing/rendering, not an autonomous critique-and-refinement loop. User rejected the bold result; no representative approval or wider-rollout authority. Product session must supply actual design-owned review/refinement evidence. This harness session owns common workflow, not that product's repairs. Engine remains codex temporarily; guidance is not runtime enforcement.
 - Optional ergonomic wording polish (non-blocking review): more explicit base-ambiguity/submodule-detection hints if needed in real use; existing HEAD/base inspection and isolation skill cover them. Canonical guide pointer stays authoritative after integration; do not read unrelated product docs as the harness guide.

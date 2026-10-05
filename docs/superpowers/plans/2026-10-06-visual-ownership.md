@@ -10,6 +10,8 @@
 
 **Spec:** Approved in this conversation: “시각적 작업은 다 … 넘기는” and “그렇게 단순화하면서 개선해줘”. This bounded change implements that in-chat contract; earlier OpenCode-led aesthetic evaluation and small-visual-edit exceptions are superseded.
 
+**Status:** Implemented and verified locally; actual design-quality behavior remains a product-session validation obligation.
+
 ## Global Constraints
 
 - Harness-only work. No EVENTOUCH source writes, design runs, product-session mutations, push, deployment or publication.
@@ -54,12 +56,15 @@
 - [x] Keep new direction/client/scope/review-first and representative rollout gates; UI direct edits can precede quality pass but are provisional and not completion evidence alone.
 - [x] Reconcile stale pilot/state claims: user rejected bold result; product refinement belongs in the product session; autonomous quality loop remains unverified.
 - [x] Fresh reviewer tests consuming guidance against the five Review Focus classes; record interpretation limits, not visual-quality success.
-- [ ] Independent test-runner runs `npm run check`, `npm run check:package`, targeted tests and diff checks; verifies native hashes, global-policy scope and no product writes.
-- [ ] Commit task-owned files, update the existing pinned notifier copy, independently verify installed hashes/metadata and final repo state; reconcile ledger/checkpoint and report live-pickup/real-use limits. No push/restart.
+- [x] Independent test-runner runs `npm run check`, `npm run check:package`, targeted tests and diff checks; verifies native hashes, global-policy scope and no product writes.
+- [x] Commit task-owned files, update the existing pinned notifier copy, independently verify installed hashes/metadata and final repo state; reconcile ledger/checkpoint and report live-pickup/real-use limits. No push/restart.
 
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
 - GREEN: messages + notifier suites 37/37 pass; full `npm run check` 140 total / 139 pass / 0 fail / 1 optional Compose skip. Logs `green.log`, `check.log` in the same directory. Nine config/native-role hashes unchanged.
 - Reviewer `ses_ef2751567ffeYft7eI70xSrP29`: no code/policy conflicts found; the two flagged pending items were the not-yet-committed plan and pinned-copy adoption, not implementation defects. Seven scenario groups consumed the new guidance: small visual repair → design compact refinement; nonvisual shared-file bug → Build with sequential ownership; entry-invalid verified UI → design review; intermediate/report-only → no fabricated UI/refinement authority; stalled/rejected → quality unmet; authorized same-brand redesign → structural freedom with invariants; missing render/Plan/pause → respect blockers/native boundaries. This is constrained interpretation, not observed live agent execution or visual-quality validation.
-- Independent final test-runner and pinned runtime adoption pending. Real design-quality improvement must be demonstrated by the product session's rendered review/refinement evidence; this task does not generate a design.
+- Source commit `24702e11e195fd3ece95aad568ef48eeb6f0f457` on main includes the plan; the existing pinned notifier copy was updated to that exact commit (7 files). Both reviewer pending items are resolved. No new workspace or native agent; unfamiliar worktrees retained.
+- Independent test-runner `ses_ef272f946ffeAQrNnE4Bc7WCm3` at `24702e1`: `npm run check` exit0 (140 total / 139 pass / 0 fail / 1 optional Compose skip), `npm run check:package` exit0, messages/notifier targeted37/37 exit0, diff and committed whitespace checks exit0, clean Git. Logs `final-{check,package,targeted}.log` under `/tmp/opencode/ksi-visual-ownership`.
+- Same test-runner: 9/9 native config/role hashes preserved; global policy differs from backup in exactly six single-bullet replacements (105 lines unchanged). `node scripts/install-design-notifier.mjs --verify` exit0/ok:true/commit24702e1/changed+missing+extra empty; independent source/installed `hashTree` comparison 7/7 equal. Actual installed `buildDelivery` imports: 55 assertions over valid/entry-invalid/failed/intermediate/paused cases, no failures. Logs `final-{runtime,hashcompare,runtime-contract}.log`.
+- Limits: no product edits/design runs/other-session writes, no service restart/push/publication. Live notifier pickup is unverified; policy refreshed through the harness instruction channel. Unit/runtime-contract and scenario-interpretation checks do not prove agent obedience or visual quality. Real design improvement must be demonstrated by the product session's rendered review/refinement and changed-flow evidence. Human product acceptance remains rejected/unproven, not silently closed.
