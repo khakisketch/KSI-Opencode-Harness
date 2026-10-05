@@ -1,6 +1,6 @@
 # Product State - KSI OpenCode Harness
 
-Updated: 2026-10-05
+Updated: 2026-10-06
 
 ## Goal
 
@@ -25,10 +25,22 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: design-completion-notifier hardening (m07; technically complete: plugin source 8bb8715/91c0efb/4f7d49e/adcbfa9/be421d9 on local main, hardening pass 2 implemented and verified live on the pinned runtime; user real-work acceptance pending)
-- Acceptance (user-visible): a finished OpenDesign run reaches the originating session without the user asking again; wake permission is per session (paused → result kept in notifier state, resume → delivered with auto wake); one elected poller serves all locations; notifications are advisory (verify/preview/agentMessage, no false success on invalid output); survives restarts from durable state; never delivers to another session and never regenerates. m04 design-flow-hardening remains a technically complete supplement with human acceptance pending.
-- Plan ledger: docs/superpowers/plans/2026-10-03-design-completion-notifier.md
-- Scope note: no new orchestrator, no second primary; runtime loads a pinned copy from the global config dir (dev tree is no longer watched by the live service); daemon event streaming deferred, polling remains.
+- Name: usability alignment (approved 2026-10-06; implementation/verification in progress).
+- Acceptance (user-visible): less workspace ceremony; accurate execution-versus-product notifications; concise record/Git status; reusable project context and explicit session pause guidance; read-only local readiness without false live-ready claims.
+- Plan ledger: docs/superpowers/plans/2026-10-06-usability-alignment.md
+- Scope note: existing native mechanisms only, no product changes/new orchestrator/runtime install/push/release. Previous m07 notifier hardening is technically complete; real-work acceptance remains separate in its existing ledger.
+
+## Human acceptance
+
+Pending: real-project design/source-writing quality and the latest reduced-ceremony flow remain to be accepted by the user. Technical checks, local policy adoption and upstream delivery are separate evidence, not acceptance.
+
+## Product binding
+
+| Field | Value |
+| --- | --- |
+| Repository | . |
+| Start command | not applicable (installer-only CLI; no product server) |
+| Verify command | npm run check; npm run check:package |
 
 ## Next slices (미완(in_progress/blocked/proposed)만; done/abandoned/false_positive_complete 제외)
 
@@ -56,7 +68,7 @@ preserved for audit, not active.
 - Product-aware design (user-approved2026-10-05, technically complete locally): the operating flow requires relevant product sources/components/tokens, sanitized states and integration contracts as verified inputs to Local Codex; supported UI output is integrated faithfully and compared with the real product. Approved-pattern exceptions require an actual source, not token reuse/file count; required design or checks cannot be hidden behind “only user acceptance remains.” Direct source edits are a separately scoped capability-dependent option, not enabled here. Global AGENTS.md and shipped guide/examples updated; no product edit/design generation/mount or permission change. Independent six-scenario interpretation review: no blocking findings; `39835f1` fast-forwarded to main and independently verified check112/pass111/fail0/skip1, package pass, six config/role hashes preserved. Owned worktree removed non-forced; no push/publication. Ledger docs/superpowers/plans/2026-10-05-product-aware-design.md; actual product input/output and design quality remain unverified in this task, real-use acceptance pending (m04/m06). Guidance is not runtime enforcement.
 - Source-direct feasibility (user-approved2026-10-05 research/throwaway trial, complete): primary-source folder-import implementation and related tools support the approach. One Local Codex run modified actual host React TSX/CSS in an already connected synthetic fixture, built it without installs, and returned a valid canonical HTML result; Build did not rebuild the UI manually. Independent test-runner ses_ef50782acffekyjjxI5qXfr4v0 verified exact two-line diff, deterministic build, byte-identical HTTP outputs, real mouse/keyboard state updates,390px and reload checks, preserved originals/config/security. Agent input-CSS receipt hash normalized away final newline and is rejected as raw-byte provenance; real baseline/output independently checked. No global/product activation, new mounts/restart/security change or publication. This proves bounded direct editing/compiled React preview, not Next/Vite server/HMR/auth/API/visual quality/file-level allowlist or universal source-only delivery. Ledger docs/superpowers/plans/2026-10-05-source-direct-feasibility.md. Next m04 candidate: authorized one-screen isolated product pilot, not automatic all-project activation.
 - Source-direct flow simplified (user-approved2026-10-05 "그렇게 개선해줘", complete locally): the verified preferred path is direct editing of the actual product repository — dedicated branch or the user's checkout, worktree optional convenience — with one writer at a time and Build owning contracts, verification, integration and Git. Real boundaries kept: home/credential roots and unrelated projects out of reach; new mounts/security changes and push/deploy/API/data/auth/dependency changes keep their own authorization. Source-direct completion evidence is the actual source diff plus a real build/render check; an intentionally untouched canonical entry may report entry_not_touched and does not by itself invalidate the result. Global AGENTS.md, integration guide, execution/architecture docs and examples updated; no product/mount/container/security change or design generation. Ledger docs/superpowers/plans/2026-10-05-source-direct-flow.md. Real-product pilot remains separate (m04).
-- System-pass guidance (user-approved2026-10-05, complete locally): accumulated multi-screen visual drift prefers a visual-system pass — audit → token/shared-component scales → direction approval → one representative screen implemented and verified in the real source → staged rollout with per-stage checks — over per-screen patches or a big-bang rewrite; the minimum product context gains a screen/file map for multi-screen work; both project-guidance examples carry the same rule. Global AGENTS.md + integration guide updated; no product/mount/security change. Ledger docs/superpowers/plans/2026-10-05-system-pass-guidance.md. First real large-scale pass observation pending (EVENTOUCH, separate session).
+- System-pass guidance (user-approved2026-10-05, complete locally; approval ordering superseded by review-once below): accumulated multi-screen visual drift prefers a visual-system pass over per-screen patches or a big-bang rewrite; minimum product context includes screen/file mapping. Current internal existing-brand flow is audit → token/shared-component scales → verified representative screen → one user review/approval → staged rollout. Global AGENTS.md + integration guide updated; no product/mount/security change. Ledger docs/superpowers/plans/2026-10-05-system-pass-guidance.md. First real large-scale pass observation remains separate (EVENTOUCH).
 - Review-once flow (user-approved2026-10-05 "그렇게 해보자", complete locally): internal tools keeping the existing brand run a visual-system pass to one verified representative screen and present definition + scope + real result as a single review (pre-approval only for a new visual direction, client deliverable, out-of-scope or review-first request); unavoidable decision batches come once with a recommended default per item; rollout then continues with per-stage checks without per-screen approvals, reported at completion. Global AGENTS.md + integration guide + examples updated; the wider guidance diet is deferred until the first real pass shows which rules chafe. Ledger docs/superpowers/plans/2026-10-05-review-once-flow.md.
 
 ## Design-flow hardening checkpoint (2026-10-03)

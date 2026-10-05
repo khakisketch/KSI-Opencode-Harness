@@ -15,6 +15,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { inspectWorkStatus, renderWorkStatus } from "./work-status.mjs";
+export { inspectWorkStatus, renderWorkStatus } from "./work-status.mjs";
+export { inspectReadiness } from "./work-doctor.mjs";
 
 function envPath(name, fallback) {
   const value = process.env[name];
@@ -114,6 +117,8 @@ export function summarizeBindings(raw) {
       classification:
         record.delivery?.classification ??
         (record.lastStatus?.deliverableValid === true ? "valid" : record.lastStatus ? "invalid" : null),
+      productVerification: record.lastStatus?.status === "succeeded" ? "required"
+        : ["failed", "canceled"].includes(record.lastStatus?.status) ? "blocked" : "unknown",
       updatedAt: numberOrNull(record.updatedAt),
     }))
     .sort((a, b) => {
@@ -185,27 +190,49 @@ export function queryWorktrees(repoPath) {
   }
 }
 
-export function readJsonFile(path, fallback) {
+export function readJsonFile(path, fallback, onUnavailable = () => {}) {
   try {
     return JSON.parse(readFileSync(path, "utf8"));
   } catch {
+    onUnavailable();
     return fallback;
   }
 }
 
-export function buildReport({ repo = null, days = 7, now = Date.now() } = {}) {
+export function buildReport({ repo = null, days = 7, now = Date.now(), includeUsage = true } = {}) {
   const paths = defaultPaths();
   const since = now - days * 24 * 60 * 60 * 1000;
+  const warnings = [];
+  const state = (path, fallback, label) => {
+    let unavailable = false;
+    const value = readJsonFile(path, fallback, () => { unavailable = true; });
+    if (unavailable || !value || typeof value !== "object" || Array.isArray(value)) {
+      warnings.push(`${label} unavailable or malformed; empty output is not evidence of no work.`);
+      return fallback;
+    }
+    return value;
+  };
+  let usage = { byProject: [], top: [] };
+  if (includeUsage) {
+    try {
+      if (!existsSync(paths.db)) throw new Error("absent");
+      usage = queryUsage(paths.db, since);
+    } catch {
+      warnings.push("Usage unavailable; database/schema/tool access was not verified.");
+    }
+  }
   const report = {
     generatedAt: now,
     days,
     repo: repo ? resolve(repo) : null,
-    goals: summarizeGoals(readJsonFile(paths.goals, {})),
-    designRuns: summarizeBindings(readJsonFile(paths.bindings, {})),
-    designPaused: readJsonFile(paths.paused, {}),
-    usage: existsSync(paths.db) ? queryUsage(paths.db, since) : { byProject: [], top: [] },
+    goals: summarizeGoals(state(paths.goals, {}, "Goal state")),
+    designRuns: summarizeBindings(state(paths.bindings, {}, "Design state")),
+    designPaused: state(paths.paused, {}, "Design pause state"),
+    usage,
     worktrees: repo ? queryWorktrees(repo) : [],
     nextSlices: [],
+    status: repo ? inspectWorkStatus(repo) : null,
+    warnings,
   };
   if (repo) {
     const productState = join(resolve(repo), "docs/superpowers/product-state.md");
@@ -221,6 +248,8 @@ export function renderReport(report) {
   lines.push(
     `=== KSI work report — ${formatTime(report.generatedAt)} (last ${report.days} days) ===`,
   );
+  if (report.status) lines.push("", renderWorkStatus(report.status));
+  for (const warning of report.warnings ?? []) lines.push(`Warning: ${warning}`);
 
   lines.push("");
   lines.push(`[Goals] (${report.goals.length})`);
@@ -231,7 +260,7 @@ export function renderReport(report) {
     const unbounded =
       goal.tokenBudget === null && goal.maxAutoTurns === null && goal.maxDurationSeconds === null;
     lines.push(
-      `  - [${goal.status}] ${goal.sessionID ? goal.sessionID.slice(0, 16) : "?"}  tokens ${tokens}  turns ${turns}  ${formatTime(goal.updatedAt)}${unbounded ? "  [!unbounded: no token/turn/time limits]" : ""}`,
+      `  - [${goal.status}] ${goal.sessionID ? goal.sessionID.slice(0, 16) : "?"}  tokens ${tokens}  turns ${turns}  ${formatTime(goal.updatedAt)}${unbounded ? "  [limits: none — user-adjustable]" : ""}`,
     );
     lines.push(`      ${goal.objective}`);
   }
@@ -244,7 +273,7 @@ export function renderReport(report) {
   if (report.designRuns.length === 0) lines.push("  (none)");
   for (const run of report.designRuns.slice(0, 12)) {
     lines.push(
-      `  - [${run.state}] ${run.runId ? run.runId.slice(0, 8) : "?"} -> ${run.sessionID ? run.sessionID.slice(0, 16) : "?"}  ${run.classification ?? ""}  ${formatTime(run.updatedAt)}`,
+      `  - [${run.state}] ${run.runId ? run.runId.slice(0, 8) : "?"} -> ${run.sessionID ? run.sessionID.slice(0, 16) : "?"}  artifact=${run.classification ?? "unknown"} product=${run.productVerification ?? "unknown"}  ${formatTime(run.updatedAt)}`,
     );
   }
 
@@ -282,6 +311,13 @@ export function renderReport(report) {
 
 async function main(argv) {
   const args = argv.filter((arg) => arg !== "--");
+  const usage = "Usage: node scripts/work-report.mjs [--repo PATH] [--days NUMBER] [--status] [--json]";
+  for (let i = 0; i < args.length; i += 1) {
+    if (["--repo", "--days"].includes(args[i])) {
+      if (!args[i + 1] || args[i + 1].startsWith("--")) throw new Error(usage);
+      i += 1;
+    } else if (!["--json", "--status"].includes(args[i])) throw new Error(usage);
+  }
   const json = args.includes("--json");
   const repoIndex = args.indexOf("--repo");
   const daysIndex = args.indexOf("--days");
@@ -291,6 +327,11 @@ async function main(argv) {
   const days = daysIndex === -1 ? 7 : Number(args[daysIndex + 1]);
   if (!Number.isFinite(days) || days <= 0) throw new Error("--days must be a positive number");
 
+  if (args.includes("--status")) {
+    const status = inspectWorkStatus(repo);
+    process.stdout.write(json ? `${JSON.stringify(status, null, 2)}\n` : `${renderWorkStatus(status)}\n`);
+    return;
+  }
   const report = buildReport({ repo, days });
   process.stdout.write(json ? `${JSON.stringify(report, null, 2)}\n` : `${renderReport(report)}\n`);
 }

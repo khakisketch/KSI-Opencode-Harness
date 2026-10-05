@@ -102,3 +102,31 @@ test("summarizeRun keeps only whitelisted fields", () => {
   assert.ok(!("prompt" in summary))
   assert.ok(!("eventsLogPath" in summary))
 })
+
+// Catches conflating an entry-centric artifact verdict with product completion.
+test("successful execution with untouched entry requires product verification, not an automatic failure or success", () => {
+  const delivery = buildDelivery({
+    run: { ...validRun, deliverableValid: false, deliverableValidation: "entry_not_touched" },
+    sessionID: SESSION,
+  })
+  assert.equal(delivery.classification, "invalid", "preserve the daemon artifact verdict")
+  assert.equal(delivery.metadata["ksi.design-notifier"].productVerification, "required")
+  assert.match(delivery.text, /actual source diff.*build.*changed.flow/i)
+  assert.match(delivery.text, /not.*(?:product|task) failure/i)
+  assert.match(delivery.text, /do not.*(?:automatically|blindly).*regenerate/i)
+})
+
+test("failed execution is not upgraded to a source verification success exception", () => {
+  const delivery = buildDelivery({ run: { ...validRun, status: "failed", deliverableValidation: "entry_not_touched" }, sessionID: SESSION })
+  assert.equal(delivery.classification, "failed")
+  assert.equal(delivery.metadata["ksi.design-notifier"].productVerification, "blocked")
+})
+
+test("even valid artifacts require verification and respect the representative review and pause boundaries", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.equal(delivery.metadata["ksi.design-notifier"].productVerification, "required")
+  assert.match(delivery.text, /representative screen.*single review/i)
+  assert.match(delivery.text, /approval.*before.*rollout/i)
+  assert.match(delivery.text, /goal.*pause|paused.*goal/i)
+  assert.match(delivery.text, /do not.*(?:create|resume).*goal/i)
+})

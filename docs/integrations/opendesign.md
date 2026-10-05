@@ -220,7 +220,13 @@ with the receiving agent and the user; the notifier only observes and notifies.
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
   approved design language and authorized scope; it previews-and-waits only for a new visual
-   direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request.
+    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request.
+  Source notifications distinguish the daemon's artifact verdict from **required product verification**:
+  `entry_not_touched` on a succeeded source-direct run is not automatically product failure or success;
+  inspect the actual diff/build/changed-flow checks. Read-only reports are not design deliverables.
+  A representative visual-system result requires the single user review before wider rollout, even when
+  separate plan pre-approval was unnecessary. Failed/canceled executions are never upgraded by this rule.
+  Existing pinned runtimes must be explicitly updated after verification to receive these source changes.
 - Policy: idle session → `queue` + auto wake; busy session → `queue` (no interruption); paused
   session → `held` (no session contact until resume); deleted target session → `orphaned`, never
   delivered elsewhere and never replaced by a new agent; daemon-missing run → `missing` (kept for
@@ -430,7 +436,7 @@ screens instead of continuing per-screen patches:
    out-of-scope change or an explicit review-first request. Where a gated
    approval is used, its snapshot binds the system definition, not a full mockup
    set.
-5. After the review, roll out screen by screen with per-stage checks, without
+5. After the user approves the reviewed representative result, roll out screen by screen with per-stage checks, without
    per-screen user approvals, and report once at completion; finish with a full
    build/test/render pass on the whole app.
 

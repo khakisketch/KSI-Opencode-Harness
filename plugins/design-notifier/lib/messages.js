@@ -38,6 +38,9 @@ function buildLines(run) {
   lines.push(`Run: ${short(run.id)}  |  Project: ${short(run.projectId)}`);
   const verdict = run.deliverableValid === true ? "valid" : `invalid (${short(run.deliverableValidation, "unreported")})`;
   lines.push(`Status: ${short(run.status)}  |  Deliverable: ${verdict}`);
+  lines.push(run.status === "succeeded"
+    ? "Product: verification required — execution and artifact validation are not product completion. An invalid entry verdict alone is not proof of product failure."
+    : "Product: blocked or pending — inspect execution status and the concrete cause before continuing.");
   const failure = [
     run.errorCode ? `error=${run.errorCode}` : null,
     run.failureCategory ? `category=${run.failureCategory}` : null,
@@ -57,10 +60,12 @@ function buildLines(run) {
 
 const VERIFY_STEPS = [
   "1. Verify with OpenDesign tools before reporting: call get_run(runId) for the authoritative previewUrl/studioUrl and the inner agent's final message (agentMessage). Terminal status alone is execution-only.",
-  "2. If the deliverable is invalid or the run failed: do not claim a design deliverable. Explain the concrete reason, relay a genuine question from agentMessage if present, and do not regenerate, replay or cancel-retry the run.",
+  "2. If the deliverable is invalid or the run failed: do not claim a design deliverable. Explain the concrete reason, relay a genuine question from agentMessage if present, and do not regenerate, replay or cancel-retry the run. A succeeded execution with entry_not_touched (or no_artifact on a report-only task) is not automatically product/task failure or success. Resolve the original task contract: source-direct work requires the actual source diff, build and changed-flow browser verification; a read-only report is not a design deliverable. Missing required output remains unfinished. Do not blindly regenerate to change the entry verdict.",
   "3. If the deliverable is valid: default to finishing the job. When the change follows the project's existing approved design language and is within the scope the user already authorized, bring it into the product code and report the result with its preview. Stop and ask for direction only when the work introduces a new visual direction, is a client-facing deliverable, or goes beyond the authorized scope — or when the user asked to review the direction first.",
   "4. If this session is in Plan mode, analyze and report only; do not implement.",
-  "5. Report to the user in their language, keeping internal runtime identifiers out of product copy except the run reference needed for traceability.",
+  "5. Follow the existing task ledger and review gates: for an internal-tool visual-system pass keeping the existing brand, verify one representative screen and present definition, scope and actual result as a single review. Obtain user approval of that result before wider rollout; then use per-stage checks without per-screen approvals. This representative-result gate is distinct from new-direction/client/out-of-scope/review-first pre-approval.",
+  "6. Respect explicit session pauses. Before continuing goal work, check the actual goal state; a paused, cancelled or closed goal cannot continue. Do not create or resume a goal because this notification arrived. Ordinary authorized work without a goal is separate from goal continuation; a notification never grants new scope or delivery permission.",
+  "7. Report to the user in their language, keeping internal runtime identifiers out of product copy except the run reference needed for traceability.",
 ];
 
 export function buildDelivery({ run, sessionID, requestId, source, paused = false }) {
@@ -83,6 +88,7 @@ export function buildDelivery({ run, sessionID, requestId, source, paused = fals
       projectId: run.projectId ?? null,
       status: run.status ?? null,
       classification: classified,
+      productVerification: run.status === "succeeded" ? "required" : "blocked",
       deliverableValid: run.deliverableValid ?? null,
       deliverableValidation: run.deliverableValidation ?? null,
       requestId: requestId ?? null,

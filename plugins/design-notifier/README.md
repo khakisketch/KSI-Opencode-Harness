@@ -29,6 +29,12 @@ plugin never claims success, never retries generation and never implements.
   under the state lock plus a deterministic `msg_...` id (OpenCode's synthetic
   endpoint returns the original admission for a repeated id — verified
   2026-10-03).
+- Artifact verdict and product completion are separate: source notification
+  metadata adds `productVerification: required|blocked`. An untouched HTML entry
+  is not an automatic product failure/success; Build verifies actual source diff,
+  build and changed flow. The internal-tool visual-system representative review
+  remains a user gate before rollout. No classification/transport/retry behavior
+  is changed; an installed pinned copy needs an explicit verified update.
 
 ## Policy
 

@@ -1,7 +1,7 @@
 # Review-once flow — less ceremony for internal design passes
 
-Updated: 2026-10-05
-Status: in progress
+Updated: 2026-10-06
+Status: technically complete locally; human real-use acceptance separate
 Owner: OpenCode Build
 
 ## Approved outcome
@@ -37,7 +37,7 @@ real pass shows which rules actually chafe.
 - [x] Confirm scope; create owned workspace.
 - [x] Apply the three approved edits (global ×2, guide ×1, examples ×2).
 - [x] Baseline/final checks + independent review.
-- [ ] Commit/integration, integrated check, cleanup and checkpoint.
+- [x] Commit/integration, integrated check, cleanup and checkpoint.
 
 ## Verification
 
@@ -52,6 +52,13 @@ real pass shows which rules actually chafe.
   preserved config/role hashes match; global AGENTS.md changed by exactly the two
   intended bullet edits; repo paths confined to docs/examples plus the new
   ledger. Logs: `/tmp/opencode/ksi-review-once-{check,package,diff}.log`.
+- Closeout reconciled 2026-10-06: Git contains `ea8b514` on main (implementation
+  commit). The previous independent test-runner session above also ran fresh
+  integrated checks at that revision: 112 tests/111 pass/0 fail/1 optional skip,
+  package/diff exit 0 and six config/role hashes matched; reported logs
+  `/tmp/opencode/ksi-review-once-merged-{check,package,diff}.log`. Owned worktree
+  and merged branch were removed; four unrelated worktrees remain. This fixes a
+  stale in-progress/checklist record, not a new verification or human acceptance.
 
 ## Verification limits
 

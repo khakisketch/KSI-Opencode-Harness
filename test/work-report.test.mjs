@@ -1,11 +1,15 @@
 import test from "node:test"
 import assert from "node:assert/strict"
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs"
+import { join } from "node:path"
 
 import {
   formatTokens,
   parseNextSlices,
   summarizeBindings,
   summarizeGoals,
+  renderReport,
+  buildReport,
 } from "../scripts/work-report.mjs"
 
 test("parseNextSlices extracts only the Next slices section", () => {
@@ -106,4 +110,45 @@ test("formatTokens keeps numbers readable", () => {
   assert.equal(formatTokens(1_050_000), "1.1M")
   assert.equal(formatTokens(2_500_000_000), "2.50B")
   assert.equal(formatTokens(undefined), "?")
+})
+
+test("unlimited goals are informational rather than a failure warning", () => {
+  const report = renderReport({generatedAt: 0, days: 7, goals: [{status: "active", tokenBudget: null, maxAutoTurns: null, maxDurationSeconds: null}], designRuns: [], designPaused: {}, usage: {byProject: [], top: []}, repo: null, nextSlices: []})
+  assert.doesNotMatch(report, /!unbounded/)
+  assert.match(report, /limits: none/)
+})
+
+test("missing or malformed state sources surface warnings instead of silently meaning none", () => {
+  const before = process.env.KSI_WORK_REPORT_GOALS
+  process.env.KSI_WORK_REPORT_GOALS = "/tmp/opencode/ksi-definitely-absent-report-state.json"
+  try {
+    const report = buildReport({ includeUsage: false })
+    assert.equal(report.warnings.some(w => /goal.*unavailable/i.test(w)), true)
+  } finally {
+    if (before === undefined) delete process.env.KSI_WORK_REPORT_GOALS
+    else process.env.KSI_WORK_REPORT_GOALS = before
+  }
+})
+
+test("valid JSON of the wrong state shape is unavailable, not zero goals", t => {
+  const dir = mkdtempSync("/tmp/opencode/ksi-report-test-")
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const file = join(dir, "state.json")
+  writeFileSync(file, '"not a goal container"')
+  const before = process.env.KSI_WORK_REPORT_GOALS
+  process.env.KSI_WORK_REPORT_GOALS = file
+  try {
+    assert.equal(buildReport({ includeUsage: false }).warnings.some(w => /Goal state unavailable/i.test(w)), true)
+  } finally {
+    if (before === undefined) delete process.env.KSI_WORK_REPORT_GOALS
+    else process.env.KSI_WORK_REPORT_GOALS = before
+  }
+})
+
+test("design artifact verdict is kept separate from pending product verification in reports", () => {
+  const rows = summarizeBindings({ one: { state: "delivered", lastStatus: { status: "succeeded", deliverableValid: false, deliverableValidation: "entry_not_touched" } } })
+  assert.equal(rows[0].classification, "invalid")
+  assert.equal(rows[0].productVerification, "required")
+  const report = renderReport({ generatedAt: 0, days: 7, goals: [], designRuns: rows, designPaused: {}, usage: {byProject: [], top: []}, repo: null, nextSlices: [] })
+  assert.match(report, /artifact=invalid.*product=required/)
 })
