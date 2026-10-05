@@ -88,6 +88,22 @@ than the OpenCode-driven one-shot flow:
 - Leftover: pipeline materials `.od-frames/` (untracked) remain in the repo;
   clean up on request.
 
+## Pilot 2 — bold editorial direction (2026-10-06, user: "더 과감 혹은 새로")
+
+- Runs `04ed48ea` (plan) → `40a41c17` (execute), skill `frontend-design`.
+- Result: warm full-width hero band (`--action` fill, white type, h1 clamp
+  34–48px), the live KPI moved out of the summary band into the hero (mono,
+  clamp 48–68px, tabular numerals), 3px brand rules above section headings,
+  stats band 4→3 columns, inverted primary button inside the band. Copy, data
+  and behavior unchanged; mobile stacks the band.
+- Mid-run: a full-block CSS patch failed on context; the agent re-read and
+  applied smaller patches (no partial corruption) — confirmed by the final diff.
+- Verification: rendered at 1440×900 and 390×844; console clean except the
+  static `/api/health` 404; captures `evbold-after-{desktop,mobile}.png` vs the
+  previous `evdesign-agency-{desktop,mobile}.png`.
+- Status: user review pending (bold vs conservative choice). Committed with
+  "style: bold editorial redesign of agency-home".
+
 ## Harness learnings (pilot 1, 2026-10-06)
 
 - The notifier delivers only the stage bound to the session; od-next expands one
