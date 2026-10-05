@@ -36,7 +36,14 @@ than the OpenCode-driven one-shot flow:
 - [x] Notifier message + tests (RED→GREEN).
 - [x] Global/guide/examples/README guidance.
 - [x] Full checks + independent review/test-runner.
-- [ ] Commit; pinned notifier runtime update + verify; closeout.
+- [x] Commit; pinned notifier runtime update + verify; closeout.
+
+## Closeout
+
+- Implementation committed `aefd698`; pinned notifier runtime updated to the same
+  commit and `--verify` returned `ok:true` (7 files; changed/missing/extra empty).
+  No service restart; the running service may keep serving the old copy until
+  plugins reload. No push/npm.
 
 ## Evidence
 

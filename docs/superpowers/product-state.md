@@ -25,10 +25,10 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: usability alignment (approved 2026-10-06; technically complete locally in f57f211; human real-use acceptance separate).
-- Acceptance (user-visible): less workspace ceremony; accurate execution-versus-product notifications; concise record/Git status; reusable project context and explicit session pause guidance; read-only local readiness without false live-ready claims.
-- Plan ledger: docs/superpowers/plans/2026-10-06-usability-alignment.md
-- Scope note: existing native mechanisms only, no product changes/new orchestrator/runtime install/push/release. Previous m07 notifier hardening is technically complete; real-work acceptance remains separate in its existing ledger.
+- Name: design-quality loop (approved 2026-10-06; technically complete locally in aefd698; human real-use acceptance separate).
+- Acceptance (user-visible): design runs select the task-appropriate skill per stage (generation → polish → review), OpenCode self-evaluates the rendered result against references/brand, and concrete refinements repeat until the quality bar — no fixed round cap; stop on met or no measurable improvement. Direct OpenDesign-like quality through OpenCode is the goal; the first real pilot is the evidence.
+- Plan ledger: docs/superpowers/plans/2026-10-06-design-quality-loop.md
+- Scope note: guidance/message changes + pinned notifier runtime update; engine stays codex temporarily (Claude subscription later). No product changes/new orchestrator/push/npm. Pilot target open: KSI-CCTV is connected; the EVENTOUCH source project is no longer registered and needs reconnection.
 - Evidence: independent reviewer no Critical/Important findings; test-runner `ses_ef32a4baeffe4tsUBw0A2JSqG0` check129/128 pass/0 fail/1 optional skip, package/diff pass, controlled CLI/read-only strace checks and six config/role hashes preserved. Three intended global policy hunks applied; source-only status/readiness helpers are not npm-installed tools. Two minor follow-ups recorded in ledger.
 
 ## Human acceptance
@@ -51,7 +51,8 @@ Pending: real-project design/source-writing quality and the latest reduced-cerem
 
 ## Backlog
 
-- Usability alignment adoption: source notification changes require separately authorized pinned-runtime update and real notification verification; latest global policy is already live. Keep real-project reduced-ceremony/source-write validation separate from local tests. No automatic publication/new design run. Optional follow-ups: normalize additional binding placeholders if encountered; unify nonterminal verification wording only if the notification contract expands beyond terminal runs.
+- Usability alignment adoption: pinned notifier runtime updated 2026-10-06 (commit aefd698, --verify ok) carrying both the product-verification message change and the design-quality-loop step; a real completion notification remains to be observed. Latest global policy is live. Keep real-project reduced-ceremony/source-write validation separate from local tests. No automatic publication/new design run. Optional follow-ups: normalize additional binding placeholders if encountered; unify nonterminal verification wording only if the notification contract expands beyond terminal runs.
+- Design-quality loop adoption: guide names verified against the live skill list (163 skills on 2026-10-06; adapt-from-live-list rule included). Remaining: first real pilot with the loop (target decision: KSI-CCTV connected vs EVENTOUCH reconnection), observe rounds/stop behavior and quality, then revisit wording; switch engine from temporary codex after a Claude subscription is prepared. Guidance is not runtime enforcement.
 - Optional ergonomic wording polish (non-blocking review): more explicit base-ambiguity/submodule-detection hints if needed in real use; existing HEAD/base inspection and isolation skill cover them. Canonical guide pointer stays authoritative after integration; do not read unrelated product docs as the harness guide.
 - Remaining tooling follow-up: global Playwright CLI/agent-browser/official skills and agent-browser's bundled axe are now prepared under user-approved tools-first scope; standalone Lighthouse/virtual-reader tooling and real desktop/audio setup remain separate. V2 native LSP runtime is absent per current migration docs; structural-navigation alternatives need scoped evaluation. A future verification-evidence helper needs a demonstrated gap/approved design, not a new orchestrator or idle auto-fixer. No single-project-only restriction or product dependency/CI rewrite.
 - Future release polish (non-blocking beta.4 review): persist exact README/INSTALL version-pin test guards if needed; beta.5 release checks independently verified paired pins and corrected default-beta channel wording. No implicit new release or immutable beta.4/beta.5 republish for prose/tests.
