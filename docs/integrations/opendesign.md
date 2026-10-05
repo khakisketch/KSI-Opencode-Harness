@@ -237,6 +237,30 @@ produce or refine UI, and it does not impose a fixed round cap.
    Direction gates (new visual direction, client deliverable, out-of-scope,
    review-first) are unchanged.
 
+**Run mechanics (observed).** A single request may expand into a plan→execute
+run chain: stage 0 produces the direction and working material but no product
+files; the strategy maps the next run (a plan stage with no files is not a task
+result). The completion notification covers only the stage bound to the
+session — track the chain through the run's strategy mapping until it reaches
+terminal, then judge by the actual source diff plus a real render check.
+Strategy outcomes may read `blocked` (`od_next_canonical_deliverable_invalid`)
+for entry-untouched source-direct work; that verdict alone does not mean the
+task failed.
+
+**Skill selection (observed).** The catalogue advertises more skills than have
+full bodies — some entries are stubs pointing at upstream bundles. For real
+product UI prefer full-body skills (e.g. `frontend-design` covers dashboards
+and application screens); `design-taste-frontend` / `gpt-taste` are explicitly
+landing-page/portfolio skills ("not dashboards, not data tables"). Many design
+skills declare `designSystemRequired`; without an attached design system,
+proceed with the repository's own tokens as the brand contract and record the
+choice. Verify the skill exists in the installed list before passing it.
+
+**Pipeline artifacts.** Strategy runs may leave working material in the
+project (e.g. `.od-frames/`). Treat it as untracked pipeline output: keep it
+out of product commits and clean it up after the pass unless the design tool
+still references it.
+
 ### Completion notification (host-side notifier)
 
 The optional `plugins/design-notifier/` component closes the loop from the other direction: when a
@@ -454,7 +478,9 @@ for real product frontend work over mockup-then-reimplement.
   build/render check of the changed flow. The deliverable validator is entry-centric:
   when the canonical HTML entry is intentionally untouched, `entry_not_touched`/
   invalid can be the correct physical outcome — do not fabricate an entry regeneration,
-  and do not treat that verdict alone as task failure. Build's verification of the real
+  and do not treat that verdict alone as task failure. Strategy pipelines may additionally
+  mark the task `blocked` (`od_next_canonical_deliverable_invalid`) for the same reason;
+  the same source-diff + render evidence governs. Build's verification of the real
   product remains the authority for "done".
 - Run scope is prompt-scoped, not an OS sandbox: the inner agent's tools span its
   connected root. Keep sensitive non-product material out of connected roots.

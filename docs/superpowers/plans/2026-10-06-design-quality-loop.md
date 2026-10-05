@@ -88,6 +88,21 @@ than the OpenCode-driven one-shot flow:
 - Leftover: pipeline materials `.od-frames/` (untracked) remain in the repo;
   clean up on request.
 
+## Harness learnings (pilot 1, 2026-10-06)
+
+- The notifier delivers only the stage bound to the session; od-next expands one
+  request into plan→execute runs, so the follow-up stage must be tracked through
+  the run's strategy mapping (a background watcher was used). Candidate notifier
+  fix: recognize the chain and word intermediate stage completions as non-final.
+- Strategy outcome `blocked` (`od_next_canonical_deliverable_invalid`) and
+  `no_artifact` are expected for entry-untouched source-direct work; the source
+  diff + render check is the evidence (now documented in the guide).
+- Skill catalogue vs installed bodies: `design-taste-frontend` / `gpt-taste` are
+  landing-page skills ("not dashboards"); the full-body `frontend-design` fits
+  product UI. Design-system-required skills ran fine with the repository tokens.
+- Pipeline artifacts (`.od-frames/`) land untracked in the project; keep them
+  out of product commits (now documented in the guide).
+
 ## Verification limits
 
 - Prose/interpretation and message-text tests only. Real design quality awaits
