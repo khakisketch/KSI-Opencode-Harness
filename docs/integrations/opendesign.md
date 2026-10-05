@@ -169,7 +169,7 @@ agent's explanation. Do not rewrite native status or add a second continuation c
 | Queued/running, including unchanged file mtimes | Still working; poll at the supported interval. Do not cancel/replay. |
 | Failed/canceled, or explicit access/security/environment failure | Blocked/ended without completing the requested output. Report the concrete reason and preserve the prior artifact. Do not infer a missing user requirement or regenerate blindly. |
 | Clean terminal turn asking a genuine material question | User input needed; relay the question. A tool failure is not a question merely because no artifact was produced. |
-| Successful execution, valid deliverable and all required output verified | Design output produced. Bind the preview and required-file snapshot now; on the default path (existing approved design language, authorized scope) continue to implementation and report the result, and preview-and-wait only for a new visual direction, a client deliverable, out-of-scope changes or an explicit review-first request. Implementation and human acceptance stay separate from the design verdict. |
+| Successful execution, valid deliverable and all required output verified | Design output produced. Bind the preview and required-file snapshot now, then run the design-quality loop (below): evaluate the rendered result against the agreed references, brand and quality bar and commission concrete refinements until it is met — no fixed round cap. On the default path (existing approved design language, authorized scope) continue to implementation only after the bar is met and report the result, and preview-and-wait only for a new visual direction, a client deliverable, out-of-scope changes or an explicit review-first request. Implementation and human acceptance stay separate from the design verdict. |
 | Explicit verification-only task, no tool failure, inspected existing output and reasoned no-change result | Review completed without changes. Identify the existing artifact; do not call it newly generated. |
 | Terminal success but no valid required output, no justified question/no-change outcome | Output unverified/incomplete. Inspect the explanation and relevant diagnostic evidence; do not call it complete or attach an old project preview as this run's output. |
 
@@ -188,12 +188,54 @@ or create the artifact entry through the design workspace.
 Recovery depends on the cause: clarify a real question, diagnose an environment blocker, or inspect
 missing output. A lost start response uses the original request id/payload after querying the existing
 run; a terminal environment failure must not be blindly replayed. After an authorized repair, determine
-the supported continuation/retry action and authorization without inventing a resume mechanism.
+the supported continuation/retry action and authorization without inventing a resume mechanism. Concrete quality refinement — a new run carrying the prior artifact and a specific defect list — is the normal design loop, distinct from replaying a failed run.
 
 Normal polling should retain only run state, deliverable verdict, relevant error/question and usable
 links. Pull full diagnostics only for investigation and the source bundle when context, approval
 snapshot or implementation needs it. Keep internal identifiers in the task record, not product copy;
 do not print raw event streams, credentials or provider telemetry in progress messages.
+
+### Design-quality loop (skills, evaluation, refinement)
+
+OpenDesign quality comes from its design-craft system, not a single bare request:
+select the skill per stage, evaluate the rendered result, and refine until the
+agreed bar — the loop a designer would run. It is required for design runs that
+produce or refine UI, and it does not impose a fixed round cap.
+
+1. **Quality bar and references (before commissioning).** Reuse the agreed
+   requirements; collect reference patterns (Mobbin when useful), current product
+   screens, brand tokens/components, target states and viewports, and write
+   explicit acceptance criteria (token/scale consistency, hierarchy and primary
+   action, empty/loading/error states, responsive behavior, accessibility
+   basics). Record it in the task record; do not evaluate by vibes alone.
+2. **Run configuration.** Choose the execution agent from `list_agents` (this
+   environment's choice is recorded in the task record; agents and skills change
+   over time) and the skill from the actually installed list (`list_skills`).
+   Typical chain — one skill per run, sequential runs: generation
+   (`design-taste-frontend`, `frontend-design`, `frontend-skill`), polish
+   (`impeccable-design-polish`; motion follow-ups such as `emilkowalski-motion`
+   after an interface exists), review (`plan-design-review` for score/slop
+   flags, `design-review` for audit-and-fix, `web-design-guidelines` for
+   compliance). If a skill is unavailable or unsuited, adapt from the live list
+   instead of failing; record what was used.
+3. **Generation run.** Brief as usual: requirements, references, constraints,
+   exclusions.
+4. **Self-evaluation by the coordinating agent (not the user).** On a valid
+   deliverable, inspect the rendered preview at the relevant viewports/states
+   with the browser tooling, compare against references, brand and criteria, and
+   optionally commission a review-skill run. Produce a concrete defect list —
+   what is wrong, what good looks like, which file or state.
+5. **Refinement loop.** Send the defect list with the prior artifact as a
+   refinement run and re-evaluate each round. Stop when the bar is met, when a
+   full round shows no measurable improvement (report the remaining gaps
+   honestly), or on a genuine blocker or material decision. Measurable means
+   criteria-linked defects from the step 1/4 lists actually closed, recorded per
+   round with before/after viewports and states. Round count is quality-driven;
+   do not impose an arbitrary cap that cuts converging work.
+6. **Integrate and verify.** Only after the bar: bring the result into the
+   product source, verify the real product flow, and report with both links.
+   Direction gates (new visual direction, client deliverable, out-of-scope,
+   review-first) are unchanged.
 
 ### Completion notification (host-side notifier)
 
@@ -220,7 +262,7 @@ with the receiving agent and the user; the notifier only observes and notifies.
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
   approved design language and authorized scope; it previews-and-waits only for a new visual
-    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request.
+    direction, a client-facing deliverable, out-of-scope changes or an explicit review-first request. It also points at the design-quality loop (skill-selected runs, rendered-result evaluation, refinement until the bar — no fixed round cap).
   Source notifications distinguish the daemon's artifact verdict from **required product verification**:
   `entry_not_touched` on a succeeded source-direct run is not automatically product failure or success;
   inspect the actual diff/build/changed-flow checks. Read-only reports are not design deliverables.

@@ -63,6 +63,9 @@ test("a valid deliverable defaults to finishing within authorized scope with a g
   assert.match(delivery.text, /Stop and ask for direction only when/)
   assert.match(delivery.text, /new visual direction/)
   assert.match(delivery.text, /client-facing deliverable/)
+  assert.match(delivery.text, /design-quality loop/)
+  assert.match(delivery.text, /task-appropriate OpenDesign skill/)
+  assert.match(delivery.text, /no fixed round cap/)
   assert.match(delivery.text, /call get_run\(runId\)/)
 })
 

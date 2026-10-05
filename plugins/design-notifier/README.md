@@ -29,6 +29,10 @@ plugin never claims success, never retries generation and never implements.
   under the state lock plus a deterministic `msg_...` id (OpenCode's synthetic
   endpoint returns the original admission for a repeated id — verified
   2026-10-03).
+- Valid deliverables point the receiving agent at the design-quality loop
+  (skill-selected runs, rendered-result evaluation, refinement until the bar —
+  no fixed round cap). Delivery/classification behavior is unchanged; the
+  pinned runtime copy reflects this only after an explicit verified update.
 - Artifact verdict and product completion are separate: source notification
   metadata adds `productVerification: required|blocked`. An untouched HTML entry
   is not an automatic product failure/success; Build verifies actual source diff,
