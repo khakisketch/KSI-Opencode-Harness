@@ -213,6 +213,22 @@ treated as a crash, causing reconnect churn). The deployed bundle
   Codex retries continue only in sessions started before the config change
   (this harness session included); new sessions no longer load codex.
 
+## Environment fix 3 — codex MCP fully removed (follow-on 10)
+
+User decided the codex MCP will not be used (delegation/media generation move to
+OpenDesign). The `enabled:false` entry was removed from
+`~/.config/opencode/opencode.jsonc` and replaced with a tombstone comment (why it
+was stale, where delegation lives now, how to re-add). Backup
+`/tmp/opencode/ksi-mcp-fix/opencode.jsonc.before-removal`; parse verified — mcp
+servers now opendesign/mobbin/playwright/context7 only.
+
+EVENTOUCH observation (same check): the newest runs are **folder-backed** with
+`baseDir` = the product checkout (source-direct writeback working again; the
+older od-owned runs were the pre-fix ones), and two runs were active at check
+time. The earlier audit concern about silent transcribe degradation is resolved
+in the current state; checkpoint header/body consistency and the post-full-swap
+test-suite rewrite remain open on the product side.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
