@@ -132,7 +132,8 @@ accessibility/motion review inputs — plus the registration scenario-path recor
 
 - RED: three new notification-contract tests failed (`/tmp/opencode/ksi-od-context-bundle/red.log`); GREEN 44/44 after the message changes.
 - Surfaces: notifier step 3 (keyboard/focus + accessibility + motion states; resident `product-context.md`), report sentence (review bundle), guide (resident-context subsection, bundle paragraph, skill observations table, review-input list, registration line), global policy EN/KO, README, examples ×2.
-- Verification/commit recorded below.
+- Commit `c43fbea`; pinned notifier copy updated to the same commit (verify ok:true). Full check 146/146 pass/0 fail/1 optional skip; 9/9 config hashes preserved. Independent test-runner verification recorded below.
+- Limits: emitted contracts/docs only; live pickup, real review runs and product-session context-file creation unverified.
 
 ## Verification / closeout
 
