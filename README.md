@@ -5,7 +5,7 @@
 **KSI는 OpenCode를 대화의 중심에 두고, 필요한 역할과 도구만 연결해 제품을 만듭니다.**
 먼저 무엇을 바꿀지 합의하고, 실제 프로젝트에서 구현하고, 확인한 근거와 남은 일을 함께 보고합니다.
 
-[시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [설치 가이드](INSTALL.md)
+[시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [시각 가이드](docs/walkthrough.md) · [설치 가이드](INSTALL.md)
 
 **OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.7`** · [MIT](LICENSE)
 
@@ -16,6 +16,8 @@
 ---
 
 ## KSI는 이렇게 작업합니다
+
+![개발 흐름 한눈에 — 대표님 요청 → OpenCode 계약·검증 → OpenDesign 분석·UI 구현·리뷰 → 실제 제품 검증 → 리뷰 묶음 보고](docs/assets/walkthrough/00-flow.png)
 
 **목표·권한 합의 → 필요한 만큼 계획 → 구현·통합·검증·로컬 커밋까지 완주 → 결과 확인·외부 반영**
 
@@ -298,6 +300,7 @@ Superpowers 설정은 [공식 저장소](https://github.com/obra/superpowers)를
 | 목적 | 문서 |
 | --- | --- |
 | 설치·충돌·업그레이드 | [INSTALL](INSTALL.md) |
+| 개발 흐름(그림·실제 화면) | [Walkthrough](docs/walkthrough.md) |
 | 역할과 설치 구조 | [Architecture](docs/architecture.md) |
 | 작업·위임·완료 보고 | [Execution](docs/execution.md) |
 | 디자인 연결과 제품 구현 인계 | [Integration](docs/integrations/opendesign.md) |

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" font-family="'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f35b2c"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="540" fill="#ffffff"/>
+
+  <!-- 사용자 -->
+  <rect x="290" y="16" width="320" height="58" rx="10" fill="#111827"/>
+  <text x="450" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff">대표님 (사용자)</text>
+  <text x="450" y="62" text-anchor="middle" font-size="12.5" fill="#d1d5db">요청 · 제약 · 완료 기준 · 최종 수용</text>
+
+  <!-- 요청 arrow -->
+  <line x1="450" y1="74" x2="450" y2="138" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="462" y="110" font-size="12.5" fill="#6b7280">요청</text>
+
+  <!-- OpenCode -->
+  <rect x="210" y="140" width="480" height="66" rx="10" fill="#f35b2c"/>
+  <text x="450" y="168" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff">OpenCode (Build)</text>
+  <text x="450" y="189" text-anchor="middle" font-size="12.5" fill="#ffe8de">작업 계약 · 조율 · 기능 검증 · Git · 보고</text>
+
+  <!-- 계약 arrow to OD -->
+  <line x1="350" y1="206" x2="250" y2="298" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="212" y="248" font-size="12.5" fill="#6b7280">작업 계약 (MCP)</text>
+
+  <!-- 기능 검증 arrow to 제품 -->
+  <line x1="550" y1="206" x2="650" y2="298" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="596" y="248" font-size="12.5" fill="#6b7280">기능 검증</text>
+
+  <!-- OpenDesign -->
+  <rect x="60" y="300" width="380" height="112" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="250" y="330" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">OpenDesign (로컬 실행)</text>
+  <text x="250" y="355" text-anchor="middle" font-size="12.5" fill="#374151">분석 · 감사 → 실제 UI 소스 수정</text>
+  <text x="250" y="375" text-anchor="middle" font-size="12.5" fill="#374151">→ 렌더 리뷰(필수) → 결함 목록 → 개선 반복</text>
+  <text x="250" y="398" text-anchor="middle" font-size="11.5" fill="#9ca3af">스킬 선택 · 실제 렌더 확인 · 라운드 상한 없음</text>
+
+  <!-- 제품 -->
+  <rect x="460" y="300" width="380" height="112" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="650" y="330" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">실제 제품 (소스)</text>
+  <text x="650" y="355" text-anchor="middle" font-size="12.5" fill="#374151">빌드 · 라우팅 · 저장 · 권한</text>
+  <text x="650" y="375" text-anchor="middle" font-size="12.5" fill="#374151">기능 검증은 실제 제품에서</text>
+  <text x="650" y="398" text-anchor="middle" font-size="11.5" fill="#9ca3af">스크린샷이 아니라 동작으로 확인</text>
+
+  <!-- OD -> 제품 : UI 소스 -->
+  <line x1="440" y1="356" x2="458" y2="356" stroke="#f35b2c" stroke-width="2.5" marker-end="url(#arrow-accent)"/>
+  <text x="450" y="470" text-anchor="middle" font-size="12.5" fill="#f35b2c">실제 UI 소스 수정이 제품으로</text>
+
+  <!-- 보고 arrow back to 대표님 -->
+  <path d="M 840 356 L 872 356 L 872 45 L 612 45" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="862" y="290" text-anchor="end" font-size="12.5" fill="#6b7280">리뷰 묶음 보고</text>
+  <text x="862" y="308" text-anchor="end" font-size="11.5" fill="#9ca3af">제품 링크 · 전/후 스크린샷</text>
+  <text x="862" y="324" text-anchor="end" font-size="11.5" fill="#9ca3af">· 디자인 프리뷰</text>
+</svg>

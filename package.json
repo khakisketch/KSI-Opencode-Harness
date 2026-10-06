@@ -24,6 +24,8 @@
     "docs/execution.md",
     "docs/troubleshooting.md",
     "docs/verification.md",
+    "docs/walkthrough.md",
+    "docs/assets",
     "examples/project-AGENTS.md",
     "examples/autonomous-development.md",
     "opencode.jsonc.example",

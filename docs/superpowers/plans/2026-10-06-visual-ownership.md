@@ -296,6 +296,22 @@ existed; only tag v0.5.0-beta.1 existed; pin guards were an open backlog item).
 - npm status: `latest`/`next` remain `0.5.0-beta.6`; the ~40 commits of improvements since the beta.6 release (install guides, composition guide, docs) are **not yet published** — a beta.7 requires explicit publish authorization; do not bump pins before that authorization (README pins must not point at an unpublished version).
 - **beta.7 released (2026-10-06, user "승인")**: version bump `447e6df` (checks 152/151/0, isolated verify pass, pack 18 files / 70.7 kB, pins 7); `npm publish --tag next` after browser approvals (login + publish); registry verified (`bin` normalized as with beta.6); public smoke test preview → apply → repeat (`changes: []`); `latest` promoted after two expired auth sessions (third completed); tag `v0.5.0-beta.7` pushed; GitHub release created. Final dist-tags: **`next` = `latest` = `0.5.0-beta.7`**.
 
+## Visual walkthrough (follow-on 14, same slice)
+
+User feedback: docs are text-heavy; captures/screens of the real development flow
+(especially OpenDesign) would help understanding.
+
+- `docs/walkthrough.md` (Korean): flow diagram + two real captures — OpenDesign
+  project workspace (conversation/files/render) and the actual product dashboard
+  (new EVENTOUCH shell) — with per-image captions and a who-does-what table.
+- `docs/assets/walkthrough/`: `00-flow.svg` (source) + `00-flow.png` (rendered via
+  Playwright at 900×540), `01-opendesign-workspace.png`,
+  `02-product-dashboard.png` (both captured live via the Playwright MCP).
+- README: header link, inline flow image under "KSI는 이렇게 작업합니다", and a
+  "더 알아보기" row. `package.json` files now include `docs/walkthrough.md` and
+  `docs/assets` (tarball 23 files / 448 kB).
+- Verification: check 152/151/0, package check pass; commit recorded below.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
