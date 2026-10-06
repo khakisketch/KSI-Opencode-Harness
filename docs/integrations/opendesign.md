@@ -340,6 +340,15 @@ reverts to the automatic scenario. Whether the strategy evaluation changes under
 an explicit scenario is not yet verified in this environment — verify it in the
 actual run and record the result.
 
+**Writeback degradation (check every source-direct run).** A source-direct run's
+workspace should be the product checkout (`storage.kind` not `od-owned`). If a run
+reports `od-owned` storage, or the task record says runs cannot write outside the OD
+storage, treat it as a **capability regression**: re-verify with a small write probe,
+record the deviation (run id + observed workspace) in the task record, report it, and
+resolve it or get a user decision — do not silently switch to transcribe-and-copy.
+Transcribing stays a legitimate fallback only when direct access is confirmed
+unavailable, and the adopted changes must map to their OD source.
+
 **Skill selection (observed).** The catalogue advertises more skills than have
 full bodies — some entries are stubs pointing at upstream bundles. For real
 product UI prefer full-body skills (e.g. `frontend-design` covers dashboards
@@ -632,6 +641,21 @@ task record; a folder import normally carries the automatic prototype binding
 scenario alternatives). For source-direct work, record the chosen scenario path
 (automatic prototype + deliberate continuation, or an explicit scenario plugin)
 and create or refresh the resident `product-context.md`.
+
+#### External OD export intake (archive from another machine)
+
+When the user hands over an OpenDesign export (a project/artifact zip produced on
+another PC):
+
+1. Extract it to a task-owned location **outside the product repository**; keep the
+   original archive out of commits and never leave it in the repo root.
+2. Inventory what it contains (artifacts, version history, plans, references) and
+   record an **adoption map** in the task record: which version/artifact will be
+   implemented, what is reference-only, and what is rejected.
+3. If OD runs must reference the export, place a copy **inside the connected project
+   root** or import it as a project — runs cannot read paths outside their connected root.
+4. Confirm the intended direction with the user only when the adoption choice is
+   materially ambiguous; otherwise proceed and report the map with the result.
 
 #### Multi-screen visual-system pass
 

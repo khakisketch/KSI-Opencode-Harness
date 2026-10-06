@@ -158,6 +158,21 @@ environment's explicit user preference overrides the vendor default. Applied to
 global policy KO, guide EN, README. Docs/policy only — no code/runtime change.
 Historical records keep their original wording (not rewritten).
 
+## Writeback + external-intake rules (follow-on 7, same slice)
+
+From the 2026-10-06 EVENTOUCH audit (read-only): the session's latest OD run
+reported `od-owned` workspace while the checkpoint claimed source-direct was
+blocked and Build transcribes — a silent degradation; and the user's
+cross-machine OD export (24MB zip) sat in the repo root with no recorded
+adoption map.
+
+- Guide: "Writeback degradation" paragraph (od-owned storage = capability
+  regression to re-verify/record/report, not a silent transcribe switch) and
+  "External OD export intake" subsection (extract outside the product repo,
+  adoption map, place inside the connected root for runs, report the map).
+- Global policy KO design bullet: the two matching clauses.
+- Docs/policy only; no code/runtime change. Checks/commit below.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
