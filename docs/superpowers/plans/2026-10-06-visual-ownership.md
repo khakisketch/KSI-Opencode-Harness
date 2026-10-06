@@ -229,6 +229,25 @@ time. The earlier audit concern about silent transcribe degradation is resolved
 in the current state; checkpoint header/body consistency and the post-full-swap
 test-suite rewrite remain open on the product side.
 
+## Push + EVENTOUCH remaining-items status (follow-on 11)
+
+User: "남은 것 모두 진행해줘" (2026-10-06).
+
+- Harness push: `origin/main` (github.com/khakisketch/KSI-Opencode-Harness) — see the
+  push record below.
+- EVENTOUCH adoption map (observed, recorded here since the product repo was
+  active): the cross-machine OD export (`493d5d55-….zip`, extracted at
+  `/tmp/opencode/od-batch`) was consumed as a **full-swap rebuild**: `1876efa`
+  vendored the OD bundle as the new product shell, `2f3fbcd` dropped OD
+  scaffolding, then OD-authored iterations `45ec662`→`07b2cbd` (creation
+  flow/overview/sidebar) landed as product commits. The product session should
+  mirror this map in its own record and archive/remove the repo-root zip.
+- Product-side remaining items are **in-flight in the active EVENTOUCH session**
+  (2 design runs running at check time; source-direct folder-backed writeback
+  working): checkpoint header/body consistency, post-full-swap test-suite
+  rewrite, zip archiving. Not edited from here — one writer; the product session
+  owns that workspace.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
