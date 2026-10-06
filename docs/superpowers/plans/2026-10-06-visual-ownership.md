@@ -93,6 +93,37 @@ material/irreversible decisions or external inputs return to the user.
 - Independent test-runner `ses_ef08d5b49ffejcK2yMoCZVTPfe` (at `8d9448e`): check 144/143/0/1, targeted 41/41, whitespace/status clean, 9/9 hashes preserved, global policy = exactly 3 approved bullet replacements, runtime `1e64c2a` payload 7/7 identical, installed-message 105/105 assertions (step 4 + renumbered 5–8 + prior contracts), A/B/C doc citations verified with no stale shipped contradiction. Residuals (low, deferred): historical quote in `2026-10-04-autonomy-gaps.md:23` is a dated record already annotated as historical in product-state; notifier README restates A/B but not C (C lives in runtime step 8 and the parent README). Live pickup/real behavior intentionally unverified.
 - Limits: emitted contracts/docs only; live pickup and real design/report behavior unverified. No product edits/runs/restart/push.
 
+## Project-binding review (follow-on 3, same slice — user request 2026-10-06)
+
+User asked to review the OD runtime/ports/projects and whether the flow has a
+problem after the product session reported a stopped chain ("프로젝트에 묶인 작업
+유형이 프로토타입이라 소스 수정 산출을 지원하지 않는다").
+
+- Runtime verified read-only: daemon 127.0.0.1:7456 (health ok, v0.23.1) and
+  tailnet 100.116.163.1:7456; remote-workspace gateway 127.0.0.1:17456 (403 on /);
+  `open-design` container running; tailscale serve active. Projects: EVENTOUCH
+  `9db026a4` (baseDir the product checkout), `ksi-deploy-smoke`, KSI-CCTV
+  `cf18904b`. EVENTOUCH was re-created by the product session; `aabf3621` is gone.
+- Root cause confirmed: folder imports carry `scenarioBinding`
+  (`example-web-prototype`, provenance `automatic_default`) and the od-next
+  `strategyBinding.taskProfile` `prototype`. od-next supports only
+  prototype/ppt/marketing/hyperframes — **no code profile**, so "rebind od-next
+  to code" is not a supported path. Source-only edits with untouched canonical
+  entry → `od_next_canonical_deliverable_invalid` → outcome `blocked`, which can
+  stop automatic continuation.
+- Supported alternative found: an explicit scenario plugin in `start_run`
+  (`od-code-migration` patch-edit/build-test/diff-review; `od-design-refine`
+  direction→patch→critique→handoff) stamps an `explicit_user` scenario binding;
+  `POST /api/projects/:id/scenario/restore-automatic` reverts. Whether the
+  strategy evaluation changes under an explicit scenario is unverified — must be
+  tested in the product session's actual run.
+- Guide "Run mechanics"/"Registering" updated with the binding facts; global
+  policy EN/KO design bullets gained the blocked-continuation clause; product-state
+  and the source-registration ledger reconciled the EVENTOUCH id drift.
+- Limits: all checks were read-only probes (daemon API, container files, plugin
+  metadata); no design run, no binding mutation, no restart. The recommended
+  alternatives are supported mechanisms, not verified outcomes.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.

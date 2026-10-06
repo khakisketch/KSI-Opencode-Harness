@@ -31,6 +31,10 @@ Status: technically complete; first real design loop separate
   `connections.json` paths = 4 project binds, compose exit 0, daemon healthy,
   Desktop mount absent (`docker inspect open-design`).
 - Import response: project `aabf3621-654f-45ba-b908-6daee94d95fa`
+  (update 2026-10-06: the product session later re-created EVENTOUCH as
+  `9db026a4-670d-4a16-bc9f-f79bf0942142` with the same baseDir; a stored id is
+  environment state — verify with `list_projects` before use. See the binding
+  review in `2026-10-06-visual-ownership.md`.)
   (`EVENTOUCH source`), conversation `bb1132f8-…`, `entryFile=index.html`;
   re-read via the design MCP confirms `baseDir`/`resolvedDir` =
   `/home/ksi/Desktop/SI-Projects/EVENTOUCH`.

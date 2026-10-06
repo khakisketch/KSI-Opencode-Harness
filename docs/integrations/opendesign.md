@@ -298,6 +298,25 @@ Strategy outcomes may read `blocked` (`od_next_canonical_deliverable_invalid`)
 for entry-untouched source-direct work; that verdict alone does not mean the
 task failed.
 
+**Project bindings and the blocked outcome (observed 2026-10-06).** A folder
+import is auto-bound to the `example-web-prototype` scenario and the od-next
+strategy profile `prototype` (`strategyBinding.taskProfile`). The od-next
+strategy supports only `prototype`, `ppt`, `marketing` and `hyperframes` —
+there is no code profile, so do not plan to "rebind od-next to code". Under the
+prototype profile, source-only edits with an untouched canonical entry are
+flagged `od_next_canonical_deliverable_invalid` and the strategy outcome becomes
+`blocked`; that outcome can stop automatic continuation, so continue the next
+stage deliberately from the actual source diff/render evidence instead of
+reading `blocked` as task failure or completion. Supported alternatives: start
+the run with an explicit scenario plugin — `od-code-migration` (patch-edit ↔
+build-test devloop, diff-review handoff; inputs `repoPath`, `targetStack`,
+optional build/test commands) or `od-design-refine` (direction picker →
+patch-edit → critique loop → handoff) — which stamps an `explicit_user`
+scenario binding for the project; `POST /api/projects/:id/scenario/restore-automatic`
+reverts to the automatic scenario. Whether the strategy evaluation changes under
+an explicit scenario is not yet verified in this environment — verify it in the
+actual run and record the result.
+
 **Skill selection (observed).** The catalogue advertises more skills than have
 full bodies — some entries are stubs pointing at upstream bundles. For real
 product UI prefer full-body skills (e.g. `frontend-design` covers dashboards
@@ -569,7 +588,11 @@ Agents perform both steps on demand for the task's project; this is a standing
 capability for every project under home, not a per-project user decision.
 Never mount a broader parent directory as a shortcut: the daemon still requires
 the exact per-project connection, and this deployment deliberately avoids
-Desktop/home-wide mounts. Keep one writer at a time.
+Desktop/home-wide mounts. Keep one writer at a time. After import, check the
+project's `metadata.scenarioBinding` / `strategyBinding` and record them in the
+task record; a folder import normally carries the automatic prototype binding
+(see Run mechanics for the source-direct blocked outcome and the explicit
+scenario alternatives).
 
 #### Multi-screen visual-system pass
 
