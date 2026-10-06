@@ -195,6 +195,8 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
     └── reviewer.md
 ```
 
+**에이전트 3개만 설치됩니다.** 전역·프로젝트 지침(`AGENTS.md`), `opencode.jsonc`, MCP 연결, 도구·credentials는 설치되지 않습니다 — 지침은 [예시](examples/autonomous-development.md)를 검토해 병합하고, 나머지는 각자 준비합니다.
+
 | 구성 요소 | 설치·관리 주체 | 언제 필요한가요? |
 | --- | --- | --- |
 | OpenCode V2 · Node.js · 모델 연결 | 사용자, 각 도구의 공식 절차 | 기본 작업 환경 |
@@ -202,7 +204,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 | Superpowers | 별도 설치, 사용자 승인 | 계획·디버깅·검증 등의 프로세스 스킬이 필요할 때 |
 | Playwright CLI · agent-browser · 공식 브라우저 스킬 | 실행 서버/사용자 환경에 별도 준비, 사용자 승인 | 실제 브라우저 조작·검증이 필요할 때; 선택한 도구 하나를 사용하며 패키지가 자동 설치하지 않습니다. [준비·검증 범위 →](docs/execution.md#prepared-global-browser-environment) |
 | OpenDesign(로컬 실행) · 디자인 MCP 연결 | 별도 준비, 사용자 승인 | 새 UI나 큰 디자인 변경이 필요할 때 |
-| 프로젝트 `AGENTS.md` · 연속성 기록 | 프로젝트의 운영 규칙 | 장기 작업의 맥락과 의사결정을 이어갈 때 |
+| 운영 지침(`AGENTS.md`) · 연속성 기록 | 사용자 + 에이전트, 설치기가 쓰지 않음 | 장기 작업의 맥락과 의사결정을 이어갈 때 |
 
 ### 이 하네스 전체 구성을 갖추기 (에이전트 주도)
 
