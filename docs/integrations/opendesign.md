@@ -296,7 +296,17 @@ unapproved brand change) and the review criteria pointers. Write it once when
 registering the source project and refresh it when tokens/components/screens
 change. Briefs and review runs read it first instead of re-explaining the product
 each session; it supplements actual source inspection and never replaces it or
-becomes an approval.
+becomes an approval. Include a short recurring-defects/forbidden-patterns list
+fed from review findings (for example, "decoration must not push the primary task
+below the fold"), so later briefs do not repeat known failures.
+
+**First-cycle evidence (real-use validation).** When a product runs its first
+design cycle under this flow, record in the task ledger: the review run id and
+skill used; the defect list with closed/open counts; how a `blocked` outcome was
+handled (deliberate continuation vs explicit scenario); rounds and elapsed time;
+the delivered review bundle; and the functional checks. This is the flow's
+real-use evidence — it does not replace human acceptance or prove design quality
+by itself.
 
 **Run mechanics (observed).** A single request may expand into a plan→execute
 run chain: stage 0 produces the direction and working material but no product
@@ -343,6 +353,12 @@ interface exists → `emilkowalski-motion`; compliance/guidelines →
 `web-design-guidelines`; landing/portfolio taste → `design-taste-frontend` /
 `gpt-taste` (unsuitable for dashboards). Record the per-stage selection in the
 task ledger so working choices accumulate across sessions.
+
+**Design system attachment (candidate, verify first).** The daemon supports a
+project design system id; attaching one built from the product's tokens may
+improve `designSystemRequired` skill coverage and cross-screen consistency.
+Treat it as an experiment: verify with a real run, record the outcome, and only
+then standardize.
 
 **Pipeline artifacts.** Strategy runs may leave working material in the
 project (e.g. `.od-frames/`). Treat it as untracked pipeline output: keep it

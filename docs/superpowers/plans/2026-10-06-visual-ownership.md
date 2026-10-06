@@ -135,6 +135,17 @@ accessibility/motion review inputs — plus the registration scenario-path recor
 - Commit `c43fbea`; pinned notifier copy updated to the same commit (verify ok:true). Full check 146/146 pass/0 fail/1 optional skip; 9/9 config hashes preserved. Independent test-runner verification recorded below.
 - Limits: emitted contracts/docs only; live pickup, real review runs and product-session context-file creation unverified.
 
+## Goal usage + first-cycle protocol (follow-on 5, same slice)
+
+Approved 2026-10-06 ("goal 을 언제 에이전트가 쓰는지 … 나머지도 모두 개선해줘"):
+goal-mode proposal signals, user-facing goal recipe, first-cycle evidence
+protocol, recurring-defect patterns in the resident context, and the design-system
+attachment candidate.
+
+- Surfaces: global policy Session-goals bullet (when to propose / when not / proposal contents), examples/autonomous-development.md goal bullet, README §05 goal recipe (how to start/pause/resume, Plan/scope limits), guide (recurring-defects line in resident context, first-cycle evidence subsection, design-system candidate note).
+- Docs/policy only — no notifier or code change; pinned runtime stays `c43fbea`.
+- Checks/commit recorded below. Limits: guidance only; goal behavior and the first-cycle protocol are validated in real sessions.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
