@@ -7,7 +7,7 @@
 
 [시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [설치 가이드](INSTALL.md)
 
-**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.6`** · [MIT](LICENSE)
+**OpenCode V2** · **선택형 엔지니어링 역할 3개** · **Beta `0.5.0-beta.7`** · [MIT](LICENSE)
 
 > **운영 방식과 설치 범위는 다릅니다.** 아래는 KSI가 일하는 방식입니다.
 > 이 npm 패키지가 설치하는 것은 Developer · Test Runner · Reviewer의 **세 에이전트 파일뿐**입니다.
@@ -144,10 +144,10 @@ Plan에서 방향을 합의하고 Build에서 실행합니다. 역할을 나눠�
 
 ```sh
 # 미리보기 — OpenCode 설정 파일을 변경하지 않습니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target "$PWD/.opencode"
 
 # 검토 후 적용 — 선택한 프로젝트에 세 역할을 추가합니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 미리보기와 적용 모두 같은 버전을 고정합니다. 이번 공개 베타는 `next`와 기본 채널 `latest`로 배포하며, 기본 채널에서도 베타라는 성격은 유지됩니다. 이후 채널이 바뀌어도 같은 버전을 사용하려면 위처럼 고정하세요.
@@ -160,7 +160,7 @@ npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode insta
 
 > “이 프로젝트에 KSI 하네스(ksi-opencode-harness)를 설치해줘.
 > ① Node.js 20+·OpenCode V2가 준비됐는지 확인하고, 설치 대상(프로젝트 `.opencode` vs 서버 전역 설정 디렉터리)을 나에게 먼저 물어봐.
-> ② 먼저 미리보기만 실행해서 어떤 3개 파일이 쓰일지 보여줘: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "<절대경로>"`
+> ② 먼저 미리보기만 실행해서 어떤 3개 파일이 쓰일지 보여줘: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target "<절대경로>"`
 > ③ 내가 확인하면 `--apply`로 적용해줘. 충돌이 있으면 멈추고 `--replace` 여부를 다시 물어봐.
 > ④ 적용 후 유효 에이전트 목록에서 developer·test-runner·reviewer를 확인해줘 — 파일 존재만으로 판단하지 마.
 > ⑤ 그 외에는 아무것도 바꾸지 마: 도구 설치·credentials·전역 지침(AGENTS.md)·서비스 재시작은 별도 승인 없이는 하지 마.”

@@ -15,8 +15,8 @@ installation, shared/global settings, credentials, and service changes. KSI inst
 With Node.js 20 or newer, use the current public beta. From the root of the project you want to change, `$PWD/.opencode` is an absolute project-local target. `npm exec` obtains the package through npm's cache; obtaining the package alone makes no OpenCode configuration changes. The first command previews; only the second command's `--apply` writes files.
 
 ```sh
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode"
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 Both commands pin the same exact beta. If the registry version is unavailable, use the source commands below.
@@ -28,7 +28,7 @@ Paste this into the OpenCode session that should perform the installation:
 
 > "Install the KSI harness (ksi-opencode-harness) for this project.
 > 1. Verify Node.js 20+ and OpenCode V2 are ready, then ask me whether the target is the project `.opencode` or the server's global config directory.
-> 2. Run the preview only first and show me the three files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target \"<absolute path>\"`
+> 2. Run the preview only first and show me the three files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.7 -- ksi-opencode install --target \"<absolute path>\"`
 > 3. After I confirm, apply with `--apply`; if there is a conflict, stop and ask me about `--replace`.
 > 4. Verify developer, test-runner and reviewer in the effective agent list — file existence alone is not proof.
 > 5. Change nothing else: tool installs, credentials, global instructions (AGENTS.md) and service restarts require separate approval."

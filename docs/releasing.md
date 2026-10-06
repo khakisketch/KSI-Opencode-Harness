@@ -21,7 +21,7 @@ git tag v<version> <release-commit>
 git push origin v<version>
 ```
 
-Tags are markers only — they do not authorize or trigger npm writes. The repository keeps a tag for every published version (`v0.5.0-beta.1` … `v0.5.0-beta.6`). If a tag is missing for an already published version, add it at the commit whose `package.json` carries that version (verify with `git show <commit>:package.json`), not at a later commit.
+Tags are markers only — they do not authorize or trigger npm writes. The repository keeps a tag for every published version (`v0.5.0-beta.1` … `v0.5.0-beta.7`). If a tag is missing for an already published version, add it at the commit whose `package.json` carries that version (verify with `git show <commit>:package.json`), not at a later commit.
 
 ## Release checklist
 
