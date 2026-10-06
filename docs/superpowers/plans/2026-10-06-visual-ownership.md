@@ -89,7 +89,8 @@ material/irreversible decisions or external inputs return to the user.
 - GREEN: full `npm run check` 144 total / 143 pass / 0 fail / 1 optional Compose skip (`check.log`); 9/9 config/role hashes preserved.
 - Surfaces: notifier advice step 4 (renumbered 5–8), guide loop step 1 + renumber, global policy EN/KO design bullets + closeout-report bullet, examples ×2, README, notifier README.
 - Backup: `/tmp/opencode/ksi-od-direction-audit` (policy, notifier copy, 9 hashes).
-- Commit `1e64c2a`; pinned notifier copy updated to the same commit (verify ok:true). Independent test-runner verification recorded below.
+- Commit `1e64c2a`; pinned notifier copy updated to the same commit (verify ok:true). Ledger commit `8d9448e`.
+- Independent test-runner `ses_ef08d5b49ffejcK2yMoCZVTPfe` (at `8d9448e`): check 144/143/0/1, targeted 41/41, whitespace/status clean, 9/9 hashes preserved, global policy = exactly 3 approved bullet replacements, runtime `1e64c2a` payload 7/7 identical, installed-message 105/105 assertions (step 4 + renumbered 5–8 + prior contracts), A/B/C doc citations verified with no stale shipped contradiction. Residuals (low, deferred): historical quote in `2026-10-04-autonomy-gaps.md:23` is a dated record already annotated as historical in product-state; notifier README restates A/B but not C (C lives in runtime step 8 and the parent README). Live pickup/real behavior intentionally unverified.
 - Limits: emitted contracts/docs only; live pickup and real design/report behavior unverified. No product edits/runs/restart/push.
 
 ## Verification / closeout
