@@ -191,6 +191,28 @@ opendesign "resource templates — Method not found" warnings are harmless noise
 - Conclusion recorded: Code Mode was not the cause; the EVENTOUCH `codemode:false`
   diagnostic is unnecessary unless flapping recurs after this fix.
 
+## Environment fix 2 — opendesign MCP proxy EPIPE handling (follow-on 9)
+
+The only observed opendesign MCP crash was `uncaught exception: Error: write
+EPIPE` (proxy exiting code 1 when the client closed the pipe — normal disconnect
+treated as a crash, causing reconnect churn). The deployed bundle
+`~/.local/share/od-mcp-host/proxy.cjs` had no broken-pipe handling.
+
+- Patch: `isBrokenPipe` + `exitQuietly` — EPIPE / ERR_STREAM_DESTROYED on
+  uncaught exception or unhandled rejection now exits 0 quietly instead of
+  reporting a crash. Localized (lines ~26451-26478), `node --check` OK.
+- Backup `/tmp/opencode/ksi-mcp-fix/proxy.cjs.before`; diff
+  `/tmp/opencode/ksi-mcp-fix/proxy-epipe.patch` (34 lines). The repo's
+  `mcp-host-entry.ts.example` does not contain this handler, so the fix lives
+  only in the deployed bundle — reapply from the patch after any redeploy.
+- Running proxies keep the old code until their sessions end; new spawns use the
+  patched bundle. Live EPIPE quiet-exit will be visible in the log on the next
+  client disconnect (no more "[od mcp] uncaught exception ... EPIPE").
+- Remaining noise: opendesign "failed to list MCP resource templates — Method not
+  found" warnings are client-side calls to an unsupported method (harmless).
+  Codex retries continue only in sessions started before the config change
+  (this harness session included); new sessions no longer load codex.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
