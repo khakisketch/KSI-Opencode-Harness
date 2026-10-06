@@ -248,6 +248,25 @@ User: "남은 것 모두 진행해줘" (2026-10-06).
   rewrite, zip archiving. Not edited from here — one writer; the product session
   owns that workspace.
 
+## Stop-recovery guidance (follow-on 12, same slice)
+
+From today's incident: the EVENTOUCH session (`ses_efe9d3ab…`) stopped at 09:11/09:16
+UTC with `Failed to drain Session` / `AI.Error: The request contains invalid
+parameters` (provider-layer rejection; same AI.Error class as today's `Model is
+unavailable` and `Referenced reasoning item` errors in other sessions), leaving
+uncommitted work in the `field-operation` worktree that the checkpoint did not
+mention.
+
+- Global policy: checkpoint Current State now names active worktrees and any
+  uncommitted work; new "recover from unexpected stops" bullet (preserve work
+  first → retry → compact/fresh session from checkpoint → provider/model check;
+  delivered ≠ processed).
+- examples/autonomous-development.md: same recovery bullet (parity).
+- docs/troubleshooting.md: diagnosis bullet (`grep "Failed to drain"`, AI.Error
+  classes, never delete the worktree or replay runs).
+- guides/working-state-template.md: Current State line mentions worktrees/uncommitted.
+- Classification recorded: the stop was provider/environment, not harness.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
