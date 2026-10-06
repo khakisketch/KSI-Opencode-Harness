@@ -14,10 +14,13 @@ automatic installer. Superpowers is also separately installed, not a prerequisit
 
 DGX user-level operating guidance is installed separately in `~/.config/opencode/AGENTS.md`, under
 `Design-to-engineering workflow`. It applies across that user's OpenCode projects; it is not installed
-by the KSI package. The default is **OpenDesign's local execution** (OpenDesign labels this mode
-"Local Codex"; the execution agent/model is chosen per run — not the standalone Codex CLI) in the
-connected server's execution environment,
-not the browser client's PC. **OpenDesign Cloud** requires an explicit user request. Agents must verify
+by the KSI package. The default is **OpenDesign's local execution** (the execution agent/model is
+chosen per run — not the standalone Codex CLI) in the connected server's execution environment,
+not the browser client's PC. **User-facing copy: call it "OpenDesign (local execution)".**
+"Local Codex" is the vendor's mode label (the OpenDesign MCP instructions list it as a product name);
+do not present it as a separate product, agent or CLI — if the label must be quoted, state immediately
+that it is the same local OpenDesign execution. This environment's explicit user naming preference
+overrides the vendor default. **OpenDesign Cloud** requires an explicit user request. Agents must verify
 the actual connection, project and storage root before describing execution location or modifying files;
 they must not assume a code repository is already a registered design project. Design-to-product handoff
 is explicit, not automatic synchronization. Small visual fixes stay design-owned;

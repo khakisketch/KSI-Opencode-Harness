@@ -146,6 +146,18 @@ attachment candidate.
 - Docs/policy only — no notifier or code change; pinned runtime stays `c43fbea`.
 - Checks/commit recorded below. Limits: guidance only; goal behavior and the first-cycle protocol are validated in real sessions.
 
+## Naming rule — "Local Codex" (follow-on 6, same slice)
+
+User asked why agents keep presenting the locally installed OpenDesign as "Local Codex"
+(structural OD problem or our guidance?). Root cause: (1) OpenDesign's own MCP
+instructions list "Local Codex" as the user-facing product name for local execution,
+so agents comply; (2) our guidance mirrored that vendor label without a user-facing
+naming rule. Fix: user-facing copy says **"OpenDesign (로컬 실행)"**; "Local Codex" is
+a vendor mode label only — never introduced as a separate product/agent/CLI; the
+environment's explicit user preference overrides the vendor default. Applied to
+global policy KO, guide EN, README. Docs/policy only — no code/runtime change.
+Historical records keep their original wording (not rewritten).
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.

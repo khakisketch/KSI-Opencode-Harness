@@ -194,7 +194,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 
 ### 디자인과 제품 소스
 
-KSI의 기본 디자인 실행 경로는 **OpenDesign의 로컬 실행**입니다. OpenDesign은 이 모드를 'Local Codex'로 표기하며, 실행 에이전트·모델은 실행마다 선택할 수 있습니다. **OpenDesign Cloud**는 명시적으로 요청한 경우에만 검토합니다.
+KSI의 기본 디자인 실행 경로는 **OpenDesign의 로컬 실행**입니다. 사용자에게는 **OpenDesign(로컬 실행)**이라고 부릅니다 — 'Local Codex'는 OpenDesign 제품 표기이며 별도 도구·에이전트가 아닙니다(에이전트가 별도 프로그램처럼 소개하면 잘못된 표현입니다). 실행 에이전트·모델은 실행마다 선택할 수 있습니다. **OpenDesign Cloud**는 명시적으로 요청한 경우에만 검토합니다.
 둘 모두 이 npm 패키지가 설치하거나 로그인·연결해 주는 기능이 아닙니다.
 
 **OpenCode 작업 계약 → 디자인 분석·실제 UI 소스 수정 → 디자인 렌더 리뷰·개선 → OpenCode 기능 검증·Git → 보고** 순서로 사용합니다. 별도 디자인·프론트엔드 전문 실행을 위임하는 구조이지, OpenCode 내부에 새 디자인 에이전트를 설치하는 것은 아닙니다.
