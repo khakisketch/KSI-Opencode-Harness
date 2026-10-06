@@ -294,6 +294,7 @@ existed; only tag v0.5.0-beta.1 existed; pin guards were an open backlog item).
   (pins 7, clean tree, both checks); commit `373b62f` pushed.
 - GitHub deployment completion (same day): releases created for `v0.5.0-beta.2`…`v0.5.0-beta.6` (pre-release, npm-linked notes; beta.1 already existed); CI (`check.yml`, 3 OS × 2 Node) now also enforces the version-pin guard — a real-file test in `test/release-check.test.mjs` (mutation-checked: broken pin → RED, restored → GREEN) runs inside `npm run check`. Full check 152/151/0; commit `c31a712` pushed.
 - npm status: `latest`/`next` remain `0.5.0-beta.6`; the ~40 commits of improvements since the beta.6 release (install guides, composition guide, docs) are **not yet published** — a beta.7 requires explicit publish authorization; do not bump pins before that authorization (README pins must not point at an unpublished version).
+- **beta.7 released (2026-10-06, user "승인")**: version bump `447e6df` (checks 152/151/0, isolated verify pass, pack 18 files / 70.7 kB, pins 7); `npm publish --tag next` after browser approvals (login + publish); registry verified (`bin` normalized as with beta.6); public smoke test preview → apply → repeat (`changes: []`); `latest` promoted after two expired auth sessions (third completed); tag `v0.5.0-beta.7` pushed; GitHub release created. Final dist-tags: **`next` = `latest` = `0.5.0-beta.7`**.
 
 ## Verification / closeout
 
