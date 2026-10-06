@@ -267,6 +267,13 @@ mention.
 - guides/working-state-template.md: Current State line mentions worktrees/uncommitted.
 - Classification recorded: the stop was provider/environment, not harness.
 
+README polish (same day): flow diagram now shows the current design loop
+(audit-first / direction options → source implementation → required review run →
+defect list → refinement); "세션이 멈춘 것 같아" recovery line added to the
+natural-language section; one blocked line added to the design section. Version
+pins verified current (beta.6 = latest/next). Commit `b9523e4`, pushed; check
+147/146/0 and package check passed.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
