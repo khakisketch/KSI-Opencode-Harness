@@ -33,9 +33,14 @@ plugin never claims success, never retries generation and never implements.
   review/refinement, regardless of the canonical artifact verdict. Small visual
   fixes are design-owned too; OpenCode coordinates and checks evidence/functionality.
   Report-only/intermediate stages are not UI output or authority for a new run.
-  Metadata `designQuality: "not_assessed"` is advisory, never a computed quality
-  pass. No-improvement rounds mean quality unmet; no fixed round cap is imposed.
-  Delivery/classification is unchanged; pinned copies need a verified update.
+  The advice pins the OD-usage loop: observable acceptance criteria and verified
+  input access before commissioning, a required review run (review skill distinct
+  from the generator) fed with actual rendered states (target viewports plus
+  empty/error/loading) and confirmed to have read them, and a concrete defect list
+  (what/where/user impact/desired result) tracked fixed/open — never a good/bad
+  verdict. Metadata `designQuality: "not_assessed"` is advisory, never a computed
+  quality pass. No-improvement rounds mean quality unmet; no fixed round cap is
+  imposed. Delivery/classification is unchanged; pinned copies need a verified update.
 - Strategy chains are followed: when a terminal run maps a follow-up run
   (`strategyTask.terminal === false` + `nextRunId`), that completion is worded
   as intermediate ("not the final completion") and the follow-up is watched for

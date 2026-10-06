@@ -59,6 +59,18 @@
 - [x] Independent test-runner runs `npm run check`, `npm run check:package`, targeted tests and diff checks; verifies native hashes, global-policy scope and no product writes.
 - [x] Commit task-owned files, update the existing pinned notifier copy, independently verify installed hashes/metadata and final repo state; reconcile ledger/checkpoint and report live-pickup/real-use limits. No push/restart.
 
+## OD-usage loop refinement (follow-on, same slice)
+
+Approved in conversation (2026-10-06 "그렇게 개선해줘") after the user asked how to
+use OD better: make the design-review run a required stage, feed it actual rendered
+states, standardize its output as a fix list, write observable acceptance criteria,
+verify input access before commissioning, and record skill selection per stage.
+
+- RED: two new notification-contract tests failed (`/tmp/opencode/ksi-od-usage/red.log`) — review-run requirement and observable-criteria/input-access advice absent.
+- GREEN: messages + notifier suites 39/39 pass (`green.log`). Global policy bullet 43 + KO section, shipped guide §Design-quality loop, notifier README, examples ×2 and README aligned to the same contract.
+- Backup/preservation: `/tmp/opencode/ksi-od-usage/` (policy backup, notifier copy, 9 config/role hashes).
+- Independent review/test-runner + pinned runtime adoption recorded below after verification.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.

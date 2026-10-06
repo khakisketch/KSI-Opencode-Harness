@@ -196,3 +196,27 @@ for (const status of ["failed", "canceled"]) {
     assert.match(delivery.text, /do not regenerate, replay or cancel-retry/)
   })
 }
+
+// The emitted advice must pin the OD-usage loop: mandatory review run with real
+// rendered inputs and a concrete fix list, not an optional self-check.
+test("the design loop requires a review run fed with actual rendered states", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /review run/i)
+  assert.match(delivery.text, /actual rendered states/i)
+  assert.match(delivery.text, /viewport|390|768|1440/i)
+  assert.match(delivery.text, /empty|error|loading/i)
+  assert.match(delivery.text, /confirm the review (actually )?read/i)
+  assert.match(delivery.text, /defect list|fix list/i)
+  assert.match(delivery.text, /user impact/i)
+  assert.match(delivery.text, /fixed.*open|open.*fixed/i)
+})
+
+test("the task contract requires observable acceptance criteria and input access", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /observable/i)
+  assert.match(delivery.text, /first screen|primary action/i)
+  assert.match(delivery.text, /what counts as failure|failure definition|failed state/i)
+  assert.match(delivery.text, /verify.*(input|reference|asset).*access/i)
+  assert.match(delivery.text, /do not commission|block and report/i)
+  assert.match(delivery.text, /record.*skill|skill.*record/i)
+})

@@ -225,29 +225,37 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
 1. **Compact task contract.** Reuse the agreed purpose and current problem;
    supply invariants versus redesign freedom, actual source/components/tokens,
    inspected references and accessible images, sanitized states/viewports, expected
-   files and criteria. Typical criteria cover task visibility/primary action,
-   hierarchy/density, empty/loading/error/disabled states, responsive behavior and
-   accessibility. Do not invent a universal above-the-fold rule or arbitrary score.
+   files and criteria. Write **observable** acceptance criteria — what must be
+   visible on the first screen, the primary action, the mobile scroll depth, and
+   what counts as failure — instead of vague adjectives; do not invent a universal
+   above-the-fold rule or arbitrary score. **Verify input access before
+   commissioning**: the execution environment must be able to read the references,
+   assets and actual source; if an input is unreadable, do not commission — block
+   and report the gap instead of running blind.
 2. **Design execution.** Select the agent and task-appropriate skill from the live
-   `list_agents`/`list_skills`; record the selection. The design execution analyzes
-   the product problem and edits actual UI source where access is verified. For
-   substantive work, use a design review execution as well as generation, rather
-   than the generator's unsupported self-approval. Suitable installed choices may
-   include `frontend-design`, `impeccable-design-polish`, `design-review`,
-   `plan-design-review` or `web-design-guidelines`; select by actual content and
-   task, not name alone. A small repair can render/review/refine in one compact run.
-3. **Actual output and rendered design review.** After the chain's output is
-   verified, send the real source snapshot, corresponding rendered states,
-   references and criteria to the design review. This applies equally to HTML
-   artifacts and successful source-direct edits with an invalid canonical-entry
-   verdict. A report-only/plan-only stage is not UI output. Missing files or render
-   access remain unverified; do not claim a pass from a manifest, run success,
-   screenshot existence or a generic review score. OpenCode checks the evidence
-   and actual integration, not substitutes its own visual fix or taste verdict.
-4. **Concrete refinement and evidence.** Design reviews state what is wrong,
-   where/which state, the user impact and the desired result. Return findings with
-   the prior source/render to design, then have design recheck the changed states.
-   In the existing ledger, keep a small table:
+   `list_agents`/`list_skills`; record the selection per stage. The design execution
+   analyzes the product problem and edits actual UI source where access is verified.
+   Suitable installed choices may include `frontend-design`, `impeccable-design-polish`,
+   `design-review`, `plan-design-review` or `web-design-guidelines`; select by actual
+   content and task, not name alone. A small repair can render/review/refine in one
+   compact run; a substantive change needs the separate review stage below.
+3. **Required design review run with actual rendered inputs.** After the chain's
+   output is verified, commission a design review execution as a required stage —
+   a review skill distinct from the generator, not the generator's own approval and
+   not an optional self-check. Feed it the real source snapshot, the **actual
+   rendered states** at the target viewports plus empty/error/loading states,
+   references and criteria; confirm the review actually read those inputs. This
+   applies equally to HTML artifacts and successful source-direct edits with an
+   invalid canonical-entry verdict. A report-only/plan-only stage is not UI output.
+   Missing files or render access remain unverified; do not claim a pass from a
+   manifest, run success, screenshot existence or a generic review score. OpenCode
+   checks the evidence and actual integration, not substitutes its own visual fix
+   or taste verdict.
+4. **Concrete refinement and evidence.** Require the review output as a concrete
+   **defect list** — what is wrong, which screen/state, the user impact and the
+   desired result — tracked fixed/open across rounds, not a good/bad verdict.
+   Return findings with the prior source/render to design, then have design recheck
+   the changed states. In the existing ledger, keep a small table:
 
    | Criterion / defect | Design finding and requested change | Revision + viewport/state render evidence | Fixed / open | Functional check |
    | --- | --- | --- | --- | --- |
