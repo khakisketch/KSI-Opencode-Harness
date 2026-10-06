@@ -154,7 +154,18 @@ npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode insta
 대상 경로는 절대 경로여야 합니다. 같은 파일은 반복 적용해도 변경하지 않으며, 다른 파일은 임의로 덮어쓰지 않습니다.
 명시적인 교체에는 백업이 생성됩니다. [충돌·업그레이드 규칙 →](INSTALL.md)
 
-### 3. 실제 역할을 확인하세요
+### 3. 에이전트에게 맡기기 (복사 → 붙여넣기)
+
+아래를 사용하는 OpenCode 세션에 그대로 붙여넣으면, 에이전트가 **미리보기 → 확인 → 적용 → 검증** 순서로 진행합니다.
+
+> “이 프로젝트에 KSI 하네스(ksi-opencode-harness)를 설치해줘.
+> ① Node.js 20+·OpenCode V2가 준비됐는지 확인하고, 설치 대상(프로젝트 `.opencode` vs 서버 전역 설정 디렉터리)을 나에게 먼저 물어봐.
+> ② 먼저 미리보기만 실행해서 어떤 3개 파일이 쓰일지 보여줘: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target "<절대경로>"`
+> ③ 내가 확인하면 `--apply`로 적용해줘. 충돌이 있으면 멈추고 `--replace` 여부를 다시 물어봐.
+> ④ 적용 후 유효 에이전트 목록에서 developer·test-runner·reviewer를 확인해줘 — 파일 존재만으로 판단하지 마.
+> ⑤ 그 외에는 아무것도 바꾸지 마: 도구 설치·credentials·전역 지침(AGENTS.md)·서비스 재시작은 별도 승인 없이는 하지 마.”
+
+### 4. 실제 역할을 확인하세요
 
 OpenCode의 유효 에이전트 목록에서 `developer`, `test-runner`, `reviewer`를 확인하세요.
 파일이 존재하는 것만으로 다른 설정 계층의 덮어쓰기까지 확인된 것은 아닙니다.
@@ -192,6 +203,28 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 | Playwright CLI · agent-browser · 공식 브라우저 스킬 | 실행 서버/사용자 환경에 별도 준비, 사용자 승인 | 실제 브라우저 조작·검증이 필요할 때; 선택한 도구 하나를 사용하며 패키지가 자동 설치하지 않습니다. [준비·검증 범위 →](docs/execution.md#prepared-global-browser-environment) |
 | OpenDesign(로컬 실행) · 디자인 MCP 연결 | 별도 준비, 사용자 승인 | 새 UI나 큰 디자인 변경이 필요할 때 |
 | 프로젝트 `AGENTS.md` · 연속성 기록 | 프로젝트의 운영 규칙 | 장기 작업의 맥락과 의사결정을 이어갈 때 |
+
+### 이 하네스 전체 구성을 갖추기 (에이전트 주도)
+
+이 저장소의 하네스 구성은 **OpenCode(사용자 것) + KSI 3역할 + 운영 지침 + 선택 도구들**입니다. OpenCode 설치와 모델 선택은 각자 몫이며 — 이 구성은 **특정 모델을 강제하지 않습니다.** 아래를 세션에 붙여넣으면 에이전트가 빠진 구성만 골라 안내합니다.
+
+> “내 환경에 이 저장소의 KSI 하네스 구성을 갖춰줘. OpenCode 설치와 모델·provider 선택은 내 것이니 바꾸지 말고 강제하지도 마.
+> ① 먼저 읽기 전용으로 현재 상태를 점검해줘: OpenCode V2·Node 20+, 설치된 에이전트, 기존 설정·도구.
+> ② KSI 3역할(developer·test-runner·reviewer): 미리보기 → 내 확인 → `--apply` → 유효 에이전트 목록 검증. 대상(프로젝트 vs 전역)은 먼저 물어봐.
+> ③ 운영 지침: `examples/autonomous-development.md`를 읽고 내 `AGENTS.md`에 병합할 변경만 제안 → 승인 후 적용.
+> ④ 선택 도구 — Superpowers, 브라우저 도구(Playwright CLI 또는 agent-browser 중 하나), OpenDesign+디자인 MCP: 각각 공식 문서를 확인해 설치 계획을 제안하고, 시스템 설치·credentials·서비스 변경은 내 승인 후 진행. 이미 있으면 건너뛰고 상태만 보고.
+> ⑤ 마무리: 구성 요소별 설치·확인 상태와 건너뛴 항목·이유를 표로 보고해줘.”
+
+| 구성 요소 | 필수 | 설치 주체 | 확인 |
+| --- | --- | --- | --- |
+| OpenCode V2 · Node 20+ | 필수 | 사용자 (공식 절차) | `opencode --version` |
+| KSI 3역할 | 필수 | 이 설치기 | 유효 에이전트 목록 |
+| 운영 지침(`AGENTS.md`) | 권장 | 사용자 + 에이전트 (검토 병합) | 새 세션에서 지침 로드 |
+| Superpowers | 권장 | 사용자 (공식 저장소) | 스킬 목록 |
+| 브라우저 도구(택 1) | UI 검증 시 | 사용자 | 실제 페이지 스냅샷 1회 |
+| OpenDesign + 디자인 MCP | 디자인 작업 시 | 사용자 (별도 앱) | 프로젝트 읽기 1회 |
+
+이 저장소에서만 쓰는 선택 부품(예: OpenDesign 완료 알림 플러그인)은 npm 패키지에 포함되지 않습니다 — 체크아웃에서 자체 스크립트로 다룹니다.
 
 ### 디자인과 제품 소스
 

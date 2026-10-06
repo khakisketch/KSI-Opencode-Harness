@@ -22,6 +22,17 @@ npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode insta
 Both commands pin the same exact beta. If the registry version is unavailable, use the source commands below.
 This public beta is released through `next` and the default `latest` channel; default-channel delivery does not make it a stable release. Pin the exact version to avoid later channel movement. This beta does not imply acceptance of real-product visual output.
 
+### Let your agent install it (copy → paste)
+
+Paste this into the OpenCode session that should perform the installation:
+
+> "Install the KSI harness (ksi-opencode-harness) for this project.
+> 1. Verify Node.js 20+ and OpenCode V2 are ready, then ask me whether the target is the project `.opencode` or the server's global config directory.
+> 2. Run the preview only first and show me the three files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.6 -- ksi-opencode install --target \"<absolute path>\"`
+> 3. After I confirm, apply with `--apply`; if there is a conflict, stop and ask me about `--replace`.
+> 4. Verify developer, test-runner and reviewer in the effective agent list — file existence alone is not proof.
+> 5. Change nothing else: tool installs, credentials, global instructions (AGENTS.md) and service restarts require separate approval."
+
 ## Preview and apply from source
 
 From a reviewed source checkout, run:
@@ -56,6 +67,28 @@ Removing a role can change what a pending plan or session assumed. Re-check any 
 Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/design.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve Superpowers, the goal plugin, other plugins, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
 
 The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has been removed from the registry; npm versions cannot be reused. Prefer the pinned beta version above for reproducible installation even after a later `latest` update. Removing a registry version does not remove any V1 plugin registration, old role files, or commands previously installed on a user's machine. Review and migrate those separately; a bare `npm install ksi-opencode-harness` only downloads the resolved package and does not apply OpenCode files.
+
+## Full harness composition (agent-guided)
+
+This repository's harness is a composition: OpenCode (yours) + the three KSI roles + operating guidance + optional tools. Installing OpenCode and choosing a model/provider stay with each user — the composition **does not force a model**. Paste this into a session to have the agent assemble what is missing:
+
+> "Set up this repository's KSI harness composition in my environment. OpenCode and my model/provider choice are mine — do not change or force them.
+> 1. Inspect the current state read-only: OpenCode V2 + Node 20+, installed agents, existing settings and tools.
+> 2. KSI roles (developer, test-runner, reviewer): preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global.
+> 3. Operating guidance: read `examples/autonomous-development.md` and propose only the merge into my `AGENTS.md` → apply after approval.
+> 4. Optional tools — Superpowers, a browser tool (Playwright CLI or agent-browser, pick one), OpenDesign + design MCP: check each project's official documentation, propose a plan, and get my approval for system installs, credentials and service changes. Skip what is already present and report its status.
+> 5. Finish with a per-component status table and any skipped items with reasons."
+
+| Component | Required | Installed by | Verify |
+| --- | --- | --- | --- |
+| OpenCode V2 · Node 20+ | yes | user (official docs) | `opencode --version` |
+| KSI three roles | yes | this installer | effective agent list |
+| Operating guidance (`AGENTS.md`) | recommended | user + agent (reviewed merge) | a new session loads it |
+| Superpowers | recommended | user (official repo) | skill list |
+| Browser tool (one of) | for UI verification | user | one real page snapshot |
+| OpenDesign + design MCP | for design work | user (separate app) | one project read |
+
+Repo-only extras (for example the OpenDesign completion-notifier plugin) are not part of the npm package; they are handled from the checkout with their own scripts.
 
 ## Runtime and verification boundaries (package scope)
 
