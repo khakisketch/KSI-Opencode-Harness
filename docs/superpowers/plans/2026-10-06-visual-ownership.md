@@ -69,7 +69,9 @@ verify input access before commissioning, and record skill selection per stage.
 - RED: two new notification-contract tests failed (`/tmp/opencode/ksi-od-usage/red.log`) — review-run requirement and observable-criteria/input-access advice absent.
 - GREEN: messages + notifier suites 39/39 pass (`green.log`). Global policy bullet 43 + KO section, shipped guide §Design-quality loop, notifier README, examples ×2 and README aligned to the same contract.
 - Backup/preservation: `/tmp/opencode/ksi-od-usage/` (policy backup, notifier copy, 9 config/role hashes).
-- Independent review/test-runner + pinned runtime adoption recorded below after verification.
+- Implementation commit `e40ebbb`; independent test-runner `ses_ef0b3b84affeU0M9vGdvX9BIjB`: check142/pass141/fail0/skip1, targeted39/39, whitespace/status clean, 9/9 hashes preserved, global policy = exactly the two intended bullets, pinned payload 7/7 equal, 96 installed-message contract assertions pass; two nuances flagged (R5 skill-recording parity in 3 docs; missing literal assertions for "distinct review skill"/"scroll depth").
+- Nuances closed in `d6f7c83`: parity text added to README/project-AGENTS/notifier README; two assertions added and mutation-checked (phrase removal → both tests RED, restore → 39/39 GREEN; log `mutation.log`). Full check re-run 142/141/0/1 (`check2.log`); pinned runtime re-installed at `d6f7c83` (verify ok:true).
+- Limits: live plugin pickup unverified; emitted contracts/docs consistency ≠ visual quality or live agent obedience. Real validation remains the product session's rendered review/refinement evidence.
 
 ## Verification / closeout
 
