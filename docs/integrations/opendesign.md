@@ -217,12 +217,22 @@ do not print raw event streams, credentials or provider telemetry in progress me
 
 ### Design-quality loop (design-owned analysis, review and refinement)
 
-The simple flow is **OpenCode task contract → design analysis/implementation →
-design-rendered review/refinement → OpenCode functional verification → report**.
+The simple flow is **orientation (diagnose/options when needed) → OpenCode task
+contract → design analysis/implementation → design-rendered review/refinement →
+OpenCode functional verification → report**.
 Design review is a design responsibility, not an optional OpenCode aesthetic
 judgment or a user defect-finding exercise. Scale it to the task; no fixed round cap.
 
-1. **Compact task contract.** Reuse the agreed purpose and current problem;
+1. **Diagnose and orient before commissioning.** For an existing screen or a vague
+   dissatisfaction report, commission a read-only design audit first — a review
+   skill on the actual current screens at the relevant viewports/states — and use
+   its concrete defect list as the redesign's problem statement; the user should
+   not have to enumerate the problems. When the direction is new or ambiguous,
+   commission a lightweight direction options run (2-3 distinct direction boards,
+   each with a rendered sample of the critical screen area) and let the user pick
+   before full implementation; skip options when the approved direction already
+   exists, and continue non-dependent work while the choice is pending.
+2. **Compact task contract.** Reuse the agreed purpose and current problem;
    supply invariants versus redesign freedom, actual source/components/tokens,
    inspected references and accessible images, sanitized states/viewports, expected
    files and criteria. Write **observable** acceptance criteria — what must be
@@ -232,14 +242,14 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    commissioning**: the execution environment must be able to read the references,
    assets and actual source; if an input is unreadable, do not commission — block
    and report the gap instead of running blind.
-2. **Design execution.** Select the agent and task-appropriate skill from the live
+3. **Design execution.** Select the agent and task-appropriate skill from the live
    `list_agents`/`list_skills`; record the selection per stage. The design execution
    analyzes the product problem and edits actual UI source where access is verified.
    Suitable installed choices may include `frontend-design`, `impeccable-design-polish`,
    `design-review`, `plan-design-review` or `web-design-guidelines`; select by actual
    content and task, not name alone. A small repair can render/review/refine in one
    compact run; a substantive change needs the separate review stage below.
-3. **Required design review run with actual rendered inputs.** After the chain's
+4. **Required design review run with actual rendered inputs.** After the chain's
    output is verified, commission a design review execution as a required stage —
    a review skill distinct from the generator, not the generator's own approval and
    not an optional self-check. Feed it the real source snapshot, the **actual
@@ -251,7 +261,7 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    manifest, run success, screenshot existence or a generic review score. OpenCode
    checks the evidence and actual integration, not substitutes its own visual fix
    or taste verdict.
-4. **Concrete refinement and evidence.** Require the review output as a concrete
+5. **Concrete refinement and evidence.** Require the review output as a concrete
    **defect list** — what is wrong, which screen/state, the user impact and the
    desired result — tracked fixed/open across rounds, not a good/bad verdict.
    Return findings with the prior source/render to design, then have design recheck
@@ -265,7 +275,7 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    a full round with no measurable improvement stops as **quality unmet**, with
    remaining defects and next options, not “complete, only user acceptance left”.
    A genuine access/execution blocker or material decision is also a truthful stop.
-5. **Engineering verification and report.** Direct UI source edits can occur
+6. **Engineering verification and report.** Direct UI source edits can occur
    before quality pass but remain provisional. OpenCode verifies functional
    integration/build/routing/permissions/persistence on the actual product and
    returns presentation issues to design; nonvisual bugs stay engineering-owned.

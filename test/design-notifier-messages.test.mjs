@@ -222,3 +222,22 @@ test("the task contract requires observable acceptance criteria and input access
   assert.match(delivery.text, /do not commission|block and report/i)
   assert.match(delivery.text, /record.*skill|skill.*record/i)
 })
+
+// OD-usage follow-on: diagnose existing screens before redesigning, and settle
+// an uncertain direction with lightweight options instead of one full gamble.
+test("an existing-screen redesign starts from a design audit, not a user defect list", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /design audit/i)
+  assert.match(delivery.text, /current screens/i)
+  assert.match(delivery.text, /user should not have to enumerate/i)
+  assert.match(delivery.text, /defect list.*redesign|redesign.*defect list/i)
+})
+
+test("an ambiguous or new direction gets lightweight options before full implementation", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /direction options/i)
+  assert.match(delivery.text, /2-3|two or three/i)
+  assert.match(delivery.text, /pick|choose/i)
+  assert.match(delivery.text, /before full implementation/i)
+  assert.match(delivery.text, /skip options/i)
+})

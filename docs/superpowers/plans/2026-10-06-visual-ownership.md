@@ -73,6 +73,24 @@ verify input access before commissioning, and record skill selection per stage.
 - Nuances closed in `d6f7c83`: parity text added to README/project-AGENTS/notifier README; two assertions added and mutation-checked (phrase removal → both tests RED, restore → 39/39 GREEN; log `mutation.log`). Full check re-run 142/141/0/1 (`check2.log`); pinned runtime re-installed at `d6f7c83` (verify ok:true).
 - Limits: live plugin pickup unverified; emitted contracts/docs consistency ≠ visual quality or live agent obedience. Real validation remains the product session's rendered review/refinement evidence.
 
+## Direction options + audit-first + user-state reporting (follow-on 2, same slice)
+
+Approved 2026-10-06 ("그렇게 해줘") from the ranked list: (1) lightweight direction
+options before full implementation when the direction is new/ambiguous, (2) a
+read-only design audit of the actual current screens before redesigning, using its
+defect list as the redesign's problem statement. Additionally folded in from the
+user's same-day feedback about unreadable progress reports and approval-waiting:
+(3) user-state reporting (usable level now → blockers and who unblocks them →
+what you will do next) and no naked next-candidate endings — continue within an
+active goal/authorized mandate with recommended defaults, only genuine
+material/irreversible decisions or external inputs return to the user.
+
+- RED: two new notification-contract tests failed (`/tmp/opencode/ksi-od-direction-audit/red.log`); one wording hyphen gap fixed RED→GREEN (`green.log`, 41/41).
+- GREEN: full `npm run check` 144 total / 143 pass / 0 fail / 1 optional Compose skip (`check.log`); 9/9 config/role hashes preserved.
+- Surfaces: notifier advice step 4 (renumbered 5–8), guide loop step 1 + renumber, global policy EN/KO design bullets + closeout-report bullet, examples ×2, README, notifier README.
+- Backup: `/tmp/opencode/ksi-od-direction-audit` (policy, notifier copy, 9 hashes).
+- Limits: emitted contracts/docs only; live pickup and real design/report behavior unverified. No product edits/runs/restart/push.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
