@@ -173,6 +173,24 @@ adoption map.
 - Global policy KO design bullet: the two matching clauses.
 - Docs/policy only; no code/runtime change. Checks/commit below.
 
+## Environment fix — codex MCP crash-loop (follow-on 8, same slice)
+
+User asked whether MCP instability should be fixed rather than disabling Code
+Mode. Log evidence: `mcp connect failed server=codex` dozens of times (all codex,
+none other) — `/home/ksi/.local/bin/codex mcp-server` spawns without a TTY
+("stdin is not a terminal"), exits, retries; each retry churns the tool catalog
+(the "tool list appears/disappears" symptom). Sessions also manually
+disconnect/reconnect the opendesign MCP (recovery attempts, extra churn);
+opendesign "resource templates — Method not found" warnings are harmless noise.
+
+- Fix: `~/.config/opencode/opencode.jsonc` codex server `enabled: false` with a
+  comment; backup `/tmp/opencode/ksi-mcp-fix/opencode.jsonc.before-1628`.
+- Verified: config parses (codex false, others true); no new WARN failures after
+  the edit (3-min observation); runtime reports codex not registered (disconnect
+  404). Revert = restore backup or `enabled: true`.
+- Conclusion recorded: Code Mode was not the cause; the EVENTOUCH `codemode:false`
+  diagnostic is unnecessary unless flapping recurs after this fix.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
