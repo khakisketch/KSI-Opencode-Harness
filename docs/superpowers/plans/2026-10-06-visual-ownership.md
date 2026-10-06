@@ -274,6 +274,25 @@ natural-language section; one blocked line added to the design section. Version
 pins verified current (beta.6 = latest/next). Commit `b9523e4`, pushed; check
 147/146/0 and package check passed.
 
+## Release/deployment improvements (follow-on 13, same slice)
+
+From the user's "배포쪽도 개선해줘": release tooling was verified (docs/releasing.md
+existed; only tag v0.5.0-beta.1 existed; pin guards were an open backlog item).
+
+- `scripts/release-check.mjs` + `test/release-check.test.mjs` (TDD: 4 tests RED →
+  GREEN): extracts README/INSTALL pins (`package=ksi-opencode-harness@…` and the
+  Beta badge — deliberately not bare `@version` mentions so the historical
+  `0.4.0-beta.0` note is not a false positive), checks pins vs package.json,
+  clean tree, and runs `npm run check` + `check:package`. `npm run release:check`
+  added; never publishes or tags.
+- `docs/releasing.md`: preflight mention, "Tag the verified release" section and a
+  release checklist.
+- Tags: `v0.5.0-beta.2`…`v0.5.0-beta.6` created at commits whose `package.json`
+  carries that version (`ab95c5e`, `0682659`, `e2263b5`, `c341faa`, `7db2c46`) and
+  pushed; remote now has all six tags.
+- Verification: full check 151/150/0; `npm run release:check` dogfood pass
+  (pins 7, clean tree, both checks); commit `373b62f` pushed.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
