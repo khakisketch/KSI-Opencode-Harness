@@ -37,3 +37,15 @@ test("checkVersionPins passes when every pin matches", () => {
   assert.equal(result.ok, true)
   assert.deepEqual(result.problems, [])
 })
+
+// Guard: the real repository files must stay in sync, so CI catches pin drift.
+test("repository README/INSTALL pins match package.json", async () => {
+  const { readFile } = await import("node:fs/promises")
+  const root = new URL("..", import.meta.url)
+  const pkg = JSON.parse(await readFile(new URL("package.json", root), "utf8"))
+  const readme = await readFile(new URL("README.md", root), "utf8")
+  const install = await readFile(new URL("INSTALL.md", root), "utf8")
+  const result = checkVersionPins({ version: pkg.version, readme, install })
+  assert.ok(result.pins.length > 0, "expected at least one version pin")
+  assert.equal(result.ok, true, result.problems.join("\n"))
+})
