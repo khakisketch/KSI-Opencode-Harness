@@ -241,3 +241,25 @@ test("an ambiguous or new direction gets lightweight options before full impleme
   assert.match(delivery.text, /before full implementation/i)
   assert.match(delivery.text, /skip options/i)
 })
+
+// OD-usage follow-on: accessibility/motion review inputs, resident product
+// context, and the review-delivery bundle.
+test("review inputs include keyboard, accessibility and motion states", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /keyboard|focus/i)
+  assert.match(delivery.text, /axe|accessibility/i)
+  assert.match(delivery.text, /motion|interaction states/i)
+})
+
+test("a resident product context is used when present", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /product-context\.md/)
+  assert.match(delivery.text, /resident|standing brief/i)
+})
+
+test("the result report includes the review-delivery bundle", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /implemented-product link|product link/i)
+  assert.match(delivery.text, /before\/after|before.after screenshots/i)
+  assert.match(delivery.text, /design preview link/i)
+})

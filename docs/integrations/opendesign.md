@@ -254,7 +254,8 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    a review skill distinct from the generator, not the generator's own approval and
    not an optional self-check. Feed it the real source snapshot, the **actual
    rendered states** at the target viewports plus empty/error/loading states,
-   references and criteria; confirm the review actually read those inputs. This
+   keyboard/focus, accessibility (axe where available) and motion/interaction
+   states, references and criteria; confirm the review actually read those inputs. This
    applies equally to HTML artifacts and successful source-direct edits with an
    invalid canonical-entry verdict. A report-only/plan-only stage is not UI output.
    Missing files or render access remain unverified; do not claim a pass from a
@@ -287,6 +288,15 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
 This is an execution contract, not runtime enforcement. Notifier/unit/package
 checks prove their own behavior, not aesthetic quality or agent obedience. Real-use
 acceptance requires a product session's review/refinement and changed-flow evidence.
+
+**Resident product context (per project).** Keep one `product-context.md` at the
+OD project root: brand tokens from the actual token files, component inventory,
+screen↔file map, invariants (API/data/auth/permission contracts, one writer, no
+unapproved brand change) and the review criteria pointers. Write it once when
+registering the source project and refresh it when tokens/components/screens
+change. Briefs and review runs read it first instead of re-explaining the product
+each session; it supplements actual source inspection and never replaces it or
+becomes an approval.
 
 **Run mechanics (observed).** A single request may expand into a plan→execute
 run chain: stage 0 produces the direction and working material but no product
@@ -325,6 +335,14 @@ landing-page/portfolio skills ("not dashboards, not data tables"). Many design
 skills declare `designSystemRequired`; without an attached design system,
 proceed with the repository's own tokens as the brand contract and record the
 choice. Verify the skill exists in the installed list before passing it.
+
+Observed working selections (verify against the live list before use): product
+dashboard/app UI → `frontend-design`; polish pass → `impeccable-design-polish`;
+design review/critique → `design-review` / `plan-design-review`; motion after the
+interface exists → `emilkowalski-motion`; compliance/guidelines →
+`web-design-guidelines`; landing/portfolio taste → `design-taste-frontend` /
+`gpt-taste` (unsuitable for dashboards). Record the per-stage selection in the
+task ledger so working choices accumulate across sessions.
 
 **Pipeline artifacts.** Strategy runs may leave working material in the
 project (e.g. `.od-frames/`). Treat it as untracked pipeline output: keep it
@@ -592,7 +610,9 @@ Desktop/home-wide mounts. Keep one writer at a time. After import, check the
 project's `metadata.scenarioBinding` / `strategyBinding` and record them in the
 task record; a folder import normally carries the automatic prototype binding
 (see Run mechanics for the source-direct blocked outcome and the explicit
-scenario alternatives).
+scenario alternatives). For source-direct work, record the chosen scenario path
+(automatic prototype + deliberate continuation, or an explicit scenario plugin)
+and create or refresh the resident `product-context.md`.
 
 #### Multi-screen visual-system pass
 
@@ -669,7 +689,7 @@ a verified no-change result can preserve the implementation with its evidence.
 
 The design preview is for direction, composition and prototype states. The actual product server is for authentication, API integration, saving, permissions, routing, error handling and the production component/responsive behavior. Keep both responsibilities: a working prototype button or screenshot does not prove real functionality. No API/backend change is authorized by a design artifact.
 
-Give the user two clearly labeled, actually reachable links when applicable: **Design preview** and **Implemented product**. Preserve the product server; do not migrate or duplicate its runtime inside the design workspace merely to consolidate viewing. Resolve URLs for the actual client/network; daemon-returned localhost URLs are not automatically browser-client-PC URLs. Report inaccessible/uninspected states rather than claiming verification.
+Give the user two clearly labeled, actually reachable links when applicable: **Design preview** and **Implemented product**. Preserve the product server; do not migrate or duplicate its runtime inside the design workspace merely to consolidate viewing. Resolve URLs for the actual client/network; daemon-returned localhost URLs are not automatically browser-client-PC URLs. Report inaccessible/uninspected states rather than claiming verification. Standard review bundle: the reachable implemented-product link (a temporary tailnet-bound static server is acceptable for a static product — label it tailnet-only and temporary), before/after screenshots of the changed screens at the target viewports, and the design preview link. Screenshots inform the review; the product link remains the functional-verification surface.
 
 Build can return task-scoped product captures, observed differences and constraints for design feedback, excluding credentials/private data. Feedback may propose design revisions or ask for product information; Build adjudicates and implements in its authorized scope. An important redesign goes through the existing direction-approval boundary again. This loop is explicit feedback, not automatic synchronization or execution delegation back into the engineering session.
 

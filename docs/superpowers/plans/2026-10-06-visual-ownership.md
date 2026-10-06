@@ -124,6 +124,16 @@ problem after the product session reported a stopped chain ("프로젝트에 묶
   metadata); no design run, no binding mutation, no restart. The recommended
   alternatives are supported mechanisms, not verified outcomes.
 
+## Resident context + review bundle (follow-on 4, same slice)
+
+Approved 2026-10-06 ("이 부분까지 모두 개선"): complete OD-usage items 3–6 —
+resident product context, review-delivery bundle, skill observations table, and
+accessibility/motion review inputs — plus the registration scenario-path record.
+
+- RED: three new notification-contract tests failed (`/tmp/opencode/ksi-od-context-bundle/red.log`); GREEN 44/44 after the message changes.
+- Surfaces: notifier step 3 (keyboard/focus + accessibility + motion states; resident `product-context.md`), report sentence (review bundle), guide (resident-context subsection, bundle paragraph, skill observations table, review-input list, registration line), global policy EN/KO, README, examples ×2.
+- Verification/commit recorded below.
+
 ## Verification / closeout
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
