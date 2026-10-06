@@ -89,6 +89,7 @@ material/irreversible decisions or external inputs return to the user.
 - GREEN: full `npm run check` 144 total / 143 pass / 0 fail / 1 optional Compose skip (`check.log`); 9/9 config/role hashes preserved.
 - Surfaces: notifier advice step 4 (renumbered 5–8), guide loop step 1 + renumber, global policy EN/KO design bullets + closeout-report bullet, examples ×2, README, notifier README.
 - Backup: `/tmp/opencode/ksi-od-direction-audit` (policy, notifier copy, 9 hashes).
+- Commit `1e64c2a`; pinned notifier copy updated to the same commit (verify ok:true). Independent test-runner verification recorded below.
 - Limits: emitted contracts/docs only; live pickup and real design/report behavior unverified. No product edits/runs/restart/push.
 
 ## Verification / closeout
