@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, symlink, unlink, rename } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, symlink, unlink, rename, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createConnector } from '../connector.mjs';
 
 async function fixture(t, overrides = {}) {
-  const base = await mkdtemp(path.join(os.tmpdir(), 'remote-connect-'));
+  // Canonicalize: production resolves every path with realpath, so the
+  // fixture base must be canonical too (/var vs /private/var on macOS,
+  // 8.3 short names in TMPDIR on Windows) before deriving home/state.
+  const base = await realpath(await mkdtemp(path.join(os.tmpdir(), 'remote-connect-')));
   t.after(() => rm(base, { recursive: true, force: true }));
   const home = path.join(base, 'home');
   for (const p of ['project', 'second']) await mkdir(path.join(home, p), { recursive: true });

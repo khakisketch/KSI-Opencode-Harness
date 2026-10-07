@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, symlink, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, symlink, writeFile, rm, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { resolveWorkspacePath } from '../path-policy.mjs';
@@ -19,7 +19,10 @@ function request(url, method, body) {
 }
 
 async function fixture(t) {
-  const base = await mkdtemp(path.join(os.tmpdir(), 'remote-path-'));
+  // Canonicalize for the same reason as connector.test.mjs: production
+  // answers are realpath-resolved, so expectations derived from the base
+  // must start from the canonical base.
+  const base = await realpath(await mkdtemp(path.join(os.tmpdir(), 'remote-path-')));
   const home = path.join(base, 'home');
   t.after(() => rm(base, { recursive: true, force: true }));
   for (const dir of ['Desktop/Project A', 'Other', '.hidden-project', '.ssh']) await mkdir(path.join(home, dir), { recursive: true });

@@ -2,18 +2,26 @@
 // deployment from idle state, a complete ledger, or an upstream comparison.
 import { readFileSync, realpathSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { resolve, join, relative, isAbsolute } from "node:path";
+import { resolve, join, relative, isAbsolute, sep } from "node:path";
 
 export function readProjectText(repo, path) {
   try {
     const root = realpathSync(repo);
     const target = realpathSync(join(root, path));
     const rel = relative(root, target);
-    if (rel === ".." || rel.startsWith("../") || isAbsolute(rel)) return null;
+    if (isOutsideRoot(rel)) return null;
     return readFileSync(target, "utf8");
   } catch {
     return null;
   }
+}
+
+// Native-separator containment for a root-relative path: only a leading `..`
+// segment escapes. `relative` joins with the native separator, so on Windows
+// `..\outside` escapes, while on POSIX a backslash is an ordinary filename
+// character. Split out so both separators are unit-testable on any platform.
+export function isOutsideRoot(rel, separator = sep) {
+  return rel.split(separator)[0] === ".." || isAbsolute(rel);
 }
 
 export function section(text, name) {

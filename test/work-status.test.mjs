@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url"
 
 // Namespace import allows a missing API to fail an assertion, not an import error.
 import * as status from "../scripts/work-report.mjs"
+import { isOutsideRoot } from "../scripts/work-status.mjs"
 
 function fixture(t, git = true) {
   const root = mkdtempSync(join(tmpdir(), "ksi-status-test-"))
@@ -70,6 +71,23 @@ test("ledger pointers cannot escape the project through traversal or symlinks", 
   assert.equal(result.ledger.status, "unknown")
   assert.equal(JSON.stringify(result).includes("secret-private-content"), false)
   assert.equal(result.warnings.some(w => /outside|unreadable/i.test(w)), true)
+})
+
+test("outside-root guard refuses parent escapes on native and Windows separators", () => {
+  assert.equal(typeof isOutsideRoot, "function")
+  // Windows form: backslash escapes are refused, siblings allowed.
+  assert.equal(isOutsideRoot("..\\outside", "\\"), true)
+  assert.equal(isOutsideRoot("..\\..\\outside", "\\"), true)
+  assert.equal(isOutsideRoot("..", "\\"), true)
+  assert.equal(isOutsideRoot("plans\\linked.md", "\\"), false)
+  // Only a leading `..` segment escapes; deeper segments are contained.
+  assert.equal(isOutsideRoot("plans\\..\\linked.md", "\\"), false)
+  // POSIX form: behavior unchanged.
+  assert.equal(isOutsideRoot("../outside", "/"), true)
+  assert.equal(isOutsideRoot("..", "/"), true)
+  assert.equal(isOutsideRoot("plans/linked.md", "/"), false)
+  // A backslash is an ordinary filename character on POSIX, not an escape.
+  assert.equal(isOutsideRoot("..\\outside", "/"), false)
 })
 
 test("status CLI rejects unknown options and option names used as paths", () => {

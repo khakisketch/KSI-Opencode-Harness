@@ -93,3 +93,29 @@ must remain standard user approvals. Publication failures are partial delivery, 
   Compose skip, package/diff pass, actual escape-target/security assertion diff inspected;
   dry pack remains exact23files/453521bytes/same SRI/SHA1. Logs
   `final-portability-{check,package}.log`. Commit/push this tested source for remote matrix.
+
+### Canonical-path and Windows containment recovery
+
+- Test-only repair committed/pushed `2889d97`; same Test Runner independently checked
+  exact committed clean release:check, isolated metadata23decisions and166/165/0/1.
+- CI37579994057: Ubuntu20/22 pass; macOS5fail/job, Windows6fail/job. Five failures are
+  fixture expectations using temp-path aliases instead of canonical realpath (/var versus
+  /private/var and RUNNER~1 versus runneradmin). The sixth Windows failure is a real
+  source-only status-report leak: POSIX-only `../` check failed to reject `..\outside`.
+  Never change the expected private-content refusal to bless that leak.
+- Primary extended Developer ownership narrowly to `scripts/work-status.mjs` and its
+  regression, plus the two existing fixture bases. Canonicalize fixture realpath before
+  deriving expectations; segment-aware native-separator outside-root guard preserves
+  traversal/cross-drive rejection and existing actual symlink secrecy assertion.
+- Developer reproduced5alias failures on a symlinked TMPDIR and Windows relative escape
+  against the old guard. New actual helper test (no source-string/mock test) covers slash
+  versus backslash splitting; actual drive/UNC behavior still requires Windows CI.
+- Independent reviewer same session: no blocking code/security defect; synthetic-separator
+  test does not prove Windows isAbsolute semantics. Early worker test-wiring failure was
+  fixed by a direct helper import, not by widening report exports. Stale early log retained,
+  do not cite it as green. Optional extra empty/..foo/drive cases deferred, no broad audit.
+- Independent Test Runner same session: security-check167 total/166 pass/0 fail/1 original
+  Compose skip, package/diff pass; own symlink-TMPDIR targeted18/18pass,0skip. Packet dry
+  inventory and original tgz/SRI remain byte-identical (scripts/tests/ledger not packaged).
+  Fresh evidence: `security-{check,package,alias}.log`. Next: push tested source and verify
+  actual6job matrix before npm publishing. No auth/install/runtime or design changes.
