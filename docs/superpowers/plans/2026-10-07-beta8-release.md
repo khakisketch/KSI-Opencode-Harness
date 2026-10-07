@@ -119,3 +119,27 @@ must remain standard user approvals. Publication failures are partial delivery, 
   inventory and original tgz/SRI remain byte-identical (scripts/tests/ledger not packaged).
   Fresh evidence: `security-{check,package,alias}.log`. Next: push tested source and verify
   actual6job matrix before npm publishing. No auth/install/runtime or design changes.
+
+### Windows package-verifier execution recovery
+
+- Canonical/security repair committed/pushed `f711e20`; exact clean release preflight
+  passes and all23packaged source bytes match retainedtarball hashes.
+- CI37580579130: all6sourcechecks pass, including real Windows external-ledger refusal
+  and macOS canonical-path tests. Ubuntu/macOS packagechecks pass; Windows2packagejobs
+  fail only `spawn npm ENOENT`. This is a separate source-only verifier execution defect.
+- Developer same session changed only check-package.mjs/new check-package.test.mjs:
+  invoke absolute validated npm_execpath through Node without shell/PATH lookup; Windows
+  check .cmd-shim and actualbinJS presence then run JS through Node, not claim .cmd execution.
+  POSIX standalone/executable check retained. Four real argv helper tests, no mocks/skips.
+- Primary diff inspection caught a dropped package-install-no-global-config assertion in
+  the initial body move; Developer restored it and retracted the earlier byte-identical
+  flow claim. Whole-body audit/reviewer/Test Runner confirm all34assert statements retained.
+  No script was published or a user's configuration touched by the provisional verifier.
+- Independent reviewer same session: no code/security blocker, full strict offline/minimal
+  env/no-config/preview/three-role/idempotence/conflict checks intact; remote Windows package
+  execution remains a real pending gate, not a Linux inference.
+- Test Runner same session:171 total/170pass/0fail/1 originalCompose skip, package/diff pass,
+  safe23file drypack/SRI and retainedtgz byte-identical. Logs `npm-portability-{check,package}.log`.
+- Source scripts/tests excluded from published installer. Direct verifier execution without
+  npm_execpath now fails descriptively before fixture creation; documented npmrun entry
+  supplies it. Do not install tools/use shell:true or weaken platform gates to recover.
