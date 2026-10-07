@@ -27,8 +27,8 @@
 - [x] Push authorized main; verify remote/CI separately from publication.
 - [x] Publish exact verified tarball, public preview/apply/repeat and byte/integrity verification.
 - [x] Tag release commit and publish GitHub release after registry verification.
-- [ ] Promote latest and verify default beta.8 consumer — BLOCKED: standard auth never
-  completed successfully; latest remains beta.7. No further automatic approval retries.
+- [x] Promote latest and verify default beta.8 consumer — completed after the explicit
+  user-requested resumption and successful standard approval; historical blocker below.
 - [x] Record actual achieved/blocked delivery evidence; reconcile product state and report.
 
 ## Evidence boundary
@@ -217,7 +217,7 @@ must remain standard user approvals. Publication failures are partial delivery, 
   finish browser approval, not merely open the link. Do not issue another request while
   this one is pending. Installednpm/config/2FA still unchanged; latest verification pending.
 
-## Final partial-delivery closeout
+## Historical partial-delivery closeout (superseded by successful resumption below)
 
 - Fresh corrected approval also terminated GET404. All launched promotion commands are
   terminal; stop creating approval links. No successful tag write and no downgrade/
@@ -247,3 +247,43 @@ must remain standard user approvals. Publication failures are partial delivery, 
   channels/tag/release match partial-status wording, published tag range1–8 verified.
   No new auth requests or defaultbeta8claim. Optional tag-annotation uniformity is
   nonblocking; beta.8's lightweight tag names the verified revision and was not rewritten.
+
+## User-requested latest resumption
+
+- User explicitly requested "진행해보자" after partial closeout. This reopens only the
+  remaining already-authorized latest stage, not a standing automatic retry loop or
+  new release/version/product scope.
+- Rechecked clean main `6c776cf`, npm11.17/login identity valid, registry next=beta.8/
+  latest=beta.7 and installednpm4/4source hashes unchanged. Reuse the reviewed explicit
+  single-process GET-only poll correction; no installednpm/config/2FA or payload writes.
+- Launched one fresh standard approval request; activation link immediately sent to
+  user with instructions to complete npm approval. Do not replay while pending. Log:
+  private `promote-latest-user-resume.log`. Completion/channel/default-consumer evidence
+  was pending at launch; the actual successful completion is recorded below.
+
+## Completed channel delivery
+
+- Resumed promotion command returned `+latest: ksi-opencode-harness@0.5.0-beta.8`.
+  Read-only registry confirmation: BOTH next/latest=beta.8. No republish/unpublish,
+  changed package bytes or permanent npm/auth/config/2FA modifications.
+- Independent Test Runner `ses_eeb122a3fffeCA2YiTJzrk4BTw` verified unversioned/default
+  `npm view`/`pack`/`install` in a fresh credential-free disposable HOME/cache/prefix:
+  19/19checks pass, default version beta.8, originalSRI/shasum, downloaded payload
+  and all23installedfiles byte-identical, preview no-write→exactly3rolesapply→idempotent
+  repeatchanges[], no AGENTS/model/runtime config writes or live target overwrite.
+- Registry `final-channels.json` and `default-consumer.log` retained privately. Tag
+  v0.5.0-beta.8 remains source178b2e9; GitHub prerelease persists. Installednpm4/4sources
+  unchanged, protected11configs/roles unchanged, manifest version-only; retainedtgz
+  SHA256 unchanged. The single-process auth shim ended and was not used for consumer
+  verification, installed as a persistent hook or claimed to fix npm globally.
+- Full authorized external channel delivery is now achieved. Earlier partial/failure
+  evidence remains historical, not a current blocker. Source/render/human-quality
+  acceptance and actual Windows native .cmd execution still are not inferred from delivery.
+- Independent final record check by the same Test Runner: `TMPDIR=/tmp/opencode
+  KSI_TOOL_CHOICE_INTEGRATION=1 npm run check`171total/170pass/0fail/1optionalCompose
+  skip; `TMPDIR=/tmp/opencode npm run check:package` and `git diff --check` pass.
+  Logs `completed-records-{check,package}.log`; actual channels/tag/release/default19/19
+  receipt match the completed-delivery wording. No source or packaged file changed.
+- Commit/push these verified receipt-only records without altering the release tag or
+  immutable23-file package; final commit/remote-CI receipt stays in the checkpoint/private
+  logs to avoid a recursive evidence-only commit loop. No new product/design/runtime scope.
