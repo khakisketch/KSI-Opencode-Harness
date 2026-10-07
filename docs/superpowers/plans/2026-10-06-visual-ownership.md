@@ -312,6 +312,58 @@ User feedback: docs are text-heavy; captures/screens of the real development flo
   `docs/assets` (tarball 23 files / 448 kB).
 - Verification: check 152/151/0, package check pass; commit recorded below.
 
+## Responsibility-flow clarification (2026-10-07, approved README follow-on)
+
+- User approved the reviewed five corrections with "그래 개선해줘": optional Plan, routing
+  by work nature rather than size, design as actual visual implementer with discretion,
+  independent final checks on integrated code, and technical completion distinct from
+  human acceptance/external delivery. This is documentation clarification, not a new runtime.
+- Baseline/integration target: existing checkout `main` at `84fd8b4`, clean and ahead3 of origin.
+  One writer; four unfamiliar pre-existing worktrees retained. No new goal or workspace.
+- Scope: README responsibility diagram/core definitions/ownership and role table; align the
+  architecture and integration responsibility summaries only. No implementation, agent/config/
+  policy/runtime/asset changes, design generation, installs, push or publication.
+- Ruling: keep the current checkout and existing ledger; an extra skill scratch ledger/worktree
+  would duplicate continuity without an isolation need. Preserve the existing overview PNG/SVG:
+  it already depicts Build coordination → actual UI source → product verification, not a mandatory
+  Plan or a mockup-only handoff. Text clarifies the additional roles/order without a visual redesign.
+- Acceptance: a reader can distinguish optional planning, engineering vs all visual work,
+  design professional discretion vs Build integration responsibility, self-tests vs independent
+  final checks on the integrated revision (recheck after changes), and acceptance vs delivery.
+  Preserve capabilities/authorization prerequisites and installer-only3-role/no-enforcement limits.
+- Verification depth: prose-only changes use an independent interpretation review and existing
+  full/package/version-pin checks; no synthetic string test presented as workflow enforcement,
+  no product/provider/browser run required. Final test-runner receipts belong here.
+- [x] Rewrite README diagram, role definitions and compact ownership rules.
+- [x] Align architecture/integration summaries; initial prose/diff inspection complete, automated checks next.
+- [x] Independent reviewer and test-runner; record findings/results.
+- [x] Local closeout: only the verified5 doc/state files enter the commit with this record;
+  product state reconciled, exact committed revision/final check receipt retained in checkpoint.
+  External delivery is not included; no human end-to-end acceptance inferred.
+
+- Reviewer `ses_eeb3024e1ffetVkHIJ0TiD2Sd1` covered7 interpretation cases: no Plan for clear
+  API repair; small visual vs large DB routing; design-success/API-failure repair; later edit
+  recheck; blocked design no engineering visual fallback; prior delivery approval reuse.
+  Entry-path visibility findings addressed with compact links to existing audit/direction/
+  review gates and blocked-path guidance; Test Runner/Reviewer ownership rows split.
+  The gates/no-fallback already existed later in README and the integration guide; this makes
+  them visible to an entry-only reader rather than introducing a new permission/workflow rule.
+- Non-blocking review coverage limits: reviewer did not verify origin/worktree inventory or
+  image pixels; Primary's initial Git inventory and direct PNG/SVG read confirm the recorded
+  baseline and compatible preserved overview. No new asset/render quality claim. Size/process
+  pointer shares the compact review-gates link. No deferred defect requires new scope.
+- The first independent test run may overlap these prose refinements; use the post-refinement
+  test-runner receipt for completion, not stale output from the first pending tree.
+- Post-refinement independent test-runner `ses_eeb2ff873ffeqJ8uaHUaTGTi4z`: exact
+  `TMPDIR=/tmp/opencode KSI_TOOL_CHOICE_INTEGRATION=1 npm run check`166 total/165 pass/0 fail/
+  1 optional real-Compose skip; `npm run check:package` and `git diff --check` pass. README's
+  new2 fragment links resolve; all referenced local files exist. Diff remains5 prose/state
+  files only; no source, role, config, version, asset or runtime payload changes. Logs:
+  `/tmp/opencode/ksi-responsibility-docs-20261007/refined-{check,package}.log`.
+- No deferred review defect/new scope. Local technical documentation checks complete; final
+  commit/revision receipt goes in checkpoint. Human readability/product acceptance and public
+  GitHub/npm delivery remain separate. No push, release, installer run or global adoption.
+
 ## Verification / closeout
 
 ### Audit remediation (2026-10-07, user-approved bounded follow-on)

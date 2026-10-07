@@ -32,13 +32,24 @@ actual target before work, rather than creating a replacement project by default
 
 | Owner | Responsibility |
 | --- | --- |
-| OpenDesign | Direction, layout, information hierarchy, interaction and visual system, rendered artifacts, critique |
-| OpenCode (Build) | Requirements, code architecture, existing components, production constraints, backend, tests, Git, integration |
-| Human | Direction approval and final acceptance |
+| OpenDesign | Visual analysis and decisions, layout, hierarchy, component presentation, actual UI source/style edits, responsive/visual interaction states, rendering, design review and direct refinement — including small CSS/spacing/overflow fixes |
+| OpenCode (Build) | Overall execution/integration and technical-completion evidence; purpose, functional/API/data/auth/brand contracts and production constraints; nonvisual engineering directly or through Developer; verification coordination, Git and reporting |
+| Test Runner / Reviewer | Respectively independent final checks on the integrated revision under the adopted operating policy, and read-only code/behaviour review; neither substitutes for rendered design review or human acceptance |
+| Human | Material direction/product decisions, final acceptance and external-delivery authorization; existing authorization is reused within its approved target/effects |
 
-OpenCode still makes engineering judgments inside Build: detecting a mismatch with the design,
-broken responsive behaviour, accessibility regressions, component reuse, and conflicts with production
-constraints. Those judgments do not require a separate design primary agent.
+This is a responsibility boundary, not an aesthetic command hierarchy. Build delegates purpose,
+outcomes and invariants; OpenDesign has discretion over layout, information hierarchy, component
+composition and responsive presentation within the authorized scope. With verified source access,
+the preferred path is direct product-source implementation, not a mockup that Developer must recreate.
+Plan can help define the contract but is not mandatory for clear tasks.
+
+Build can detect design mismatches, responsive/accessibility regressions and production-contract
+conflicts, then provide evidence to design; it does not substitute its own visual repair or approval.
+Design success is not whole-product completion. If an API connection breaks, Build fixes or delegates
+the nonvisual integration defect; visual defects return to design, with shared files handed off
+sequentially. Developer/Build author checks do not replace Test Runner's independent final checks
+on the integrated code; later relevant edits require affected checks again. These responsibilities
+do not create a native design child agent or another development Primary, or runtime enforcement.
 
 ## Prerequisite
 
