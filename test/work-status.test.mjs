@@ -1,14 +1,16 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, symlinkSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { execFileSync, spawnSync } from "node:child_process"
 import { join } from "node:path"
+import { fileURLToPath } from "node:url"
 
 // Namespace import allows a missing API to fail an assertion, not an import error.
 import * as status from "../scripts/work-report.mjs"
 
 function fixture(t, git = true) {
-  const root = mkdtempSync("/tmp/opencode/ksi-status-test-")
+  const root = mkdtempSync(join(tmpdir(), "ksi-status-test-"))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   if (git) {
     execFileSync("git", ["init", "-q", root])
@@ -71,7 +73,7 @@ test("ledger pointers cannot escape the project through traversal or symlinks", 
 })
 
 test("status CLI rejects unknown options and option names used as paths", () => {
-  const command = new URL("../scripts/work-report.mjs", import.meta.url).pathname
+  const command = fileURLToPath(new URL("../scripts/work-report.mjs", import.meta.url))
   for (const args of [["--unknown", "--status"], ["--repo", "--json", "--status"]]) {
     const result = spawnSync(process.execPath, [command, ...args], { encoding: "utf8" })
     assert.notEqual(result.status, 0)

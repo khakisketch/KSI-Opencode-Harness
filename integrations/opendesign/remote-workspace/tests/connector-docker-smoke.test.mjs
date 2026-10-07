@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -9,7 +10,7 @@ import { createConnector } from '../connector.mjs';
 
 const exec = promisify(execFile);
 test('real isolated Compose preserves base mounts and recovers failed project connection', { skip: process.env.OD_REMOTE_DOCKER_SMOKE !== '1', timeout: 120000 }, async t => {
-  const root = await mkdtemp('/tmp/opencode/remote-docker-smoke-');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'remote-docker-smoke-'));
   const project = 'ksi-remote-smoke-' + randomUUID().slice(0, 8);
   const container = project;
   const home = path.join(root, 'home');

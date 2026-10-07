@@ -1,5 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
+import { join } from "node:path"
 import { buildIsolatedEnv, checkAgents, checkRetiredSkills, RETIRED_DESIGN_SKILLS } from "../scripts/verify-native-v2-isolated.mjs"
 import * as verifier from "../scripts/verify-native-v2-isolated.mjs"
 
@@ -19,8 +20,8 @@ function catalog(overrides = {}) {
 test("isolated verifier child environment never inherits credentials or shared OpenCode overrides", () => {
   const env = buildIsolatedEnv("/tmp/ksi-test", "/usr/bin")
   assert.deepEqual(Object.keys(env).sort(), ["HOME", "PATH", "TMPDIR", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"].sort())
-  assert.equal(env.HOME, "/tmp/ksi-test/home")
-  assert.equal(env.XDG_CONFIG_HOME, "/tmp/ksi-test/home/.config")
+  assert.equal(env.HOME, join("/tmp/ksi-test", "home"))
+  assert.equal(env.XDG_CONFIG_HOME, join("/tmp/ksi-test", "home", ".config"))
 })
 
 test("isolated server readiness parser accepts only loopback startup with a generated password", () => {

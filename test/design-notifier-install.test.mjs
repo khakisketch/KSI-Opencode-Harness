@@ -23,11 +23,11 @@ async function makeSource(root) {
 test("resolveTargetDir honors XDG_CONFIG_HOME and the home fallback", () => {
   assert.equal(
     resolveTargetDir({ env: { XDG_CONFIG_HOME: "/xdg" }, home: "/home/u" }),
-    "/xdg/opencode/plugins/design-notifier",
+    join("/xdg", "opencode", "plugins", "design-notifier"),
   )
   assert.equal(
     resolveTargetDir({ env: {}, home: "/home/u" }),
-    "/home/u/.config/opencode/plugins/design-notifier",
+    join("/home/u", ".config", "opencode", "plugins", "design-notifier"),
   )
 })
 

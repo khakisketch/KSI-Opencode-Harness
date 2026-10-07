@@ -1,12 +1,14 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { execFileSync, spawnSync } from "node:child_process"
 import * as report from "../scripts/work-report.mjs"
 
 function fixture(t) {
-  const root = mkdtempSync("/tmp/opencode/ksi-doctor-test-")
+  const root = mkdtempSync(join(tmpdir(), "ksi-doctor-test-"))
   t.after(() => rmSync(root, { recursive: true, force: true }))
   const repo = join(root, "product")
   const configDir = join(root, "config")
@@ -57,11 +59,11 @@ test("mismatched repository binding is not usable even if all fields exist", t =
 
 test("doctor CLI validates flags and produces a read-only JSON report", t => {
   const f = fixture(t)
-  const command = new URL("../scripts/work-doctor.mjs", import.meta.url)
-  const invalid = spawnSync(process.execPath, [command.pathname, "--unknown"], { encoding: "utf8" })
+  const command = fileURLToPath(new URL("../scripts/work-doctor.mjs", import.meta.url))
+  const invalid = spawnSync(process.execPath, [command, "--unknown"], { encoding: "utf8" })
   assert.notEqual(invalid.status, 0)
   assert.match(invalid.stderr, /Usage:/)
-  const result = execFileSync(process.execPath, [command.pathname, "--repo", f.repo, "--config", f.configDir, "--frontend", "--json"], { encoding: "utf8" })
+  const result = execFileSync(process.execPath, [command, "--repo", f.repo, "--config", f.configDir, "--frontend", "--json"], { encoding: "utf8" })
   assert.equal(JSON.parse(result).status, "needs-setup")
 })
 

@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, rm, symlink, unlink, rename } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createConnector } from '../connector.mjs';
 
 async function fixture(t, overrides = {}) {
-  const base = await mkdtemp('/tmp/opencode/remote-connect-');
+  const base = await mkdtemp(path.join(os.tmpdir(), 'remote-connect-'));
   t.after(() => rm(base, { recursive: true, force: true }));
   const home = path.join(base, 'home');
   for (const p of ['project', 'second']) await mkdir(path.join(home, p), { recursive: true });
@@ -19,7 +20,13 @@ async function fixture(t, overrides = {}) {
     ...overrides,
   };
   const connector = await createConnector({ config, ...deps });
-  return { config, connector, home, effects, deps };
+  // Escape target for symlink-swap tests: an existing directory outside the
+  // fixture home but inside the owned fixture root. A host-specific path such
+  // as /tmp may be missing or drive-relative on other platforms.
+  const outside = config.stateDir;
+  await mkdir(outside, { recursive: true });
+  assert.ok(path.relative(home, outside).startsWith('..'));
+  return { config, connector, home, outside, effects, deps };
 }
 
 async function settled(connector, id) {
@@ -91,13 +98,13 @@ test('rejects command/container/image injection and request identity reuse for a
 });
 
 test('rechecks selected symlink after run inspection and before mount side effect', async t => {
-  let fixtureHome;
-  const { connector, home, effects } = await fixture(t, { inspectRuns: async () => {
+  let fixtureHome, fixtureOutside;
+  const { connector, home, effects, outside } = await fixture(t, { inspectRuns: async () => {
     await unlink(path.join(fixtureHome, 'project'));
-    await symlink('/tmp', path.join(fixtureHome, 'project'));
+    await symlink(fixtureOutside, path.join(fixtureHome, 'project'));
     return { runs: [] };
   } });
-  fixtureHome = home;
+  fixtureHome = home; fixtureOutside = outside;
   await rm(path.join(home, 'project'), { recursive: true });
   await symlink(path.join(home, 'second'), path.join(home, 'project'));
   const first = await connector.connectProject({ path: 'project', requestId: randomUUID() });
@@ -116,15 +123,15 @@ test('fresh request to a connected root does not restart or erase another operat
 });
 
 test('late canonical-root swap during recreation never becomes ready and rolls back', async t => {
-  let fixtureHome;
+  let fixtureHome, fixtureOutside;
   let calls = 0;
-  const { connector, home } = await fixture(t, { recreate: async () => {
+  const { connector, home, outside } = await fixture(t, { recreate: async () => {
     if (++calls === 1) {
       await rename(path.join(fixtureHome, 'project'), path.join(fixtureHome, 'moved'));
-      await symlink('/tmp', path.join(fixtureHome, 'project'));
+      await symlink(fixtureOutside, path.join(fixtureHome, 'project'));
     }
   } });
-  fixtureHome = home;
+  fixtureHome = home; fixtureOutside = outside;
   const operation = await connector.connectProject({ path: 'project', requestId: randomUUID() });
   const result = await settled(connector, operation.operationId);
   assert.equal(result.status, 'failed');

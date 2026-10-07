@@ -1,6 +1,7 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 import {
@@ -120,7 +121,7 @@ test("unlimited goals are informational rather than a failure warning", () => {
 
 test("missing or malformed state sources surface warnings instead of silently meaning none", () => {
   const before = process.env.KSI_WORK_REPORT_GOALS
-  process.env.KSI_WORK_REPORT_GOALS = "/tmp/opencode/ksi-definitely-absent-report-state.json"
+  process.env.KSI_WORK_REPORT_GOALS = join(tmpdir(), "ksi-definitely-absent-report-state.json")
   try {
     const report = buildReport({ includeUsage: false })
     assert.equal(report.warnings.some(w => /goal.*unavailable/i.test(w)), true)
@@ -131,7 +132,7 @@ test("missing or malformed state sources surface warnings instead of silently me
 })
 
 test("valid JSON of the wrong state shape is unavailable, not zero goals", t => {
-  const dir = mkdtempSync("/tmp/opencode/ksi-report-test-")
+  const dir = mkdtempSync(join(tmpdir(), "ksi-report-test-"))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
   const file = join(dir, "state.json")
   writeFileSync(file, '"not a goal container"')
