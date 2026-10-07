@@ -263,3 +263,30 @@ test("the result report includes the review-delivery bundle", () => {
   assert.match(delivery.text, /before\/after|before.after screenshots/i)
   assert.match(delivery.text, /design preview link/i)
 })
+
+// Catches losing the pending rendered-review stage when the artifact is valid.
+// This tests notification output, not agent compliance or visual quality.
+for (const verdict of ["valid", "entry_not_touched", "no_artifact"]) {
+  test(`${verdict} cannot substitute for renderer access or rendered review`, () => {
+    const delivery = buildDelivery({
+      run: { ...validRun, deliverableValid: verdict === "valid", deliverableValidation: verdict },
+      sessionID: SESSION,
+    })
+    assert.equal(delivery.metadata["ksi.design-notifier"].renderInputAccess, "unverified")
+    assert.equal(delivery.metadata["ksi.design-notifier"].renderReview, "unverified")
+    assert.match(delivery.text, /host.*browser.*not.*inner|host.*not.*inner.*browser/i)
+    assert.match(delivery.text, /captures.*read|read.*captures/i)
+    assert.match(delivery.text, /static.*(?:not|cannot).*rendered.*review/i)
+    assert.match(delivery.text, /missing.*render.*(?:unfinished|blocked)/i)
+  })
+}
+
+for (const status of ["failed", "canceled", "running"]) {
+  test(`${status} does not certify renderer access or rendered review`, () => {
+    const delivery = buildDelivery({ run: { ...validRun, status }, sessionID: SESSION })
+    assert.equal(delivery.classification, status === "running" ? "pending" : status)
+    assert.equal(delivery.metadata["ksi.design-notifier"].renderInputAccess, "unverified")
+    assert.equal(delivery.metadata["ksi.design-notifier"].renderReview, "unverified")
+    assert.equal(delivery.metadata["ksi.design-notifier"].designQuality, "not_assessed")
+  })
+}

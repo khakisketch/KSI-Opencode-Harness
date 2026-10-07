@@ -314,6 +314,84 @@ User feedback: docs are text-heavy; captures/screens of the real development flo
 
 ## Verification / closeout
 
+### Audit remediation (2026-10-07, user-approved bounded follow-on)
+
+- Contract: investigate recurrent request failures without changing models or disabling Code Mode;
+  repair confirmed common-harness gaps around rendered-review readiness and truthful state/closeout.
+  User approved the in-chat design with "진행을 부탁드립니다." Product UI/test rewrites remain in
+  their owning sessions. No installation, shared-service restart, push, release or deployment approval.
+- Baseline/target: existing checkout `main` at `d2020f4`, initially clean and in sync with origin.
+  No concurrent writer; four pre-existing worktrees retained. Checkpoint is uncommitted resumability
+  data, not intended behavior or proof of completion.
+- Audit evidence: actual ERROR at `~/.local/share/opencode/log/opencode.log:76215`
+  (2026-10-07T03:08:43Z, analyst `ses_eebabd37bffeDrTtXqouM4Ot3j`) rejects non-auto tool_choice.
+  Do not infer from that response that the provider alone is at fault: request construction remains
+  an open boundary. CLI reports 2.0.24; actual service API reports 2.0.22; causality unestablished.
+- Design evidence: the recent EVENTOUCH field-operation run's terminal explanation says browser
+  verification was not performed and 390/320 rendering remains unverified. Source changes/tests
+  exist at product `86b532d`; execution success and source diff do not close rendered review.
+  No product repair or generation is authorized in this harness follow-on.
+- Acceptance: confirmed defects get behavioral regression tests (RED → GREEN), full source/package
+  and independent test-runner checks; any unavailable provider/render capability remains explicitly
+  unverified/blocked, without claiming product or environmental stability. New readiness/reporting
+  advice is advisory, not an enforced quality gate or a second continuation controller.
+- Root-cause evidence: failed analyst `ses_eebabd37bffeDrTtXqouM4Ot3j` enumerated via native
+  paginated API: exactly32 assistant messages, final message empty, configured reviewer cap32.
+  Serving `/proc/494960/exe` (2.0.22, old/deleted binary) and installed CLI2.0.24 both contain
+  the native step-limit branch selecting `toolChoice:... ? "none" : undefined`. No explicit
+  tool-choice config existed before the repair. This supersedes the earlier provider-only
+  classification at line268; other generic invalid-parameter errors remain undiagnosed.
+- Local characterization: a credential-isolated native service and fake loopback auto-only
+  endpoint reproduced empty final output with `none`; a model-body `auto` overlay produced
+  `bounded-summary`; an unsolicited final read was rejected by the unchanged native
+  "Tools are disabled after the maximum agent steps" guard, exactly2 requests/cap2 throughout.
+  The original throwaway probe is `/tmp/opencode/ksi-request-probe/probe.mjs` (not delivered).
+  Retained characterization: `scripts/verify-tool-choice-isolated.mjs`, opt-in integration test.
+  Real provider calls/shared-session changes/credential inheritance:0; other child egress unmonitored.
+- Current-user compatibility: backed up existing config privately, added only
+  `providers.opencode-go.models.muse-spark-1.3-contributor.body.tool_choice="auto"`.
+  Native config reads show ollama/nvidia preserved; all7 effective roles' model/variant/mode/
+  steps/permissions equal their baseline. No model replacement, step-limit removal or restart.
+  This is a scoped workaround, not an upstream native-code fix or proof of real long-run stability.
+- Render capability: existing container has Node but no agent-browser/playwright-cli/browser
+  binary at the tested paths. The already completed preparation audit has an explicit receipt
+  for seven host captures at1280/390 and source files, and explicitly lacks320/loading/success
+  captures. Readable-host-capture review is a supported alternative, not a completed review of
+  the different field-operation revision/states. No new product screenshot/run/mutation.
+- Implementation: notifier preserves daemon classification/scheduling/IDs/pauses, adds explicit
+  unverified render-input/review fields plus inner-renderer/readable-capture prerequisite;
+  guide/global policy mirror this. Walkthrough captions now identify historical illustrative
+  screens rather than implying current execution/verification. Checkpoint contradictions removed.
+- TDD: three new notification contracts RED on missing fields → GREEN29/29; local integration
+  test1/1 and standalone native characterization `ok:true` before minor review refinements.
+  Reviewer `ses_eeb8f7be0ffe6xaOo2JlUjQM7i`: no Critical/Important, four interpretation cases
+  consistent. Minor missing status-case metadata coverage and omitted-choice ambiguity fixed;
+  bounded opt-in timeout retained (no observed flake). No native/visual-quality pass inferred.
+- Independent final verification: test-runner `ses_eeb8d1ef4ffecycg7N5rOeHp19` at baseline
+  `d2020f4` + the nine task files ran `TMPDIR=/tmp/opencode KSI_TOOL_CHOICE_INTEGRATION=1
+  npm run check`:159 total/158 pass/0 fail/1 optional real-Compose skip. `npm run check:package`
+  passed including the walkthrough/assets package content; native isolated verifier passed
+  (CLI2.0.24, native roles, no provider requests/retired skills, all22 Plan design permission
+  decisions). `git diff --check` passed. All7 effective role baselines identical; private
+  in-memory config comparison and policy comparison confirmed exactly the intended additions,
+  with unrelated bytes preserved. Logs: `test-runner-{check,check-package,verify-native-v2,
+  role-baseline}.log` under the private evidence directory below. These checks cover the current
+  walkthrough/package revision, not visual acceptance of its historical product examples.
+- Additional serving-version evidence: the actual2.0.22 executable ran the same isolated
+  characterization with `ok:true`; baseline none rejected, scoped auto summary returned,
+  terminal read rejected, cap2/two requests unchanged. Host/container SHA256 for the existing
+  registration390px capture matched (`211d5fbb...50e29`); prior reviewer explicitly read7
+  supplied captures. This does not validate the separate recent field-operation rendered states.
+- Delivery boundary: existing pinned notifier at `c43fbea` passes its manifest check,7/7 files
+  unchanged. Its advice differs from this new source. **Do not refresh it implicitly**: current
+  remediation excludes deployment; earlier "refresh after commit" checkpoint intent is superseded
+  by this boundary. Global render-path policy and narrowly scoped model-body workaround are applied;
+  notifier advice is source-ready only, not installed or confirmed picked up.
+- Status: approved source/config remediation technically verified locally; long-run real-provider
+  summary behavior and product design-quality acceptance remain unclaimed, not replaced by test
+  counts. No push, npm release, product run/write or shared-service restart. Private backups and non-secret role baseline under
+  `/tmp/opencode/ksi-audit-remediation-20261007` (directory700, backup files600).
+
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
 - GREEN: messages + notifier suites 37/37 pass; full `npm run check` 140 total / 139 pass / 0 fail / 1 optional Compose skip. Logs `green.log`, `check.log` in the same directory. Nine config/native-role hashes unchanged.
 - Reviewer `ses_ef2751567ffeYft7eI70xSrP29`: no code/policy conflicts found; the two flagged pending items were the not-yet-committed plan and pinned-copy adoption, not implementation defects. Seven scenario groups consumed the new guidance: small visual repair → design compact refinement; nonvisual shared-file bug → Build with sequential ownership; entry-invalid verified UI → design review; intermediate/report-only → no fabricated UI/refinement authority; stalled/rejected → quality unmet; authorized same-brand redesign → structural freedom with invariants; missing render/Plan/pause → respect blockers/native boundaries. This is constrained interpretation, not observed live agent execution or visual-quality validation.

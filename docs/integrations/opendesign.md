@@ -245,6 +245,13 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    commissioning**: the execution environment must be able to read the references,
    assets and actual source; if an input is unreadable, do not commission — block
    and report the gap instead of running blind.
+   Verify the **render-review path** too: host browser tools are not automatically
+   available inside the design execution environment. Use either a verified inner
+   renderer or actual product captures handed to the design reviewer, with a
+   confirmed file-read receipt and source revision/viewports/states. A source-only
+   audit does not satisfy rendered review. If neither path is available, block the
+   dependent visual stage and continue independent nonvisual work; do not install
+   browsers, restart containers, or substitute Build-side visual fixes implicitly.
 3. **Design execution.** Select the agent and task-appropriate skill from the live
    `list_agents`/`list_skills`; record the selection per stage. The design execution
    analyzes the product problem and edits actual UI source where access is verified.
@@ -291,6 +298,9 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
 This is an execution contract, not runtime enforcement. Notifier/unit/package
 checks prove their own behavior, not aesthetic quality or agent obedience. Real-use
 acceptance requires a product session's review/refinement and changed-flow evidence.
+The notification's `renderInputAccess` and `renderReview` stay `unverified`: they
+are reminders to inspect task evidence, not a detector that certifies a rendered
+review from a daemon status or the inner agent's prose.
 
 **Resident product context (per project).** Keep one `product-context.md` at the
 OD project root: brand tokens from the actual token files, component inventory,

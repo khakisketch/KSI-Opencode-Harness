@@ -1,6 +1,6 @@
 # Product State - KSI OpenCode Harness
 
-Updated: 2026-10-06
+Updated: 2026-10-07
 
 ## Goal
 
@@ -25,17 +25,17 @@ preserved for audit, not active.
 
 ## Current slice
 
-- Name: visual ownership simplification (approved 2026-10-06; implemented and verified locally at `24702e1`; real-use quality validation pending).
+- Name: bounded audit remediation (approved 2026-10-07 after read-only audit; source/config implementation independently verified locally, human real-use acceptance pending). Prior visual-ownership slice is implemented; real-use quality validation remains separate.
 - Acceptance (user-visible): the design workspace owns all visual frontend analysis, actual UI source/styles, rendered review and refinement, including small visual fixes. OpenCode coordinates contracts and checks evidence/product functionality/Git; no substitute visual repairs. Behavior/brand preservation does not freeze a rejected layout. Any verified UI output needs review independent of canonical-entry verdict; a stalled round is quality unmet, not completion. Existing native modes, human gates and no-fixed-round-cap rule stay intact.
 - Plan ledger: docs/superpowers/plans/2026-10-06-visual-ownership.md
-- Scope: harness policy/notifier advice + pinned copy only. No product edits, design runs, other-session mutations, new orchestrator, model change, push or npm publication. EVENTOUCH design refinement belongs to its product session.
+- Scope: common-harness advice/verification/state and a narrow confirmed request-compatibility repair. No product edits/design runs/other-session continuation, new orchestrator, model change, dependency installation, shared-service restart, push or npm publication. EVENTOUCH design refinement/test reconciliation remains in its product session.
 - Evidence boundary: source registration/direct UI writing are verified capabilities, but the user rejected the bold agency-home result. Existing prose/unit/package checks do not establish design quality. The earlier coordinating-agent self-evaluation and small-visual-edit exceptions are superseded by this approved ownership contract; current technical checks are recorded in the active ledger.
-- Technical evidence: reviewer `ses_ef2751567ffeYft7eI70xSrP29` found no implementation conflicts across seven scenario groups; test-runner `ses_ef272f946ffeAQrNnE4Bc7WCm3` independently verified check140/pass139/fail0/skip1, package/targeted37/37/diff, nine config/role hashes, six intended global-policy bullet replacements, source/pinned payload7/7 and installed advice55assertions. Pinned source commit `24702e1`; no live pickup or product design-quality claim.
+- Current technical evidence: reviewer `ses_eeb8f7be0ffe6xaOo2JlUjQM7i` found no blocking findings; test-runner `ses_eeb8d1ef4ffecycg7N5rOeHp19` verified159 total/158 pass/0 fail/1 optional Compose skip (including opt-in native tool-choice characterization), package and native role/22 permission checks. All7 effective role baselines and unrelated global config/policy bytes preserved. Actual serving2.0.22 and installed2.0.24 both pass isolated compatibility/native-guard checks. Global workaround/policy applied; new notifier advice source-only, existing installed `c43fbea` unchanged. No live long-run or product design-quality claim. Earlier slice checks remain historical in the ledger.
 - Follow-on coverage (2026-10-06): direction options + audit-first, user-state reporting, project-binding review (`blocked` continuation + explicit-scenario alternatives + EVENTOUCH id drift), resident context/review bundle/accessibility-motion review inputs, goal-usage signals + first-cycle evidence protocol + recurring-defect patterns, the user-facing naming rule (say "OpenDesign (로컬 실행)", not "Local Codex"), and the writeback-degradation + external-export-intake rules from the EVENTOUCH audit; commits `1e64c2a`→`f828a03`→`c43fbea`→`8e529c7`→`5d7df28`→current, each with local checks and independent verification where code changed.
 
 ## Human acceptance
 
-Not accepted: user explicitly rejected EVENTOUCH's bold agency-home result on 2026-10-06. Actual source writing succeeded; rendered design review/refinement quality remains unproven. Harness simplification is approved for implementation, not product acceptance. Technical checks, local policy adoption and external delivery remain separate.
+Historical: user explicitly rejected EVENTOUCH's bold agency-home result on 2026-10-06; this is not a claim that every later product revision remains that rejected design. The product session subsequently replaced and iterated the UI. The recent field-operation result at `86b532d` explicitly lacked real-browser 390/320 verification; a later preparation audit read seven supplied captures but does not close all field-operation review requirements. Current product acceptance belongs to that session and remains unclaimed here. Harness simplification/remediation is approved for implementation, not product acceptance. Technical checks, local policy adoption and external delivery remain separate.
 
 ## Product binding
 
@@ -52,6 +52,8 @@ Not accepted: user explicitly rejected EVENTOUCH's bold agency-home result on 20
 - m06 autonomous-local-execution — remaining: user real-development acceptance; source/public beta.3 delivery verified, not a long-running behavior guarantee
 
 ## Backlog
+
+- Audit remediation (2026-10-07, engineering verified locally; real-use acceptance pending): native final-summary failure traced to finite agent steps → `tool_choice:none` against an auto-only endpoint (failed reviewer had exactly32 assistant steps; configured cap32). Local native characterization on2.0.22/2.0.24 reproduces rejection and tests a model-scoped body auto overlay with native final-tool rejection intact; selected model/variants/modes/steps/permissions unchanged. Current-user scoped compatibility setting and render-review path policy applied without shared restart/install/product run. Notifier source keeps render-input/review stages explicitly unverified; independent159/158/0/1, package/native/preservation checks pass. Notifier delivery requires separate authorization; no installed/pickup claim. Generic `invalid parameters`/reasoning/MCP errors and product visual quality are not fixed by this claim. Ledger: docs/superpowers/plans/2026-10-06-visual-ownership.md.
 
 - Usability alignment adoption: chain-follow fix `8aa350e` retained; pinned notifier updated to `24702e1` for design-owned output-contract advice and `designQuality:not_assessed`. Independent check140/pass139/fail0/skip1, targeted37/37, installed payload7/7 and verify pass. Runtime reload/real-use quality must not be inferred from static hashes or emitted-contract tests. No automatic publication/design run; optional binding-placeholder follow-ups remain separate.
 - Source-registration flow (user-directed 2026-10-06 "전역 설정 하네스 개선", complete): the writable design capability is a standing, agent-executed flow — connect the exact project path (one container recreation for a new path, automatic rollback, refuses while runs are non-terminal), then `import` it as a folder-backed project; scope = every project under home except the home root/credentials; one writer. A transient Desktop parent bind was tested, found redundant (the daemon requires exact per-project connections) and against the deployment boundary, and reverted. `EVENTOUCH source` re-registered (`aabf3621`; later re-created by the product session as `9db026a4-670d-4a16-bc9f-f79bf0942142` — verify the current project id from `list_projects` instead of trusting a stored id). Guide + global policy updated. Ledger docs/superpowers/plans/2026-10-06-source-registration-flow.md.
