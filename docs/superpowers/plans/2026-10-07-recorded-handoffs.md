@@ -2,8 +2,8 @@
 
 ## Authority and status
 
-Status: approved guidance implemented and independently verified locally; scoped
-local commit pending. Human workflow acceptance and external delivery are separate.
+Status: approved guidance implemented, independently verified and committed locally.
+Human workflow acceptance remains pending; no external delivery authorized.
 
 User approved the four-part in-chat change with "그렇게 개선해줘봐": record
 substantive plans with explicit approval state, hand off relevant documents,
@@ -42,7 +42,7 @@ Playwright Agents adoption proposal.
   proposal without installing or exercising agents again.
 - [x] Independent interpretation review and Test Runner source/package, local
   links, global-policy reconstruction and protected-file checks.
-- [ ] Commit verified task-owned files locally; reconcile idle checkpoint/product
+- [x] Commit verified task-owned files locally; reconcile checkpoint/product
   state/ledger, keeping human acceptance and delivery separate.
 
 ## Verification approach
@@ -89,7 +89,7 @@ except the two approved bullets. No model/real-product/browser trial needed.
   Important finding. Compared retained pilot receipt SHAs/results with the summary.
 - Minor trigger wording mismatch in project template verified and aligned with
   consequential scope/design decisions. Stale pending checkpoint refreshed; private
-  preservation backup is being consumed by Test Runner, not copied into Git.
+  preservation backup consumed by Test Runner, not copied into Git.
 - Test Runner `ses_ee98d4085ffeVHucmopHi0o09z` read the approved ledger, actual
   five-file diff/two new records/checkpoint, private preservation inputs and retained
   historical pilot receipts. Checked base `f6df31a` plus seven pending task-owned
@@ -110,3 +110,8 @@ except the two approved bullets. No model/real-product/browser trial needed.
 - Guidance compliance, real-development effectiveness and human workflow acceptance
   remain unproven. Only current-user global guidance was adopted; source checkout
   changes are not npm/GitHub delivery and do not update other users' installations.
+- Source/guidance and records committed locally as `02b5f96` on `main`; seven
+  task-owned files only, index/whitespace diff inspected, checkpoint excluded.
+  No merge/workspace cleanup needed; four unrelated worktrees retained. Final
+  receipt-only closeout is identified by Git; final committed-state checks use the
+  same Test Runner and private `committed-*` receipts rather than a self-referential SHA.
