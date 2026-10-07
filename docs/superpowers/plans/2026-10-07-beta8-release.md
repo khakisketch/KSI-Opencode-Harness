@@ -23,11 +23,13 @@
 
 - [x] Confirm source target, unused version and explicit next/latest authority.
 - [x] Update manifest/package checks and README/INSTALL pins; release prepared as `c5ee02a`.
-- [ ] Independent full/package/preflight, isolated native metadata and inventory verification.
-- [ ] Push authorized main; verify remote/CI separately from publication.
-- [ ] Publish exact verified tarball, public preview/apply/repeat and byte/integrity verification.
-- [ ] Promote latest, verify both tags, tag release commit and publish GitHub release.
-- [ ] Record actual delivery evidence; reconcile product state/checkpoint and report.
+- [x] Independent full/package/preflight, isolated native metadata and inventory verification.
+- [x] Push authorized main; verify remote/CI separately from publication.
+- [x] Publish exact verified tarball, public preview/apply/repeat and byte/integrity verification.
+- [x] Tag release commit and publish GitHub release after registry verification.
+- [ ] Promote latest and verify default beta.8 consumer — BLOCKED: standard auth never
+  completed successfully; latest remains beta.7. No further automatic approval retries.
+- [x] Record actual achieved/blocked delivery evidence; reconcile product state and report.
 
 ## Evidence boundary
 
@@ -143,3 +145,105 @@ must remain standard user approvals. Publication failures are partial delivery, 
 - Source scripts/tests excluded from published installer. Direct verifier execution without
   npm_execpath now fails descriptively before fixture creation; documented npmrun entry
   supplies it. Do not install tools/use shell:true or weaken platform gates to recover.
+
+## Final source gate and publication state
+
+- Final verified source/release target `178b2e9f6c91250bab43f2d3a23da1a50c76ae9c`
+  pushed and clean. Same independent Test Runner: clean release:check pass,7pins,
+  exact suite171/170/0/1, package pass, all23packaged source bytes equal retainedTGZ.
+  Receipts `publish-{preflight,check}.log`. No tarball regeneration.
+- Actual CI37581287013 completed success: Ubuntu/macOS/Windows × Node20/22,
+  all6jobs including source and packed-package verification success. Earlier failed CI
+  receipts preserved above; final real Windows security/package evidence is now available.
+- The original noninteractive publish returned EOTP and beta.8 registry404. A subsequent
+  standard interactive publish of the exact original tarball is awaiting user approval;
+  do not replay it while pending. Separate login success does not mean publish success.
+  No publication/channel/tag/consumer-success claim before registry receipts.
+
+## Public delivery receipts
+
+- Standard interactive publish succeeded for immutable `0.5.0-beta.8` after user browser
+  approval. Immediate registry404 was processing latency, not a reason to republish.
+  Read-only bounded readiness check observed version on attempt3 (~60seconds) at06:30:08Z.
+- Test Runner same session independently executed reviewed public-consumer verification:
+  18/18checks pass, registry/SRI and downloadedtarball match original, all23installedfiles
+  byte-identical, Linux standalone preview no-write → own3-roleapply → repeatchanges[].
+  Minimal credential-free disposable HOME/cache/prefix; target contains only agents,
+  no operating policy/model/runtime config. Only owned disposable consumer removed.
+  Receipts `readiness.log`, `readiness-metadata.json`, `public-consumer.log`;
+  no Windows .cmd or productquality claim.
+- At public check, next=beta.8/latest=beta.7. Authorized latest promotion is currently
+  waiting for a separate standard browser approval; do not replay while pending.
+- Tag `v0.5.0-beta.8` created/pushed at source `178b2e9`; GitHub prerelease created:
+  https://github.com/khakisketch/KSI-Opencode-Harness/releases/tag/v0.5.0-beta.8.
+  Final channel/defaultconsumer verification and evidence-only closeout push remain.
+- First latest-promotion approval failed404 at npm's authentication-completion endpoint,
+  not the package endpoint. Fresh public queries still return beta.8/version and
+  next=beta.8/latest=beta.7. No package disappearance, unpublish or republish inferred.
+  Original command is terminal; a cause-specific new standard dist-tag approval attempt
+  was launched (not a replay of an in-flight command). Private receipts
+  `promote-latest.log` and `promote-latest-retry.log`; final channel state still pending.
+- Second standard latest attempt failed identically; stopped issuing identical retries.
+  Source diagnosis on installed npm11.17 confirms `dist-tag.add` passes PUT/body opts
+  into `otplease`, then `npm-profile.webAuthOpener` forwards them unchanged to the done
+  fetch. Authentication completion should use GET; inherited PUT is a request-method
+  correctness defect. Source inspection alone does not prove it caused the terminal404;
+  later HTTP-state evidence below corrects the causal attribution. Public version exists.
+- User explicitly approved a single-command in-memory compatibility shim, no installation/
+  config/2FA change. It guards the existing HTTPS npm-registry done endpoint, removes
+  only method/body from cloned poll opts and forces GET. Original browser opener and
+  standard OTP return/retry/write remain native; original dist-tag PUT/body unchanged.
+- Actual installed npm-profile loopback HTTP reproduction RED: PUT+versionbody observed
+  instead of GET/no-body. Independent Test Runner same session GREEN2/2, original write
+  object unchanged and endpoint guard enforced; installed npm4/4source hashes unchanged,
+  retainedtgz unchanged. Independent reviewer same session: no blocking scoped security
+  finding. Full wrapper composition was inspected, not a mocked end-to-end auth claim.
+- Test Runner disclosed a supplementary mock attempt that did not intercept registry-fetch
+  and issued one unauthenticated read-only GET to the standard registry done endpoint404.
+  No token, challenge, registry write or credential/config change; stray owned scratch
+  removed, not repeated. Preserve this limitation rather than claim a fully isolated
+  supplementary test. Actual live standard approval is still required.
+- At that stage, the authorized corrected latest command ran with a private preload in one
+  Node process; no NODE_OPTIONS/global hook/vendor writes. Its completion and registry
+  channel state were pending (subsequent terminal results below). Private artifacts auth-get-{preload,test}.cjs, red/green logs,
+  npm-unchanged-hashes.json and promote-latest-corrected.log remain outside the package.
+- Corrected command terminated with GET404 too. Targeted debug-log analysis emitted ONLY
+  HTTP method/status/path/count (no queries, auth identifiers, headers/bodies/tokens):
+  prior standard attempt PUT20295times→PUT404; corrected attempt GET20295times→GET404.
+  Thus both were accepted as pending polls and ended without a successful approval200.
+  Do not call method correction a proven complete fix for404 or blame package absence.
+- User-facing causal explanation corrected. New single-process corrected request started
+  only after prior was terminal; fresh link immediately supplied with instructions to
+  finish browser approval, not merely open the link. Do not issue another request while
+  this one is pending. Installednpm/config/2FA still unchanged; latest verification pending.
+
+## Final partial-delivery closeout
+
+- Fresh corrected approval also terminated GET404. All launched promotion commands are
+  terminal; stop creating approval links. No successful tag write and no downgrade/
+  unpublish/republish to disguise the blocked latest stage.
+- Independent final Test Runner `ses_eeb122a3fffeCA2YiTJzrk4BTw`: registry version/bin/
+  originalSRI confirmed, next=beta.8/latest=beta.7, exact publicconsumer18/18pass with
+  all23installedbytes/preview-no-write/own3rolesapply/idempotence/no-policy writes.
+  Full171total/170pass/0fail/1originalCompose skip, package/diff pass;11protected hashes
+  unchanged and manifestversiononly, installednpm4/4sources unchanged, tgz unchanged.
+  Logs `closeout-{registry.json,public.log,check.log,package.log}` in private evidence root.
+- Read-only remote confirmation: source/tag178b2e9, publicGitHubprerelease exists,
+  CI37581287013 all6jobs pass. Windows CI checks .cmd shim presence and Node-driven
+  binJS behavior, not actual native .cmd execution; do not overstate the runner's wording.
+- Achieved: source push, immutable npm beta.8 to next, exact public install/bytes, tag and
+  GitHub release. NOT achieved: latest promotion/default-beta.8 install. Plain latest
+  still resolves beta.7; use `@next` or `@0.5.0-beta.8` for the delivered version.
+- Blocker owner: a working standard npm account/browser second-factor completion is
+  required for the authorized tag change. Manual completion in a working authenticated
+  user terminal or npm-side resolution can unblock it; never request credentials/OTP in
+  chat, disable2FA, install another CLI, infer a successful approval or keep retrying.
+- Current source/records technically verified, but authorized external delivery remains
+  partial. No live notifier/global role installation or shared restart. Human workflow/
+  real-development/design quality acceptance remains separate. Receipt-only closeout
+  commit/push and checkpoint reconciliation do not alter the published immutable payload.
+- Final receipt-only records independently checked by the same Test Runner:
+  `final-records-{check,package}.log`,171/170/0/1, package/diff pass; actual registry
+  channels/tag/release match partial-status wording, published tag range1–8 verified.
+  No new auth requests or defaultbeta8claim. Optional tag-annotation uniformity is
+  nonblocking; beta.8's lightweight tag names the verified revision and was not rewritten.
