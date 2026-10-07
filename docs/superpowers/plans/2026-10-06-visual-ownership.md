@@ -435,9 +435,15 @@ User feedback: docs are text-heavy; captures/screens of the real development flo
   role-baseline.json` and installed `lib/messages.js` equals c43fbea but differs from new source;
   independent exact-path follow-up requested. First independent role/config preservation run
   remains valid for the unchanged global settings, not a new finding from the helper's search.
-- Technical repair is verified on the inspected source tree; final local commit/revision
-  confirmation follows. Human real-use acceptance, transient plugin pickup and rendered product
-  quality remain unclaimed. The failed run and contained side effect are retained in this record.
+- Final code revision `f015b23` (after `ab01b51`) independently rechecked by test-runner
+  `ses_eeb824753ffeGrTGHI2YM2d9iY`: `TMPDIR=/tmp/opencode KSI_TOOL_CHOICE_INTEGRATION=1
+  npm run check`166/165/0/1, package/diff pass, clean main ahead2. Exact-path baseline7/7 roles
+  match; installed `lib/messages.js` equals c43fbea and differs from new source. This corrects
+  the helper's prior wrong-location search and README comparison. Logs: `closeout-{check,
+  package}.log` in the existing private evidence directory. Following commit records these
+  receipts only; no code/runtime change or push. Technical repair locally complete; slice
+  end-to-end human acceptance remains pending. Transient plugin pickup, real-provider long-run
+  reliability and rendered product quality remain unclaimed. Failed run/side effect retained.
 
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
 - GREEN: messages + notifier suites 37/37 pass; full `npm run check` 140 total / 139 pass / 0 fail / 1 optional Compose skip. Logs `green.log`, `check.log` in the same directory. Nine config/native-role hashes unchanged.
