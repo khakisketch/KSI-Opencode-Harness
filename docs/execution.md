@@ -51,6 +51,63 @@ Recoverable failures and intermediate task completion are not stop conditions. C
 
 ## Delegation and continuity
 
+### Use Developer effectively, without mandatory delegation
+
+Keep the current structure: Build may implement nonvisual work directly or assign it to
+Developer. Actively consider Developer for a coherent implementation/repair with identifiable
+scope, stable contracts and observable completion criteria; it is not only overflow help
+when Build is busy. Build can work directly when judgment is tightly coupled to its current
+context, a clear integration correction is needed, or handoff overhead outweighs the benefit.
+Choose by quality, rework and end-to-end efficiency, not task size or delegation count.
+Do not split work just to delegate, impose a usage quota, or investigate/implement everything
+first and then give Developer a ceremonial task. Build still does enough investigation to
+identify the right outcome, constraints and risks; Developer owns implementation investigation
+and reversible technical choices within that contract.
+
+#### Compact assignment and return
+
+Build selects the necessary context; do not require a user-authored task form, a full conversation
+copy or a second product plan. An ordinary assignment can contain these items in a short message:
+
+| Assignment from Build | Return from Developer |
+| --- | --- |
+| Desired outcome, current problem and observable success/failure criteria | Changed files and implementation summary |
+| Actual working directory/base revision, relevant paths and approved decisions | Actual self-test commands/results and the code state tested |
+| Behavior/data/permissions/API invariants, owned files and excluded work | Incomplete/unverified work, blockers or contract discrepancies |
+| Trusted checks and any access/tool limits relevant to the task | Significant assumptions or follow-up needed for integration |
+
+For example: repair an API retry path, preserve response/data semantics and the existing UI,
+own the named nonvisual files, add a regression for the observed failure, and report the actual
+checks. Give Developer room to find the implementation; do not prescribe every line. A contract
+discrepancy or material new scope/architecture/data decision returns to Build and, when needed,
+the user. An assignment grants no additional permissions or install/external-delivery authority.
+
+#### Integrate evidence and recover partial work
+
+Build inspects the actual diff and current workspace state against the contract, reconciles
+interfaces and verifies the integrated flow. A helper's “done”, test subset or report is not
+completion evidence by itself. Developer and Build may run author checks; milestone/closeout
+checks are independently executed by Test Runner on the integrated revision, with commands,
+results and relevant pending changes recorded in the existing ledger. Later affected edits
+require rechecking. Reviewer is independent read-only code/behavior review, not a substitute
+for Test Runner or design-owned rendered review.
+
+If a result is wrong or incomplete, return a concrete defect (location/state, expected versus
+observed behavior and missing evidence), not a vague demand to try harder. For a worker stop,
+preserve partial work, inspect what actually changed and distinguish an implementation defect
+from missing context, access/permission, provider or step-limit failure. Resume with corrected
+context only when that addresses the cause; do not blindly respawn or replay the task. Repeated
+mismatch calls for a narrower contract or another suitable execution path, including direct
+Build work within its nonvisual remit, rather than endless handoffs. Do not silently change
+models/budgets, install tools or bypass permissions to recover. Report a genuine unresolved
+blocker and continue independent authorized work where safe.
+
+Shared-file work is sequential, one writer at a time; parallel work follows the ownership and
+workspace rules below. All visual source/style changes, including tiny integration-related
+spacing fixes, remain design-owned. An unavailable design workspace is not permission for a
+Developer or Build visual fallback. These are operating guidelines, not runtime enforcement
+or proof of improved real-development quality.
+
 Parallel work is conditional, not the default. Superpowers' parallel-agent guidance fits independent discovery, review, or bounded implementation with stable interfaces. Read-only helpers can run together; concurrent writers need disjoint ownership and separate worktrees. No additional KSI parallel coordinator role is needed. The Primary that accepts delegated work reconciles results and owns the final claim.
 
 OpenCode V2 keeps its own Build, Plan, and Explore prompts. Three installed `agents/*.md` files define only the additional roles. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. The default Developer cannot call Test Runner. The explicit `--developer-test-runner` variant changes that permission and prompt, but no runtime plugin exists to limit helper count or pause writes while it runs. Treat helper output as author feedback, not independent acceptance.
