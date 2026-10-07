@@ -51,6 +51,76 @@ Recoverable failures and intermediate task completion are not stop conditions. C
 
 ## Delegation and continuity
 
+### Record plans and bind handoffs to documents
+
+Shared files are reusable context, not shared conversation memory. A fresh child
+does not automatically inherit the parent's chat, and a link does not prove its
+target was loaded. Use existing project records, not a new memory service or
+mandatory task form.
+
+#### Record at a meaningful boundary
+
+When the user requests a substantive multi-step plan, or a consequential scope/design
+decision must survive this session, persist it before delegation, pause or closeout.
+Reuse the active ledger under `docs/superpowers/plans/`; create a focused record
+only for a separate workstream. Applicable skills still determine whether a written
+spec or implementation plan is needed. Ordinary questions/trivial changes do not
+require a new spec, ledger or approval ceremony. Respect native Plan write limits;
+if the intended record cannot be written, report that limit and the actual record
+location, not a false claim that the repository was updated.
+
+Label a newly proposed plan **proposed** until approval covers its scope. Record
+the user's decision, what it authorizes and excludes, and actual progress separately.
+Saving a file, approving a probe, or approving one part does not approve the rest.
+Once authorized, continue that work without another routine approval gate. Distinguish
+implemented, independently verified, human-accepted and externally delivered outcomes;
+none is implied by a checkbox or an agent's "done".
+
+| Record | Owns | Do not use it for |
+| --- | --- | --- |
+| `AGENTS.md` / adopted operating guidance | Stable routing and boundaries | Changing task progress or new task approval |
+| Existing spec, when required | Requirements and design | A duplicate execution log |
+| One active task ledger | Approval/scope, decisions, progress, inputs and verification evidence; links to any spec | Silent execution authority for a proposal |
+| `product-state.md` | Product goal/slice/acceptance and backlog summary, linked to the ledger | Copying the whole plan/history |
+| `.opencode/working-state.md` | Short worktree resume state and next actions, linked to the ledger | Product documentation or a committed approval record |
+
+#### Hand off the relevant basis, not the entire history
+
+Primary selects relevant document paths/sections and carries approved scope,
+actual workspace/base, invariants, ownership/exclusions and observable checks in the
+compact assignment. Reuse context already read and unchanged; do not make every
+worker reread the whole repository. Helpers read relevant inputs and briefly
+identify their actual basis in the return, along with changed files/checks/tested
+state, conflicts, missing access and unverified work. Do not invent an unread
+requirement or resolve a material discrepancy by copying current implementation.
+
+For example: "Read the approved-scope section of the task ledger and the API
+contract in the existing spec; own this retry path, preserve response semantics,
+and report files, checks and conflicting requirements." No user-written form,
+extra team or delegation quota is required.
+
+Primary reconciles actual diffs/results and updates common ledger/product-state/
+checkpoint at stable boundaries. Helpers return findings rather than concurrently
+rewriting shared records. Final integrated checks remain independently run
+by Test Runner; a helper's report does not replace evidence or grant approval.
+
+#### Preserve conclusions beyond temporary evidence
+
+Before reporting a non-trivial trial complete, keep a sanitized durable summary in
+its relevant task record: purpose/authority, source revision or SHA, actual target
+and commands, observed results, important failures/corrections, helper/check identity,
+limitations and next decision. For a throwaway spike, that record may be a concise
+findings section rather than a new design spec. Temporary paths can locate optional
+raw evidence, but understanding the outcome must not depend on `/tmp` surviving.
+Do not copy credential/config backups or sensitive/customer logs into Git. If
+evidence was not inspected or is unavailable, label it accordingly; do not recreate
+proof or infer cost savings from test durations. Keep detailed history in the
+ledger, with only summary/links in product-state/checkpoint.
+
+These are adopted operating instructions, not automatic injection/synchronization,
+runtime enforcement, guaranteed agent compliance or an OS sandbox. The npm installer
+still installs only three role files; it does not create records or merge policy.
+
 ### Use Developer effectively, without mandatory delegation
 
 Keep the current structure: Build may implement nonvisual work directly or assign it to
