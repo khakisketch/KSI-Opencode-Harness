@@ -8,6 +8,12 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildIsolatedEnv, parseServeStartup } from "./verify-native-v2-isolated.mjs";
 
+export function selectFinalAssistant(messages, requestCount) {
+  if (requestCount < 2 || !Array.isArray(messages) || messages.length < 2) return undefined;
+  const message = messages[1];
+  return message?.time?.completed ? message : undefined;
+}
+
 async function runCase({ override, terminalTool = false }) {
   const directory = await mkdtemp(join(tmpdir(), "ksi-tool-choice-"));
   const requests = [];
@@ -80,8 +86,9 @@ async function runCase({ override, terminalTool = false }) {
     let final;
     for (let attempt = 0; attempt < 60; attempt++) {
       await new Promise(resolve => setTimeout(resolve, 200));
-      const message = (await api(`/api/session/${session}/message?type=assistant&order=desc&limit=1`)).data[0];
-      if (requests.length >= 2 && message?.time?.completed) {
+      const messages = (await api(`/api/session/${session}/message?type=assistant&order=asc&limit=3`)).data;
+      const message = selectFinalAssistant(messages, requests.length);
+      if (message) {
         const content = message.content ?? [];
         final = {
           text: content.filter(item => item.type === "text").map(item => item.text).join(""),

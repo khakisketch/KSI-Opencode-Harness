@@ -167,8 +167,23 @@ function gitCommit(cwd) {
 
 async function main(argv) {
   const args = argv.filter((arg) => arg !== "--");
+  const flags = new Set(["--help", "-h", "--verify", "--uninstall", "--target", "--source"]);
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    if (!flags.has(arg)) throw new Error(`unknown option: ${arg}`);
+    if (arg === "--target" || arg === "--source") {
+      if (!args[index + 1] || args[index + 1].startsWith("-")) throw new Error(`${arg} requires a path`);
+      index++;
+    }
+  }
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log("Usage: node scripts/install-design-notifier.mjs [--verify | --uninstall] [--target PATH] [--source PATH]");
+    console.log("No arguments installs/updates the pinned copy. --help and --verify do not write files.");
+    return;
+  }
   const uninstall = args.includes("--uninstall");
   const verify = args.includes("--verify");
+  if (uninstall && verify) throw new Error("--verify and --uninstall are mutually exclusive");
   const targetIndex = args.indexOf("--target");
   const sourceIndex = args.indexOf("--source");
   if (targetIndex !== -1 && !args[targetIndex + 1]) throw new Error("--target requires a path");

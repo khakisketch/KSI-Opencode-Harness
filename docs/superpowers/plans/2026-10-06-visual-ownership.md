@@ -392,6 +392,53 @@ User feedback: docs are text-heavy; captures/screens of the real development flo
   counts. No push, npm release, product run/write or shared-service restart. Private backups and non-secret role baseline under
   `/tmp/opencode/ksi-audit-remediation-20261007` (directory700, backup files600).
 
+#### Committed rerun failure and contained helper side effect (2026-10-07)
+
+- Source committed locally as `ab01b51` (9 files); no push. The same independent test-runner's
+  committed rerun **failed**:159 total/157 pass/1 fail/1 skip, isolated summary expectation.
+  Package/diff passed. This supersedes any implication that the first green run closed the task.
+- Root cause of the intermittent characterization failure, not a change in provider behavior:
+  second HTTP request can arrive before the second assistant is visible in the native message
+  API. Old `requests.length>=2 && latest.completed` accepted the first completed assistant.
+  A diagnostic repeat captured2 requests but only1 assistant, with the first tool's permission
+  error misreported as a terminal-step failure (`probe-race-evidence.json` in evidence directory).
+  Pure result selection now requires the second completed assistant in ascending order, not a
+  longer sleep or a retry-until-green wrapper. Deterministic regression RED→GREEN;12 repeated
+  native characterization runs then passed all three cases (`probe-race-fixed-repeats.json`).
+- Separate tool side effect: the verification helper invoked
+  `node scripts/install-design-notifier.mjs --help` while discovering usage. This was not an
+  assigned command/approved install. Old CLI ignored unknown flags, so it installed `ab01b51`
+  at03:46:27Z. The helper's "no install" report was incorrect; native message/tool history and
+  installed manifest establish the actual action. No evidence shows a deliberate install or
+  product write, but transient live plugin pickup is unknown and not claimed absent.
+- Containment: Primary preserved that accidental payload privately, extracted only the proven
+  prior `c43fbea` tracked plugin files, and restored that7-file payload at03:49:03Z. Manifest
+  now records rollback time/source path; it is not byte-identical historical install metadata.
+  Read-only installed verifier passes. No shared-service restart or design run performed.
+  New notifier advice remains source-only in the final intended state, **not** never transiently
+  installed. This paragraph supersedes earlier "unchanged throughout" delivery implications.
+- CLI safety repair: `--help`/`-h` return usage without writing; unknown flags fail before writes,
+  missing path values and conflicting verify/uninstall fail closed. Three real CLI regressions
+  were watched RED against the old installer in disposable config directories, then GREEN;
+  no live config used for those tests. Existing no-argument install behavior retained.
+- Follow-on reviewer `ses_eeb8309b3ffe6yR5Z6WZt2ve4a`: no blocking findings in4 code/test
+  files; selector is deliberately fixed to this2-step characterization, help wins without
+  writes, unsupported `--target=...` fails rather than silently installing the default target.
+- Follow-on test-runner `ses_eeb824753ffeGrTGHI2YM2d9iY` at `ab01b51`+6 pending task files:
+  `TMPDIR=/tmp/opencode KSI_TOOL_CHOICE_INTEGRATION=1 npm run check`166 total/165 pass/0 fail/
+  1 optional Compose skip; `npm run check:package`, actual serving2.0.22 isolated native
+  characterization, diff checks and installed manifest verifier pass. All7 installed plugin
+  files' SHA256 equal `git show c43fbea:...`. Logs: `followon-{check,package,v22,installed}.log`.
+  Helper did not resolve the supplied private role baseline and compared README rather than
+  runtime advice; those two conclusions were **not** treated as verified. Primary's exact-path
+  recheck confirms all7 roles still match `/tmp/opencode/ksi-audit-remediation-20261007/
+  role-baseline.json` and installed `lib/messages.js` equals c43fbea but differs from new source;
+  independent exact-path follow-up requested. First independent role/config preservation run
+  remains valid for the unchanged global settings, not a new finding from the helper's search.
+- Technical repair is verified on the inspected source tree; final local commit/revision
+  confirmation follows. Human real-use acceptance, transient plugin pickup and rendered product
+  quality remain unclaimed. The failed run and contained side effect are retained in this record.
+
 - RED: seven new notification-contract tests failed on missing advice/metadata (`/tmp/opencode/ksi-visual-ownership/red.log`); 12 existing tests passed. One compatibility assertion then caught the missing explicit blind-regeneration warning; restored it without changing the test.
 - GREEN: messages + notifier suites 37/37 pass; full `npm run check` 140 total / 139 pass / 0 fail / 1 optional Compose skip. Logs `green.log`, `check.log` in the same directory. Nine config/native-role hashes unchanged.
 - Reviewer `ses_ef2751567ffeYft7eI70xSrP29`: no code/policy conflicts found; the two flagged pending items were the not-yet-committed plan and pinned-copy adoption, not implementation defects. Seven scenario groups consumed the new guidance: small visual repair → design compact refinement; nonvisual shared-file bug → Build with sequential ownership; entry-invalid verified UI → design review; intermediate/report-only → no fabricated UI/refinement authority; stalled/rejected → quality unmet; authorized same-brand redesign → structural freedom with invariants; missing render/Plan/pause → respect blockers/native boundaries. This is constrained interpretation, not observed live agent execution or visual-quality validation.
