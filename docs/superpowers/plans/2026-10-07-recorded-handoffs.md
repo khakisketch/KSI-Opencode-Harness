@@ -1141,3 +1141,31 @@ orchestrator, state DB or browser service; native config and OpenDesign untouche
   with a byte-verified before-d backup. Product-judgment efficacy remains a
   real-use observation item; B② (host-render access check) stays deferred until
   the EVENTOUCH owning session finishes.
+
+### Post-delivery assessment and observation phase (2026-10-09)
+
+- User review accepted the implemented contracts as the right first step but not
+  the completion of the product-judgment shift (mostly operating guidance, not
+  execution logic). Decision: **stop adding operating guidance** and move to
+  observing real model judgment.
+- Deferred (recorded for later review, not implemented): (1) per-product
+  long-horizon completion criteria — long-term vision/customer value, approved
+  MVP/milestone, task done-criteria, code/test-proven level and field-validation
+  level kept distinct per product; (2) whether all four layers (native Plan /
+  task ledger / product-state / checkpoint) earn their keep long-term or should
+  shrink to native-where-sufficient plus persistent product/launch decisions;
+  (3) Reviewer/Test Runner cost-vs-contribution beyond defect counts — severity,
+  actual fixes, duplicate findings, tokens/time, and Test Runner overlap with
+  existing CI; keep both seats but leave room to shrink mandatory scope.
+- `Requests are inputs, not orders` watch item: guard against over-reinterpreting
+  explicit instructions; existing mitigations (decisions stay with the user;
+  proportionality clause; no silent scope change) were confirmed sufficient for
+  now; observe in real use.
+- Observation target: the next KSI-Safety-Edge development task — present existing
+  requirements and the actual code state without forcing an implementation list;
+  let Plan determine the most important problem, what not to build, the
+  highest-value contribution and the evidence that would complete the milestone;
+  then observe Build for plan over-dependence and repeated unnecessary
+  delegation/verification. Good results would substantiate Plan/Build sufficiency
+  without a separate product-manager agent; shallow judgment would first call for
+  checking missing information/tools/criteria rather than longer prompts.
