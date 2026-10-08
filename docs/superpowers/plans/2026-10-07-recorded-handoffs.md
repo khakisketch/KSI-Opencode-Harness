@@ -118,7 +118,7 @@ except the two approved bullets. No model/real-product/browser trial needed.
 
 ## Approved audit follow-up (2026-10-08)
 
-Status: technically verified locally; local commit and receipt reconciliation pending
+Status: technically verified and locally committed; human acceptance and real-use effectiveness pending
 
 ### Authority, binding and decisions
 
@@ -170,7 +170,7 @@ without executing tools/providers. No claim of all-write isolation or effectiven
   with failing receipt-validation regressions before verifier changes.
 - [x] Fresh independent review and integrated Test Runner source/package/native
   checks; record revision, outputs and optional checks not run.
-- [ ] Locally commit task-owned changes, reconcile records/checkpoint and report;
+- [x] Locally commit task-owned changes and reconcile records/checkpoint;
   human acceptance and external delivery remain separate.
 
 ### Verification results
@@ -240,3 +240,11 @@ without executing tools/providers. No claim of all-write isolation or effectiven
 - Human acceptance/guidance effectiveness remain pending, not an engineering
   blocker. No external delivery. Real-use observation continues only as part of
   already-authorized development; no new product/pilot selected here.
+- Source/role guidance and verified records committed locally as
+  `fde313407b36ea65e20f7b13eea506dc295eef44` on canonical `main`. All12task-owned
+  paths staged explicitly, index/diff checked; checkpoint excluded, no unrelated
+  user changes. Primary reconciled10non-bookkeeping source/doc SHA256 with the
+  independent closeout snapshot and rechecked17protected hashes before commit.
+  Main clean/ahead3 immediately afterward. This receipt reconciliation changes
+  only ledger/product-state; final receipt commit is identified by Git history,
+  without a self-referential SHA. No new workspace, cleanup, push or publication.
