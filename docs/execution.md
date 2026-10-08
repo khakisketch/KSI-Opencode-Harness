@@ -12,6 +12,8 @@ Latest approved requirements and user decisions define intended behavior; code, 
 
 When asked for next development tasks or priorities, compare the current approved milestone and acceptance criteria with relevant implementation and verification evidence. Recommend by contribution to that goal, dependencies and actual blockers, not by unfinished-plan order alone. If a missing/conflicting goal materially affects the choice, ask for that decision. Keep clearly scoped requests focused unless a material conflict requires escalation; neither a recommendation nor technical completion authorizes new scope or interrupts remaining authorized work. Apply this criterion to Plan and Build without making Plan a mandatory gate or requiring full-product audits for small changes.
 
+Requests are inputs, not orders. Before accepting scope, judge it against the product goal: the problem it solves, the user value, and the smallest viable path to verify it. If a better alternative exists — or the work looks unnecessary for the approved goal — say so with evidence and propose the alternative; the product or business decision stays with the user. At slice boundaries, re-check whether the goal is already met or the value unclear, and recommend stopping or cutting scope when the remaining work no longer serves the goal. This judgment is expected of Plan and Build alike and never authorizes silently changing approved scope.
+
 Do not ask "should I continue?" between authorized tasks. Report meaningful progress and continue. Resolve reversible implementation details inside the agreed contracts; record significant assumptions. Reopen a decision only when material scope, target, effects or risk change, not because a file, test cycle or plan task ended.
 
 ### One approved plan across Plan and Build
@@ -20,7 +22,9 @@ Plan prepares decisions; it does not become the authority over the user's goal o
 the execution Primary. Build can also plan when the task is clear. Use the same
 workstream record whichever agent or installed skill helped write it. Superpowers
 provides applicable planning/development methods, not a second competing plan or
-extra product authority; keep required specs linked rather than duplicating them.
+extra product authority; keep required specs linked rather than duplicating them. Skills
+are tools, not mandatory stages: choose the lightest effective path, and do not let
+process ceremony substitute for the model's own judgment.
 
 For substantive planning, keep the handoff compact and task-proportional:
 
@@ -136,7 +140,10 @@ changes appear; or a high-risk boundary is touched (auth, permissions, data, ext
 effects, irreversibility). Route each finding to its owning seat — implementation
 defect → Developer or design, review gap → Reviewer, evidence gap → Test Runner,
 contract/scope → Build, then the user when material — with the concrete defect, and
-recheck affected behavior after the repair.
+recheck affected behavior after the repair. Tag each recorded defect with its
+origin seat (self-check, Reviewer, Test Runner, design review) so agent
+contribution can be judged across tasks over time; this is tracking, not a quota
+or a forced-helper mandate.
 
 Keep helper returns compressed — result, scope, verification, unresolved items and
 evidence locations — with full logs, diffs and code in the ledger or evidence files,
@@ -212,6 +219,11 @@ none is implied by a checkbox or an agent's "done".
 | One active task ledger | Approval/scope, decisions, progress, inputs and verification evidence; links to any spec | Silent execution authority for a proposal |
 | `product-state.md` | Product goal/slice/acceptance and backlog summary, linked to the ledger | Copying the whole plan/history |
 | `.opencode/working-state.md` | Short worktree resume state and next actions, linked to the ledger | Product documentation or a committed approval record |
+| Skill-internal progress (e.g., a Superpowers SDD ledger) | The skill's own execution record while it runs | A second KSI state or mirrored progress; link it from the task ledger instead |
+
+One canonical record per concern: skill ledgers stay internal to the skill, the task
+ledger links to them rather than mirroring their content, and a native session's
+conversation is not a record.
 
 #### Hand off the relevant basis, not the entire history
 

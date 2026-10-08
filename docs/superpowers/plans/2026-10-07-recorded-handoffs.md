@@ -1074,3 +1074,44 @@ this round — the remaining gaps are per-project operational verification):
   boundary/commissioning contracts and their records. The pinned notifier update
   remains local-only (outside the repo); this closing records note is pushed with
   the delivery.
+
+## Approved product-judgment and focus-shift contracts (2026-10-09)
+
+Status: in progress — approved 2026-10-09
+
+### Approved scope
+
+User-approved ("제안 전체 진행") shift of improvement focus from execution
+procedure to product judgment and program efficiency, following the read-only
+EVENTOUCH live-loop analysis. Minimal guidance/records changes only; no new agent,
+orchestrator, state DB or browser service; native config and OpenDesign untouched.
+
+- A. Product judgment: requests are inputs, not orders — judge product value, the
+  smallest viable path and stop criteria before accepting scope; propose better or
+  smaller alternatives with evidence when they exist, while the product/business
+  decision stays with the user. Files: `docs/execution.md`, global guide Project
+  judgment, both examples.
+- B①. Design-brief edge-state class checklist (dialog/modal interplay,
+  deep-scroll positioning, missing header/anchor states) to reduce per-defect
+  round trips: `docs/integrations/opendesign.md`, global guide.
+- B③. Defect-origin tagging (self / Reviewer / Test Runner / design review) in the
+  existing record so agent contribution can be assessed over time — tracking,
+  explicitly not a quota: `docs/execution.md`, global guide.
+- C. One canonical record per concern: skill-internal progress (e.g., a
+  Superpowers SDD ledger) stays with the skill and is linked, not mirrored; the
+  native session conversation is not a record. `docs/execution.md` record table,
+  global guide.
+- D. Skills are tools, not mandatory stages: choose the lightest effective path;
+  procedure does not substitute for the model's own judgment. `docs/execution.md`,
+  global guide.
+- B② (host-render access check for design runs) is deferred until the EVENTOUCH
+  owning session finishes; no new browser server or orchestrator is to be added.
+
+### Verification plan
+
+- Author: `npm run check`, `git diff --check`, link sweep, global-guide
+  reconstruction against the before-d backup.
+- Independent Reviewer + Test Runner on the committed revision; findings fixed
+  and affected checks rerun; records committed; no OpenDesign/deps/publication.
+- Product-judgment efficacy is a real-use observation item (e.g., the next
+  KSI-Safety-Edge product task), not a test claim.
