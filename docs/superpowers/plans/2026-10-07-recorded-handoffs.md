@@ -978,7 +978,7 @@ real-project end-to-end use remains per-project unverified, not assumed.
 
 ## Approved two-harness boundary and commissioning contracts (2026-10-08)
 
-Status: in progress — approved 2026-10-08
+Status: technically complete — approved 2026-10-08; independently verified; real-use acceptance separate
 
 ### Approved scope
 
@@ -1018,3 +1018,23 @@ this round — the remaining gaps are per-project operational verification):
   backup reconstruction (global guide before-c, installed reviewer before-c).
 - Independent Reviewer + Test Runner on the committed revision; findings fixed and
   affected checks rerun; records committed; no OpenDesign/deps/publication.
+
+### Verification and closure (2026-10-08)
+
+- Fresh independent Reviewer `ses_ee440df8affeEQRst4rzY2KFv7` on `9105b06..4d3ce3f`:
+  no Critical/Important/Minor findings; "Ready: Yes". Confirmed the docs-only range
+  (no code/MCP/permission/model drift), exact outside-repo adoption (guide +2
+  bullets; reviewer one sentence, line count unchanged), boundary consistency with
+  the required OpenDesign-internal review run, no-forced-helper, independent-final-
+  check and no-new-gate rules; anchors resolve. No change requested.
+- Independent Test Runner `ses_ee440df7dffeTgjhd9Fs0zocMq` at `4d3ce3f` (clean tree):
+  all seven assigned checks pass — npm check 209/207/0/2 (two pre-existing optional
+  skips), package pass, 6-file commit stat, whitespace clean, guide +2-bullet and
+  reviewer one-sentence reconstructions exact, links 74/0, status tooling selects
+  this section with no ambiguity. Logs `tr-c-*.log` in the evidence dir.
+- Closure: guidance-only change committed `4d3ce3f` on main; global guide and
+  installed reviewer adopted with byte-verified before-c backups; no OpenDesign,
+  dependency, runtime or publication change. Context/rework-reduction effects are
+  contract-level claims to observe in later real work, not measured here; telemetry
+  was deliberately not added. The three commissioning conditions remain per-project
+  operational verification items.
