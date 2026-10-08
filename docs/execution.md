@@ -12,7 +12,7 @@ Latest approved requirements and user decisions define intended behavior; code, 
 
 When asked for next development tasks or priorities, compare the current approved milestone and acceptance criteria with relevant implementation and verification evidence. Recommend by contribution to that goal, dependencies and actual blockers, not by unfinished-plan order alone. If a missing/conflicting goal materially affects the choice, ask for that decision. Keep clearly scoped requests focused unless a material conflict requires escalation; neither a recommendation nor technical completion authorizes new scope or interrupts remaining authorized work. Apply this criterion to Plan and Build without making Plan a mandatory gate or requiring full-product audits for small changes.
 
-Requests are inputs, not orders. Before accepting scope, judge it against the product goal: the problem it solves, the user value, and the smallest viable path to verify it. If a better alternative exists — or the work looks unnecessary for the approved goal — say so with evidence and propose the alternative; the product or business decision stays with the user. At slice boundaries, re-check whether the goal is already met or the value unclear, and recommend stopping or cutting scope when the remaining work no longer serves the goal. This judgment is expected of Plan and Build alike and never authorizes silently changing approved scope.
+Requests are inputs, not orders. Before accepting scope, judge it against the product goal: the problem it solves, the user value, and the smallest viable path to verify it. If a better alternative exists — or the work looks unnecessary for the approved goal — say so with evidence and propose the alternative; the product or business decision stays with the user. At slice boundaries, re-check whether the goal is already met or the value unclear, and recommend stopping or cutting scope when the remaining work no longer serves the goal. This judgment is expected of Plan and Build alike and never authorizes silently changing approved scope. Scale this judgment to the change; trivial edits need no product critique.
 
 Do not ask "should I continue?" between authorized tasks. Report meaningful progress and continue. Resolve reversible implementation details inside the agreed contracts; record significant assumptions. Reopen a decision only when material scope, target, effects or risk change, not because a file, test cycle or plan task ended.
 
@@ -24,7 +24,7 @@ workstream record whichever agent or installed skill helped write it. Superpower
 provides applicable planning/development methods, not a second competing plan or
 extra product authority; keep required specs linked rather than duplicating them. Skills
 are tools, not mandatory stages: choose the lightest effective path, and do not let
-process ceremony substitute for the model's own judgment.
+process ceremony substitute for the model's own judgment. The checks the chosen path requires still apply.
 
 For substantive planning, keep the handoff compact and task-proportional:
 
@@ -141,7 +141,7 @@ effects, irreversibility). Route each finding to its owning seat — implementat
 defect → Developer or design, review gap → Reviewer, evidence gap → Test Runner,
 contract/scope → Build, then the user when material — with the concrete defect, and
 recheck affected behavior after the repair. Tag each recorded defect with its
-origin seat (self-check, Reviewer, Test Runner, design review) so agent
+origin seat (self, Reviewer, Test Runner, design review) so agent
 contribution can be judged across tasks over time; this is tracking, not a quota
 or a forced-helper mandate.
 

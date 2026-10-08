@@ -1094,7 +1094,7 @@ orchestrator, state DB or browser service; native config and OpenDesign untouche
 - B①. Design-brief edge-state class checklist (dialog/modal interplay,
   deep-scroll positioning, missing header/anchor states) to reduce per-defect
   round trips: `docs/integrations/opendesign.md`, global guide.
-- B③. Defect-origin tagging (self / Reviewer / Test Runner / design review) in the
+- B③. Defect-origin tagging (self, Reviewer, Test Runner, design review) in the
   existing record so agent contribution can be assessed over time — tracking,
   explicitly not a quota: `docs/execution.md`, global guide.
 - C. One canonical record per concern: skill-internal progress (e.g., a

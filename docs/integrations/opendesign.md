@@ -773,7 +773,7 @@ When asking OpenDesign for a change, state:
 
 - the target project and entry file,
 - the user task and the screen or flow it affects,
-- the states that matter (empty, loading, error, stale, mobile), plus an edge-state class checklist for the first iteration (dialog/modal interplay, deep-scroll positioning, missing header/anchor states) so one iteration covers defect classes instead of per-defect round trips,
+- the states that matter (empty, loading, error, stale, mobile), plus an edge-state class checklist in the first brief (dialog/modal interplay, deep-scroll positioning, missing header/anchor states) so one iteration covers defect classes instead of per-defect round trips,
 - existing product tokens, components, and constraints that must be preserved,
 - what is explicitly out of scope.
 
