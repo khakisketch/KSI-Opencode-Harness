@@ -32,6 +32,11 @@
 점검 범위를 지키며, 새 범위·디자인 방향·권한·배포 같은 실제 결정은 그대로 구분합니다.
 [기본 검토·수정·재검증 루프 →](docs/execution.md#own-the-completion-loop-not-a-list-for-the-user)
 
+디자인 작업은 **제품별 대표 프로젝트를 재사용**하고, 실행 전에 실제 소스 연결을 확인합니다.
+화면·작업·브랜치가 달라졌다는 이유만으로 새 프로젝트를 만들지 않습니다. 실제 제품은
+기존 제품 서버 링크에서 확인하며, 디자인 파일 미리보기와 로그인·저장·새로고침 검증을
+구분합니다. [대표 프로젝트 재사용과 연결 확인 →](docs/integrations/opendesign.md#reuse-the-representative-product-project)
+
 ```text
 사용자  원하는 결과 · 문제 · 아이디어 · 제약
   │

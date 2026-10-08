@@ -111,6 +111,38 @@ pauses and native modes/permissions/budgets. Report the usable result and actual
 verification briefly, plus only unresolved material decisions/blockers; do not hand
 ordinary prioritization or a routine “which one next?” menu back to the user.
 
+### Verdict from verified results, not repeated re-review
+
+Build's default verdict scope is: the change matches the approved requirement and
+observable acceptance; the returned scope matches the assignment without unrelated
+or unexpected changes; the evidence names the revision/workspace it covers,
+including relevant uncommitted changes, and no later affected edit invalidated it;
+interfaces and integration are consistent; and unresolved items with their risk are
+known. A “PASS” without revision, scope and environment is not acceptance evidence,
+and a helper's “done” is not approval.
+
+Match depth to risk, not file count: routine text or small approved-pattern edits
+need the owner's self-check plus any required final check; ordinary features add the
+independent Test Runner check; complex or interface/API-changing work adds Reviewer;
+auth, permissions, payment or data changes get Reviewer plus strengthened independent
+checks. This does not remove the milestone/closeout independent verification, and
+visual changes remain design-owned regardless of size.
+
+Do not re-read the whole implementation by default; that duplicates the
+Reviewer/Test Runner seat and spends the context Build needs for the remaining work.
+Expand to specific diffs, logs or renders only when evidence is missing, stale or
+contradictory; a contract or interface conflict is plausible; unexpected or unrelated
+changes appear; or a high-risk boundary is touched (auth, permissions, data, external
+effects, irreversibility). Route each finding to its owning seat — implementation
+defect → Developer or design, review gap → Reviewer, evidence gap → Test Runner,
+contract/scope → Build, then the user when material — with the concrete defect, and
+recheck affected behavior after the repair.
+
+Keep helper returns compressed — result, scope, verification, unresolved items and
+evidence locations — with full logs, diffs and code in the ledger or evidence files,
+pulled only when a verdict or repair needs them. Resume from the saved state and
+actual Git, not from conversation history.
+
 ## Technical completion and human acceptance
 
 Technical completion requires the agreed implementation/integration and actual verification evidence, plus scoped local commits when allowed by the adopted policy. Report failing/unrun checks honestly. Human product acceptance and external delivery are distinct states: tests do not establish user satisfaction, and pending acceptance does not block remaining authorized engineering work. Technical completion does not authorize a new milestone or unrelated backlog work.
@@ -239,9 +271,15 @@ copy or a second product plan. An ordinary assignment can contain these items in
 | Assignment from Build | Return from Developer |
 | --- | --- |
 | Desired outcome, current problem and observable success/failure criteria | Changed files and implementation summary |
-| Actual working directory/base revision, relevant paths and approved decisions | Actual self-test commands/results and the code state tested |
+| Actual working directory/base revision, relevant paths and approved decisions | Actual self-test commands/results, the tested revision (workspace + HEAD + relevant uncommitted changes) and where raw evidence lives |
 | Behavior/data/permissions/API invariants, owned files and excluded work | Incomplete/unverified work, blockers or contract discrepancies |
 | Trusted checks and any access/tool limits relevant to the task | Significant assumptions or follow-up needed for integration |
+
+The same evidence identification applies to every seat: Reviewer names the diff
+range and revision reviewed plus what it did not inspect; Test Runner the exact
+commands, tested revision and skipped/not-run checks; design the artifact/source
+revision and rendered evidence. A return without its revision and scope is not
+usable for a verdict, and no seat claims a check it did not run.
 
 For example: repair an API retry path, preserve response/data semantics and the existing UI,
 own the named nonvisual files, add a regression for the observed failure, and report the actual
@@ -322,7 +360,11 @@ active task ledger, not another registry. When relevant, use this compact table
 
 | Field | Value |
 | --- | --- |
+| Product identity | unknown |
 | Repository | . |
+| Source workspace | . |
+| Branch | unknown |
+| Revision | unknown |
 | Design project | unknown |
 | Design storage | unknown |
 | Entry | unknown |
@@ -330,6 +372,7 @@ active task ledger, not another registry. When relevant, use this compact table
 | Verify command | unknown |
 | Product URL | unknown |
 | Brand source | unknown |
+| Design exception | unknown |
 ```
 
 Build fills this from inspected project evidence instead of asking users to
@@ -342,11 +385,22 @@ Ambient global/upward `AGENTS.md` updates arrive natively before the next model
 request; users need not copy policy updates between sessions. Nested instructions
 already loaded have different refresh behavior: see the V2 instructions guide.
 
+`Design project` records the exact representative identity returned by the design
+workspace, not a display-name substring. `Source workspace` distinguishes the
+actual delegated source from a stable product/repository identity; record current
+branch/revision from actual Git evidence. `Design exception` is optional ownership/
+reason/return-plan information for deliberate temporary parallel work, not permission
+to ignore a source mismatch. Do not invent product identity from a Git root: one
+repository can contain more than one product. Reuse the representative for ordinary
+tasks and resolve stale/missing/conflicting bindings before any new creation; see
+[the reuse-first flow](integrations/opendesign.md#reuse-the-representative-product-project).
+
 In the **harness source checkout**, read-only helpers are available:
 
 ```sh
 node scripts/work-report.mjs --repo /path/to/product --status
 node scripts/work-doctor.mjs --repo /path/to/product --frontend
+node scripts/work-doctor.mjs --repo /path/to/product --frontend --design-projects /path/to/captured-projects.json --json
 ```
 
 Both accept `--json`; doctor accepts `--config PATH` for the actual server config
@@ -373,6 +427,16 @@ services. `needs-setup` means local prerequisites are absent/mismatched;
 `unverified` means effective native catalogs, actual design read/write and product
 flow still need verification. Even all-present metadata does not prove readiness.
 Optional notifier absence is not a blocker for ordinary local engineering.
+
+The optional `--design-projects FILE` consumes a caller-supplied current MCP list
+(`{"projects":[...]}`) or array snapshot and compares exact recorded identity and
+source directories. The agent obtains/sanitizes the snapshot; users need not copy
+it between tools or administer project IDs. Missing, malformed, ambiguous or
+contradictory explicit snapshots do not become a match. A `matched` result is only
+captured metadata correspondence: confirm the actual current project read/source
+access before a run. Doctor neither contacts MCP, reads credentials, checks current
+branch/revision, enforces uniqueness across clients nor creates/rebinds a project.
+It remains a source helper, not an installed command or runtime guard.
 
 ## Pause/resume in ordinary language
 

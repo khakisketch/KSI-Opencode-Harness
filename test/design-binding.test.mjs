@@ -334,3 +334,47 @@ test("doctor CLI design-projects flag handles absent, missing and malformed file
   assert.equal(matched.checks.find(c => c.id === "design-binding").state, "matched")
   assert.equal(matched.status, "unverified")
 })
+
+// Break caught: an identity-only snapshot claims source correspondence without a source.
+test("exact identity without source directories stays unknown and needs preparation", t => {
+  const f = fixture(t)
+  setupLocal(f)
+  const projects = [{ id: "fixture-design-id" }]
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id" }, projects }).state, "unknown")
+  const result = report.inspectReadiness({ ...f, frontend: true, projects })
+  assert.equal(result.checks.find(c => c.id === "design-binding").state, "unknown")
+  assert.equal(result.status, "needs-setup")
+})
+
+// Break caught: empty/relative directories normalize to cwd and falsely match it.
+test("snapshot directories must be nonempty absolute paths", t => {
+  const f = fixture(t)
+  for (const baseDir of ["", "  ", ".", "nested/.."])
+    assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id" }, projects: [{ id: "fixture-design-id", metadata: { baseDir } }] }).state, "invalid", JSON.stringify(baseDir))
+})
+
+// Break caught: fallback precedence hides contradictory redundant path fields.
+test("all supplied source directories must agree rather than shadow contradictions", t => {
+  const f = fixture(t)
+  const other = join(f.root, "other")
+  mkdirSync(other)
+  const projects = [{ id: "fixture-design-id", metadata: { baseDir: f.repo, resolvedDir: f.repo }, baseDir: other, resolvedDir: f.repo }]
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id" }, projects }).state, "mismatch")
+})
+
+// Break caught: stale recorded storage is ignored despite an otherwise matching snapshot.
+test("recorded design storage must agree with the intended source", t => {
+  const f = fixture(t)
+  const other = join(f.root, "other")
+  mkdirSync(other)
+  const projects = [project("fixture-design-id", f.repo)]
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id", "Design storage": other }, projects }).state, "mismatch")
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id", "Design storage": "." }, projects }).state, "matched")
+})
+
+// Break caught: an explicitly corrupt null snapshot is mistaken for omitted evidence.
+test("explicit null snapshots and blank identities are invalid", t => {
+  const f = fixture(t)
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id" }, projects: null }).state, "invalid")
+  assert.equal(inspectDesignBinding({ repo: f.repo, binding: { "Design project": "fixture-design-id" }, projects: [{ id: "  ", metadata: { baseDir: f.repo } }] }).state, "invalid")
+})

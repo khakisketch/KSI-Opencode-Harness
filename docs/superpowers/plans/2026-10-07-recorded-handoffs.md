@@ -577,3 +577,342 @@ Raw audit evidence remains linked above; historical conclusions are not rewritte
   no task workspace needs integration/cleanup. No publication, runtime install,
   service restart or new workstream. Routine fixes are complete, not handed back as
   a user-managed candidate list. Model compliance and human acceptance unclaimed.
+
+## Proposed product binding and live-preview improvement (2026-10-08)
+
+Status: proposed; recommendation requested, implementation not approved
+
+### Intent and observed basis
+
+The user wants one recognizable OpenDesign project per product instead of a new
+project for each development task/worktree, and wants to inspect the real frontend
+inside that workspace rather than only a file-based mockup. The latest question
+asks how best to improve this; it does not authorize product/server/project writes,
+deletion/merging, installation/restart or release. The approved completion-loop
+slice above stays technically verified; this proposal does not reopen it.
+
+- MCP project reads confirmed EVENTOUCH has two distinct folder-backed bindings:
+  the original `/home/ksi/Desktop/SI-Projects/EVENTOUCH` and its separate
+  `.worktrees/eventouch-postgres` working directory. This is not a duplicate of
+  the same exact path; the missing canonical product identity is the concern.
+- The PostgreSQL workspace's actual Git state was `3ade57f` on
+  `feat/eventouch-postgres` when inspected. It belongs to the product session;
+  its checkpoint was older, and it is not this harness session's working directory.
+  Do not retarget, rename or clean it up while another session/run is using it.
+- A browser inspection of the installed design UI found the imported `index.html`
+  rendered as `srcdoc` in a sandboxed file preview. An authentication request went
+  to the design daemon origin rather than the EVENTOUCH product server. The file
+  is the real product entry; its filename is not what makes the preview incomplete.
+- At inspection time, the existing temporary synthetic-product fixture on tailnet
+  port46771 returned HTTP200 with an entry byte-identical to the PostgreSQL working
+  directory. This proves entry reachability, not login/DB/role/persistence behavior,
+  service ownership, an enduring URL or production readiness. No server was started,
+  stopped or restarted for the inspection.
+- Context7 `/nexu-io/open-design` and the local upstream source describe folder
+  rebinding; `docs/rfc-drafts/dev-server-auto-detect.md` remains Draft. An automatic
+  live-server preview/launcher is not established in the installed application.
+  Host upstream source capability alone does not prove deployed support.
+- Existing `scripts/work-doctor.mjs` reads Product binding fields from product-state
+  or the ledger and explicitly reports metadata presence only. Keep that read-only
+  contract; recorded commands/URLs must not become automatic execution authority.
+
+### Recommended staged scope (proposal, not an execution plan)
+
+1. **Canonical identity and reuse-first preflight (bounded harness follow-up).**
+   Reuse the existing Product binding record for product/repository identity,
+   representative design project, actual current source workspace/branch/revision,
+   entry, brand and product URL. Identify by verified binding, not title substring
+   alone. A repository may contain several products, so a Git root alone is not
+   a universal product key. Ordinary screens, artifacts and task conversations
+   stay in the representative project. Before commissioning, compare the record
+   with the real design project's resolved directory and the approved source.
+   Unknown/multiple/conflicting bindings stay explicit; a failed lookup does not
+   justify creating a fresh project. Record who owns any deliberate parallel
+   workspace and when/how it returns to the representative flow.
+2. **Safe adoption, not destructive deduplication.** For EVENTOUCH, recommend the
+   currently used PostgreSQL-linked project as the representative, preserve the
+   older project/history as historical reference, and coordinate any rename,
+   rebind or lifecycle change with the owning product session after active work
+   is reconciled. Rebinding may preserve project/conversation identity but does
+   not automatically migrate old folder files, artifact paths or snapshots.
+   A hard prohibition on all secondary projects would break genuine concurrent
+   work; allow explicit temporary exceptions, never routine per-task clones.
+3. **Existing-product URL preview (architectural OpenDesign follow-up).** Add a
+   clearly separated product-preview surface pointing at the already running,
+   approved product URL, alongside artifact files. Preserve that server/runtime;
+   do not launch another API/DB or rewrite the frontend into a mockup. Show target
+   source/URL and connection failure honestly; never fall back silently to demo.
+   Use a top-level browser opening when embedding is blocked by framing, mixed
+   content or cookie/auth restrictions. Do not relax the artifact sandbox, weaken
+   auth, forward secrets or add an unrestricted URL proxy to make embedding work.
+   First iteration excludes automatic dev-server launch, dependency installation,
+   runtime migration and production deployment.
+4. **Evidence, ownership and delivery boundaries.** Later implementation should
+   test recorded binding/unknown/conflict/parallel-worktree cases and exercise
+   repeated design work without new ordinary projects or wrong-source writes.
+   Verify actual server login, changed route, API result and reload persistence
+   against approved synthetic state; renderer screenshots alone do not close those
+   checks. OpenDesign owns UI implementation and rendered review, Build functional
+   wiring/Git, and Test Runner independent final checks. Preview-connection work
+   must bind each browser-client, host and container address explicitly. Global
+   guidance adoption, source commits, installed overlay/notifier update and public
+   package delivery remain distinct; no prior release authority is reused.
+
+### Alternatives and pending decision
+
+Guidance alone is cheap but cannot enforce uniqueness or implement a live preview.
+Making OpenDesign manage every framework, API and database is much larger and adds
+process/security responsibilities unnecessarily. Recommend the middle path above:
+canonical reuse/preflight first, existing-product URL preview next. The material
+decision is adopting this scope and authorizing the OpenDesign application change,
+not asking the user to prioritize or administer individual routine fixes. No new
+design direction, design generation, active goal, runtime change or cleanup starts
+from this recommendation. Detailed preview spec/implementation planning follows
+only after direction approval; this record is not that approved spec or plan.
+
+## Approved canonical binding and actual-product preview (2026-10-08)
+
+Status: in progress — reuse/preflight and guidance implemented; preview self-development cancelled by user (see progress); final verification pending
+
+### Approved design and execution contract
+
+User approved the preceding recommendation with "그렇게 개선해줘용", and requested
+continuation after a provider interruption. Adopt representative-project reuse,
+source-binding preflight and an existing-product URL preview, preserving prior
+projects/history. The recommendation above is historical proposal evidence; this
+section is the single current workstream specification/plan and approval record.
+No product deletion, automatic runtime launcher, product-server migration or
+production deployment. No permission/model/budget/native prompt replacement.
+
+**Goal:** repeated design work reuses the intended product project and source;
+OpenDesign can distinguish artifacts from the existing live product.
+**Architecture:** strengthen the existing local Product binding/readiness flow
+with explicit snapshot comparison; add a separately configured product-preview
+surface in the actual OpenDesign source. Reuse project metadata/API contracts,
+never add another backend, unrestricted URL proxy or project registry.
+**Tech stack:** harness Node ESM/node:test; OpenDesign existing TypeScript,
+contracts, daemon route/CLI and web component/i18n layers. No new dependency.
+**Specification:** this approved contract plus the preceding proposal's intent,
+source evidence and middle-path constraints; later details remain reversible
+implementation choices within these contracts, not a competing design direction.
+
+- Harness base/target: `main` at `1eb6003c205eed98d524d76cb8241d81cbace753`,
+  ahead9; two task-owned uncommitted proposal record files retained. Primary owns
+  common records/guidance/integration. One bounded nonvisual Developer assignment
+  uses an isolated harness worktree; independent final Reviewer/Test Runner.
+- OpenDesign source: `/home/ksi/opendesign/open-design`, `main` at
+  `5b19dfa4351b3eed33826ee72746a7c653c23a54`; existing modified
+  `deploy/docker-compose.linux.yml` is user work and must remain byte-identical.
+  Use a task-owned isolated source worktree for UI/daemon/contract changes and
+  preserve the existing prunable unrelated worktree. Installed overlay is a
+  different revision; a source commit does not imply installed feature support.
+- Source-target integration is local/non-destructive only. Global operating
+  guidance may adopt the approved reuse contract after exact diff verification;
+  overlay/runtime installation, restart for delivery and public release remain
+  separate. Exact-folder connection/import follows standing infrastructure scope,
+  with active-run checks and no broad-mount/security changes.
+- EVENTOUCH source/design sessions remain owned by their product session. Record
+  the PostgreSQL-linked representative recommendation, but do not silently rename,
+  retarget, merge/delete or mutate that product/history while another session owns
+  it. A representative declaration is not artifact migration or live acceptance.
+- Visual source/style implementation and rendered review are design-owned, using
+  verified source access and a reachable renderer or readable product captures.
+  No Build-side visual fallback. Preserve existing UI/brand; no full redesign.
+- Known preparation blocker: OpenDesign host checkout has no installed workspace
+  dependencies; deployed image has runtime bundles, not Vitest/dev dependency
+  closure. No install attempted. Request scoped existing-lockfile development
+  dependency preparation if needed; continue independent harness work meanwhile.
+
+### Review focus and acceptance
+
+1. Missing/stale/ambiguous project identity or failed lookup never authorizes a new
+   project; compare an exact recorded identity, not name substring or Git root alone.
+2. Worktree/source changes and metadata-directory contradictions never silently
+   target the old checkout, a parent bind or another product in the same repository.
+3. Malformed/empty snapshots stay distinguishable; a matching captured snapshot is
+   metadata evidence, not current API/auth/write/renderer readiness.
+4. URLs with credentials, unsupported schemes or private query-bearing tokens are
+   rejected; no server-side fetch/proxy or weakening the artifact sandbox/auth.
+5. Frame/auth/mixed-content/network failures remain visible, with top-level opening
+   available; never replace a real-product failure with a writable demo.
+
+Acceptance: repeat preflight for multiple tasks without creating normal projects;
+literal fixtures pin exact identity/path/ambiguity/malformed cases. On the actual
+changed OpenDesign UI, the product target is visible, primary open/reload action is
+keyboard reachable at1280/390, connection failure does not claim readiness, artifact
+preview remains unchanged, and first-screen controls fit without horizontal scroll.
+Browser verification uses only scoped synthetic product state: login/route/API
+result/save/reload evidence, not screenshots alone. No real customer mutation.
+
+### Implementation plan
+
+> Agentic execution: use executing-plans/TDD for inline coordination and a single
+> bounded Developer implementation for the independent nonvisual harness unit.
+> No forced per-task team, extra method menu or new native goal.
+
+#### Task 1 — exact representative binding preflight
+
+Files: `scripts/work-doctor.mjs`, new focused `scripts/design-binding.mjs` if useful,
+`scripts/work-report.mjs` re-export only if required, `test/work-doctor.test.mjs`
+and a focused binding test. Owned by Developer; excludes guidance/global/records.
+
+Interface: `inspectDesignBinding({ repo, binding, projects })` returns a bounded
+metadata result with matched/unknown/mismatch/ambiguous/invalid state and reasons;
+it never creates/rebinds projects or executes URLs/commands. Existing readiness
+accepts an optional caller-supplied projects snapshot, with `--design-projects FILE`
+for CLI parity; without snapshot it stays explicitly live-unverified. Snapshot
+accepts actual MCP list `{projects:[...]}` and array fixtures, exact project id,
+`metadata.baseDir`/`resolvedDir`. Keep legacy recorded-only readiness compatibility;
+optional Product identity/Source workspace/branch/revision/exception record fields
+must not invent product identity from folder names or stale Git assumptions.
+
+- [ ] RED: literal tests for exact representative matched twice/no writes; absent
+  snapshot/id, stale id/name-only, duplicate id, wrong/contradictory source directory,
+  malformed container/record, separate products/worktrees, symlink containment and
+  CLI malformed/absent snapshot. Recorded commands/URLs are never executed.
+- [ ] GREEN: minimal validation/report wiring; expose mismatch as preparation work,
+  never runtime success or automatic duplicate cleanup.
+- [ ] Verify: focused `TMPDIR=/tmp/opencode node --test test/work-doctor.test.mjs`
+  plus any focused new binding test, full `npm run check`, `git diff --check`.
+- [ ] Scoped local implementation commit; return actual RED/GREEN logs, changed
+  paths, tested revision, assumptions and unverified work; Primary integrates.
+
+#### Task 2 — reuse-first guidance and adoption
+
+Files: `docs/integrations/opendesign.md`, `docs/execution.md`, project/autonomy
+examples and concise README clarification; exact scoped global `AGENTS.md` update.
+Primary only. Existing Product binding record stays the canonical cache.
+
+- [ ] Document lookup→exact project/source verification→reuse; new project only for
+  genuinely new product/no verified existing representative, not lookup failure.
+- [ ] Record explicit temporary parallel exception/owner/return path; no silent
+  rebind, old file migration, live runtime mutation or hard one-folder-one-product.
+- [ ] Align the previous connect→import rule to reuse/rebind first when safe; source
+  snapshots/preflight are advisory metadata checks, not permission or live proof.
+- [ ] Verify exact global backup/diff, source examples, local links and unchanged
+  roles/config/upstream/pinned payload; do not duplicate old policy wholesale.
+
+#### Task 3 — actual-product preview source implementation — CANCELLED (2026-10-08 user decision)
+
+Files mapped after prepared-source inspection: contracts project metadata DTO/
+URL validator, existing daemon project route/CLI, web provider and a focused
+product-preview component integrated with project tabs; app/package tests.
+One writer per file. Design owns web source/styles and rendered review; Primary
+owns nonvisual contracts/wiring and source integration. Do not edit generated dist.
+
+- [ ] Prepare isolated source/dependencies and verify inner input/render access
+  before commissioning. Preserve Compose, mounted roots, active runs and runtime.
+- [ ] RED shared URL-contract/persistence/API/CLI tests: safe HTTP(S), no credential
+  or token-bearing target, explicit clear, existing metadata preserved, read-only
+  get, auth/permission route guards; no server fetch/proxy or implicit startup.
+- [ ] GREEN contracts/route/CLI via existing project metadata; expose identical
+  API behavior to CLI and UI, preserving existing project auth/preview paths.
+- [ ] Commission product-compatible web implementation in verified source, using
+  existing design patterns and task-appropriate live skills. Preserve artifact
+  sandbox; product frame is a separate intentional connection with safe top-level
+  fallback, honest connection state and no demo substitution.
+- [ ] Actual render at1280/390 with configured/unconfigured/unreachable/blocked-frame,
+  keyboard/focus and loading states; distinct design-review skill consumes those
+  rendered inputs and returns concrete fixed/open defects. Repair within scope.
+- [ ] Run applicable package tests/typechecks/builds and real changed-flow browser
+  checks. Keep baseline failures separately, never assertion weakening/auto-skips.
+
+#### Task 4 — integration, independent verification and truthful closeout
+
+- [ ] Reconcile actual diffs/revisions, safe local source-target integration and
+  existing records; never mix helper reports with actual integrated code evidence.
+- [ ] Fresh Reviewer whole-change check; in-scope defect→repair→affected recheck.
+- [ ] Independent Test Runner harness check/package, snapshot cases, preservation;
+  prepared OpenDesign focused/full applicable checks and actual changed-flow checks.
+  Retain actual stdout/stderr/exit, source hashes and design-render review evidence.
+- [ ] Commit task-owned changes, leave external delivery/install gated, clean only
+  proven task-owned integrated workspaces and preserve untracked user/runtime files.
+- [ ] Report usable level: guide adopted, source implemented, rendered/reviewed,
+  functionally checked, installed and human-accepted are separate states. A blocked
+  preview stage does not block independently deliverable harness improvements.
+
+Pre-flight: Task1's metadata result informs Task2 but does not perform MCP requests;
+Task3 project URL metadata is not Task1 project identity. Harness/preview codebases
+are independent, Primary owns their shared continuity/approval record. No second
+registry/runtime, no implicit task on EVENTOUCH, no deployment permission expansion.
+
+### Progress, dependency decision and scoped refinement
+
+- Dependency question: the user asked whether implementing the new preview is worth
+  doing instead of approving installation. No dependency permission was granted.
+  Primary recommends deferring the new embedded-preview app feature and using
+  existing-product top-level links now; continue the approved independent harness
+  work. This is not approval to install, cancellation of the whole task, or a claim
+  that the originally proposed preview is complete. Task3 remains preparation-blocked
+  pending dependency approval or an explicit scope-defer decision; no OD source
+  worktree, source write, container recreation/import, new run or server was created.
+- Developer actual dispatch `ses_ee47e6e87ffeW2EV5p0X35OnlN` read this parent section,
+  implemented Task1's three scripts/tests paths in the isolated workspace and committed
+  `5bd710c`. Baseline183/181/0/2optional skips; module-absence RED (missing new module,
+  not twenty independent reproduced defects), GREEN20binding/25focused, full203/201/0/
+  2optional skips. Actual logs under `/tmp/opencode/ksi-product-design-binding-20261008-pga9l86n`.
+- Primary inspected actual three-file diff/source/tests and fast-forwarded canonical
+  main to5bd710c, preserving the pending shared records. No helper guidance/global/OD
+  edit. Important author-inspection findings: source-less identity could be marked
+  matched, blank/relative directories normalized to cwd, fallback precedence hid
+  contradictory redundant directories, stale recorded Design storage was ignored,
+  and explicit null snapshots were treated as omitted evidence.
+- Five literal regression tests reproduced those findings (focused25pass/5fail),
+  then bounded input/source-correlation repairs passed30/30. All supplied directories
+  must be absolute/nonempty and agree; missing source stays unknown, recorded storage
+  must agree, explicit null is malformed. No renderer/network/write authority added.
+  Fresh authorfull208total/206pass/0fail/2existing optional skips; rawRED/GREEN/fulllogs
+  retained. Independent whole-change review/final checks pending.
+- Reuse-first/global guidance applied: two identical new bullets in both examples
+  and global guide, plus one scoped replacement of the old unconditional connect→
+  import bullet. Five source guides distinguish metadata checking from live access
+  and actual-product links from artifact previews. Primary received the ambient diff;
+  exact backup reconstruction/protected25/global adoption verification pending.
+- Fresh exact MCP reads confirmed both EVENTOUCH roots unchanged and agreeing.
+  Sanitized capture `actual-projects.json` is metadata only, not source adoption,
+  historical-project migration or product authentication verification. Its values
+  were copied from the actual tool results, not a generated design manifest.
+- User preview clarification (2026-10-08): self-developing the OpenDesign preview
+  feature is not wanted. The original wish was only to conveniently view developed
+  frontends; the user explicitly asked not to complicate or damage OpenDesign/the
+  product ("자체개발 할 것도 없고", "너무 건드리면 복잡해지니까"). Task 3 is therefore
+  cancelled, not deferred: no OpenDesign source, dependency, runtime or preview-UI
+  change will be made, and no install request is pending. The already-applied reuse
+  guidance (existing-product URL in a browser tab, labeled separately from artifact
+  previews) remains the adopted way to view the real product.
+
+## Approved evidence-based verdict and result contracts (2026-10-08)
+
+Status: in progress — approved 2026-10-08
+
+### Approved scope
+
+The user approved the reviewed direction with "내가 원하는 하네스로 개선해줘": Build's
+default shifts from re-reading and re-reviewing everything to deciding from each
+seat's verified results, with a common return contract, risk-based verification
+depth and context protection. Preserved: milestone/closeout independent Test Runner
+verification, design-owned visual work, native prompts/models/permissions/budgets and
+the existing records. No new registry, orchestrator, plugin, automatic re-delegation
+runtime or forced team; the user asked to change only duplicated or missing contracts,
+so the change set is minimal:
+
+- `docs/execution.md`: new "Verdict from verified results, not repeated re-review"
+  subsection (default verdict scope, risk-based depth, expansion conditions, finding
+  routing, context protection) plus return identification in the assignment/return
+  table and a cross-seat evidence sentence.
+- `templates/agents/{developer,reviewer,test-runner}.md`: tested revision/scope,
+  evidence locations and not-inspected/not-run distinctions in the return sentences.
+- `examples/autonomous-development.md` and `examples/project-AGENTS.md`: one aligned
+  bullet each.
+- Current-user global guide: one scoped bullet. Installed role files: the same
+  additive return-contract sentences with private backups, preserving existing
+  custom content (for example the Reviewer design-review additions) byte-for-byte.
+
+### Verification plan
+
+- Author: `npm run check`, `npm run check:package`, `git diff --check`, link/anchor
+  sanity on changed docs; global-guide and installed-role diffs reconstructed against
+  backups (exact intended additions only).
+- Independent Reviewer and Test Runner on the integrated revision, also covering the
+  canonical-binding change; in-scope findings fixed and affected checks rerun.
+- Commit source/guidance, then records; report the usable level honestly.

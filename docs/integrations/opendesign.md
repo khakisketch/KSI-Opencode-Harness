@@ -631,9 +631,40 @@ for real product frontend work over mockup-then-reimplement.
 - Run scope is prompt-scoped, not an OS sandbox: the inner agent's tools span its
   connected root. Keep sensitive non-product material out of connected roots.
 
+#### Reuse the representative product project
+
+Default to **one representative OpenDesign project per product**, not one per
+screen, task, session or Git worktree. Keep its exact project identity, actual
+source workspace, design storage/entry, brand and reachable product URL in the
+existing Product binding record. A repository may contain several products; a
+folder name, title substring or Git root alone does not establish identity.
+
+Before commissioning, read the recorded representative and compare an actual
+project read with the intended source directory/revision. Reuse valid same-target
+evidence, and refresh it after source/binding/access changes. Missing, stale,
+multiple or unreadable identities are unresolved bindings, **not authority to
+create another project**. Normal tasks use files/artifacts and conversations inside
+the representative project. Do not make the user administer IDs or folder choices.
+
+A worktree change does not by itself create a new product. Rebind the existing
+project only when the installed capability is confirmed, no active writer/run
+depends on the old binding, and the intended source change is authorized; re-read
+the result. Rebinding does not migrate older folder files/artifact paths or make
+past snapshots current. Genuine concurrent work may use a temporary project with
+an explicit owner, source, reason and return/retention plan in the same record.
+Preserve historical projects; naming, cleanup, merging or deletion are not automatic.
+
+The optional source-checkout doctor snapshot comparison is described in
+[execution guidance](../execution.md#reuse-project-context-inspect-status-and-preparation).
+It is metadata validation, not daemon-wide uniqueness enforcement or live access
+proof. A new project is appropriate for a genuinely new product, or after a
+successful inventory establishes no existing representative and current task
+authority permits creation; a failed lookup never establishes absence.
+
 #### Registering a source project (this deployment)
 
-Folder-backed projects are registered through the remote-workspace flow, and
+First apply the representative reuse/source checks above. Only when registration
+or an authorized source rebind is genuinely needed, use the remote-workspace flow;
 the deployed daemon accepts only an **exact connected path**:
 
 1. **Connect** the project folder — a new path recreates the design container
@@ -645,14 +676,20 @@ the deployed daemon accepts only an **exact connected path**:
    directory under home is selectable except the home root and the credential
    directories (`.ssh`, `.gnupg`, `.codex`, `.claude`, `.gemini`, `.config`,
    `.local`).
-2. **Import** it as a project: `POST /api/import/folder` with
+2. **Reuse/rebind before import.** If an existing representative already points
+   at that exact source, keep it. For an authorized idle-source change, use the
+   installed supported rebind path and verify the same identity/new directory.
+   If the capability or ownership is unresolved, report the binding issue rather
+   than silently importing a duplicate. For a genuinely new product only, **import**:
+   `POST /api/import/folder` with
    `{ "baseDir": "<canonical path>", "name": "<name>" }` (or
    `od project import-folder`). The daemon verifies the connected path
    server-side — a browser-reported "connected" flag is never trusted — and
    sets `metadata.baseDir` plus the detected `entryFile`.
 
-Agents perform both steps on demand for the task's project; this is a standing
-capability for every project under home, not a per-project user decision.
+Agents perform needed connection/registration steps, not a fresh import per task;
+this is a standing capability for eligible projects under home, not a per-project
+user decision. Reuse does not bypass exact-source verification or active writers.
 Never mount a broader parent directory as a shortcut: the daemon still requires
 the exact per-project connection, and this deployment deliberately avoids
 Desktop/home-wide mounts. Keep one writer at a time. After import, check the
@@ -754,6 +791,17 @@ a verified no-change result can preserve the implementation with its evidence.
 The design preview is for direction, composition and prototype states. The actual product server is for authentication, API integration, saving, permissions, routing, error handling and the production component/responsive behavior. Keep both responsibilities: a working prototype button or screenshot does not prove real functionality. No API/backend change is authorized by a design artifact.
 
 Give the user two clearly labeled, actually reachable links when applicable: **Design preview** and **Implemented product**. Preserve the product server; do not migrate or duplicate its runtime inside the design workspace merely to consolidate viewing. Resolve URLs for the actual client/network; daemon-returned localhost URLs are not automatically browser-client-PC URLs. Report inaccessible/uninspected states rather than claiming verification. Standard review bundle: the reachable implemented-product link (a temporary tailnet-bound static server is acceptable for a static product — label it tailnet-only and temporary), before/after screenshots of the changed screens at the target viewports, and the design preview link. Screenshots inform the review; the product link remains the functional-verification surface.
+
+For an existing application, the practical default is opening its verified product
+URL in a normal browser tab, retaining the product's own origin/session/API behavior.
+The entry may itself be called `index.html`; serving it from an artifact/file panel
+does not reproduce the product server or authentication. A static preview cannot
+substitute for login, authorization, saving or reload-persistence checks. If framing
+is blocked by browser/auth/mixed-content restrictions, use the top-level product
+link; do not weaken the artifact sandbox, add a credential-forwarding/unrestricted
+proxy, start a duplicate runtime or switch silently to demo. Unreachable product
+links stay explicitly unavailable. Opening/testing/changing data still requires
+the current task's authority and safe test state; storing a URL grants none.
 
 Build can return task-scoped product captures, observed differences and constraints for design feedback, excluding credentials/private data. Feedback may propose design revisions or ask for product information; Build adjudicates and implements in its authorized scope. An important redesign goes through the existing direction-approval boundary again. This loop is explicit feedback, not automatic synchronization or execution delegation back into the engineering session.
 
