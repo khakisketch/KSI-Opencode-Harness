@@ -6,9 +6,14 @@ import { resolve, join } from "node:path";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { readProjectText, section } from "./work-status.mjs";
+import { inspectDesignBinding, readDesignSnapshotFile } from "./design-binding.mjs";
 
-const usage = "Usage: node scripts/work-doctor.mjs [--repo PATH] [--config PATH] [--frontend] [--json]";
+const usage = "Usage: node scripts/work-doctor.mjs [--repo PATH] [--config PATH] [--frontend] [--json] [--design-projects FILE]";
 const fields = ["Repository", "Start command", "Verify command"];
+// Optional recorded identity/source fields. They are read from the existing
+// table only; product identity is never invented from folder or Git state, and
+// branch/revision presence is not a verification claim.
+const identityFields = ["Product", "Product identity", "Source workspace", "Branch", "Revision", "Design exception"];
 const frontendFields = ["Design project", "Design storage", "Entry", "Product URL", "Brand source"];
 
 function filePresent(path) {
@@ -33,14 +38,14 @@ export function readProductBinding(repo) {
   const binding = {};
   for (const line of body.split("\n")) {
     const match = line.match(/^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$/);
-    if (!match || ![...fields, ...frontendFields].includes(match[1])) continue;
+    if (!match || ![...fields, ...identityFields, ...frontendFields].includes(match[1])) continue;
     // Unknown/placeholder values cannot satisfy a prerequisite.
     if (!/^(?:unknown|not recorded|TBD|[-—])$/i.test(match[2])) binding[match[1]] = match[2];
   }
   return binding;
 }
 
-export function inspectReadiness({ repo = process.cwd(), configDir = join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "opencode"), frontend = false } = {}) {
+export function inspectReadiness({ repo = process.cwd(), configDir = join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "opencode"), frontend = false, projects, projectsError } = {}) {
   const root = resolve(repo);
   const config = resolve(configDir);
   const checks = [];
@@ -58,9 +63,28 @@ export function inspectReadiness({ repo = process.cwd(), configDir = join(proces
   const mismatch = binding.Repository && resolve(root, binding.Repository) !== root;
   checks.push({ id: "binding", state: mismatch ? "mismatch" : missing.length ? "unknown" : "present", detail: mismatch ? "Recorded repository differs from the requested working directory; verify the actual project." : missing.length ? `Binding not fully recorded: ${missing.join(", ")}` : "Binding recorded; actual storage/read/write/URL access is not proven." });
   if (frontend) checks.push({ id: "browser", state: browserPresent() ? "present" : "unknown", detail: "Executable presence only; launch/sandbox/product interaction not tested." });
+  // Bounded representative-project metadata check. A missing caller snapshot
+  // stays live-unknown and preserves legacy record-only behavior; an explicit
+  // snapshot (or an unreadable explicit file) that fails to establish the exact
+  // recorded identity needs preparation. A match is metadata evidence only,
+  // never tool/permission/auth/render readiness, and never creates a project.
+  const explicitSnapshot = projects !== undefined;
+  let designState = null;
+  if (binding["Design project"] || explicitSnapshot || projectsError) {
+    const design = projectsError
+      ? { state: "invalid", reasons: [`Design projects snapshot unavailable: ${projectsError}`] }
+      : inspectDesignBinding({ repo: root, binding, projects });
+    designState = design.state;
+    checks.push({
+      id: "design-binding",
+      state: design.state,
+      detail: `${design.reasons.join(" ")} Snapshot match is metadata evidence only, not tool/permission/auth/render readiness; no project is created automatically, and recorded commands/URLs are never executed here.`,
+    });
+  }
   checks.push({ id: "notifier", state: filePresent(join(config, "plugins/design-notifier/installed.json")) ? "present" : "unknown", detail: "Optional runtime manifest presence; activation/revision/delivery not verified." });
   checks.push({ id: "effective-tools", state: "unknown", detail: "Use native catalog and real project read/changed-flow checks; no credentials, service calls or commands executed here." });
-  const needsSetup = !repositoryPresent || missingRoles.length > 0 || !policyPresent || mismatch || (frontend && missing.length > 0);
+  const designNeedsSetup = designState === "mismatch" || designState === "invalid" || designState === "ambiguous" || (designState === "unknown" && explicitSnapshot);
+  const needsSetup = !repositoryPresent || missingRoles.length > 0 || !policyPresent || mismatch || designNeedsSetup || (frontend && missing.length > 0);
   return {
     status: needsSetup ? "needs-setup" : "unverified",
     scope: "local metadata only; not runtime readiness, product acceptance or deployment",
@@ -79,6 +103,14 @@ function main(args) {
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if ((arg === "--repo" || arg === "--config") && args[i + 1] && !args[i + 1].startsWith("--")) options[arg === "--repo" ? "repo" : "configDir"] = args[++i];
+    else if (arg === "--design-projects" && args[i + 1] && !args[i + 1].startsWith("--")) {
+      const file = args[++i];
+      try {
+        options.projects = readDesignSnapshotFile(file);
+      } catch (error) {
+        options.projectsError = error.message;
+      }
+    }
     else if (arg === "--frontend") options.frontend = true;
     else if (arg === "--json") json = true;
     else throw new Error(usage);
