@@ -672,7 +672,7 @@ only after direction approval; this record is not that approved spec or plan.
 
 ## Approved canonical binding and actual-product preview (2026-10-08)
 
-Status: in progress — reuse/preflight and guidance implemented; preview self-development cancelled by user (see progress); final verification pending
+Status: technically complete — reuse/preflight and guidance implemented and independently verified; preview self-development cancelled by user; human/real-use acceptance separate
 
 ### Approved design and execution contract
 
@@ -883,7 +883,7 @@ registry/runtime, no implicit task on EVENTOUCH, no deployment permission expans
 
 ## Approved evidence-based verdict and result contracts (2026-10-08)
 
-Status: in progress — approved 2026-10-08
+Status: technically complete — approved 2026-10-08; independently verified; real-use acceptance separate
 
 ### Approved scope
 
@@ -916,3 +916,62 @@ so the change set is minimal:
 - Independent Reviewer and Test Runner on the integrated revision, also covering the
   canonical-binding change; in-scope findings fixed and affected checks rerun.
 - Commit source/guidance, then records; report the usable level honestly.
+
+### Verification and closure (2026-10-08)
+
+- Fresh independent Reviewer `ses_ee4587024ffeveAnKT7Z6CW5Kd` on `1eb6003..92c866c`:
+  no Critical/Important findings; two minors (the nested-inside mismatch branch
+  was reached only implicitly; the blank-source invalid reason was worded as a
+  type error). Adoption diffs verified exact (global guide additions/replacement;
+  each installed role one sentence, custom content preserved); anchors resolve;
+  design-binding semantics deny-by-default and metadata-only.
+- Independent Test Runner `ses_ee4587021ffepOMaAiJ5jfemMz` at `92c866c`: all nine
+  assigned checks pass — npm check 208/206/0/2 exact; package pass; focused 30/30;
+  commit stat 11 files; whitespace clean; global-guide and installed-role
+  reconstructions exact; OD Compose sha256 match; links 73/0; status tooling
+  selects this section without ambiguity. Logs `tr-*.log` in the evidence dir.
+- Both minors fixed in `7d3b716` (nested fixture pins the existing branch; the
+  wording change is accuracy-only) after author rerun focused 31/31 and full
+  209/207/0/2; post-fix independent Test Runner `ses_ee44d5aeffferL2lXVVHPkl1G4`
+  at `7d3b716`: check 209/207/0/2, focused 31/31, exactly the two intended files,
+  one commit since `92c866c`, clean whitespace.
+- Closure: source/guidance committed `92c866c`+`7d3b716` on main; the developer
+  workspace `.worktrees/design-product-binding` was clean/integrated and retired
+  non-forced with its merged branch; global guide and installed roles adopted
+  with byte-verified private backups. Real-use acceptance of the guidance and the
+  per-project real-design end-to-end flow remain separate and unclaimed.
+
+## Proposed two-harness task contract and verdict boundary (2026-10-08)
+
+Status: proposed; recommendation requested, implementation not approved
+
+The user asked how to improve the harness for the intended structure: OpenCode is
+the single development window; OpenDesign is a self-contained professional design
+harness (its own analyze → implement → render-review → refine → return loop) the
+user should not have to operate directly; Build owns product completion.
+
+Proposed minimal change set (only duplicated or missing contracts; no new
+orchestrator/registry, no OpenDesign change, native prompts/models/permissions
+preserved, independent final verification and design ownership unchanged):
+
+1. Boundary: OpenCode review seats do not repeat the design workspace's internal
+   visual review. Reviewer/Test Runner cover engineering concerns (functional
+   contract, security, regression, integration) and validate that the design
+   review happened on the actual revision with defects tracked fixed/open;
+   aesthetic re-judgment and visual repairs stay with OpenDesign.
+2. Return contract: design returns identify changed screens/files on the actual
+   source revision, rendered-review evidence (fixed/open), functional-contract
+   impacts, unresolved items and evidence locations — extending the existing
+   cross-seat evidence sentence.
+3. Per-project readiness of the three conditions — (a) write access to the real
+   source path, (b) completion detection/handoff, (c) Build continuing from the
+   actual modified source — is verified and recorded per project, never assumed;
+   a missing condition is a blocker report while independent nonvisual work
+   continues.
+4. Single-window principle: the user is not asked to open or operate OpenDesign
+   or ferry artifacts between tools; Build commissions, monitors, validates and
+   reports from OpenCode.
+
+Current limits: direct source editing was verified in bounded fixtures; the
+completion notifier is technically verified with documented limits; full
+real-project end-to-end use remains per-project unverified, not assumed.
