@@ -16,6 +16,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inspectWorkStatus, renderWorkStatus } from "./work-status.mjs";
+import { classifyRun } from "../plugins/design-notifier/lib/messages.js";
 export { inspectWorkStatus, renderWorkStatus } from "./work-status.mjs";
 export { inspectReadiness } from "./work-doctor.mjs";
 
@@ -116,7 +117,7 @@ export function summarizeBindings(raw) {
       sessionID: typeof record.sessionID === "string" ? record.sessionID : null,
       classification:
         record.delivery?.classification ??
-        (record.lastStatus?.deliverableValid === true ? "valid" : record.lastStatus ? "invalid" : null),
+        (record.lastStatus?.status ? classifyRun(record.lastStatus) : record.lastStatus?.deliverableValid === true ? "valid" : null),
       productVerification: record.lastStatus?.status === "succeeded" ? "required"
         : ["failed", "canceled"].includes(record.lastStatus?.status) ? "blocked" : "unknown",
       updatedAt: numberOrNull(record.updatedAt),
@@ -199,14 +200,29 @@ export function readJsonFile(path, fallback, onUnavailable = () => {}) {
   }
 }
 
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function validGoalState(value) {
+  const goals = Object.hasOwn(value, "goals") ? value.goals : value;
+  return (isRecord(goals) || Array.isArray(goals)) && Object.values(goals).every(isRecord);
+}
+
+function validBindingState(value) {
+  return Object.values(value).every(record => isRecord(record)
+    && (record.lastStatus == null || isRecord(record.lastStatus))
+    && (record.delivery == null || isRecord(record.delivery)));
+}
+
 export function buildReport({ repo = null, days = 7, now = Date.now(), includeUsage = true } = {}) {
   const paths = defaultPaths();
   const since = now - days * 24 * 60 * 60 * 1000;
   const warnings = [];
-  const state = (path, fallback, label) => {
+  const state = (path, fallback, label, validate = () => true) => {
     let unavailable = false;
     const value = readJsonFile(path, fallback, () => { unavailable = true; });
-    if (unavailable || !value || typeof value !== "object" || Array.isArray(value)) {
+    if (unavailable || !isRecord(value) || !validate(value)) {
       warnings.push(`${label} unavailable or malformed; empty output is not evidence of no work.`);
       return fallback;
     }
@@ -225,8 +241,8 @@ export function buildReport({ repo = null, days = 7, now = Date.now(), includeUs
     generatedAt: now,
     days,
     repo: repo ? resolve(repo) : null,
-    goals: summarizeGoals(state(paths.goals, {}, "Goal state")),
-    designRuns: summarizeBindings(state(paths.bindings, {}, "Design state")),
+    goals: summarizeGoals(state(paths.goals, {}, "Goal state", validGoalState)),
+    designRuns: summarizeBindings(state(paths.bindings, {}, "Design state", validBindingState)),
     designPaused: state(paths.paused, {}, "Design pause state"),
     usage,
     worktrees: repo ? queryWorktrees(repo) : [],

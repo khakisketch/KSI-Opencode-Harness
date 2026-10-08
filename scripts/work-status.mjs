@@ -65,8 +65,23 @@ export function inspectWorkStatus(repo) {
   const ledgerPath = slice?.match(/ledger:\s*(docs\/superpowers\/plans\/[a-zA-Z0-9_-]+\.md)\s*$/)?.[1] ?? null;
   const ledgerText = ledgerPath ? readProjectText(root, ledgerPath) : null;
   const recordedStatus = field(checkpoint, "Status") ?? "unknown";
-  const ledgerStatus = field(ledgerText, "Status") ?? "unknown";
   const warnings = [];
+  const ledgerSection = field(checkpoint, "Ledger section");
+  let ledgerBody = ledgerText;
+  let sectionAmbiguous = false;
+  if (ledgerSection && ledgerText) {
+    const matches = ledgerText.split(/\r?\n/).filter(line => line.trim() === `## ${ledgerSection}`).length;
+    if (matches !== 1) {
+      ledgerBody = null;
+      sectionAmbiguous = matches > 1;
+      warnings.push(sectionAmbiguous ? "Ledger section is ambiguous (duplicate headings); reconcile the selector." : "Ledger section missing or unavailable; current work is unknown.");
+    } else {
+      ledgerBody = section(ledgerText, ledgerSection);
+    }
+  }
+  const ledgerStatuses = [...String(ledgerBody ?? "").matchAll(/^Status:[ \t]*(.+)$/gm)].map(match => match[1].trim());
+  const ledgerStatus = sectionAmbiguous || ledgerStatuses.length > 1 ? "ambiguous" : ledgerStatuses[0] ?? "unknown";
+  if (ledgerStatuses.length > 1) warnings.push("Ledger has multiple Status fields; identify the current section before reconciling.");
   if (!checkpoint) warnings.push("Checkpoint missing or unreadable; recorded work is unknown.");
   if (!head) warnings.push("Git revision unavailable; not a verified Git checkout.");
   if (head && checkpoint && (!recordedHead || !head.startsWith(recordedHead))) warnings.push("Checkpoint revision differs from current Git HEAD or is unrecorded.");
@@ -74,7 +89,7 @@ export function inspectWorkStatus(repo) {
   if (branch && recordedBranch && branch !== recordedBranch) warnings.push("Checkpoint branch differs from current Git branch.");
   if (slice?.includes("ledger:") && !ledgerPath) warnings.push("Ledger pointer malformed or outside the supported plans namespace.");
   if (ledgerPath && !ledgerText) warnings.push("Ledger missing, unreadable or outside the project.");
-  if (/^idle(?:$|\s+|:\s*)/i.test(recordedStatus) && ledgerText && (/in[ _-]?progress|active/i.test(ledgerStatus) || /^\s*- \[ \]/m.test(ledgerText))) {
+  if (/^idle(?:$|\s+|:\s*)/i.test(recordedStatus) && ledgerBody && (/\b(?:in[ _-]?progress|active)\b/i.test(ledgerStatus) || /^ {0,3}(?:[-*+]|\d+[.)])\s+\[ \](?:\s|$)/m.test(ledgerBody))) {
     warnings.push("Idle checkpoint has an unfinished ledger; reconcile before claiming completion.");
   }
   return {
@@ -82,7 +97,7 @@ export function inspectWorkStatus(repo) {
     recordedStatus,
     slice,
     git: { head, branch: branch || null, changedPaths: changes === null ? null : changes ? changes.split("\n").length : 0, ahead },
-    ledger: { path: ledgerPath, status: ledgerStatus },
+    ledger: { path: ledgerPath, section: ledgerSection, status: ledgerStatus },
     acceptance: section(product, "Human acceptance") || "not recorded",
     delivery: ahead === null ? "unknown" : ahead > 0 ? "local commits ahead of upstream; publication/deployment not inferred" : "no commits ahead of upstream; deployment not inferred",
     next: section(checkpoint, "Next").split("\n").flatMap(line => {

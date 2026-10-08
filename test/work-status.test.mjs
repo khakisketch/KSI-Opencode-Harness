@@ -120,6 +120,62 @@ test("ledger pointers cannot escape the project through traversal or symlinks", 
   assert.equal(result.warnings.some(w => /outside|unreadable/i.test(w)), true)
 })
 
+// Break caught: a reused ledger's first completed status hides later active work.
+test("multiple ledger statuses are ambiguous without an explicit current section", t => {
+  const root = fixture(t)
+  const head = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim()
+  writeFileSync(join(root, ".opencode/working-state.md"), `HEAD: ${head}\nStatus: idle\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\n`)
+  writeFileSync(join(root, "docs/superpowers/plans/fixture.md"), "## Prior\nStatus: complete\n- [x] Old\n\n## Current\nStatus: in progress\n")
+  const result = status.inspectWorkStatus(root)
+  assert.equal(result.ledger.status, "ambiguous")
+  assert.equal(result.warnings.some(w => /multiple.*status|ambiguous/i.test(w)), true)
+})
+
+// Break caught: historical statuses/checkboxes contaminate the selected current slice.
+test("an explicit ledger section isolates current status and unfinished work", t => {
+  const root = fixture(t)
+  const head = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim()
+  const checkpoint = join(root, ".opencode/working-state.md")
+  writeFileSync(join(root, "docs/superpowers/plans/fixture.md"), "## Prior\nStatus: active\n- [ ] Historical item\n\n## Current\nStatus: complete\n- [x] Done\n\n## Following\nStatus: active\n- [ ] Other slice\n")
+  writeFileSync(checkpoint, `HEAD: ${head}\nStatus: idle\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\nLedger section: Current\n`)
+  assert.equal(status.inspectWorkStatus(root).ledger.status, "complete")
+  assert.deepEqual(status.inspectWorkStatus(root).warnings, [])
+  writeFileSync(checkpoint, `HEAD: ${head}\nStatus: idle\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\nLedger section: Following\n`)
+  assert.equal(status.inspectWorkStatus(root).ledger.status, "active")
+  assert.equal(status.inspectWorkStatus(root).warnings.some(w => /unfinished ledger/i.test(w)), true)
+})
+
+// Break caught: missing/duplicate section selectors silently fall back to older work.
+test("missing or duplicate ledger sections stay unknown or ambiguous with a warning", t => {
+  const root = fixture(t)
+  const head = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim()
+  const checkpoint = join(root, ".opencode/working-state.md")
+  const ledger = join(root, "docs/superpowers/plans/fixture.md")
+  writeFileSync(checkpoint, `HEAD: ${head}\nStatus: idle\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\nLedger section: Current\n`)
+  writeFileSync(ledger, "## Prior\nStatus: complete\n")
+  const missing = status.inspectWorkStatus(root)
+  assert.equal(missing.ledger.status, "unknown")
+  assert.equal(missing.warnings.some(w => /section.*missing|section.*unavailable/i.test(w)), true)
+  writeFileSync(ledger, "## Current\nStatus: complete\n\n## Current\nStatus: active\n")
+  const duplicate = status.inspectWorkStatus(root)
+  assert.equal(duplicate.ledger.status, "ambiguous")
+  assert.equal(duplicate.warnings.some(w => /section.*ambiguous|duplicate/i.test(w)), true)
+})
+
+// Break caught: inactive matches active; equivalent Markdown tasks are missed.
+test("inactive is not active and supported unchecked list markers warn consistently", t => {
+  const root = fixture(t)
+  const head = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim()
+  writeFileSync(join(root, ".opencode/working-state.md"), `HEAD: ${head}\nStatus: idle\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\n`)
+  const ledger = join(root, "docs/superpowers/plans/fixture.md")
+  writeFileSync(ledger, "Status: inactive\n- [x] Done\n")
+  assert.deepEqual(status.inspectWorkStatus(root).warnings, [])
+  for (const marker of ["-", "*", "+", "1.", "2)"]) {
+    writeFileSync(ledger, `Status: complete\n${marker} [ ] Required check\n`)
+    assert.equal(status.inspectWorkStatus(root).warnings.some(w => /unfinished ledger/i.test(w)), true, marker)
+  }
+})
+
 test("outside-root guard refuses parent escapes on native and Windows separators", () => {
   assert.equal(typeof isOutsideRoot, "function")
   // Windows form: backslash escapes are refused, siblings allowed.

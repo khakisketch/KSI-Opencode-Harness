@@ -15,6 +15,14 @@ canonical project ledger while preserving its content and approval state. The na
 source does not remain a second evolving execution plan. This [handoff contract](execution.md#one-approved-plan-across-plan-and-build)
 does not replace native prompts, expand permissions, auto-import files or enforce compliance.
 
+Within an authorized outcome, Build owns discovery, prioritization and the
+implementation → actual-result review → repair → affected verification loop, not
+just an improvement list handed back to the user. The design workspace remains
+the visual writer/reviewer, and independent final Test Runner evidence remains
+distinct from author self-review. This [completion default](execution.md#own-the-completion-loop-not-a-list-for-the-user)
+does not turn audit/Plan-only requests into product-write authority, add a runtime
+or automatically resume paused work/goals; material scope/security/delivery gates stay.
+
 Native-first: keep tool behavior, provider/model prompting and native mode boundaries upstream; put KSI operating policy and project decision criteria in the appropriate `AGENTS.md`. A non-empty agent `system` (including a Markdown agent body) replaces the provider base prompt, while project instructions remain additional sources. An AGENTS.md supplement can still alter behavior, and OpenCode does not resolve conflicts automatically. Diagnose repeated failures against actual goals, state, loaded guidance, permissions and model/step constraints before considering a separately authorized prompt-replacement experiment. Compare the same tasks under matched conditions and preserve rollback; the installer must not turn an unverified experiment into a default built-in override.
 
 Design is a separate workspace, not a new native OpenCode role. [OpenDesign](integrations/opendesign.md) owns all visual frontend analysis, UI source/styles, responsive/interaction presentation, rendered design review and refinement, including small visual fixes. Build owns contracts, coordination, nonvisual business/API/data/auth work, functional integration/verification and Git. Mechanical artifact transfer is not permission to redesign. This installer distributes no design skills, craft references or design-system package; project brand and authorized outcome remain authoritative. No orchestrator role, KSI preview runtime, mandatory design stage for nonvisual work or model override is added.

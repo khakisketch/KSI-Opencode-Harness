@@ -276,6 +276,39 @@ test("a held run that becomes active again returns to tracking and is delivered 
   )
 })
 
+// Break caught: resume promises next-tick delivery while hidden backoff still applies.
+test("resume reports retry eligibility and list exposes the preserved delivery wait", async () => {
+  await withHarness(async ({ notifier, store, deliveries, setDeliverError, advance, clock }) => {
+    await notifier.watchRun({ runId: RUN_A, sessionID: SESSION })
+    setDeliverError(new Error("transient send failure"))
+    await notifier.tick()
+    const key = `run:${RUN_A}@${SESSION}`
+    const failed = await store.get(key)
+    assert.equal(failed.deliveryAttempts, 1)
+    assert.equal(failed.deliveryNextAttemptAt - clock(), 30_000)
+    setDeliverError(null)
+    await store.setPaused(SESSION, true)
+    await notifier.tick()
+    const resumed = await notifier.runTool({ action: "resume" }, { sessionID: SESSION })
+    assert.match(resumed.content[0].text, /retry.*delay|retry.*wait/i)
+    assert.doesNotMatch(resumed.content[0].text, /are delivered.*next poll tick/i)
+    await notifier.tick()
+    assert.equal(deliveries.length, 0, "resume must not bypass protective retry")
+    const listed = JSON.parse((await notifier.runTool({ action: "list" }, { sessionID: SESSION })).content[0].text)
+    const row = listed.bindings.find(b => b.runId === RUN_A)
+    assert.equal(row.state, "held")
+    assert.equal(row.deliveryAttempts, 1)
+    assert.equal(row.deliveryNextAttemptAt, failed.deliveryNextAttemptAt)
+    assert.equal(row.retryAfterMs, 30_000)
+    advance(30_001)
+    await notifier.tick()
+    assert.equal(deliveries.length, 1)
+    assert.equal((await store.get(key)).state, "delivered")
+    const deliveredList = JSON.parse((await notifier.runTool({ action: "list" }, { sessionID: SESSION })).content[0].text)
+    assert.equal(deliveredList.bindings.find(b => b.runId === RUN_A).retryAfterMs, 0)
+  }, { runs: { [RUN_A]: terminalRun(RUN_A) } })
+})
+
 test("pausing one session leaves other sessions unaffected", async () => {
   await withHarness(
     async ({ store, notifier, deliveries }) => {

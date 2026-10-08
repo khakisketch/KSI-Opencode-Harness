@@ -153,3 +153,54 @@ test("design artifact verdict is kept separate from pending product verification
   const report = renderReport({ generatedAt: 0, days: 7, goals: [], designRuns: rows, designPaused: {}, usage: {byProject: [], top: []}, repo: null, nextSlices: [] })
   assert.match(report, /artifact=invalid.*product=required/)
 })
+
+// Break caught: undelivered running/failed/canceled snapshots collapse to invalid.
+test("design report keeps execution classification consistent before and after delivery", () => {
+  for (const [state, runStatus, valid, expected, product] of [
+    ["tracking", "running", null, "pending", "unknown"],
+    ["held", "failed", null, "failed", "blocked"],
+    ["tracking", "canceled", false, "canceled", "blocked"],
+    ["held", "succeeded", false, "invalid", "required"],
+    ["tracking", "succeeded", true, "valid", "required"],
+  ]) {
+    const record = { state, lastStatus: { status: runStatus, deliverableValid: valid } }
+    const row = summarizeBindings({ one: record })[0]
+    assert.equal(row.classification, expected, runStatus)
+    assert.equal(row.productVerification, product, runStatus)
+    assert.equal(summarizeBindings({ one: { ...record, state: "delivered", delivery: { classification: expected } } })[0].classification, expected)
+  }
+})
+
+// Break caught: deep wrong-type containers disappear as zero activity without warnings.
+test("nested malformed goal and design containers are unavailable rather than empty", t => {
+  const dir = mkdtempSync(join(tmpdir(), "ksi-report-shape-"))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const keys = ["KSI_WORK_REPORT_GOALS", "KSI_WORK_REPORT_BINDINGS", "KSI_WORK_REPORT_PAUSED"]
+  const before = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  const paths = keys.map((key, i) => join(dir, `${i}.json`))
+  for (const [i, key] of keys.entries()) process.env[key] = paths[i]
+  t.after(() => {
+    for (const key of keys) {
+      if (before[key] === undefined) delete process.env[key]
+      else process.env[key] = before[key]
+    }
+  })
+  writeFileSync(paths[2], "{}")
+  for (const goals of [{ version: 3, goals: "invalid" }, { goals: null }, { goals: { one: "invalid-record" } }, { goals: { one: [] } }]) {
+    writeFileSync(paths[0], JSON.stringify(goals))
+    writeFileSync(paths[1], "{}")
+    const report = buildReport({ includeUsage: false })
+    assert.equal(report.warnings.some(w => /Goal state unavailable/i.test(w)), true, JSON.stringify(goals))
+  }
+  writeFileSync(paths[0], "{}")
+  for (const bindings of [{ one: "invalid-record" }, { one: [] }, { one: { lastStatus: "invalid" } }]) {
+    writeFileSync(paths[1], JSON.stringify(bindings))
+    assert.equal(buildReport({ includeUsage: false }).warnings.some(w => /Design state unavailable/i.test(w)), true, JSON.stringify(bindings))
+  }
+  // Empty and supported legacy containers must remain valid and isolated from live files.
+  for (const goals of [{}, { goals: {} }, { goals: [{ sessionID: "ses_fixture", status: "active" }] }, { ses_fixture: { status: "active" } }]) {
+    writeFileSync(paths[0], JSON.stringify(goals))
+    writeFileSync(paths[1], JSON.stringify({ one: { state: "tracking", lastStatus: null } }))
+    assert.deepEqual(buildReport({ includeUsage: false }).warnings, [])
+  }
+})

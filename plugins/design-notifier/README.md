@@ -19,7 +19,8 @@ plugin never claims success, never retries generation and never implements.
 - **Wake permission is per session.** An unpaused session receives the
   completion with automatic wake (`resume:true`, `delivery:queue`). A paused
   session is not contacted at all: the terminal result is stored as `held` in
-  notifier state, and `resume` delivers it with auto wake on the next poll tick.
+  notifier state. After `resume`, it becomes eligible for auto wake on poll ticks
+  once existing delivery retry delays and any remaining pause switches permit it.
 - Recovers across restarts: state lives on disk; a lost `start_run` response is
   reconciled by `clientRequestId` (`GET /api/runs?projectId=`) for up to 24 h —
   it never starts a replacement run.
@@ -65,7 +66,7 @@ plugin never claims success, never retries generation and never implements.
 | Waiting, session idle | queue delivery + auto wake (`resume:true`) |
 | Session busy | `delivery:"queue"` — does not interrupt the current turn |
 | Session paused | completion stored as `held`; session untouched until `resume` |
-| Resume with held completions | delivered with auto wake on the next poll tick |
+| Resume with held completions | eligible for auto wake on poll ticks after existing retry delays; remaining pause switches still apply (`retryAfterMs` in list) |
 | Target session deleted | marked `orphaned`; no cross-session delivery, no new agent |
 | Run missing on daemon | marked `missing`; kept for diagnosis, no delivery |
 | Plan-mode session | wakes, but the message requires analysis/report only |
@@ -136,10 +137,12 @@ copy loads; the installer refuses to touch a directory that is not this plugin.
 
 - Same-host only: the OpenCode server process must reach the daemon gateway
   (default `http://127.0.0.1:7456`).
-- Notifications are pull-based; expect up to one poll cycle (default 60 s) of
-  latency after a run finishes, and up to one cycle after `resume` for held
-  completions. A capture in a non-leader location is picked up by the leader's
-  next cycle.
+- Notifications are pull-based; without a delivery error or remaining pause,
+  expect up to one poll cycle (default 60 s) after a run finishes or `resume`.
+  Failed deliveries use exponential retry delays capped at 15 min; pause/resume
+  preserves that protective delay. `design_runs list` exposes `deliveryAttempts`,
+  `deliveryNextAttemptAt` and the remaining `retryAfterMs`, not a delivery guarantee.
+  A capture in a non-leader location is picked up by the leader's next cycle.
 - If the OpenCode server is stopped entirely, deliveries happen after it
   restarts (state is durable). A crashed leader is replaced after its lease
   expires (≤60 s) or immediately on clean unload.

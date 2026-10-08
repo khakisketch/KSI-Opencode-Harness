@@ -76,6 +76,41 @@ acceptance and external delivery distinct. Native prompts/modes/permissions, des
 ownership, independent final testing and explicitly requested goals remain unchanged;
 this guidance is not enforced plan loading, monitoring or guaranteed compliance.
 
+### Own the completion loop, not a list for the user
+
+An authorized outcome includes agent-owned discovery, prioritization, repair and
+reverification of relevant defects. Default to: acceptance criteria → implementation
+→ review of actual results → concrete defect correction → affected checks → outcome
+report. Prioritize by contribution to acceptance, safety and regression risk; choose
+routine tools, sequencing and reversible details yourself. Do not stop after a
+findings/candidate list, ask the user to select routine repairs, or make them repeat
+known requirements. Keep defect → revision → check → fixed/open evidence in the same
+task ledger, and continue all remaining authorized work without per-round approval.
+
+Self-review does not replace independent evidence. Engineering uses actual code and
+changed-flow results; the design workspace owns actual rendered review/refinement
+and all visual repairs. Preserve independent Test Runner milestone/closeout checks
+and appropriate Reviewer checks; do not force a helper per edit or treat a generator's
+self-rating as design approval. Rerun affected checks after a repair. A passing subset
+or an agent's “done” is not the agreed result.
+
+Match depth to risk. For recurring/no-progress failures, preserve partial work,
+diagnose the cause and adjust a reversible approach within scope instead of blind
+replay or endless handoffs. If the agreed quality cannot be reached, report the
+concrete remaining defect/blocker truthfully; do not call it complete. Required
+access, material direction/scope/security decisions, substantial cost/risk increases
+and unapproved external effects still return to the user with a recommended default.
+Continue independent authorized work where safe. No arbitrary round cap, new runtime
+loop, automatic goal or permission expansion is implied.
+
+The request still controls authority: an audit-only request includes review/correction
+of its findings and evidence, not product implementation; Plan cannot execute product
+repairs. An improvement/implementation request delegates routine corrections serving
+that approved outcome, not every backlog item or another product. Respect explicit
+pauses and native modes/permissions/budgets. Report the usable result and actual
+verification briefly, plus only unresolved material decisions/blockers; do not hand
+ordinary prioritization or a routine “which one next?” menu back to the user.
+
 ## Technical completion and human acceptance
 
 Technical completion requires the agreed implementation/integration and actual verification evidence, plus scoped local commits when allowed by the adopted policy. Report failing/unrun checks honestly. Human product acceptance and external delivery are distinct states: tests do not establish user satisfaction, and pending acceptance does not block remaining authorized engineering work. Technical completion does not authorize a new milestone or unrelated backlog work.
@@ -325,6 +360,11 @@ Status separates recorded work, current revision, human acceptance and upstream
 comparison. An idle checkpoint is not implementation completion; zero commits
 ahead is not deployment. Before closeout, reconcile checkpoint, ledger and
 product-state with the actual inspected evidence, including recorded acceptance.
+For a reused ledger with several `Status:` fields, the agent records the exact
+current `##` heading as optional `Ledger section: <heading>` in the checkpoint.
+Missing/duplicate selectors or unselected multiple statuses surface unknown/ambiguous
+work rather than guessing the first/latest section. Single-status records need no
+extra field; this is agent bookkeeping, not a form for the user to fill in.
 
 Doctor checks local role/policy file presence and reusable binding; frontend mode
 also looks for a browser executable. It never executes recorded commands, fetches

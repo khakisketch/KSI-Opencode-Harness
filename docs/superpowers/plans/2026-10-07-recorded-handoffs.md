@@ -434,3 +434,136 @@ Recommend a bounded follow-up for audit-A/C first, audit-B next, and accurate
 audit-D deferred-retry reporting without weakening retry protection. Permission
 semantics and any reset-on-resume change retain a separate decision. All fixes
 remain unapproved; no implicit goal, release, install or product task starts here.
+
+## Approved agent-owned completion loop (2026-10-08)
+
+Status: independently verified; scoped local commit pending
+
+### Approved outcome and scope
+
+The user accepted the preceding in-chat default-loop proposal with "내가 다 일일이
+하는 건 너무 싫어 이것도 개선해줘": do not hand routine discovery, prioritization,
+repair and verification back as a list for the user to administer. Agent judgment
+owns them within the agreed outcome; only material decisions return to the user.
+
+- Current target/base: canonical `main`, `eccef13aa49350f1a7155e431ee90f006d821b8c`,
+  initially clean/ahead7. Primary inline, one writer; four unrelated worktrees kept.
+- Scope interpretation: adopt the proposed common loop in source/current-user
+  guidance and apply it to the four already reproduced harness consistency findings.
+  They are routine corrections serving this same outcome, not another product task.
+  The prior audit-only request did not authorize repairs; this subsequent improvement
+  request supplies execution authority. It does not authorize every backlog item.
+- Preserve native prompts/modes/permissions/models/budgets, role templates/installer,
+  upstream skills, paused work/goal opt-in, design ownership, independent final checks,
+  sensitive-read policy and delivery retry behavior. No runtime installation/restart,
+  publication/push/deploy, goal creation, live state mutation or product/design run.
+- Current-user operating guidance is the only live adoption. Notifier source fixes
+  remain separate from its pinned installed payload; no silent runtime upgrade.
+
+### Implementation plan
+
+**Goal:** approved outcome → agent-owned defect triage/repair/reverification → usable
+result report, without routine approval loops or user-managed candidate lists.
+**Architecture:** existing native flow/guidance, bounded parser/report corrections
+and honest retry eligibility; no monitor or second orchestration authority.
+**Tech stack:** existing Node ESM/node:test and Markdown; no added dependency.
+**Spec basis:** preceding approved in-chat loop proposal plus this scope and the
+read-only audit's narrowed A-D evidence; no separate competing spec/ledger.
+**Execution:** inline with TDD, one fresh whole-change review and independent final
+Test Runner. Existing operating adoption selects routine execution; no new method
+choice or implementation-plan approval ceremony for these bounded corrections.
+
+Pre-flight: A changes section selection consumed by status only; C/B share the
+report file and are sequential; B consumes the existing pure notifier classifier;
+D preserves the retry state machine. Guides consume the actual resulting contracts.
+
+- [x] Task 1 — current-ledger status (`scripts/work-status.mjs`, its tests): RED
+  multi-status ambiguity, explicit optional `Ledger section:` selection, missing
+  section, inactive and supported unchecked Markdown; GREEN bounded recognition.
+  Unselected multi-status records warn instead of guessing newest/oldest. Existing
+  one-status behavior, safe namespace/root guards and three Next actions remain.
+- [x] Task 2 — report semantics (`scripts/work-report.mjs`, its tests): RED nested
+  malformed goal/binding state, reachable running/failed/canceled classifications;
+  GREEN shape validation and existing canonical classifier. Preserve valid empty
+  maps, supported goal containers, terminal artifact-only verdict/product distinction,
+  unavailable-source warnings and process-local fixture isolation.
+- [x] Task 3 — retry reporting (`plugins/design-notifier/lib/notifier.js`, its tests,
+  README): RED failed-send→hold→resume must retain retry delay, expose wait in list
+  and not promise next-tick delivery; GREEN metadata and accurate eligibility copy.
+  No immediate retry/reset, pause/claim/delivery semantics or live daemon effect.
+- [x] Task 4 — common operating default (README/execution/architecture, project/autonomy
+  examples, current-user `AGENTS.md`): implementation includes agent-owned discovery,
+  priority and repair/recheck; proportionate tests and independent closure remain.
+  Audit/Plan-only requests do not become product-write authority. Design uses actual
+  rendered review; no self-approval, endless replay, forced team or automatic goal.
+- [ ] Task 5 — fresh review, independent source/package/targeted checks, local status
+  flow, protected25hashes and exact guide diff; integrate scoped commits and reconcile
+  records/checkpoint. Finish with outcomes, not another routine improvement menu.
+
+Review focus: ambiguous or unavailable current ledger; mixed/unsupported nested
+state and valid legacy fields; execution versus artifact/product status; retry and
+remaining pause protections; scope/Plan/design/goal boundaries under proactive work.
+
+### Verification and evidence
+
+Watch relevant new tests fail before production edits, then pass. Run author focused
+tests plus the full `TMPDIR=/tmp/opencode npm run check`. Independent final checks:
+same source command, offline `npm run check:package`, `git diff --check`, real status
+CLI, local new links, protected hashes and exact current-user guide adoption.
+Guidance review assesses interpretations, not paid model compliance/quality probes.
+Private backup/evidence root: `/tmp/opencode/ksi-agent-owned-loop-20261008-v118o3xk`.
+Raw audit evidence remains linked above; historical conclusions are not rewritten.
+
+- Author TDD: focused three-file command total42,35pass/7fail before production edits;
+  all failures match missing selection/shape/classification/retry-copy behavior.
+  After minimal fixes, focused42/42pass,0fail/skip. Logs `red-focused.log` and
+  `green-focused.log` in the private root. No assertion weakening or added skip.
+- Current selection is optional exact `Ledger section:` for a unique `##` heading;
+  missing/duplicate/multi-status states disclose unknown/ambiguity. No first/latest
+  inference; root containment and ordinary one-status flow remain.
+- Reporter uses the existing pure notifier classifier; valid legacy boolean-only
+  snapshots are retained. Goal/binding maps validate container/record shape before
+  normalization, including supported nested goal arrays. Retry attempt/timestamp/
+  remaining wait are exposed in list; resume copy discloses eligibility, retry and
+  remaining pause protections. No delivery/retry state-machine behavior changed.
+- Common loop is aligned in five source guides and two current-user bullets;
+  this session received the ambient two-bullet diff. Author full check183total/
+  181pass/0fail/2existing optional skips, diff pass. Exact2guide additions/0removals,
+  backup reconstruction and both examples match; protected25/25unchanged. Real status
+  selects this exact section/in-progress rather than the old completed entry; Next3
+  retained in order. Independent final evidence/review still pending; no general
+  model-compliance, all-session loading or installed-notifier update claim.
+
+- Fresh Reviewer `ses_ee53c01b6ffef7heTWBASuHFHl` inspected the entire14-file diff
+  against this scope; no Critical findings. Important: two earlier notifier README
+  promises still said unconditional next tick. Corrected both, and qualified the
+  current product-summary latency statement; all retain retry protection. Prose-only
+  correction uses the existing actual retry regression, not string tests as compliance.
+- Minor observations retained, not new user tasks: an empty/no-status selected section
+  reports unknown without an extra warning; examples/fenced status text can cause safe
+  ambiguity; version-only goal metadata warns rather than pretending no work; text
+  output lacks JSON's ledger detail. Current explicit selection/unknown handling is
+  safe. Initial-clean wording was clarified in the updated product summary.
+- Actual Test Runner dispatch `ses_ee53b7de2ffeEFMdQg4lM68Y7j` independently ran
+  focused42/42, source183total/181pass/0fail/2existing optional skips, offline package,
+  diff, status JSON/text checks. Links48/48, protected25/25, exact2guide additions/
+  0removals with byte-identical reconstruction and both example matches. Primary read
+  machine receipt and matched all14task files/checkpoint/guide16full SHA256.
+- This session and the Test Runner received the ambient guide diff; this proves those
+  receipts, not all-session/model compliance. No native/paid-provider probes or live
+  service/state writes. Post-documentation-fix checks passed; no source/guide changes
+  after that verified snapshot, only notifier README and common closeout records.
+- Same actual Test Runner post-fix: fresh focused42/42, source183/181/0/2optional skips,
+  package/diff/status JSON+text pass; links49/49, protected25/25, guide2added0removed/
+  byte reconstruction/both examples pass. All3README resume claims and current product
+  latency summary match eligibility/retry semantics. Primary matched all16post-fix
+  file/guide/checkpoint hashes to `postfix-summary.json`. No remaining blocking finding.
+- Two optional tests are not passed: `real isolated Compose preserves base mounts
+  and recovers failed project connection`; `auto-only final-summary overlay preserves
+  the native step limit`. No new skip/todo or assertion weakening. Native config,
+  role/installer/upstream bytes and pinned runtime remain unchanged.
+- Current-user adopted guide SHA256:
+  `69db311c9d716e261a66bd93c72da3dc1a2bab2952b7e85c24015bbbbe2a2931`.
+  Final source/guide snapshot is post-fix; subsequent local closeout updates only
+  ledger/product-state/checkpoint. No new workspace to integrate/remove; local target
+  remains canonical `main`, external delivery unapproved.

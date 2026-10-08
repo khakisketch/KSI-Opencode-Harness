@@ -636,6 +636,10 @@ export function createNotifier({
       strategyTerminal: binding.lastStatus?.strategyTerminal ?? null,
       heldAt: binding.heldAt ?? null,
       deliveredAt: binding.deliveredAt ?? null,
+      deliveryAttempts: binding.deliveryAttempts ?? 0,
+      deliveryNextAttemptAt: binding.deliveryNextAttemptAt ?? null,
+      retryAfterMs: ["tracking", "held"].includes(binding.state) && Number.isFinite(binding.deliveryNextAttemptAt)
+        ? Math.max(0, binding.deliveryNextAttemptAt - clock()) : 0,
       updatedAt: binding.updatedAt ?? null,
       lastError: binding.lastError ? String(binding.lastError).slice(0, 160) : null,
     };
@@ -689,7 +693,7 @@ export function createNotifier({
       return text(
         action === "pause"
           ? `Automatic wake-up paused for ${what}. Terminal runs are kept in notifier state (visible via design_runs list) and the session is not contacted until resume.`
-          : `Automatic wake-up resumed for ${what}. Held completions are delivered with auto wake on the next poll tick.`,
+          : `Automatic wake-up resumed for ${what}. Held completions become eligible on poll ticks after existing retry delays; remaining pause switches still apply. Use design_runs list to inspect the remaining retry wait.`,
       );
     }
     if (action === "watch") {
