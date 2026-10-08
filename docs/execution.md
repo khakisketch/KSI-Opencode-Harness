@@ -14,6 +14,68 @@ When asked for next development tasks or priorities, compare the current approve
 
 Do not ask "should I continue?" between authorized tasks. Report meaningful progress and continue. Resolve reversible implementation details inside the agreed contracts; record significant assumptions. Reopen a decision only when material scope, target, effects or risk change, not because a file, test cycle or plan task ended.
 
+### One approved plan across Plan and Build
+
+Plan prepares decisions; it does not become the authority over the user's goal or
+the execution Primary. Build can also plan when the task is clear. Use the same
+workstream record whichever agent or installed skill helped write it. Superpowers
+provides applicable planning/development methods, not a second competing plan or
+extra product authority; keep required specs linked rather than duplicating them.
+
+For substantive planning, keep the handoff compact and task-proportional:
+
+- Goal and latest requirement/decision basis; approval state and exactly what is approved.
+- Scope/exclusions, preserved contracts and observable acceptance/failure criteria.
+- Relevant repository/worktree/base, existing spec/record paths and unresolved decisions.
+- Dependencies, execution order and verification/evidence needed for completion.
+
+This is content to capture in the existing document, not a mandatory form or a new
+spec for every small edit. A Plan draft remains a proposal until the user approves
+the relevant scope; selecting Build, saving a file or checking a box is not approval.
+
+#### Native Plan storage to project record
+
+Respect the actual native write policy. V2 normally permits Plan documents under
+`~/.opencode/plan/`, not ordinary repository edits. When a required repository record
+cannot be written in Plan, save the plan in its permitted native location when
+asked and return its exact path, relevant section/version, intended repository/ledger
+target, approval state and open decisions. Disclose that repository persistence is
+pending; do not use shell, MCP or an implementing helper to bypass the restriction.
+
+After switching to Build with the relevant authorization, Build reads that actual
+source and the existing project record before implementing or delegating substantive
+work. If inaccessible, report the missing input instead of reconstructing it from
+memory. Preserve the reviewed content and the user's actual approval when recording
+it in `docs/superpowers/plans/` (and linking any required spec). Importing a proposal
+does not approve it. An unchanged approved plan does not need approval again merely
+because it was transferred; material content changes retain the decision gate.
+
+Record the native source path/version and the canonical project record path in the
+handoff. The project record becomes the execution authority for that approved scope;
+the native file is the retained source, not another independently evolving execution
+plan. Preserve prior files; do not overwrite an existing record or delete a native
+draft blindly. Use sequential ownership, not automatic synchronization or another
+session launch. No additional Plan permission or built-in system override is required
+for this path. Other hosts/configurations must be checked, not assumed identical.
+
+#### Execute and reassess without inventing completion
+
+At start/resume, Build compares the approved record with current branch/HEAD/status
+and relevant code/check evidence. Inspect differences only as needed. A stale plan
+does not authorize replaying completed work; code/tests establish actual state but
+do not rewrite the approved goal. Resolve routine reversible execution details and
+record significant changes without reopening settled decisions. Material scope,
+contract, design, security or external-effect changes return to the user.
+
+During execution, Build records implemented work, verification, blockers and next
+actions against that scope. Plan may reassess evidence and propose a revised plan,
+but cannot declare work implemented/accepted from the plan alone or silently change
+approved requirements. Build owns execution progress/common record updates; Plan
+proposal edits and Build evidence updates are handed off sequentially. Keep user
+acceptance and external delivery distinct. Native prompts/modes/permissions, design
+ownership, independent final testing and explicitly requested goals remain unchanged;
+this guidance is not enforced plan loading, monitoring or guaranteed compliance.
+
 ## Technical completion and human acceptance
 
 Technical completion requires the agreed implementation/integration and actual verification evidence, plus scoped local commits when allowed by the adopted policy. Report failing/unrun checks honestly. Human product acceptance and external delivery are distinct states: tests do not establish user satisfaction, and pending acceptance does not block remaining authorized engineering work. Technical completion does not authorize a new milestone or unrelated backlog work.

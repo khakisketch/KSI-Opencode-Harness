@@ -248,3 +248,91 @@ without executing tools/providers. No claim of all-write isolation or effectiven
   Main clean/ahead3 immediately afterward. This receipt reconciliation changes
   only ledger/product-state; final receipt commit is identified by Git history,
   without a self-referential SHA. No new workspace, cleanup, push or publication.
+
+## Approved Plan→Build contract follow-up (2026-10-08)
+
+Status: guidance implemented, independently reviewed/verified; local commit pending
+
+User approved the in-chat recommendation with "개선해줘": strengthen a common
+planning/handoff basis, connect native Plan storage to the project record, and
+consider only necessary minimal document permissions. This adopts the matching
+current-user operating supplement, not a built-in prompt/permission replacement.
+
+- Workspace/target: canonical `main`, base `6d0922e18a6c0971c274fcd46ed8a9688001d317`,
+  initially clean/ahead4. Primary inline, one writer; four unrelated worktrees kept.
+- Scope: execution/README/architecture, optional project/autonomy examples, two
+  matching current-user `AGENTS.md` bullets, this record/product-state/checkpoint.
+- Preserve native prompts/modes/config/permissions/models/budgets, three installed
+  roles/installer, source code/tests, upstream skills, notifier, design ownership,
+  independent final verification and explicit goal opt-in. No install, service,
+  product task, runtime/hook, automatic transfer, publication/push/deploy or new pilot.
+- Decision: no extra Plan edit permission is needed. Current V2 docs + Context7
+  and read-only live catalog showed native plan-path edit allow, other edits deny,
+  and the adopted design namespace deny/read-allow. Use native storage + explicit
+  Build recording, not shell/MCP/helper bypass. Single-agent lookup returned404;
+  supported list catalog supplied actual Plan rules. No write probe/config mutation.
+- Shared basis: latest approved requirements govern intent; approved plan governs
+  scope/order; Git/code/checks govern implementation state. Skill output uses the
+  same plan with required specs linked. No mandatory Plan stage or new form.
+- Native proposal handoff includes actual source path/version or section, target,
+  approval/open decisions. Build reads real inputs, preserves content/approval and
+  records canonically before substantive execution; proposals remain unapproved,
+  unchanged approval is not reopened for transfer. Preserve prior files; sequential
+  writer, no two independently evolving plans or automatic session launch.
+- Build owns execution progress/evidence and reversible adjustments; Plan may
+  reassess/propose, not invent implementation/acceptance or silently expand scope.
+
+### Checklist and observable review cases
+
+- [x] Reconcile existing state and approval; reuse current V2/native capability evidence.
+- [x] Add common plan/storage/execution contract and aligned current-user supplement.
+- [x] Independent review: approved vs proposal transfer; missing source; existing
+  ledger collision; stale HEAD/completed work; routine vs material adjustment;
+  Plan-only writes; same skill plan/linked spec; small direct-Build task; ownership
+  and completion evidence. No live role-compliance or effectiveness claim.
+- [x] Independent source/package/diff/link checks, exact two-bullet policy diff and
+  25 protected hashes; actual Plan edit/design rules unchanged, no paid tool probe.
+- [ ] Locally commit verified task-owned changes, reconcile records and report
+  current-user guidance adoption separately from package/global-role delivery.
+
+### Evidence and limits
+
+Private root `/tmp/opencode/ksi-plan-build-handoff-20261008-n4l6pjml` contains
+policy backup and25protected before hashes. Prose-only change: review interpretations,
+not synthetic string tests as proof of model compliance. Planned checks:
+`TMPDIR=/tmp/opencode npm run check`, `TMPDIR=/tmp/opencode npm run check:package`,
+`git diff --check`, local links, policy reconstruction and protected/live rule diff.
+No extra native-server run is needed if protected verifier/config/role bytes and
+effective rules remain unchanged. Guidance/loading/effectiveness and human acceptance
+remain distinct; a file path does not prove another session loaded the document.
+
+- Reviewer `ses_ee5768ee5ffeB14Qds2pNtcJKy` read the actual seven-document diff
+  and approved section; all nine interpretation cases pass, no blocking findings.
+  Low/deferred: more explicit path-collision wording; existing reuse/no-blind-overwrite
+  and sequential ownership already cover it, so no new rule/format introduced.
+  This is document interpretation, not a real model flow/compliance test.
+- Actual Test Runner dispatch `ses_ee5761db6ffen7zULzPTnwemd6` independently ran
+  `TMPDIR=/tmp/opencode npm run check`: exit0,176total/174pass/0fail/2optional skips;
+  `npm run check:package`: exit0, offline three-role package check;
+  `git diff --check`: exit0. Local file/fragment links45/45 resolve; protected25/25
+  unchanged; current-user guide exactly2added bullets/0removed, both byte-identical
+  to the autonomy example; removing them reconstructs backup byte-identically.
+- Optional Compose and auto-only final-summary integration checks remain unrun,
+  not passed. No assertion/test change or skip added. Native catalog read confirms
+  Plan primary, edit-all deny/native-plan-path allow, design namespace deny plus
+  11reads allow. No tool-write probe, extra native run, model/provider request,
+  configuration/role/service change or OS isolation claim.
+- Helper receipt initially named the previous audit's Test Runner; Primary caught
+  that mismatch and required correction to the actual tool-dispatch binding, then
+  inspected corrected `final-summary.json`, check log and full snapshot. All seven
+  docs/checkpoint/current-user guide matched actual SHA256. Helper self-reports
+  alone do not establish identity/state. Readable check scripts and filtered native
+  rule receipt are retained privately; no private config/body copied into Git.
+- Current-user adopted guide SHA256:
+  `e62d4e0eecba3059474efb8318221055db73adbe248f71491febb2b161d5818b`.
+  This session received the ambient two-bullet diff without a restart. It proves
+  this session's receipt, not that every other session loaded/read the project plan.
+- Five guidance source files plus current-user bullets are verified unchanged
+  after review/checks; only closeout records will change before local commit.
+  Current-user guidance is adopted; the public package/installed role files remain
+  unchanged. Real Plan→Build effectiveness/compliance and human acceptance pending.

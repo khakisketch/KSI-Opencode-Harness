@@ -6,6 +6,15 @@ OpenCode's built-in Build and Plan are the Primaries. OpenCode's built-in Explor
 
 Plan is optional, not a required entry stage: it helps understand the project and prior decisions and define direction, scope, invariants and completion evidence. Clear tasks can start directly in Build. Build owns execution, integration, technical-completion evidence and reporting, not human acceptance or unapproved external delivery. Its relationship to the connected design workspace is a responsibility boundary, not a claim of superior visual expertise: Build supplies purpose, desired outcomes and functional/API/data/auth/brand invariants; design chooses and implements layout, hierarchy, composition and responsive presentation within them.
 
+Plan/Build/installed planning skills use one approved workstream plan, not competing
+authorities. Latest user decisions define the goal; the approved plan defines scoped
+execution; Git/code/checks define implementation state. Plan prepares/reassesses
+proposals; Build owns execution progress and evidence. If Plan can only write native
+`~/.opencode/plan/` documents, Build records the actual handed-off source in the
+canonical project ledger while preserving its content and approval state. The native
+source does not remain a second evolving execution plan. This [handoff contract](execution.md#one-approved-plan-across-plan-and-build)
+does not replace native prompts, expand permissions, auto-import files or enforce compliance.
+
 Native-first: keep tool behavior, provider/model prompting and native mode boundaries upstream; put KSI operating policy and project decision criteria in the appropriate `AGENTS.md`. A non-empty agent `system` (including a Markdown agent body) replaces the provider base prompt, while project instructions remain additional sources. An AGENTS.md supplement can still alter behavior, and OpenCode does not resolve conflicts automatically. Diagnose repeated failures against actual goals, state, loaded guidance, permissions and model/step constraints before considering a separately authorized prompt-replacement experiment. Compare the same tasks under matched conditions and preserve rollback; the installer must not turn an unverified experiment into a default built-in override.
 
 Design is a separate workspace, not a new native OpenCode role. [OpenDesign](integrations/opendesign.md) owns all visual frontend analysis, UI source/styles, responsive/interaction presentation, rendered design review and refinement, including small visual fixes. Build owns contracts, coordination, nonvisual business/API/data/auth work, functional integration/verification and Git. Mechanical artifact transfer is not permission to redesign. This installer distributes no design skills, craft references or design-system package; project brand and authorized outcome remain authoritative. No orchestrator role, KSI preview runtime, mandatory design stage for nonvisual work or model override is added.
