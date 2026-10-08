@@ -159,6 +159,21 @@ test("ancestor metadata directory is a mismatch, not a match", t => {
   assert.equal(result.state, "mismatch")
 })
 
+// A directory nested inside the expected root is not the exact root either.
+test("nested metadata directory is a mismatch, not a match", t => {
+  const f = fixture(t)
+  setupLocal(f)
+  const nested = join(f.repo, "packages", "web")
+  mkdirSync(nested, { recursive: true })
+  const result = inspectDesignBinding({
+    repo: f.repo,
+    binding: { "Design project": "fixture-design-id" },
+    projects: [project("fixture-design-id", nested)],
+  })
+  assert.equal(result.state, "mismatch")
+  assert.match(result.reasons.join(" "), /nested inside/)
+})
+
 // Recorded source workspace selects the expected root for comparison.
 test("recorded source workspace is honored against the snapshot directories", t => {
   const f = fixture(t)

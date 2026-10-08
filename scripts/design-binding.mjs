@@ -77,7 +77,7 @@ export function inspectDesignBinding({ repo = process.cwd(), binding = {}, proje
   }
   const sourceField = binding["Source workspace"] ?? binding.Repository ?? ".";
   if (sourceField !== undefined && sourceField !== null && (typeof sourceField !== "string" || !sourceField.trim())) {
-    return { state: "invalid", reasons: ["Recorded source workspace has the wrong type; expected a string."], selectedId: null, expectedRoot: null };
+    return { state: "invalid", reasons: ["Recorded source workspace is malformed; expected a nonempty string."], selectedId: null, expectedRoot: null };
   }
   const normalized = normalizeProjects(projects);
   if (normalized.error) {
