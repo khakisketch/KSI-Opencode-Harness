@@ -1059,3 +1059,18 @@ this round — the remaining gaps are per-project operational verification):
   pinned copy per its own plugin lifecycle. This closes the on-disk "stale pinned
   copy" part of risk ③; the remaining risk-③ limits (pull-based polling, same-host,
   leader takeover, goal-pause not observed) are unchanged and still documented.
+
+### GitHub delivery (2026-10-08)
+
+- User authorization: "github 푸시 배포만 해줘" — GitHub push only; no npm
+  publication, GitHub Release or other deployment.
+- Pre-push preflight at `7e3e9f1`: clean tree, `npm run check` 209/207/0/2
+  (log `push-preflight-check.log`), 16 commits ahead of `origin/main` with no
+  unexpected files.
+- Pushed `f6df31a..7e3e9f1` to `origin/main`
+  (github.com/khakisketch/KSI-Opencode-Harness). CI run 37795281564 for
+  `7e3e9f1` completed **success**; prior remote runs also completed successfully.
+- Delivered commits: this session's binding preflight, verdict/return contracts,
+  boundary/commissioning contracts and their records. The pinned notifier update
+  remains local-only (outside the repo); this closing records note is pushed with
+  the delivery.
