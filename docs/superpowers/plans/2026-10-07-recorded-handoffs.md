@@ -975,3 +975,46 @@ preserved, independent final verification and design ownership unchanged):
 Current limits: direct source editing was verified in bounded fixtures; the
 completion notifier is technically verified with documented limits; full
 real-project end-to-end use remains per-project unverified, not assumed.
+
+## Approved two-harness boundary and commissioning contracts (2026-10-08)
+
+Status: in progress — approved 2026-10-08
+
+### Approved scope
+
+User-directed: after the recorded proposal above, implement only the minimal,
+substantive improvements ("실질적인 효과가 있는 개선만 선정하고 … 최소 변경으로 구현"),
+preserving existing behavior. No new agent, MCP server, state DB, orchestrator or
+forced approval step; native prompts/models/permissions, existing Superpowers
+usage and OpenDesign internals unchanged; no mid-task progress/commit permission
+requests.
+
+Selected (all guidance-level; no code/MCP/session-linkage defect was confirmed in
+this round — the remaining gaps are per-project operational verification):
+
+1. Review-seat boundary: OpenCode does not repeat OpenDesign's internal visual
+   review; review seats validate the returned revision/evidence (defects fixed/open)
+   and cover engineering concerns (functional/API/data/permissions contract,
+   security, regression, integration). Files: `docs/execution.md`, the OpenDesign
+   commissioning section, the installed reviewer role, both examples, global guide.
+2. Design return contract: changed screens/files on the actual source revision,
+   rendered-review evidence (fixed/open), functional-contract impacts, unresolved
+   items, evidence locations (`docs/execution.md` cross-seat sentence).
+3. Project-level commissioning conditions: real-source write access; completion
+   handoff (notifier or explicit polling fallback); continue-from-actual-source —
+   confirmed and recorded per project, never assumed; missing → blocker report
+   while independent nonvisual work continues (`docs/integrations/opendesign.md`;
+   global guide).
+4. Single-window principle: the user works from OpenCode alone; no opening or
+   operating OpenDesign or ferrying artifacts; commissioning, monitoring,
+   validation and reporting stay with Build (README, global guide).
+5. OpenDesign owns its internal analyze → implement → render-review → refine loop;
+   Build judges by results + evidence + acceptance criteria, not per-round
+   aesthetic instructions (opendesign.md, examples; existing no-round-cap rule).
+
+### Verification plan
+
+- Author: `npm run check`, `npm run check:package`, `git diff --check`, link sweep,
+  backup reconstruction (global guide before-c, installed reviewer before-c).
+- Independent Reviewer + Test Runner on the committed revision; findings fixed and
+  affected checks rerun; records committed; no OpenDesign/deps/publication.

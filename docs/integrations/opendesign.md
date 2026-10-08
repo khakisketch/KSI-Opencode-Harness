@@ -661,6 +661,31 @@ proof. A new project is appropriate for a genuinely new product, or after a
 successful inventory establishes no existing representative and current task
 authority permits creation; a failed lookup never establishes absence.
 
+#### Commissioning preconditions and the design quality loop
+
+Before commissioning, confirm and record the three project-level conditions in the
+existing task record; never assume them from a project name, a screenshot or an
+earlier session:
+
+1. **Real-source write access** — the run can edit the actual project source path;
+   recheck inner file-access evidence after relevant changes or failures.
+2. **Completion handoff** — Build can detect completion (notifier or an explicit
+   polling fallback) and take the result back in the originating session.
+3. **Continue from the actual source** — integration and verification use the
+   modified revision (diff/build/changed-flow), not the preview alone.
+
+A missing or unverified condition is a blocker report, not a silent fallback;
+independent nonvisual work continues meanwhile.
+
+OpenDesign owns its internal analyze → implement → render-review → refine loop and
+returns its fixed/open defect evidence. OpenCode does not re-run that visual review:
+review seats validate that it happened on the actual revision and review the
+engineering concerns (functional contract, security, regression, integration).
+Send the goal, change scope, preserved functional/API/data/permission contracts and
+completion criteria; OpenDesign makes the internal design/implementation decisions
+and returns changed screens/files, render evidence (fixed/open), functional-contract
+impacts, unresolved items and evidence locations.
+
 #### Registering a source project (this deployment)
 
 First apply the representative reuse/source checks above. Only when registration

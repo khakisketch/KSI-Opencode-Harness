@@ -35,7 +35,9 @@
 디자인 작업은 **제품별 대표 프로젝트를 재사용**하고, 실행 전에 실제 소스 연결을 확인합니다.
 화면·작업·브랜치가 달라졌다는 이유만으로 새 프로젝트를 만들지 않습니다. 실제 제품은
 기존 제품 서버 링크에서 확인하며, 디자인 파일 미리보기와 로그인·저장·새로고침 검증을
-구분합니다. [대표 프로젝트 재사용과 연결 확인 →](docs/integrations/opendesign.md#reuse-the-representative-product-project)
+구분합니다. OpenDesign은 자체 리뷰·개선 루프를 갖춘 전문 실행 환경이므로, 사용자는
+OpenCode 하나에서 지휘하면 되고 OpenDesign을 직접 열거나 결과를 옮길 필요가 없습니다.
+[대표 프로젝트 재사용과 연결 확인 →](docs/integrations/opendesign.md#reuse-the-representative-product-project)
 
 ```text
 사용자  원하는 결과 · 문제 · 아이디어 · 제약
