@@ -60,6 +60,53 @@ test("matching status is read-only and reports local delivery separately from ac
   assert.equal(readFileSync(file, "utf8"), text)
 })
 
+// Break caught: normal numbered checkpoint actions disappear from JSON and text.
+test("status retains numbered Next actions in recorded order and rendered output", t => {
+  const root = fixture(t)
+  const file = join(root, ".opencode/working-state.md")
+  const text = "Status: active\n\n## Next\n1. Inspect the actual diff\n2. Verify the integrated revision\n\n## Blockers\n- Not a next action\n"
+  writeFileSync(file, text)
+  const result = status.inspectWorkStatus(root)
+  assert.deepEqual(result.next, ["Inspect the actual diff", "Verify the integrated revision"])
+  assert.match(status.renderWorkStatus(result), /Next: Inspect the actual diff\n  Next: Verify the integrated revision/)
+  assert.doesNotMatch(status.renderWorkStatus(result), /Next: Not a next action/)
+  assert.equal(readFileSync(file, "utf8"), text)
+})
+
+// Break caught: supported Markdown markers/CRLF are skipped or the three-action cap is lost.
+test("status accepts mixed Markdown Next markers and caps reported actions at three", t => {
+  const root = fixture(t)
+  writeFileSync(join(root, ".opencode/working-state.md"), [
+    "Status: active", "", "## Next", "Introductory prose, not an action.",
+    "  1) inspect result", "* verify persistence", "+ report evidence", "- later action", "",
+  ].join("\r\n"))
+  assert.deepEqual(status.inspectWorkStatus(root).next, ["inspect result", "verify persistence", "report evidence"])
+})
+
+// Break caught: explanations suppress the idle/unfinished warning or broaden it to non-idle states.
+test("descriptive idle statuses reconcile unfinished ledgers without discarding their explanation", t => {
+  const root = fixture(t)
+  const head = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim()
+  const checkpoint = join(root, ".opencode/working-state.md")
+  const ledger = join(root, "docs/superpowers/plans/fixture.md")
+  for (const recorded of ["idle", "idle — checks complete", "idle: checks complete", "Idle - checks complete"]) {
+    writeFileSync(checkpoint, `HEAD: ${head}\nStatus: ${recorded}\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\n`)
+    for (const unfinished of ["Status: in progress\n", "Status: technically complete\n- [ ] Required check\n"]) {
+      writeFileSync(ledger, unfinished)
+      const result = status.inspectWorkStatus(root)
+      assert.equal(result.recordedStatus, recorded)
+      assert.deepEqual(result.warnings, ["Idle checkpoint has an unfinished ledger; reconcile before claiming completion."], recorded)
+    }
+    writeFileSync(ledger, "Status: technically complete\n- [x] Required check\n")
+    assert.deepEqual(status.inspectWorkStatus(root).warnings, [], recorded)
+  }
+  writeFileSync(ledger, "Status: in progress\n- [ ] Required check\n")
+  for (const recorded of ["active — not idle", "unknown", "idleness", "idle-ish", "not idle"]) {
+    writeFileSync(checkpoint, `HEAD: ${head}\nStatus: ${recorded}\nSlice: fixture | ledger: docs/superpowers/plans/fixture.md\n`)
+    assert.deepEqual(status.inspectWorkStatus(root).warnings, [], recorded)
+  }
+})
+
 test("ledger pointers cannot escape the project through traversal or symlinks", t => {
   assert.equal(typeof status.inspectWorkStatus, "function")
   const root = fixture(t, false)

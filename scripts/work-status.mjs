@@ -74,7 +74,7 @@ export function inspectWorkStatus(repo) {
   if (branch && recordedBranch && branch !== recordedBranch) warnings.push("Checkpoint branch differs from current Git branch.");
   if (slice?.includes("ledger:") && !ledgerPath) warnings.push("Ledger pointer malformed or outside the supported plans namespace.");
   if (ledgerPath && !ledgerText) warnings.push("Ledger missing, unreadable or outside the project.");
-  if (recordedStatus === "idle" && ledgerText && (/in[ _-]?progress|active/i.test(ledgerStatus) || /^\s*- \[ \]/m.test(ledgerText))) {
+  if (/^idle(?:$|\s+|:\s*)/i.test(recordedStatus) && ledgerText && (/in[ _-]?progress|active/i.test(ledgerStatus) || /^\s*- \[ \]/m.test(ledgerText))) {
     warnings.push("Idle checkpoint has an unfinished ledger; reconcile before claiming completion.");
   }
   return {
@@ -85,7 +85,10 @@ export function inspectWorkStatus(repo) {
     ledger: { path: ledgerPath, status: ledgerStatus },
     acceptance: section(product, "Human acceptance") || "not recorded",
     delivery: ahead === null ? "unknown" : ahead > 0 ? "local commits ahead of upstream; publication/deployment not inferred" : "no commits ahead of upstream; deployment not inferred",
-    next: section(checkpoint, "Next").split("\n").filter(line => /^- /.test(line)).map(line => line.slice(2)).slice(0, 3),
+    next: section(checkpoint, "Next").split("\n").flatMap(line => {
+      const item = line.match(/^ {0,3}(?:[-*+]|\d+[.)])\s+(.+)$/);
+      return item ? [item[1].trim()] : [];
+    }).slice(0, 3),
     warnings,
   };
 }

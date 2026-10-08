@@ -22,6 +22,18 @@ const designPermissionCases = [
   { agent: "plan", action: "edit", expected: "deny" },
 ]
 
+const helperPermissionCases = ["reviewer", "test-runner"].flatMap(agent => [
+  { agent, action: "edit", resources: ["src/permission-boundary-probe.mjs"], expected: "deny" },
+  { agent, action: "subagent", resources: ["general"], expected: "deny" },
+])
+
+// These decisions describe inherited access; no observation is an isolation guarantee.
+const helperPermissionObservations = ["reviewer", "test-runner"].flatMap(agent => [
+  { agent, action: "shell", resources: ["node -e synthetic_permission_probe"] },
+  { agent, action: "execute", resources: ["*"] },
+  { agent, action: "opendesign_write_file", resources: ["*"] },
+])
+
 export function buildIsolatedEnv(directory, path) {
   return {
     PATH: path,
@@ -72,10 +84,18 @@ export function checkRetiredSkills(skills) {
 }
 
 export function checkDesignPermissions(decisions) {
+  return checkPermissionDecisions(decisions, designPermissionCases, "design")
+}
+
+export function checkHelperPermissions(decisions) {
+  return checkPermissionDecisions(decisions, helperPermissionCases, "helper")
+}
+
+function checkPermissionDecisions(decisions, cases, label) {
   const failures = []
-  if (!decisions.length) return { ok: false, failures: ["design permissions were not evaluated"] }
-  if (decisions.length !== designPermissionCases.length) failures.push(`expected ${designPermissionCases.length} design permission decisions, got ${decisions.length}`)
-  for (const { agent, action, expected } of designPermissionCases) {
+  if (!decisions.length) return { ok: false, failures: [`${label} permissions were not evaluated`] }
+  if (decisions.length !== cases.length) failures.push(`expected ${cases.length} ${label} permission decisions, got ${decisions.length}`)
+  for (const { agent, action, expected } of cases) {
     const matches = decisions.filter((item) => item.agent === agent && item.action === action)
     if (matches.length !== 1) {
       failures.push(`${agent} ${action}: expected one decision, got ${matches.length}`)
@@ -168,19 +188,28 @@ async function postApi({ url, password }, path, body) {
   return response.json()
 }
 
-async function evaluateDesignPermissions(connection) {
+async function evaluatePermissions(connection, cases, check, label, observationCases = []) {
   // Native policy evaluation only: no MCP server, tool execution or provider call.
-  const session = await postApi(connection, "/api/session", { title: "Isolated design-permission verification" })
+  const session = await postApi(connection, "/api/session", { title: `Isolated ${label}-permission verification` })
   const id = session.data?.id
   if (!id) throw new Error("isolated permission session has no id")
   const decisions = []
-  for (const item of designPermissionCases) {
+  for (const item of cases) {
     const result = await postApi(connection, `/api/session/${id}/permission`, {
-      agent: item.agent, action: item.action, resources: ["*"],
+      agent: item.agent, action: item.action, resources: item.resources ?? ["*"],
     })
     decisions.push({ ...item, effect: result.data?.effect })
   }
-  return { ...checkDesignPermissions(decisions), decisions, toolsInvoked: 0 }
+  const evidence = { ...check(decisions), decisions, toolsInvoked: 0 }
+  if (observationCases.length) {
+    evidence.observations = []
+    for (const item of observationCases) {
+      const result = await postApi(connection, `/api/session/${id}/permission`, item)
+      evidence.observations.push({ ...item, effect: result.data?.effect })
+    }
+    evidence.scope = "Sampled direct edit/delegation denials only; shell/Code Mode/MCP observations are not all-write isolation or tool-execution evidence."
+  }
+  return evidence
 }
 
 async function verify() {
@@ -229,10 +258,11 @@ async function verify() {
       if (skills.ok) break
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
-    const designPermissions = await evaluateDesignPermissions(connection)
-    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, retiredSkills: { ...skills, attempts: skillAttempts }, designPermissions, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
+    const designPermissions = await evaluatePermissions(connection, designPermissionCases, checkDesignPermissions, "design")
+    const helperPermissions = await evaluatePermissions(connection, helperPermissionCases, checkHelperPermissions, "helper", helperPermissionObservations)
+    const result = { version: run("opencode", ["--version"], env, directory).stdout.trim(), files, agents: { ...agents, attempts: agentAttempts }, retiredSkills: { ...skills, attempts: skillAttempts }, designPermissions, helperPermissions, providerRequestsIssuedByVerifier: 0, childEgress: "not monitored", isolated: true }
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
-    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.noSkillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok || !designPermissions.ok) process.exitCode = 1
+    if (!files.installed || !files.modelAndStepsOmitted || !files.builtinsUntouched || !files.noSkillsInstalled || !files.commandsNotInstalled || !agents.ok || !skills.ok || !designPermissions.ok || !helperPermissions.ok) process.exitCode = 1
   } finally {
     await stopIsolatedServer(server?.child)
     await rm(directory, { recursive: true, force: true })

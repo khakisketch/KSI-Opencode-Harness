@@ -184,6 +184,15 @@ OpenCode V2 keeps its own Build, Plan, and Explore prompts. Three installed `age
 
 There are no KSI slash commands: ask Build to reconcile or complete work and ask Reviewer to examine a change when needed. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
 
+Reviewer/Test Runner's native `edit` and `subagent` denials are targeted protections,
+not an all-write sandbox: shell, MCP/API and Code Mode side effects have separate
+effective permissions. Neither helper may repair implementation or change config,
+services or external data through another tool. Before a trusted check, confirm its
+expected effects; task-owned fixtures/build output/logs are different from product
+repairs. Unknown or out-of-scope effects are reported before execution. Inspect the
+actual effective policy when isolation matters; do not silently tighten global
+permissions or claim the role file enforces complete read-only access.
+
 Local autonomy is not perpetual background execution. Native session goals, when available, are separate and require an explicit request; do not infer or auto-create/resume goals from ordinary development tasks. Continue only an actually active goal within its native mode and budgets. Tool approval, step limits, context and connectivity can still stop execution; documentation and package tests cannot guarantee long-running model behavior.
 
 ## Comfortable defaults, not extra ceremonies

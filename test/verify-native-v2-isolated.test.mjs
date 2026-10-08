@@ -123,3 +123,39 @@ test("design permission evidence does not trust a rewritten expected verdict", (
   unknown.effect = "allow"
   assert.equal(verifier.checkDesignPermissions(decisions).ok, false)
 })
+
+function helperDecisions() {
+  return [
+    { agent: "reviewer", action: "edit", expected: "deny", effect: "deny" },
+    { agent: "reviewer", action: "subagent", expected: "deny", effect: "deny" },
+    { agent: "test-runner", action: "edit", expected: "deny", effect: "deny" },
+    { agent: "test-runner", action: "subagent", expected: "deny", effect: "deny" },
+  ]
+}
+
+// Break caught: the verifier reports success when a non-implementing helper can edit/delegate.
+test("helper permission evidence rejects an allowed edit or delegation", () => {
+  assert.equal(typeof verifier.checkHelperPermissions, "function")
+  assert.deepEqual(verifier.checkHelperPermissions(helperDecisions()), { ok: true, failures: [] })
+  for (let index = 0; index < 4; index++) {
+    const decisions = helperDecisions()
+    decisions[index].effect = "allow"
+    const result = verifier.checkHelperPermissions(decisions)
+    assert.equal(result.ok, false)
+    assert.match(result.failures.join(" "), /expected deny, got allow/)
+  }
+})
+
+// Break caught: missing, duplicate or self-rewritten receipt expectations hide an unchecked boundary.
+test("helper permission evidence requires every unique native verdict and fixed expectations", () => {
+  assert.equal(typeof verifier.checkHelperPermissions, "function")
+  const missingEffect = helperDecisions()
+  delete missingEffect[0].effect
+  const duplicate = helperDecisions()
+  duplicate[3] = { ...duplicate[0] }
+  const rewritten = helperDecisions()
+  rewritten[0] = { ...rewritten[0], expected: "allow", effect: "allow" }
+  for (const decisions of [[], helperDecisions().slice(1), missingEffect, duplicate, rewritten]) {
+    assert.equal(verifier.checkHelperPermissions(decisions).ok, false)
+  }
+})
