@@ -437,7 +437,7 @@ remain unapproved; no implicit goal, release, install or product task starts her
 
 ## Approved agent-owned completion loop (2026-10-08)
 
-Status: independently verified; scoped local commit pending
+Status: independently verified and locally committed; current-user guidance adopted, real-use acceptance separate
 
 ### Approved outcome and scope
 
@@ -496,7 +496,7 @@ D preserves the retry state machine. Guides consume the actual resulting contrac
   priority and repair/recheck; proportionate tests and independent closure remain.
   Audit/Plan-only requests do not become product-write authority. Design uses actual
   rendered review; no self-approval, endless replay, forced team or automatic goal.
-- [ ] Task 5 — fresh review, independent source/package/targeted checks, local status
+- [x] Task 5 — fresh review, independent source/package/targeted checks, local status
   flow, protected25hashes and exact guide diff; integrate scoped commits and reconcile
   records/checkpoint. Finish with outcomes, not another routine improvement menu.
 
@@ -567,3 +567,13 @@ Raw audit evidence remains linked above; historical conclusions are not rewritte
   Final source/guide snapshot is post-fix; subsequent local closeout updates only
   ledger/product-state/checkpoint. No new workspace to integrate/remove; local target
   remains canonical `main`, external delivery unapproved.
+- Verified14task files committed locally as
+  `2d8701bf8b94177f57d16042f87ca29e3c91a57a`; staged paths/whitespace checked,
+  private evidence/current-user guide/ignored checkpoint excluded. Main clean/ahead8
+  afterward. Primary rechecked post-fix12source/test/docs hashes + adopted guide and
+  protected25inputs before commit; only ledger/product-state/checkpoint closeout
+  changed after the independent verification snapshot. Receipt revision is in Git
+  history, not a self-referential SHA. Four unrelated worktrees remain untouched;
+  no task workspace needs integration/cleanup. No publication, runtime install,
+  service restart or new workstream. Routine fixes are complete, not handed back as
+  a user-managed candidate list. Model compliance and human acceptance unclaimed.
