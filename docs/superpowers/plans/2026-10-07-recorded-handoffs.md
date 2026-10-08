@@ -251,7 +251,7 @@ without executing tools/providers. No claim of all-write isolation or effectiven
 
 ## Approved Plan→Build contract follow-up (2026-10-08)
 
-Status: guidance implemented, independently reviewed/verified; local commit pending
+Status: guidance implemented, independently reviewed/verified and locally committed; real-use acceptance pending
 
 User approved the in-chat recommendation with "개선해줘": strengthen a common
 planning/handoff basis, connect native Plan storage to the project record, and
@@ -292,7 +292,7 @@ current-user operating supplement, not a built-in prompt/permission replacement.
   and completion evidence. No live role-compliance or effectiveness claim.
 - [x] Independent source/package/diff/link checks, exact two-bullet policy diff and
   25 protected hashes; actual Plan edit/design rules unchanged, no paid tool probe.
-- [ ] Locally commit verified task-owned changes, reconcile records and report
+- [x] Locally commit verified task-owned changes and reconcile records;
   current-user guidance adoption separately from package/global-role delivery.
 
 ### Evidence and limits
@@ -336,3 +336,11 @@ remain distinct; a file path does not prove another session loaded the document.
   after review/checks; only closeout records will change before local commit.
   Current-user guidance is adopted; the public package/installed role files remain
   unchanged. Real Plan→Build effectiveness/compliance and human acceptance pending.
+- Verified seven task-owned documents committed locally as
+  `2561d1fac924f28c462e0bfe16f1e13b0ea5698b` on canonical `main`; staged index and
+  whitespace checked, checkpoint/private backup excluded. Primary rechecked the
+  five guidance source hashes/current-user guide and25protected inputs against the
+  actual independent receipt before commit. Main clean/ahead5 afterward.
+  This receipt reconciliation changes only ledger/product-state; its revision is
+  in Git history, not a self-referential SHA. Four unrelated worktrees preserved,
+  no cleanup needed; no push/publication or installed-role update.
