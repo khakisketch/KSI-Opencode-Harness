@@ -344,3 +344,93 @@ remain distinct; a file path does not prove another session loaded the document.
   This receipt reconciliation changes only ledger/product-state; its revision is
   in Git history, not a self-referential SHA. Four unrelated worktrees preserved,
   no cleanup needed; no push/publication or installed-role update.
+
+## Read-only cross-state consistency audit (2026-10-08)
+
+Status: audit complete; four improvement groups reproduced; repairs proposed, not approved
+
+### Authority and inspected state
+
+- User requested a check for other consistency gaps after the Plan→Build improvement.
+  This authorizes investigation and a findings record, not remediation, permission
+  changes, installation, service/runtime changes, product work or external delivery.
+- Inspected canonical `main` at `6b781f19a8d6a2a659f9a1036ff0a917f2710fad`, clean/ahead6,
+  one Primary; four unrelated worktrees retained. Existing approved slice unchanged.
+  Only this audit record, backlog summary and ignored checkpoint are updated afterward.
+- Reviewed status/report/readiness code and tests, role/installer/approval guidance,
+  and notifier pause/delivery/provenance paths. Reproductions import actual source
+  exports with disposable synthetic Git/state fixtures and a fake clock/daemon/send.
+  No live goal, notifier state, usage DB, secret, customer payload or design run inspected.
+
+### Reproduced findings and proposed priorities
+
+| id | priority | source / mechanism | observed result / impact | proposed correction, not execution approval |
+| --- | --- | --- | --- | --- |
+| audit-A | High | `scripts/work-status.mjs:39-40,68,77`: first `Status:` across the entire ledger | Reused ledger's later in-progress section is ignored; prior complete + current in-progress yields no warning. Actual ledger contains statuses at lines5/121/254, but CLI selects line5 rather than the checkpoint's current Plan→Build follow-up. Multi-section ambiguity is not surfaced. | Explicitly identify the current section or report ambiguity; do not blindly choose the last status or create another competing record. |
+| audit-C | High | `scripts/work-report.mjs:206-214,86-130`: top-level object check only | `{version:3,goals:"corrupt-not-goal-map"}` and `{one:"invalid-record"}` bindings both display zero records with no warning. This contradicts unavailable/malformed-source reporting in `docs/execution.md:320-321`. | Validate the supported nested shape; keep valid empty `{}` distinct from unavailable or corrupt state. |
+| audit-B | Medium | `scripts/work-report.mjs:117-119` versus `plugins/design-notifier/lib/messages.js:16-24` | A reachable tracking/running snapshot displays `artifact=invalid`, while notifier classifies it pending. Failed/canceled tracking snapshots also collapse to invalid before delivery; after delivery they use failed/canceled. | Share consistent state semantics and distinguish execution state, artifact validity and product verification; do not turn either into acceptance. |
+| audit-D | Medium | `plugins/design-notifier/lib/notifier.js:338-353,414-422,692`; README:139-141 | Failed send sets a30s retry; pause holds it; resume's next tick still cannot send until retry time. Resume says next tick and README promises within one cycle, but retry cap can defer up to15min. | Recommended default: preserve protective retry and accurately expose deferred delivery/retry timing. Reset-on-resume is a separate behavior decision, not proven necessary by this audit. |
+
+- audit-A secondary edges: `inactive` falsely matches `active`; unchecked `* [ ]`
+  and numbered `1. [ ]` items are missed, unlike `- [ ]`. Group these with status
+  parsing, not separate high-priority incidents. A single in-progress status and
+  dash unchecked items are positive controls. An all-checked multi-section fixture
+  still selects the old active status; this establishes ambiguity/stale selection,
+  not a universal rule that the newest status always governs.
+- audit-B controls: succeeded-invalid, succeeded-valid and delivered classification
+  agree with notifier. Invalid `entry_not_touched` remains an artifact-only verdict,
+  not automatically product failure. A held run that becomes running reverts to
+  tracking; the reachable tracking/running supplement is the report-defect evidence.
+- audit-C controls: invalid JSON and a top-level string warn; legitimate empty `{}`
+  does not. No claim that actual live state is corrupt or actual goals were lost.
+- audit-D controls: without a send failure, held→resume delivers on the next tick;
+  a failed send without pause properly waits and later succeeds. Cap900000ms was
+  verified separately with attempt6→7. No15-minute wall-clock/live latency claim.
+
+### Independent evidence and reconciliation
+
+- Roles/approval reviewer `ses_ee55f572bffeQXm4YqJCxDTxxf`: no new in-scope
+  Critical/Important contradiction. Source/config preservation is not effective
+  permission preservation: custom broad `read * allow` can override earlier `.env`
+  ask/global read protections under documented V2 ordering. Treat this as an existing
+  policy risk needing a separate decision, not a newly verified secret-access incident.
+  Official V2 permissions and Context7 `/websites/opencode_ai_v2` confirm ordering;
+  no actual `.env` read or live permission-verdict probe was performed.
+- Notifier reviewer `ses_ee55ef284ffets1twaqMbHrLqf`: independently identified audit-D.
+  Unrelated tools' unconditional quick-poll kick is a low-priority efficiency
+  observation, not a correctness defect. Goal/notifier pauses, advisory completion
+  versus product/design acceptance, and pinned-source lag remain documented boundaries.
+- Actual Test Runner dispatch `ses_ee55ad94affer3kxDzs7zF9sY3` independently ran
+  `TMPDIR=/tmp/opencode npm run check`: exit0,176total/174pass/0fail/2optional skips;
+  `git diff --check`: exit0. Cases A/B/C/D/D2 plus supplemental controls produced
+  the results above. Source/check-file hashes12/12 unchanged; Primary inspected the
+  actual scripts, logs and corrected receipt and matched all12hashes plus supplement.
+- Two optional tests remain skipped, not passed: real isolated Compose preserves
+  base mounts/recovery; auto-only final-summary preserves native step limit. Package
+  check was not rerun because there is no package/code change. Passing existing tests
+  does not cover these newly reproduced interactions or prove model compliance.
+- Evidence corrections: original A3 also had an unchecked old item and was confounded;
+  the all-checked supplement isolates stale status selection. Original B's held/running
+  was not a steady state; tracking/running supplies reachable proof. Original D's cap
+  branch accidentally succeeded; only D2 proves the cap. Prior logs were preserved
+  and annotated. An empty hash-comparison assertion was rejected; actual12hashes were
+  independently rechecked. Do not infer proof from helper summary/counts alone.
+- Optional raw evidence/scripts: `/tmp/opencode/ksi-consistency-audit-20261008-da3a5941/`.
+  Inspected source identity is the immutable HEAD above; supplement script SHA256
+  `f45d667a5dbad6b0a48deeb995cbd67d17b7d718a4ea2528133d20a3c224959a`.
+  Primary also matched all25previously protected config/role/upstream/notifier inputs;
+  no global operating-guide/config/role/runtime change in this audit.
+
+### Exclusions and next decision
+
+Doctor's product-state-over-ledger binding precedence and numbered Next-slices
+parsing were not established as contract defects. Intended version lag is not
+unauthorized drift; native edit denial is not an all-write sandbox. Real live
+delivery timing, every host's effective policy, Plan→Build compliance and human
+acceptance remain unverified. No new monitor, orchestrator, forced team, mandatory
+Plan stage or synthetic string test as model-compliance proof is proposed.
+
+Recommend a bounded follow-up for audit-A/C first, audit-B next, and accurate
+audit-D deferred-retry reporting without weakening retry protection. Permission
+semantics and any reset-on-resume change retain a separate decision. All fixes
+remain unapproved; no implicit goal, release, install or product task starts here.
