@@ -1077,7 +1077,7 @@ this round — the remaining gaps are per-project operational verification):
 
 ## Approved product-judgment and focus-shift contracts (2026-10-09)
 
-Status: in progress — approved 2026-10-09
+Status: technically complete — approved 2026-10-09; independently verified; real-use observation separate
 
 ### Approved scope
 
@@ -1115,3 +1115,29 @@ orchestrator, state DB or browser service; native config and OpenDesign untouche
   and affected checks rerun; records committed; no OpenDesign/deps/publication.
 - Product-judgment efficacy is a real-use observation item (e.g., the next
   KSI-Safety-Edge product task), not a test claim.
+
+### Verification and closure (2026-10-09)
+
+- Fresh independent Reviewer `ses_ee3c8d9f4ffe37ar8hvRCJMbVE` on `b2a1ef2..8d84a76`:
+  "Ready: Yes"; no Critical/Important; four wording minors (origin label
+  unification to `self`; proportionality qualifier; required-checks clause;
+  brief-vs-iteration wording). Confirmed guidance-only scope, B② intentionally
+  absent, adoption exactly the intended hunks, and no contradiction with the
+  scope/focus/no-forced-helper guards.
+- Independent Test Runner `ses_ee3c8d9f6ffeOaY0nn9jh5ZodM` at `8d84a76`: all six
+  checks pass — npm check 209/207/0/2 (two pre-existing optional skips), five-file
+  commit stat, whitespace clean, guide reconstruction exactly five hunks, links
+  75/0, status tooling selects this section, EVENTOUCH worktree untouched
+  (HEAD `d440660`, pre-existing uncommitted set only).
+- All four minors fixed in `9d40fab` (label unified across guide/execution/plan;
+  "Scale this judgment to the change; trivial edits need no product critique"
+  added to execution/global/examples; "The checks the chosen path requires still
+  apply" added to execution; checklist wording aligned to "first brief") after an
+  author rerun; post-fix independent Test Runner `ses_ee3c1ff89ffeIWvkAIWkbLNHIN`
+  at `9d40fab`: all six checks pass (209/207/0/2; 7+/7− across five files; guide
+  still exactly five hunks; links 75/0; EVENTOUCH untouched).
+- Closure: guidance-only change committed `8d84a76`+`9d40fab` on main and pushed
+  to `origin/main` with this records commit; global guide and examples adopted
+  with a byte-verified before-d backup. Product-judgment efficacy remains a
+  real-use observation item; B② (host-render access check) stays deferred until
+  the EVENTOUCH owning session finishes.
