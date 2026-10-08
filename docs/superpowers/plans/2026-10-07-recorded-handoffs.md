@@ -1038,3 +1038,24 @@ this round — the remaining gaps are per-project operational verification):
   contract-level claims to observe in later real work, not measured here; telemetry
   was deliberately not added. The three commissioning conditions remain per-project
   operational verification items.
+
+### Pinned notifier update (2026-10-08)
+
+- Risk-③ improvement: the live pinned copy was at `c43fbea` (2026-10-07) while the
+  repo source carried verified fixes — `2d8701b` (accurate retry/resume reporting
+  and retry-list metadata) and `ab01b51` (render-review readiness advice). The
+  user's "그렇다면 개선해줘" after the risk list is treated as the explicit verified
+  pinned update the plugin README requires.
+- Pre-update backup `notifier-installed-before-58d7520/` (commit `c43fbea`, 7 files)
+  in the evidence dir. Update via `node scripts/install-design-notifier.mjs` →
+  manifest commit `58d752025d273d795440be38fadb3e262ab78f7e`, 7 files; `--verify`
+  ok with no changed/missing/extra; byte-identical to source; focused notifier
+  tests 73/73.
+- Independent Test Runner `ses_ee41e9b2effens7WFP2KsXprhg` confirmed: verify ok,
+  the sole diff is the target-only `installed.json`, hashes match across source/
+  installed/manifest, backup provenance intact, 73/73, and the repo's `plugins`
+  config array does not reference the dev tree. Delivery semantics unchanged; no
+  service restart or reload was performed — the running service picks up the
+  pinned copy per its own plugin lifecycle. This closes the on-disk "stale pinned
+  copy" part of risk ③; the remaining risk-③ limits (pull-based polling, same-host,
+  leader takeover, goal-pause not observed) are unchanged and still documented.
