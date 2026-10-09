@@ -1267,3 +1267,18 @@ pause for this specific change, nothing else):
 - Closure: commits `d233d06` + `ccb1bbc` + `56fc131` on local `main` (plus this
   records commit); **not pushed** per the user's instruction — `origin/main`
   remains `92f1612`, and a GitHub push needs separate approval.
+
+### Authorized GitHub delivery (2026-10-09)
+
+- Subsequent user instruction: "푸시해줘" — authorizes delivery to the previously
+  identified `origin/main`, not npm publication or deployment.
+- Before delivery: clean local `main` at `23f803b`, four task-owned commits above
+  `92f1612`; `git diff --check origin/main..HEAD` clean. Only the two state/receipt
+  files changed after independently tested `56fc131`; implementation evidence
+  remains bound to that revision rather than unnecessarily rerunning the suite.
+- `git push origin main` succeeded (`92f1612..23f803b`), and `git ls-remote --heads
+  origin refs/heads/main` confirmed `23f803bcb3ecf2124ee2c211ae0d4c65d692acd1`.
+  This delivery-record update follows on the same authorized target. CI status is
+  checked separately; push success alone does not establish CI success.
+- Published npm `0.5.0-beta.8`, installed user role/config files, Superpowers and
+  OpenDesign remain unchanged; no publication, restart or deployment performed.
