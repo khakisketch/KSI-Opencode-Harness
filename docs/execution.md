@@ -77,7 +77,7 @@ but cannot declare work implemented/accepted from the plan alone or silently cha
 approved requirements. Build owns execution progress/common record updates; Plan
 proposal edits and Build evidence updates are handed off sequentially. Keep user
 acceptance and external delivery distinct. Native prompts/modes/permissions, design
-ownership, independent final testing and explicitly requested goals remain unchanged;
+ownership, independent verification and explicitly requested goals remain unchanged;
 this guidance is not enforced plan loading, monitoring or guaranteed compliance.
 
 ### Own the completion loop, not a list for the user
@@ -93,10 +93,11 @@ task ledger, and continue all remaining authorized work without per-round approv
 
 Self-review does not replace independent evidence. Engineering uses actual code and
 changed-flow results; the design workspace owns actual rendered review/refinement
-and all visual repairs. Preserve independent Test Runner milestone/closeout checks
-and appropriate Reviewer checks; do not force a helper per edit or treat a generator's
-self-rating as design approval. Rerun affected checks after a repair. A passing subset
-or an agent's “done” is not the agreed result.
+and all visual repairs. Preserve independent Reviewer review and the integration
+checks the change needs; Developer tests are author evidence and Build reuses
+already-valid checks instead of rerunning them. Do not force a helper per edit or
+treat a generator's self-rating as design approval. Rerun affected checks after a
+repair. A passing subset or an agent's “done” is not the agreed result.
 
 Match depth to risk. For recurring/no-progress failures, preserve partial work,
 diagnose the cause and adjust a reversible approach within scope instead of blind
@@ -127,23 +128,26 @@ and a helper's “done” is not approval.
 
 Match depth to risk, not file count: routine text or small approved-pattern edits
 need the owner's self-check plus any required final check; ordinary features add the
-independent Test Runner check; complex or interface/API-changing work adds Reviewer;
-auth, permissions, payment or data changes get Reviewer plus strengthened independent
-checks. This does not remove the milestone/closeout independent verification, and
-visual changes remain design-owned regardless of size.
+integration checks the change needs; complex or interface/API-changing work adds
+Reviewer; auth, permissions, payment or data changes get Reviewer plus strengthened
+independent checks. Milestone/closeout verification stays real: Build verifies the
+integrated revision and unverified areas and records the actual commands/results,
+and where a project requires independent execution verification beyond that, an
+explicitly configured verification role or authorized CI provides it. Visual changes
+remain design-owned regardless of size.
 
 Do not re-read the whole implementation by default; that duplicates the
-Reviewer/Test Runner seat and spends the context Build needs for the remaining work.
+Reviewer seat and spends the context Build needs for the remaining work.
 Expand to specific diffs, logs or renders only when evidence is missing, stale or
 contradictory; a contract or interface conflict is plausible; unexpected or unrelated
 changes appear; or a high-risk boundary is touched (auth, permissions, data, external
 effects, irreversibility). Route each finding to its owning seat — implementation
-defect → Developer or design, review gap → Reviewer, evidence gap → Test Runner,
-contract/scope → Build, then the user when material — with the concrete defect, and
-recheck affected behavior after the repair. Tag each recorded defect with its
-origin seat (self, Reviewer, Test Runner, design review) so agent
-contribution can be judged across tasks over time; this is tracking, not a quota
-or a forced-helper mandate.
+defect → Developer or design, review gap → Reviewer, evidence gap → Build (or an
+explicitly configured verification role), contract/scope → Build, then the user when
+material — with the concrete defect, and recheck affected behavior after the repair.
+Tag each recorded defect with its origin seat (self, Reviewer, design review,
+independent verification) so agent contribution can be judged across tasks over
+time; this is tracking, not a quota or a forced-helper mandate.
 
 Keep helper returns compressed — result, scope, verification, unresolved items and
 evidence locations — with full logs, diffs and code in the ledger or evidence files,
@@ -242,8 +246,9 @@ extra team or delegation quota is required.
 
 Primary reconciles actual diffs/results and updates common ledger/product-state/
 checkpoint at stable boundaries. Helpers return findings rather than concurrently
-rewriting shared records. Final integrated checks remain independently run
-by Test Runner; a helper's report does not replace evidence or grant approval.
+rewriting shared records. Build runs the integration checks the integrated revision
+needs, reusing already-valid evidence for the same revision; a helper's report does
+not replace evidence or grant approval.
 
 #### Preserve conclusions beyond temporary evidence
 
@@ -260,7 +265,7 @@ ledger, with only summary/links in product-state/checkpoint.
 
 These are adopted operating instructions, not automatic injection/synchronization,
 runtime enforcement, guaranteed agent compliance or an OS sandbox. The npm installer
-still installs only three role files; it does not create records or merge policy.
+still installs only two role files; it does not create records or merge policy.
 
 ### Use Developer effectively, without mandatory delegation
 
@@ -288,10 +293,11 @@ copy or a second product plan. An ordinary assignment can contain these items in
 | Trusted checks and any access/tool limits relevant to the task | Significant assumptions or follow-up needed for integration |
 
 The same evidence identification applies to every seat: Reviewer names the diff
-range and revision reviewed plus what it did not inspect; Test Runner the exact
-commands, tested revision and skipped/not-run checks; design the changed screens
-and files on the actual source revision, the rendered-review evidence with defects
-tracked fixed/open, any functional-contract impact and unresolved items. A return without its revision and scope is not
+range and revision reviewed plus what it did not inspect; an independent
+verification run names the exact commands, tested revision and skipped/not-run
+checks; design the changed screens and files on the actual source revision, the
+rendered-review evidence with defects tracked fixed/open, any functional-contract
+impact and unresolved items. A return without its revision and scope is not
 usable for a verdict, and no seat claims a check it did not run.
 
 For example: repair an API retry path, preserve response/data semantics and the existing UI,
@@ -304,11 +310,13 @@ the user. An assignment grants no additional permissions or install/external-del
 
 Build inspects the actual diff and current workspace state against the contract, reconciles
 interfaces and verifies the integrated flow. A helper's “done”, test subset or report is not
-completion evidence by itself. Developer and Build may run author checks; milestone/closeout
-checks are independently executed by Test Runner on the integrated revision, with commands,
-results and relevant pending changes recorded in the existing ledger. Later affected edits
-require rechecking. Reviewer is independent read-only code/behavior review, not a substitute
-for Test Runner or design-owned rendered review.
+completion evidence by itself. Developer tests its own implementation; Build independently
+executes the integration/closeout checks the integrated revision needs (or an explicitly
+configured verification role does), records commands, results and relevant pending changes
+in the existing ledger, and reuses already-valid checks for the same revision instead of
+rerunning them mechanically. Later affected edits require rechecking. Reviewer is
+independent read-only code/behavior review, not a substitute for Build's integration checks
+or design-owned rendered review.
 
 If a result is wrong or incomplete, return a concrete defect (location/state, expected versus
 observed behavior and missing evidence), not a vague demand to try harder. For a worker stop,
@@ -328,18 +336,19 @@ or proof of improved real-development quality.
 
 Parallel work is conditional, not the default. Superpowers' parallel-agent guidance fits independent discovery, review, or bounded implementation with stable interfaces. Read-only helpers can run together; concurrent writers need disjoint ownership and separate worktrees. No additional KSI parallel coordinator role is needed. The Primary that accepts delegated work reconciles results and owns the final claim.
 
-OpenCode V2 keeps its own Build, Plan, and Explore prompts. Three installed `agents/*.md` files define only the additional roles. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. The default Developer cannot call Test Runner. The explicit `--developer-test-runner` variant changes that permission and prompt, but no runtime plugin exists to limit helper count or pause writes while it runs. Treat helper output as author feedback, not independent acceptance.
+OpenCode V2 keeps its own Build, Plan, and Explore prompts. Two installed `agents/*.md` files define only the additional roles (Developer, Reviewer). KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. The default Developer cannot delegate. Test Runner is no longer part of the default bundle and `--developer-test-runner` is removed; an already installed Test Runner file keeps working as an explicitly configured verification role. Treat helper output as author feedback, not independent acceptance.
 
 There are no KSI slash commands: ask Build to reconcile or complete work and ask Reviewer to examine a change when needed. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
 
-Reviewer/Test Runner's native `edit` and `subagent` denials are targeted protections,
+Reviewer's native `edit` and `subagent` denials are targeted protections,
 not an all-write sandbox: shell, MCP/API and Code Mode side effects have separate
-effective permissions. Neither helper may repair implementation or change config,
-services or external data through another tool. Before a trusted check, confirm its
-expected effects; task-owned fixtures/build output/logs are different from product
-repairs. Unknown or out-of-scope effects are reported before execution. Inspect the
-actual effective policy when isolation matters; do not silently tighten global
-permissions or claim the role file enforces complete read-only access.
+effective permissions. The reviewer may not repair implementation or change config,
+services or external data through another tool, and runs only safe read-only checks;
+artifact-producing checks belong to Build/CI or an explicitly configured verification
+role. Before a check, confirm its expected effects. Unknown or out-of-scope effects
+are reported before execution. Inspect the actual effective policy when isolation
+matters; do not silently tighten global permissions or claim the role file enforces
+complete read-only access.
 
 Local autonomy is not perpetual background execution. Native session goals, when available, are separate and require an explicit request; do not infer or auto-create/resume goals from ordinary development tasks. Continue only an actually active goal within its native mode and budgets. Tool approval, step limits, context and connectivity can still stop execution; documentation and package tests cannot guarantee long-running model behavior.
 
@@ -513,7 +522,7 @@ This agent-browser version bundles axe-core 4.12.1; `agent-browser --session <ta
 
 Both CLI capability checks exercised fresh snapshots, keyboard focus/submission, actual fixture POST/GET and backing-file persistence after reload, 390px viewport, screenshots, and console/network inspection; Playwright also exercised reduced-motion emulation. Four screenshots were inspected. These were independent **tool capability** sessions, not a requirement to run two drivers for every product change and not verification of a customer's authentication/API/routing. Apply the earlier change-focused real-product checks on each relevant development task.
 
-For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Use existing native reviewer/test-runner helpers when useful, not a mandatory extra verifier after every edit. Keep native session goals as the explicit-request continuation mechanism. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
+For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Use the existing native reviewer helper when useful, and reuse already-valid checks instead of rerunning them; there is no mandatory extra verifier after every edit. Keep native session goals as the explicit-request continuation mechanism. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
 
 ## Portable skills versus host-specific plugins
 

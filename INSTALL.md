@@ -5,7 +5,7 @@ KSI is distributed here as a standalone installer for OpenCode V2 native files, 
 ## Installation ownership
 
 Install Node.js 20+ and OpenCode V2 separately using their upstream instructions. KSI's default `--apply`
-writes only `agents/developer.md`, `agents/test-runner.md`, and `agents/reviewer.md` under the selected target.
+writes only `agents/developer.md` and `agents/reviewer.md` under the selected target.
 It does not install OpenCode, OpenDesign, Superpowers, Docker, model CLIs, credentials, or MCP connections.
 Your agent may help set those up after reading their documentation, but needs explicit approval for system
 installation, shared/global settings, credentials, and service changes. KSI installation alone authorizes none of them.
@@ -28,9 +28,9 @@ Paste this into the OpenCode session that should perform the installation:
 
 > "Install the KSI harness (ksi-opencode-harness) for this project.
 > 1. Verify Node.js 20+ and OpenCode V2 are ready, then ask me whether the target is the project `.opencode` or the server's global config directory.
-> 2. Run the preview only first and show me the three files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target \"<absolute path>\"`
+> 2. Run the preview only first and show me the two files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target \"<absolute path>\"`
 > 3. After I confirm, apply with `--apply`; if there is a conflict, stop and ask me about `--replace`.
-> 4. Verify developer, test-runner and reviewer in the effective agent list — file existence alone is not proof.
+> 4. Verify developer and reviewer in the effective agent list — file existence alone is not proof.
 > 5. Change nothing else: tool installs, credentials, global instructions (AGENTS.md) and service restarts require separate approval."
 
 ## Preview and apply from source
@@ -42,7 +42,7 @@ node bin/ksi-opencode.mjs install --target /absolute/path/to/opencode-config
 node bin/ksi-opencode.mjs install --target /absolute/path/to/opencode-config --apply
 ```
 
-The first command is read-only and prints the proposed file contents as JSON. The second writes three custom `agents/*.md` files only if each destination is absent or already identical. If a file differs, apply stops before writing anything. To replace after reviewing the exact preview, use `--apply --replace`; each replaced file is copied to a unique `.bak-...` sibling first. Replacement refuses an agent file with native `model`, `variant`, or `steps` frontmatter so those preferences can be migrated manually first. Replacement is recoverable through backups but is not transactional if a later filesystem write fails. The installer rejects symlinked managed destinations. A project target is usually `<project>/.opencode`; a global target is the server's OpenCode config directory. Use an absolute target to avoid writing into the wrong project.
+The first command is read-only and prints the proposed file contents as JSON. The second writes two custom `agents/*.md` files only if each destination is absent or already identical. If a file differs, apply stops before writing anything. To replace after reviewing the exact preview, use `--apply --replace`; each replaced file is copied to a unique `.bak-...` sibling first. Replacement refuses an agent file with native `model`, `variant`, or `steps` frontmatter so those preferences can be migrated manually first. Replacement is recoverable through backups but is not transactional if a later filesystem write fails. The installer rejects symlinked managed destinations. A project target is usually `<project>/.opencode`; a global target is the server's OpenCode config directory. Use an absolute target to avoid writing into the wrong project.
 
 ## Design work belongs to OpenDesign
 
@@ -62,6 +62,12 @@ A version before 0.5.0 may have installed `agents/design.md` and, with `--with-d
 
 Removing a role can change what a pending plan or session assumed. Re-check any in-progress work that referenced it.
 
+## Retiring the Test Runner role
+
+The default bundle no longer ships `agents/test-runner.md`, and the `--developer-test-runner` option is removed with an explicit error message. Developer now owns the tests for its own implementation; Reviewer reviews code and test adequacy (safe read-only checks only); Build verifies the integrated revision and unverified areas without repeating already-valid checks. Where a project requires independent execution verification, use an explicitly configured verification role or authorized CI.
+
+The installer never deletes a previously installed Test Runner file. An environment that already has `agents/test-runner.md` keeps it as a user-owned, explicitly configured verification role; any `opencode.jsonc` routing for it also stays untouched. If you want to retire it, back up the file and treat the removal — plus any matching routing entries — as a separate reviewed change to your configuration.
+
 ## Migrating an existing KSI plugin installation
 
 Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/design.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve Superpowers, the goal plugin, other plugins, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
@@ -70,11 +76,11 @@ The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has
 
 ## Full harness composition (agent-guided)
 
-This repository's harness is a composition: OpenCode (yours) + the three KSI roles + operating guidance + optional tools. Installing OpenCode and choosing a model/provider stay with each user — the composition **does not force a model**. Paste this into a session to have the agent assemble what is missing:
+This repository's harness is a composition: OpenCode (yours) + the two KSI roles + operating guidance + optional tools. Installing OpenCode and choosing a model/provider stay with each user — the composition **does not force a model**. Paste this into a session to have the agent assemble what is missing:
 
 > "Set up this repository's KSI harness composition in my environment. OpenCode and my model/provider choice are mine — do not change or force them.
 > 1. Inspect the current state read-only: OpenCode V2 + Node 20+, installed agents, existing settings and tools.
-> 2. KSI roles (developer, test-runner, reviewer): preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global.
+> 2. KSI roles (developer, reviewer): preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global.
 > 3. Operating guidance: read `examples/autonomous-development.md` and propose only the merge into my `AGENTS.md` → apply after approval.
 > 4. Optional tools — Superpowers, a browser tool (Playwright CLI or agent-browser, pick one), OpenDesign + design MCP: check each project's official documentation, propose a plan, and get my approval for system installs, credentials and service changes. Skip what is already present and report its status.
 > 5. Finish with a per-component status table and any skipped items with reasons."
@@ -82,7 +88,7 @@ This repository's harness is a composition: OpenCode (yours) + the three KSI rol
 | Component | Required | Installed by | Verify |
 | --- | --- | --- | --- |
 | OpenCode V2 · Node 20+ | yes | user (official docs) | `opencode --version` |
-| KSI three roles | yes | this installer | effective agent list |
+| KSI two roles | yes | this installer | effective agent list |
 | Operating guidance (`AGENTS.md`) | recommended | user + agent (reviewed merge) | a new session loads it |
 | Superpowers | recommended | user (official repo) | skill list |
 | Browser tool (one of) | for UI verification | user | one real page snapshot |
@@ -98,8 +104,8 @@ Review [the shared policy section](examples/autonomous-development.md) and merge
 
 Adoption delegates approved local implementation, bounded helpers, integration, verification and task-owned commits without routine progress/commit questions. Explicit user/repository restrictions still win. Push/publication/deployment require target/effect authorization, which can be granted once and reused unless the target, effects or risk materially change. Native tool/identity approvals remain enforced. Plan stays non-implementing; material design goes through OpenDesign's local execution and direction approval, while UI-reference skills remain supplementary. This guidance does not change models, permissions, upstream skills or goal settings, guarantee perpetual execution, or authorize new backlog work.
 
-OpenCode supplies Primary `build` and `plan` and Subagent `explore` without KSI replacements. The installer adds visible Subagents `developer`, `test-runner`, and `reviewer`. Their files omit `model`, `variant`, and `steps`: existing preferences remain user-owned. The installer never edits `opencode.jsonc`, `AGENTS.md`, credentials, providers, MCPs, plugins, Codex/Claude configuration, or Superpowers, and does not restart services. A short cross-tool [project guidance template](examples/project-AGENTS.md) is optional and is not applied automatically. Inspect other config layers if a role ID already exists there; file collisions alone do not prove effective precedence.
+OpenCode supplies Primary `build` and `plan` and Subagent `explore` without KSI replacements. The installer adds visible Subagents `developer` and `reviewer`. Their files omit `model`, `variant`, and `steps`: existing preferences remain user-owned. The installer never edits `opencode.jsonc`, `AGENTS.md`, credentials, providers, MCPs, plugins, Codex/Claude configuration, or Superpowers, and does not restart services. A short cross-tool [project guidance template](examples/project-AGENTS.md) is optional and is not applied automatically. Inspect other config layers if a role ID already exists there; file collisions alone do not prove effective precedence.
 
-`developerTestRunner` is OFF by default. `--developer-test-runner` produces an explicit native Developer permission/prompt variant. Unlike the former plugin, it cannot enforce one active helper or freeze writer tools. Do not enable it by default; V2's native `experimental.subagent_depth` is a separate user setting.
+Test Runner is no longer part of the default bundle, and `--developer-test-runner` is removed. Developer owns the tests for its own implementation; Reviewer independently reviews code and test adequacy (safe read-only checks only), and Build verifies the integrated revision and unverified areas without repeating already-valid checks. Where a project requires independent execution verification beyond that, an explicitly configured verification role or authorized CI provides it. A previously installed `agents/test-runner.md` is never deleted and keeps working as such a configured role.
 
 The installer adds no slash commands. Plugin-only automatic checkpoint/product-state injection, six `ksi_*` evidence tools, delegation/signature checks, helper tracking, and output archiving are unavailable. Normal OpenCode tools, installed skills, and project `AGENTS.md` can support the workflow without recreating those hooks. Verify the installed files and effective modes/permissions in a fresh V2 session. A no-auth HTTP 401 is not a passing shared-service check. Provider calls, OpenChamber UI login, and Human end-to-end acceptance are separate actions.

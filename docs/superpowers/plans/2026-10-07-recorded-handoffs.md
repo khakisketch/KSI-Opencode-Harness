@@ -1169,3 +1169,57 @@ orchestrator, state DB or browser service; native config and OpenDesign untouche
   delegation/verification. Good results would substantiate Plan/Build sufficiency
   without a separate product-manager agent; shallow judgment would first call for
   checking missing information/tools/criteria rather than longer prompts.
+
+## Approved Test Runner retirement and two-role simplification (2026-10-09)
+
+Status: approved and executed in this workstream; verification receipts appended below.
+
+### Approved scope
+
+User-directed follow-up after the Build review proposal (supersedes the guidance
+pause for this specific change, nothing else):
+
+- Remove Test Runner from the default harness bundle: `NATIVE_ROLE_NAMES`
+  becomes Developer + Reviewer and the `--developer-test-runner` installer
+  variant is removed. Developer owns the tests for its own implementation;
+  Reviewer is the independent read-only code/behaviour review seat and also
+  reviews test adequacy (may run safe read-only checks; artifact-producing
+  checks belong to Build/CI). Build verifies the integrated revision and
+  unverified areas and reuses already-valid checks instead of rerunning
+  everything.
+- Independent verification where genuinely required is not eliminated: it can
+  come from Reviewer's safe read-only checks, an explicitly configured
+  verification role (existing user installs keep their Test Runner role file),
+  Build's recorded integration checks on the integrated revision, or an
+  authorized CI run. Reviewer permissions are not expanded.
+- Clean up the option, installer/doctor/verifier/package scripts and tests,
+  package composition, shipped docs, and the adopted operating guidance
+  (machine-global `AGENTS.md`) to the two-role model.
+- Preserve: existing user configuration (installed role files, JSONC routing),
+  past evidence/history (dated records, `.superpowers` archives, backups), and
+  native Plan/Build, Superpowers and OpenDesign behavior. No new agent,
+  orchestrator, MCP or runtime loop.
+- No GitHub push, npm publication, or service restart in this task; local
+  commits only.
+
+### Planned change set
+
+- `src/native-roles.mjs`, `src/native-bundle.mjs`, `bin/ksi-opencode.mjs`:
+  two roles, no opt-in variant, explicit removal message for the old flag.
+- `templates/agents/test-runner.md` deleted; Developer and Reviewer prompts
+  updated (own-tests / test-adequacy responsibilities).
+- `scripts/check-package.mjs`, `scripts/work-doctor.mjs`,
+  `scripts/verify-native-v2-isolated.mjs` and the affected tests updated; new
+  installer tests cover the removed flag, the preserved user-owned Test Runner
+  file, and the retired role.
+- `package.json`, README, INSTALL, architecture/execution/verification docs,
+  OpenDesign contract and both examples aligned.
+- Machine-global `AGENTS.md`: targeted replacements only, byte-verified backup
+  before adoption.
+
+### Verification plan
+
+- Author run: `npm run check`, `npm run check:package`,
+  `node scripts/verify-native-v2-isolated.mjs`, `git diff --check`, link sweep.
+- Independent Reviewer on the committed diff; independent execution
+  verification on the integrated revision; receipts and record updates below.

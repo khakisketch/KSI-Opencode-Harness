@@ -34,7 +34,7 @@ actual target before work, rather than creating a replacement project by default
 | --- | --- |
 | OpenDesign | Visual analysis and decisions, layout, hierarchy, component presentation, actual UI source/style edits, responsive/visual interaction states, rendering, design review and direct refinement — including small CSS/spacing/overflow fixes |
 | OpenCode (Build) | Overall execution/integration and technical-completion evidence; purpose, functional/API/data/auth/brand contracts and production constraints; nonvisual engineering directly or through Developer; verification coordination, Git and reporting |
-| Test Runner / Reviewer | Respectively independent final checks on the integrated revision under the adopted operating policy, and read-only code/behaviour review; neither substitutes for rendered design review or human acceptance |
+| Reviewer | Independent read-only code/behaviour review, including test adequacy (safe read-only checks only); does not substitute for rendered design review or human acceptance |
 | Human | Material direction/product decisions, final acceptance and external-delivery authorization; existing authorization is reused within its approved target/effects |
 
 This is a responsibility boundary, not an aesthetic command hierarchy. Build delegates purpose,
@@ -47,8 +47,10 @@ Build can detect design mismatches, responsive/accessibility regressions and pro
 conflicts, then provide evidence to design; it does not substitute its own visual repair or approval.
 Design success is not whole-product completion. If an API connection breaks, Build fixes or delegates
 the nonvisual integration defect; visual defects return to design, with shared files handed off
-sequentially. Developer/Build author checks do not replace Test Runner's independent final checks
-on the integrated code; later relevant edits require affected checks again. These responsibilities
+sequentially. Developer's author tests do not replace independent review or the integration checks
+the integrated revision needs: Reviewer reviews code and test adequacy, Build verifies the integrated
+revision and unverified areas (reusing already-valid checks), and later relevant edits require
+affected checks again. These responsibilities
 do not create a native design child agent or another development Primary, or runtime enforcement.
 
 ## Prerequisite

@@ -1,8 +1,8 @@
 # Verification and remaining acceptance
 
-The dated catalogs below describe earlier configurations and are kept as history. Research, Design Critic, and then the Design primary and its vendored skill kit were retired in turn. The current source ships three subagent roles, no design kit, and no design primary role.
+The dated catalogs below describe earlier configurations and are kept as history. Research, Design Critic, and then the Design primary and its vendored skill kit were retired in turn. Test Runner left the default bundle in the 2026-10-09 two-role simplification. The current source ships two subagent roles (Developer, Reviewer), no design kit, and no design primary role.
 
-`npm run check` covers the three-role native bundle, installer safeguards, the explicit rejection of the removed `--with-design-kit` flag, and absence of retired plugin entrypoints. `npm run check:package` packs the source and performs an offline local-tarball install in a disposable config directory. `node scripts/verify-native-v2-isolated.mjs` checks the effective agent catalog in a credential-free OpenCode V2 environment and that the retired design skills have not reappeared. It evaluates the Plan design boundary and four Reviewer/Test Runner edit/delegation cases through the native permission API without executing those tools. Its separate shell/Code Mode/MCP observations describe inherited access, not all-write isolation, a live tool probe or the shared service's policy. `git diff --check` checks patch whitespace. None of these calls a model or proves behavior in a shared service.
+`npm run check` covers the two-role native bundle, installer safeguards, the explicit rejection of the removed `--with-design-kit` and `--developer-test-runner` flags, and absence of retired plugin entrypoints. `npm run check:package` packs the source and performs an offline local-tarball install in a disposable config directory. `node scripts/verify-native-v2-isolated.mjs` checks the effective agent catalog in a credential-free OpenCode V2 environment and that the retired design skills have not reappeared. It evaluates the Plan design boundary and two Reviewer edit/delegation cases through the native permission API without executing those tools. Its separate shell/Code Mode/MCP observations describe inherited access, not all-write isolation, a live tool probe or the shared service's policy. `git diff --check` checks patch whitespace. None of these calls a model or proves behavior in a shared service.
 
 ## Design retirement source change (2026-09-30)
 
@@ -11,6 +11,10 @@ The repository now ships Developer, Test Runner, and Reviewer only. `src/native-
 Package version moved to `0.5.0-beta.1`. Supplying the retired flag exits non-zero with an explicit message and writes nothing; a legacy installed `agents/design.md` is deliberately left untouched for a separately reviewed migration. Reviewer was reduced to code and behaviour review, and the retired skill IDs are asserted absent in the isolated skill catalog.
 
 This is source-level package evidence only. No global OpenCode configuration was changed, no role was removed from any installed environment, no provider call was made, and no Human acceptance of a real product screen is claimed. The deployed OpenDesign daemon itself is verified separately.
+
+## Test Runner retirement (2026-10-09)
+
+The default bundle now ships Developer and Reviewer only. `templates/agents/test-runner.md` and the `--developer-test-runner` installer variant were removed; the installer, doctor helper, isolated verifier and package checks were updated, and the old flag fails with an explicit removal message instead of a silent usage error. Developer now owns the tests for its own implementation and Reviewer reviews code and test adequacy (safe read-only checks only); Build verifies the integrated revision and unverified areas, reusing already-valid checks, and independent execution verification remains available through an explicitly configured verification role or authorized CI. The installer still never deletes a previously installed `test-runner.md`; existing user files and JSONC routing stay untouched. This is source-level evidence; no user configuration was changed by this task, and no push or publication was performed.
 
 ## Dated history (earlier configurations)
 
