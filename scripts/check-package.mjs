@@ -55,6 +55,15 @@ export function installedCliTarget({ installRoot, packageDir, platform = process
   return { command: dotBin, baseArgs: [], present: [], executable: dotBin }
 }
 
+export async function verifyRetiredFlags(runCli, target) {
+  for (const flag of ["--with-design-kit", "--developer-test-runner"]) {
+    const result = await runCli(["install", "--target", target, flag, "--apply"])
+    assert.notEqual(result.code, 0, `the removed ${flag} flag must fail loudly`)
+    assert.match(result.stderr, new RegExp(`${flag.slice(2)}.*removed`, "i"))
+    await assert.rejects(access(target), { code: "ENOENT" }, "a rejected flag must not create the target")
+  }
+}
+
 async function main() {
   const npm = npmTarget()
   const work = await mkdtemp(join(tmpdir(), "ksi-native-package-"))
@@ -103,10 +112,7 @@ async function main() {
     const relative = await runCli(["install", "--target", "relative-config", "--apply"])
     assert.notEqual(relative.code, 0)
     await assert.rejects(access(join(work, "relative-config")), { code: "ENOENT" })
-    const retired = await runCli(["install", "--target", config, "--with-design-kit", "--apply"])
-    assert.notEqual(retired.code, 0, "the removed design-kit flag must fail loudly")
-    assert.match(retired.stderr, /with-design-kit.*removed/i)
-    await assert.rejects(access(config), { code: "ENOENT" }, "a rejected flag must not create the target")
+    await verifyRetiredFlags(runCli, config)
     const preview = await runCli(["install", "--target", config])
     assert.equal(preview.code, 0, preview.stderr)
     assert.equal(JSON.parse(preview.stdout).applied, false)
@@ -118,14 +124,25 @@ async function main() {
     const repeat = await runCli(["install", "--target", config, "--apply"])
     assert.equal(repeat.code, 0, repeat.stderr)
     assert.deepEqual(JSON.parse(repeat.stdout).changes, [], "repeated apply must be idempotent")
+    const legacyRole = join(config, "agents", "test-runner.md")
+    const legacyPrompt = "Existing user-owned verification role; preserve it.\n"
+    const routingPath = join(config, "opencode.jsonc")
+    const routing = '{\n  // existing optional verifier routing\n  "agents": {"test-runner": {"model": "user-owned/verifier", "steps": 24}}\n}\n'
+    await writeFile(legacyRole, legacyPrompt)
+    await writeFile(routingPath, routing)
+    const legacyUpdate = await runCli(["install", "--target", config, "--apply"])
+    assert.equal(legacyUpdate.code, 0, legacyUpdate.stderr)
+    assert.deepEqual(JSON.parse(legacyUpdate.stdout).changes, [], "legacy files must stay outside the managed bundle")
+    assert.equal(await readFile(legacyRole, "utf8"), legacyPrompt)
+    assert.equal(await readFile(routingPath, "utf8"), routing)
     const ownedRole = join(config, "agents", "reviewer.md")
     const userRouting = "---\nmodel: user-owned/model\n---\nDo not replace this role.\n"
     await writeFile(ownedRole, userRouting)
     const conflict = await runCli(["install", "--target", config, "--apply", "--replace"])
     assert.notEqual(conflict.code, 0, "user routing must block replacement")
     assert.equal(await readFile(ownedRole, "utf8"), userRouting)
-    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md"])
-    console.log("Package verification passed: installer-only tarball, offline two-role install, and retired design-kit rejection.")
+    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
+    console.log("Package verification passed: installer-only tarball, offline two-role install, both retired flags rejected, and legacy role/routing preserved.")
   } finally {
     await rm(work, { recursive: true, force: true })
   }

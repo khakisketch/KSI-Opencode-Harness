@@ -1282,3 +1282,161 @@ pause for this specific change, nothing else):
   checked separately; push success alone does not establish CI success.
 - Published npm `0.5.0-beta.8`, installed user role/config files, Superpowers and
   OpenDesign remain unchanged; no publication, restart or deployment performed.
+
+## Approved post-retirement legacy audit and cleanup (2026-10-09)
+
+Status: user requested a comprehensive related legacy audit and cleanup;
+implementation/checks and independent review complete; local commit pending. This is a bounded follow-up,
+not renewed general guidance expansion or product-development ownership.
+
+### Goal, basis and boundaries
+
+- Goal: remove misleading active two-role instructions and close retirement
+  verification gaps while preserving user configuration and historical evidence.
+- Basis: the user's follow-up cleanup request and the preceding approved
+  Developer + Reviewer contract. No new role, default verification seat,
+  orchestrator, permission/model/step change, dependency or service restart.
+- Primary/workspace/target: this Build session, canonical checkout
+  `/home/ksi/Desktop/KSI-Projects/KSI-Opencode-Harness`, `main`, base
+  `1840aada86b7d9123e5d5b2b8fb6a0946a608733`, local integration on the same branch;
+  clean at start, no concurrent writer or new worktree. Existing unrelated
+  worktrees and the EVENTOUCH owning session are excluded. No push or release
+  authorization is inferred from the previous completed delivery.
+- Preserve customized Reviewer, JSON/JSONC bytes (including optional Test Runner
+  routing), installed Test Runner, backups, dated trials and earlier catalogs.
+  Only the installed Developer's proven stock pre-retirement prompt may be
+  aligned after a private backup, with frontmatter byte-identical. Unknown or
+  customized content must not be overwritten.
+
+### Reproduced findings and root causes (origin: self)
+
+| id | finding / cause | required result |
+| --- | --- | --- |
+| L1 | README/INSTALL say pinned npm beta.8 writes two files, but immutable release tag `v0.5.0-beta.8` (`178b2e9`) defines three roles; source-only retirement was described as published behavior. | Recommend reviewed-source installation for two roles; explicitly label published beta.8 as the legacy three-role release, without bumping/publishing. |
+| L2 | `scripts/check-package.mjs` rejects the design-kit flag only, despite README claiming both removed options are verified in the packed consumer. | Exercise both removed flags on the actual installed tarball, nonzero status + removal message + no target writes; also verify legacy role/routing preservation. |
+| L3 | Installed Developer body exactly matches `92f1612:templates/agents/developer.md`, including removed Developer-to-Test-Runner option; installer deliberately preserved it. | Back up and align only that known stock prompt; retain its permissions/frontmatter and every unrelated global file. |
+| L4 | Product-state still labels the current beta milestone three-role without separating current source; dated verification uses present-tense three-role wording. | Refresh current summaries and mark old catalogs as historical, never rewrite past evidence. |
+
+Audit so far: active source/templates/options, installer, doctor, isolated
+verifier, package manifest/check, CI, current docs/examples/config sample,
+SVG textual labels, and relevant global agent/config entries inspected. Retired
+flag errors, absence assertions, preservation tests and dated references are
+intentional compatibility/evidence, not dead components to delete. Old design
+backups and unrelated worktrees are preserved. CI `37882500976` for `1840aad`
+is now completed/success; it does not test this follow-up.
+
+### Implementation and verification checklist
+
+Architecture: keep installer behavior unchanged. Add a small reusable packed
+consumer assertion in the existing package checker; no new CLI/API/config tool.
+Stack: existing Node.js 20+ ESM, node:test, local tarball verifier.
+
+Review focus: published/source identity; rejected-option side effects; stock
+versus customized prompt provenance; preserved routing/permissions; historical
+evidence not mistaken for current acceptance.
+
+- [x] Add failing regressions in `test/check-package.test.mjs` for
+  `verifyRetiredFlags(runCli, target)` (both flags, explicit message, no writes),
+  run these tests and capture RED. Human-facing source-first/legacy disclosure
+  is checked against actual artifacts and by review, not a prose-lock test.
+- [x] Implement that internal helper in `scripts/check-package.mjs`, call it
+  on the installed tarball, and assert retained legacy file/JSONC bytes;
+  correct README/INSTALL/releasing/verification copy; run focused GREEN.
+- [x] Privately back up the target global prompt and hash relevant preserved files, recheck the stock Developer
+  body and align it to the current template using a targeted patch; prove
+  frontmatter and all non-target file hashes unchanged. Do not delete the
+  optional installed Test Runner or its routing.
+- [x] Run `npm run check`, `npm run check:package`, `git diff --check`, and
+  changed-doc link checks; reuse the unchanged native permission/catalog
+  evidence instead of restarting a shared service or retesting unrelated flows.
+- [ ] Independent read-only Reviewer checks actual task diff, evidence,
+  preservation and test adequacy; repair/recheck affected findings. Record
+  exact tested workspace/revision/pending changes, update product-state and
+  checkpoint, and commit only task-owned files locally. Human acceptance and
+  external delivery remain separate.
+
+Plan self-review: all four findings have an owned repair/check; preserving
+existing optional verification is a constraint, not incomplete default-role
+removal. Implementation can proceed under the existing local-execution policy;
+no new scope/design/security decision is required.
+
+### Implementation/check receipts (2026-10-09)
+
+- Verification target: canonical `main`, base `1840aad` with pending changes to
+  README, INSTALL, releasing/verification docs, package-check script and its
+  tests, and this record. Installer, native-role definitions/bundle, templates,
+  doctor/isolated verifier and permission rules are unchanged.
+- RED: `node --test test/check-package.test.mjs` — 4 existing pass / 4 new fail
+  for the absent packed-consumer validator; no import/syntax failure. GREEN:
+  `node --test test/check-package.test.mjs test/native-package.test.mjs` — 15/15.
+  Added scenarios fail on missing second probe, silent success, usage-only error
+  and target creation. Main package verification executes the actual installed
+  tarball, including retained optional role and exact commented JSONC bytes.
+- Full check: `TMPDIR=/tmp/opencode npm run check` — 217 total / 215 pass / 0
+  fail / 2 unchanged optional skips (real isolated Compose; auto-only endpoint
+  final-summary overlay). Packed check: `TMPDIR=/tmp/opencode npm run
+  check:package` — pass (two-role fresh install, both rejected flags with no
+  writes, repeat, legacy preservation and routing-protected replacement).
+- `git diff --check` clean. Changed user-doc link sweep: 37 local paths/anchors,
+  0 missing. `checkVersionPins` using the actual README/INSTALL/manifest: pass,
+  5 pins. Full `release:check` is unnecessary here: this is not a release and
+  it would mechanically repeat the same checks and require a clean commit.
+- Fresh registry metadata: both `latest` and `next` = `0.5.0-beta.8`. The
+  public tarball was fetched read-only in memory, its SHA512 matched registry
+  SRI, and its actual template inventory and role source include Developer,
+  Reviewer and Test Runner. No public package code was installed/executed.
+- Global prompt alignment: installed Developer's body exactly matched stock
+  `92f1612` before edit. Private backup at
+  `/tmp/opencode/ksi-legacy-cleanup-20261009/global-backup/developer.md.before`,
+  SHA256 `cd6e8367c14fe8c7e261febda95c9bd978c009bff4d578944a49d36062be1e13`.
+  After targeted prompt-only patch, SHA256
+  `6e1ea112adf8a4320a2518fda02c767287553560115332ffc55ae2116046a281`;
+  full file equals the current Developer bundle, frontmatter byte-identical.
+  Five non-target files remain hash-identical: customized Reviewer, installed
+  Test Runner, `opencode.json`, `opencode.jsonc`, global `AGENTS.md`.
+- Evidence root: `/tmp/opencode/ksi-legacy-cleanup-20261009/` (`red.log`,
+  `focused-green.log`, `check.log`, `package.log`, `global-before.json`,
+  `global-preservation.json`, `public-beta8.json`). No service restart or live
+  model execution; prompt adoption is file evidence, not behavior acceptance.
+- Ruling: do not add regex wording-lock tests for human prose — the loaded TDD
+  test-quality guide requires behavioral tests, while public/source identity is
+  proved by actual artifact comparison and independent reading. Cost if wrong:
+  future prose drift needs review rather than a brittle exact-copy CI assertion.
+  No existing test was removed; the manifest test's misleading "new publishable"
+  title is corrected without changing its version/permission assertions.
+
+### Independent review and disposition (2026-10-09)
+
+- Reviewer `ses_ee10880a4ffeq32CEZKWnC7K0C` inspected actual base `1840aad` +
+  nine task-owned pending files, the plan/receipts, neighboring installer/docs,
+  and global before/after provenance/hashes. No files modified; no tests,
+  package installations or model calls claimed. **No Critical or Important
+  behavioral defect.** Native installer/role/permission files unchanged;
+  two-role versus public three-role disclosure, packed flags, legacy routing
+  and stock/custom prompt distinction verified from actual sources/evidence.
+- Origin Reviewer, Minor 1 (receipt persistence): exact 37-link / 5-pin outputs
+  existed in the tool transcript but were absent from the evidence directory.
+  Re-executed those two inexpensive read-only checks, saved `doc-links.json`
+  (37 local links / 0 missing) and `version-pins.json` (ok true / 5 pins).
+  Fixed evidence gap; no code or test edit and no full-suite replay required.
+- Origin Reviewer, Minor 2 (process suggestion): recommended pre-review before
+  global prompt changes. **No defect/repair required:** this prompt-only update
+  was authorized by the cleanup contract, stock provenance checked before the
+  edit, backup created, permissions/frontmatter unchanged, five preserved
+  non-target hashes independently confirmed afterward. A new per-edit
+  pre-approval gate is not adopted; Reviewer has no approval authority and the
+  operating policy already permits this bounded backed-up maintenance.
+- Declined-to-judge exclusions retain the agreed boundaries: B② remains
+  deferred to idle EVENTOUCH ownership; live model behavior/efficiency and
+  user acceptance unverified; external delivery unapproved; native internals,
+  other sessions/worktrees and unrelated product-wide auditing excluded.
+  None is required to complete this source/metadata cleanup or authorizes
+  further work here. No unresolved in-scope defect remains.
+- Exact checked code snapshot (raw SHA256; no edits since the passing runs):
+  `scripts/check-package.mjs` =
+  `7c845fd9e65703e8eba029efb2fe617f8b3188559032b24cead49d73cf1b52d8`;
+  `test/check-package.test.mjs` =
+  `fba92c35a3294eba76f2b2e9a61c0841d339ecbb1865b2aadb927b20a08d11a5`;
+  `test/native-package.test.mjs` =
+  `82f844484217c4ed682e482042408a94cb9103acf012dc855686149c23265c27`.
+  Later record-only edits do not invalidate code/package test evidence.

@@ -4,6 +4,12 @@ This repository publishes the standalone `ksi-opencode-harness` native OpenCode 
 
 ## Prepare a new version
 
+The current two-role source is newer than the published three-role beta.8.
+Until an authorized new release, installation guidance must distinguish them
+and use reviewed source for two roles. Do not republish beta.8. After verifying
+an authorized new public release, update the source-only/legacy notices as well
+as the version pins; matching pins alone does not prove published behavior.
+
 Choose an unused version and update the manifest and exact-version checks in `test/native-package.test.mjs` and `scripts/check-package.mjs`. Pin the same version in README/INSTALL preview and apply commands. Compare registry versions/tags with the candidate, review the source commit and tarball inventory, then run `npm run check`, `npm run check:package`, `node scripts/verify-native-v2-isolated.mjs`, `npm pack --dry-run --json`, and `git diff --check`. Run `npm run release:check` for the pinned preflight — it verifies the README/INSTALL version pins against `package.json`, a clean working tree, and both source checks; it never publishes, tags or changes a channel. The tarball contains the CLI, two role sources, public docs and licenses, but no retired design kit, V1 plugin entrypoint, tests, internal plans/state, credentials, or this release guide. Test the packed binary in a disposable target, including a read-only preview and two-role apply. File creation alone is not live OpenCode acceptance.
 
 ## Publish only with explicit authorization

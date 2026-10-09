@@ -12,7 +12,16 @@ installation, shared/global settings, credentials, and service changes. KSI inst
 
 ## Public npm beta: preview and apply
 
-With Node.js 20 or newer, use the current public beta. From the root of the project you want to change, `$PWD/.opencode` is an absolute project-local target. `npm exec` obtains the package through npm's cache; obtaining the package alone makes no OpenCode configuration changes. The first command previews; only the second command's `--apply` writes files.
+**Published `0.5.0-beta.8` is the legacy three-role release (Developer, Test Runner,
+Reviewer), not the current two-role source.** The retirement change has not been
+published to npm. For Developer + Reviewer only, use the [reviewed-source
+commands below](#preview-and-apply-from-source); do not substitute the npm commands.
+Current removed-option behavior also does not apply retroactively to that release.
+
+To deliberately install the older public beta with Node.js 20+, run from the root
+of the target project. `$PWD/.opencode` is an absolute project-local target.
+`npm exec` obtains the package through npm's cache; obtaining it alone makes no
+OpenCode configuration changes. The first command previews; only `--apply` writes files.
 
 ```sh
 npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "$PWD/.opencode"
@@ -28,14 +37,15 @@ Paste this into the OpenCode session that should perform the installation:
 
 > "Install the KSI harness (ksi-opencode-harness) for this project.
 > 1. Verify Node.js 20+ and OpenCode V2 are ready, then ask me whether the target is the project `.opencode` or the server's global config directory.
-> 2. Run the preview only first and show me the two files that would be written: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target \"<absolute path>\"`
+> 2. Locate the reviewed current source checkout. Run the preview only first and show me the two files that would be written: `node \"<source checkout>/bin/ksi-opencode.mjs\" install --target \"<absolute path>\"`. Do not substitute public npm beta.8: it still installs three roles.
 > 3. After I confirm, apply with `--apply`; if there is a conflict, stop and ask me about `--replace`.
 > 4. Verify developer and reviewer in the effective agent list — file existence alone is not proof.
 > 5. Change nothing else: tool installs, credentials, global instructions (AGENTS.md) and service restarts require separate approval."
 
 ## Preview and apply from source
 
-From a reviewed source checkout, run:
+For the current two-role bundle, run from a reviewed source checkout. Use the
+same reviewed source revision for preview and apply:
 
 ```sh
 node bin/ksi-opencode.mjs install --target /absolute/path/to/opencode-config
@@ -64,9 +74,16 @@ Removing a role can change what a pending plan or session assumed. Re-check any 
 
 ## Retiring the Test Runner role
 
-The default bundle no longer ships `agents/test-runner.md`, and the `--developer-test-runner` option is removed with an explicit error message. Developer now owns the tests for its own implementation; Reviewer reviews code and test adequacy (safe read-only checks only); Build verifies the integrated revision and unverified areas without repeating already-valid checks. Where a project requires independent execution verification, use an explicitly configured verification role or authorized CI.
+The current source bundle no longer ships `agents/test-runner.md`, and the `--developer-test-runner` option is removed with an explicit error message. Published npm beta.8 still has the old role and option. Developer now owns the tests for its own implementation; Reviewer reviews code and test adequacy (safe read-only checks only); Build verifies the integrated revision and unverified areas without repeating already-valid checks. Where a project requires independent execution verification, use an explicitly configured verification role or authorized CI.
 
 The installer never deletes a previously installed Test Runner file. An environment that already has `agents/test-runner.md` keeps it as a user-owned, explicitly configured verification role; any `opencode.jsonc` routing for it also stays untouched. If you want to retire it, back up the file and treat the removal — plus any matching routing entries — as a separate reviewed change to your configuration.
+
+An old installed Developer prompt can also mention the removed delegation option.
+Compare it with the current template and review a backed-up prompt-only merge;
+do not discard model/variant/steps, permissions, or customized instructions just
+to make the role file identical. Re-check active work before retiring a shared
+verification role. Removed-flag errors and retirement/preservation tests remain
+intentional compatibility safeguards, not legacy functionality to delete.
 
 ## Migrating an existing KSI plugin installation
 
@@ -80,7 +97,7 @@ This repository's harness is a composition: OpenCode (yours) + the two KSI roles
 
 > "Set up this repository's KSI harness composition in my environment. OpenCode and my model/provider choice are mine — do not change or force them.
 > 1. Inspect the current state read-only: OpenCode V2 + Node 20+, installed agents, existing settings and tools.
-> 2. KSI roles (developer, reviewer): preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global.
+> 2. KSI roles (developer, reviewer): use a reviewed current source checkout, preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global. Do not substitute public npm beta.8, which still installs three roles.
 > 3. Operating guidance: read `examples/autonomous-development.md` and propose only the merge into my `AGENTS.md` → apply after approval.
 > 4. Optional tools — Superpowers, a browser tool (Playwright CLI or agent-browser, pick one), OpenDesign + design MCP: check each project's official documentation, propose a plan, and get my approval for system installs, credentials and service changes. Skip what is already present and report its status.
 > 5. Finish with a per-component status table and any skipped items with reasons."

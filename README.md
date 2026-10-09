@@ -7,10 +7,11 @@
 
 [시작하기](#바로-시작하기) · [작업 흐름](#ksi는-이렇게-작업합니다) · [요청 예시](#실제로-이렇게-요청하세요) · [시각 가이드](docs/walkthrough.md) · [설치 가이드](INSTALL.md)
 
-**OpenCode V2** · **선택형 엔지니어링 역할 2개** · **Beta `0.5.0-beta.8`** · [MIT](LICENSE)
+**OpenCode V2** · **현재 소스: 엔지니어링 역할 2개** · **공개 Beta `0.5.0-beta.8` (이전 3역할)** · [MIT](LICENSE)
 
 > **운영 방식과 설치 범위는 다릅니다.** 아래는 KSI가 일하는 방식입니다.
-> 이 npm 패키지가 설치하는 것은 Developer · Reviewer의 **두 에이전트 파일뿐**입니다.
+> **현재 소스 설치기**는 Developer · Reviewer의 **두 에이전트 파일만** 씁니다.
+> 공개 npm `0.5.0-beta.8`은 아직 Test Runner를 포함한 **이전 3역할 배포판**입니다. 두 역할 구성은 아래 소스 설치 절차를 사용하세요.
 > 기존에 설치된 Test Runner 등 다른 역할 파일은 남으며, 새 설치가 자동 삭제하지 않습니다.
 > 도구 설치, 디자인 연결, 프로젝트 지침, 자동 배포까지 묶어 주는 올인원 플러그인이 아닙니다.
 
@@ -226,17 +227,20 @@ Plan에서 방향을 합의하고 Build에서 실행합니다. 역할을 나눠�
 
 ### 2. 변경 내용을 미리 보고 적용하세요
 
-작업할 프로젝트 루트에서 실행합니다. 첫 명령은 **미리보기만**, 두 번째 명령만 파일을 씁니다.
+**현재 두 역할 구성은 검토한 소스 체크아웃에서 설치합니다.** 공개 npm `0.5.0-beta.8`에는
+이 변경이 아직 배포되지 않았습니다. 소스 루트에서 실행하며, `$PWD/.opencode`는 이
+체크아웃을 위한 대상입니다. 다른 프로젝트는 해당 프로젝트의 절대 경로로 바꾸세요.
+첫 명령은 **미리보기만**, 두 번째 명령만 파일을 씁니다.
 
 ```sh
 # 미리보기 — OpenCode 설정 파일을 변경하지 않습니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "$PWD/.opencode"
+node bin/ksi-opencode.mjs install --target "$PWD/.opencode"
 
 # 검토 후 적용 — 선택한 프로젝트에 두 역할을 추가합니다
-npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "$PWD/.opencode" --apply
+node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 ```
 
-미리보기와 적용 모두 같은 버전을 고정합니다. 이번 공개 베타는 `next`와 기본 채널 `latest`로 배포하며, 기본 채널에서도 베타라는 성격은 유지됩니다. 이후 채널이 바뀌어도 같은 버전을 사용하려면 위처럼 고정하세요.
+미리보기와 적용 모두 같은 검토된 소스 버전을 사용하세요. 공개판은 별도 새 버전 배포 전까지 그대로 유지됩니다.
 대상 경로는 절대 경로여야 합니다. 같은 파일은 반복 적용해도 변경하지 않으며, 다른 파일은 임의로 덮어쓰지 않습니다.
 명시적인 교체에는 백업이 생성됩니다. [충돌·업그레이드 규칙 →](INSTALL.md)
 
@@ -246,7 +250,7 @@ npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode insta
 
 > “이 프로젝트에 KSI 하네스(ksi-opencode-harness)를 설치해줘.
 > ① Node.js 20+·OpenCode V2가 준비됐는지 확인하고, 설치 대상(프로젝트 `.opencode` vs 서버 전역 설정 디렉터리)을 나에게 먼저 물어봐.
-> ② 먼저 미리보기만 실행해서 어떤 2개 파일이 쓰일지 보여줘: `npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "<절대경로>"`
+> ② 검토한 현재 소스 체크아웃을 확인해 먼저 어떤 2개 파일이 쓰일지 미리보기만 보여줘: `node "<소스 체크아웃>/bin/ksi-opencode.mjs" install --target "<절대경로>"`. 공개 npm beta.8은 이전 3역할이므로 두 역할 설치용으로 대신 쓰지 마.
 > ③ 내가 확인하면 `--apply`로 적용해줘. 충돌이 있으면 멈추고 `--replace` 여부를 다시 물어봐.
 > ④ 적용 후 유효 에이전트 목록에서 developer·reviewer를 확인해줘 — 파일 존재만으로 판단하지 마.
 > ⑤ 그 외에는 아무것도 바꾸지 마: 도구 설치·credentials·전역 지침(AGENTS.md)·서비스 재시작은 별도 승인 없이는 하지 마.”
@@ -260,18 +264,24 @@ OpenCode의 유효 에이전트 목록에서 `developer`, `reviewer`를 확인�
 보통 `~/.config/opencode`이지만, 관리형·외부 서버 환경에서는 다를 수 있습니다.
 
 <details>
-<summary>검토한 소스 체크아웃에서 설치하려면</summary>
+<summary>공개 npm beta.8을 설치하려면 — 이전 3역할 배포판</summary>
+
+`0.5.0-beta.8`은 `next`와 `latest`에 공개된 이전 버전입니다. 아래 명령은 Developer ·
+Test Runner · Reviewer **3개 역할**을 설치하며, 현재 두 역할 구성과 다릅니다.
+제거된 옵션의 현재 동작도 이 과거 공개판에 소급 적용되지 않습니다.
+대상 프로젝트 루트에서 실행하세요.
 
 ```sh
-node bin/ksi-opencode.mjs install --target "$PWD/.opencode"
-node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "$PWD/.opencode"
+npm exec --yes --package=ksi-opencode-harness@0.5.0-beta.8 -- ksi-opencode install --target "$PWD/.opencode" --apply
 ```
 
 </details>
 
 ## 설치되는 것과 별도로 준비할 것
 
-**기본 적용 범위는 아래 두 파일입니다.** npm 패키지를 내려받는 것만으로 OpenCode 설정은 바뀌지 않습니다.
+**현재 소스의 기본 적용 범위는 아래 두 파일입니다.** 공개 npm beta.8의 이전 3역할 구성과
+구분하세요. npm 패키지를 내려받는 것만으로 OpenCode 설정은 바뀌지 않습니다.
 
 ```text
 선택한 설정 디렉터리/
@@ -280,7 +290,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
     └── reviewer.md
 ```
 
-**에이전트 2개만 설치됩니다.** 전역·프로젝트 지침(`AGENTS.md`), `opencode.jsonc`, MCP 연결, 도구·credentials는 설치되지 않습니다 — 기존에 설치된 Test Runner 등 다른 역할 파일은 남으며, 새 설치가 자동 삭제하지 않습니다. 지침은 [예시](examples/autonomous-development.md)를 검토해 병합하고, 나머지는 각자 준비합니다.
+**현재 소스 설치기는 에이전트 2개만 설치합니다.** 전역·프로젝트 지침(`AGENTS.md`), `opencode.jsonc`, MCP 연결, 도구·credentials는 설치되지 않습니다 — 기존에 설치된 Test Runner 등 다른 역할 파일은 남으며, 새 설치가 자동 삭제하지 않습니다. 지침은 [예시](examples/autonomous-development.md)를 검토해 병합하고, 나머지는 각자 준비합니다.
 
 | 구성 요소 | 설치·관리 주체 | 언제 필요한가요? |
 | --- | --- | --- |
@@ -297,7 +307,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 
 > “내 환경에 이 저장소의 KSI 하네스 구성을 갖춰줘. OpenCode 설치와 모델·provider 선택은 내 것이니 바꾸지 말고 강제하지도 마.
 > ① 먼저 읽기 전용으로 현재 상태를 점검해줘: OpenCode V2·Node 20+, 설치된 에이전트, 기존 설정·도구.
-> ② KSI 2역할(developer·reviewer): 미리보기 → 내 확인 → `--apply` → 유효 에이전트 목록 검증. 대상(프로젝트 vs 전역)은 먼저 물어봐.
+> ② KSI 2역할(developer·reviewer): 검토한 현재 소스 체크아웃에서 미리보기 → 내 확인 → `--apply` → 유효 에이전트 목록 검증. 대상(프로젝트 vs 전역)은 먼저 물어봐. 공개 npm beta.8은 이전 3역할이므로 대신 쓰지 마.
 > ③ 운영 지침: `examples/autonomous-development.md`를 읽고 내 `AGENTS.md`에 병합할 변경만 제안 → 승인 후 적용.
 > ④ 선택 도구 — Superpowers, 브라우저 도구(Playwright CLI 또는 agent-browser 중 하나), OpenDesign+디자인 MCP: 각각 공식 문서를 확인해 설치 계획을 제안하고, 시스템 설치·credentials·서비스 변경은 내 승인 후 진행. 이미 있으면 건너뛰고 상태만 보고.
 > ⑤ 마무리: 구성 요소별 설치·확인 상태와 건너뛴 항목·이유를 표로 보고해줘.”
