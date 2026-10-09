@@ -295,6 +295,13 @@ product acceptance and external delivery remain unclaimed.
   plan. Re-evaluate a path-compatibility change (status tools reading CE locations
   alongside the legacy path) only with observed real-use friction; do not add
   per-project CE config now.
+- Mode comparison frame (user proposal 2026-10-09): label each real task by mode —
+  A native-only, B native + selective CE (current default), C full CE workflow —
+  and judge each with the same four metrics; do not mix modes within one task.
+  A suits small/clear work; C must justify its process cost on large tasks.
+  `ce-compound` is kept only if it demonstrably reduces later re-investigation
+  (continuity metric). Native Plan/Build/General/Explore are the base; CE skills
+  are auxiliary and must earn their keep.
 
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
