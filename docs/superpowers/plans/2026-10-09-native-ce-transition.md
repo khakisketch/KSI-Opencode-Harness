@@ -146,6 +146,9 @@ push/publication, product experiments and other-session interruption are not.
   active duplicates only. Preserve upstream/cache/other-tool copies and history.
   Disable Developer/Test Runner while keeping their settings recoverable; verify
   that later agent-file discovery does not resurrect them. Reviewer unchanged.
+  Apply the goal-plugin soft-disable per the verified plan section below (pause
+  active goals in their owning sessions first; `auto_continue:false`; preserve
+  the state file; keep `ksi.design-notifier` untouched).
 - [ ] **4. Simplify global policy:** apply the prepared private AGENTS candidate
   after checking it against preserved contracts. No native system-prompt edits,
   recursive orchestration or required per-task framework stages. Verify exact
@@ -161,6 +164,40 @@ push/publication, product experiments and other-session interruption are not.
   prompt context for absence of bootstrap; retain response/evidence limits. Review
   the actual config/policy diff, reconcile records, report technical completion
   separately from product acceptance, efficiency benchmarking and external delivery.
+
+### Goal plugin verified facts and safe-disable plan (2026-10-09)
+
+- User-recommended direction recorded: default global operation without goal
+  auto-continuation, observe whether it is missed, re-enable only on repeated real
+  need. `ksi.design-notifier` is a separate system and stays untouched.
+- Verified installed artifact: `@prevalentware/opencode-goal-plugin` v0.1.54
+  (plugin id `local.goal-mode.server`; cache also holds0.1.49). Both configs use
+  the unpinned `@latest` tag — consider pinning the verified0.1.54 when the entry
+  is next edited. Configured in JSONC (server options; currently only
+  `restricted_agents:[plan]`) and in `cli.json` (TUI list).
+- Verified behavior in the installed dist: idle continuation with `auto_continue`
+  default true; no-progress pause (50-token floor, 2 turns); auto-turn/elapsed/
+  token budgets with wrap-up; close prompts require an audit of real artifacts
+  ("close with evidence or blocker"); `MAX_CHECKPOINTS=8`,
+  `CHECKPOINT_CHAR_LIMIT=280`. The user's summary is accurate — continuation plus
+  re-audit reminders, not blind repetition.
+- State: `~/.local/share/opencode-goal-plugin/goals.json`,154638bytes, mode `0600`,
+  owner uid1000, keys archives/goals/version2 (v3 migrates on next write). Preserve
+  this file (private copy + hash) before any plugin edit; never downgrade the
+  plugin against it without isolating it.
+- Safe procedure at the authorized boundary: (1) pause active goals in their owning
+  sessions — session-scoped tools cannot pause another session's goal from here;
+  the Site Intelligence goal is the current one and its pause also clears a
+  transition gate; (2) take a private copy + hash of the state file; (3) apply the
+  soft lever `options.auto_continue:false` in JSONC (keeps commands/tools/state;
+  one-line and reversible) rather than removing the plugin entry; (4) verify no
+  auto-continuation in a fresh session and that goal data/history remain intact;
+  (5) observe friction; full entry removal from JSONC+cli.json stays a later
+  decision, not this step.
+- Attribution note: turning Goal off inside the same window as the SP→CE switch
+  makes any reduction in re-entry/verification a combined-stack effect. The
+  mechanical part (auto turns) is directly observable, so record auto-turn counts
+  before/after instead of reading fewer turns as verified-quality improvement.
 
 ## Review focus
 
