@@ -276,9 +276,10 @@ product acceptance and external delivery remain unclaimed.
   ui-ux-pro-max, CE overlaps), further policy edits, UI/UX Pro Max hide.
 - Delivery status: local commits through `c879102` plus this record; `origin/main`
   remains `1840aada`; nothing pushed, published or deployed — not remote delivery.
-- Environment residuals stay separate from methodology: Site goal formal pause
-  (owning session `/pause_goal`), OpenChamber catalog issue, listener4096
-  verification.
+- Environment residuals stay separate from methodology: the Site goal remains
+  recorded `active` in the preserved state file (inert after plugin removal;
+  formal pause/clear would need a temporary pinned reinstall), OpenChamber
+  catalog issue, listener4096 verification.
 - CE document-path integration check (2026-10-09, verified against the installed
   v3.30.4): CE artifact trees resolve from a repo-local
   `.compound-engineering/config.yaml` `docs_root` (validated, symlink-safe,
@@ -302,6 +303,13 @@ product acceptance and external delivery remain unclaimed.
   `ce-compound` is kept only if it demonstrably reduces later re-investigation
   (continuity metric). Native Plan/Build/General/Explore are the base; CE skills
   are auxiliary and must earn their keep.
+- Goal plugin removal (2026-10-09, user decision): entries removed from the global
+  JSONC and cli.json; verified after reload — 2 plugins (CE + design-notifier),
+  38 commands (the three goal commands gone), skills unchanged (60, 34 `ce-*`);
+  goal state file preserved and valid (v2; active1/complete2; only a 1-byte
+  periodic accounting write after the pre-removal copy). Reinstall recipe
+  (pinned0.1.54 + options) kept as a JSONC comment; plugin cache and both state
+  copies retained.
 
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
