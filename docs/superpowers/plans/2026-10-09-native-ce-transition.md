@@ -279,6 +279,22 @@ product acceptance and external delivery remain unclaimed.
 - Environment residuals stay separate from methodology: Site goal formal pause
   (owning session `/pause_goal`), OpenChamber catalog issue, listener4096
   verification.
+- CE document-path integration check (2026-10-09, verified against the installed
+  v3.30.4): CE artifact trees resolve from a repo-local
+  `.compound-engineering/config.yaml` `docs_root` (validated, symlink-safe,
+  `config.yaml` only — never a global setting); CE-owned trees include plans,
+  ideation, solutions and `STRATEGY.md`. KSI's `work-status.mjs`/`work-doctor.mjs`
+  parse only `docs/superpowers/plans/<file>.md` ledger pointers (code-confirmed),
+  so CE-generated documents would not be recognized by the status tools; the
+  native Plan agent can only write `~/.opencode/plan/`, so CE plan persistence
+  belongs to Build. No project contains any CE artifact yet (harness, Site,
+  EVENTOUCH, Binance checked) — a latent gap, not an active fault.
+- Interim rule (no new changes, fits “one record per workstream”): the KSI ledger
+  stays the single canonical record; CE documents are supporting material linked
+  from it; `ce-plan` runs in Build only and never duplicates an already approved
+  plan. Re-evaluate a path-compatibility change (status tools reading CE locations
+  alongside the legacy path) only with observed real-use friction; do not add
+  per-project CE config now.
 
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
