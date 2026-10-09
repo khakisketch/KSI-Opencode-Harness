@@ -311,6 +311,33 @@ product acceptance and external delivery remain unclaimed.
   (pinned0.1.54 + options) kept as a JSONC comment; plugin cache and both state
   copies retained.
 
+### Observation evaluation rubric (confirmed 2026-10-09)
+
+Unit: one real product task = one record, labeled with mode (A/B/C), model,
+task type and duration.
+
+- Primary criteria: outcome correctness (works in the real product with actual
+  execution/reload/persistence and regression evidence — never self-reported);
+  speed (request → completed functionality, first useful change); user
+  intervention (unnecessary questions, approvals, re-approvals); continuity
+  (time/questions to resume in a new session, repeated investigation of settled
+  decisions); quality iterations (find/fix/re-verify rounds, post-completion
+  leakage).
+- Secondary criteria: method-selection fit (A/B/C vs difficulty, verification
+  depth vs risk, per-delegation reason/return quality/re-instruction count);
+  real CE gain (reduced re-investigation, earlier defect discovery;
+  `ce-compound` judged only by reduced re-investigation on a later task); cost
+  (tokens/time) as an auxiliary signal only — never a standalone verdict;
+  boundary compliance (no unapproved push/deploy, other projects and data
+  protected, backups/rollback intact).
+- Judging rules: compare only same-model, similar-difficulty tasks; never mix
+  modes within one task; no generalization from a single task (2–3 per task
+  type before judging); compare against the Superpowers-era records and across
+  A/B/C; adjust the selection policy only on repeated observed under- or
+  over-use of CE.
+- Excluded from verdicts: token/document-volume reduction alone; static counts
+  of skills or agents.
+
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
 private directory700/backup+candidate600 confirmed. Only this ledger and
