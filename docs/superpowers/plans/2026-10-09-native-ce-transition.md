@@ -261,6 +261,25 @@ OpenChamber-managed server catalog still empty (pre-existing env), and behaviora
 confirmation of Goal auto-continuation off pending idle observation. Efficiency,
 product acceptance and external delivery remain unclaimed.
 
+## Observation phase (user decision, 2026-10-09)
+
+- User accepted the cutover as appropriate and directed: stop harness/instruction
+  changes; use the configuration on real product work; keep OpenDesign's own
+  review/improvement loop untouched (the delegated-direction edit was KSI-side
+  guidance only, not an OpenDesign internal change).
+- Observe in the next real work: development speed (request → working
+  functionality), user intervention (unnecessary questions/approvals), continuity
+  cost (a new session's re-collection cost), quality (find/fix/re-verify
+  iterations). No harness edits, tool additions or forced CE pipelines while
+  observing.
+- Deferred until observed need: duplicate/overlapping-skill review (KSI8,
+  ui-ux-pro-max, CE overlaps), further policy edits, UI/UX Pro Max hide.
+- Delivery status: local commits through `c879102` plus this record; `origin/main`
+  remains `1840aada`; nothing pushed, published or deployed — not remote delivery.
+- Environment residuals stay separate from methodology: Site goal formal pause
+  (owning session `/pause_goal`), OpenChamber catalog issue, listener4096
+  verification.
+
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
 private directory700/backup+candidate600 confirmed. Only this ledger and
