@@ -10,6 +10,17 @@ It does not install OpenCode, OpenDesign, Superpowers, Docker, model CLIs, crede
 Your agent may help set those up after reading their documentation, but needs explicit approval for system
 installation, shared/global settings, credentials, and service changes. KSI installation alone authorizes none of them.
 
+### Current operation is not an installer migration
+
+The KSI host adopted native Plan/Build/General/Explore + optional CE skills and
+Reviewer on 2026-10-09. Developer/Test Runner are disabled there, and Superpowers
+and the Goal plugin were removed. The installer below still offers Developer +
+Reviewer; public npm beta.8 still offers the historical three-role bundle. Neither
+reproduces that host migration or authorizes restoring removed components. In an
+already-migrated environment, inspect effective settings and do not apply role
+installation merely to satisfy these examples. Preserve other tools' independent
+installations; another server's configuration must be verified separately.
+
 ## Public npm beta: preview and apply
 
 **Published `0.5.0-beta.8` is the legacy three-role release (Developer, Test Runner,
@@ -56,7 +67,7 @@ The first command is read-only and prints the proposed file contents as JSON. Th
 
 ## Design work belongs to OpenDesign
 
-This installer distributes no design skills, craft references, or design-system package and does not install or connect OpenDesign. If your work needs it, install the separate application from its upstream documentation and explicitly configure its MCP connection. Material product, visual, and interaction design can then happen in that workspace. Backend work and small edits to approved UI patterns need no OpenDesign installation. The responsibilities, tool contract, and handoff requirements are in [the OpenDesign integration contract](docs/integrations/opendesign.md).
+This installer distributes no design skills, craft references, or design-system package and does not install or connect OpenDesign. If your work needs it, install the separate application from its upstream documentation and explicitly configure its MCP connection. All visual frontend work, including small edits to approved UI patterns, belongs to that connected workspace. Backend-only work needs no design installation; a missing design connection does not authorize a Build/General visual fallback. The responsibilities, tool contract, and handoff requirements are in [the OpenDesign integration contract](docs/integrations/opendesign.md).
 
 Version 0.5.0 removed the KSI Design primary agent and the `--with-design-kit` option. Supplying the retired flag now fails with an explicit message and writes nothing.
 
@@ -87,27 +98,27 @@ intentional compatibility safeguards, not legacy functionality to delete.
 
 ## Migrating an existing KSI plugin installation
 
-Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/design.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve Superpowers, the goal plugin, other plugins, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
+Preview native files first. An older installation may still have KSI-provided `agents/build.md`, `agents/plan.md`, `agents/explore.md`, `agents/design.md`, `agents/research.md`, `agents/design-critic.md`, and `commands/complete.md` or `commands/review.md`; this installer deliberately does not delete them. To restore built-in prompts or retire old roles, review the exact owners and paths, back up the files, and remove only those overrides with separate approval. A shared migration also needs a reviewed diff for the old KSI plugin registration, KSI-owned JSONC agent prompts/permissions, and any blanket global deny. Preserve unrelated plugins if present, other tools' independent installations, every model/variant/valid positive step value, JSONC comments, and unrelated settings. Preservation is not a request to reinstall Superpowers or Goal after an explicitly approved removal. Back up the global config before an approved edit; request shared-service restart separately. Do not infer fresh-session behavior from the installed files alone.
 
 The old `ksi-opencode-harness@0.4.0-beta.0` tarball was a V1-only plugin and has been removed from the registry; npm versions cannot be reused. Prefer the pinned beta version above for reproducible installation even after a later `latest` update. Removing a registry version does not remove any V1 plugin registration, old role files, or commands previously installed on a user's machine. Review and migrate those separately; a bare `npm install ksi-opencode-harness` only downloads the resolved package and does not apply OpenCode files.
 
 ## Full harness composition (agent-guided)
 
-This repository's harness is a composition: OpenCode (yours) + the two KSI roles + operating guidance + optional tools. Installing OpenCode and choosing a model/provider stay with each user — the composition **does not force a model**. Paste this into a session to have the agent assemble what is missing:
+Current operation is a composition: OpenCode's native roles + operating guidance + optional tools and Reviewer. The two-role installer is an optional package, not a required replacement for General or a migration of global settings. Installing OpenCode and choosing a model/provider stay with each user — the composition **does not force a model**. Paste this into a session to have the agent inspect what the approved environment actually needs:
 
 > "Set up this repository's KSI harness composition in my environment. OpenCode and my model/provider choice are mine — do not change or force them.
 > 1. Inspect the current state read-only: OpenCode V2 + Node 20+, installed agents, existing settings and tools.
-> 2. KSI roles (developer, reviewer): use a reviewed current source checkout, preview → my confirmation → `--apply` → verify in the effective agent list. Ask me first whether the target is project or global. Do not substitute public npm beta.8, which still installs three roles.
+> 2. Verify effective native Plan/Build/General/Explore and optional Reviewer. Do not restore Developer/Test Runner/Superpowers/Goal in an already-migrated environment. Only if I request the separate role bundle, use reviewed source, preview → my confirmation → `--apply`, with the target confirmed first. Public npm beta.8 is the historical three-role release, not the current operating configuration.
 > 3. Operating guidance: read `examples/autonomous-development.md` and propose only the merge into my `AGENTS.md` → apply after approval.
-> 4. Optional tools — Superpowers, a browser tool (Playwright CLI or agent-browser, pick one), OpenDesign + design MCP: check each project's official documentation, propose a plan, and get my approval for system installs, credentials and service changes. Skip what is already present and report its status.
+> 4. Optional tools — relevant CE skills, a browser tool (Playwright CLI or agent-browser, pick one), OpenDesign + design MCP: reuse prepared capabilities first. Propose a missing capability from official documentation only when needed; get my approval for new installs, credentials and service changes. No per-project ce-setup or duplicate planning documents by default.
 > 5. Finish with a per-component status table and any skipped items with reasons."
 
 | Component | Required | Installed by | Verify |
 | --- | --- | --- | --- |
 | OpenCode V2 · Node 20+ | yes | user (official docs) | `opencode --version` |
-| KSI two roles | yes | this installer | effective agent list |
+| Native roles · optional Reviewer | native base · review when useful | OpenCode / separately approved role setup | effective agent list; KSI two-role bundle is optional |
 | Operating guidance (`AGENTS.md`) | recommended | user + agent (reviewed merge) | a new session loads it |
-| Superpowers | recommended | user (official repo) | skill list |
+| CE | optional | user (official repo) | actual loading of relevant skills; no mandatory full workflow |
 | Browser tool (one of) | for UI verification | user | one real page snapshot |
 | OpenDesign + design MCP | for design work | user (separate app) | one project read |
 
@@ -121,7 +132,7 @@ Review [the shared policy section](examples/autonomous-development.md) and merge
 
 Adoption delegates approved local implementation, bounded helpers, integration, verification and task-owned commits without routine progress/commit questions. Explicit user/repository restrictions still win. Push/publication/deployment require target/effect authorization, which can be granted once and reused unless the target, effects or risk materially change. Native tool/identity approvals remain enforced. Plan stays non-implementing; material design goes through OpenDesign's local execution and direction approval, while UI-reference skills remain supplementary. This guidance does not change models, permissions, upstream skills or goal settings, guarantee perpetual execution, or authorize new backlog work.
 
-OpenCode supplies Primary `build` and `plan` and Subagent `explore` without KSI replacements. The installer adds visible Subagents `developer` and `reviewer`. Their files omit `model`, `variant`, and `steps`: existing preferences remain user-owned. The installer never edits `opencode.jsonc`, `AGENTS.md`, credentials, providers, MCPs, plugins, Codex/Claude configuration, or Superpowers, and does not restart services. A short cross-tool [project guidance template](examples/project-AGENTS.md) is optional and is not applied automatically. Inspect other config layers if a role ID already exists there; file collisions alone do not prove effective precedence.
+OpenCode supplies Primary `build` and `plan` and Subagents `general` and `explore` without KSI replacements. The optional installer adds visible Subagents `developer` and `reviewer`. Their files omit `model`, `variant`, and `steps`: existing preferences remain user-owned. The installer never edits `opencode.jsonc`, `AGENTS.md`, credentials, providers, MCPs, plugins, Codex/Claude configuration, or separately installed skills, and does not restart services. A short cross-tool [project guidance template](examples/project-AGENTS.md) is optional and is not applied automatically. Inspect other config layers if a role ID already exists there; file collisions alone do not prove effective precedence.
 
 Test Runner is no longer part of the default bundle, and `--developer-test-runner` is removed. Developer owns the tests for its own implementation; Reviewer independently reviews code and test adequacy (safe read-only checks only), and Build verifies the integrated revision and unverified areas without repeating already-valid checks. Where a project requires independent execution verification beyond that, an explicitly configured verification role or authorized CI provides it. A previously installed `agents/test-runner.md` is never deleted and keeps working as such a configured role.
 

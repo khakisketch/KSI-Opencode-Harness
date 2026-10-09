@@ -14,6 +14,84 @@ does not defer this approved transition. Installation is authorized; external
 push/publication, product experiments and other-session interruption are not.
 **Workspace/base:** canonical `main`, `260f53f`; no new worktree, no product writes.
 
+## Current operating alignment (2026-10-10)
+
+Status: technically complete
+
+- Authority: the user approved the proposed bounded inconsistency repair
+  ("그래요 불일치 등 개선해주세여") after the read-only findings. This is a
+  documentation/checkpoint exception to the observation freeze, not approval for
+  a new runtime, Goal reinstall, agent/skill/model/permission changes, product
+  intervention or remote delivery.
+- Workspace/base: the existing canonical `main` checkout at `6f42519`, clean
+  tracked/index/untracked state before work; 14 local commits ahead of cached
+  `origin/main` (`1840aad`). No fetch, push, new branch/worktree or other-session
+  intervention. Native inline execution follows the host's current-checkout
+  policy; this coherent documentation repair does not need a delegated worker.
+  CE work guidance is used only for scoped implementation/local verification;
+  no standalone shipping or cross-model engine is commissioned.
+- Observed inconsistencies: checkpoint header/body HEAD disagreement; removed
+  Goal pause/behavior checks still listed as current work; preparation-only
+  outcome and pending-cutover backlog wording; operational docs still preferring
+  Developer/Superpowers and creating/resuming goals. The existing status helper
+  read this ledger's status as `unknown` before repair.
+- Scope: README/INSTALL, architecture/execution guidance and their two optional
+  policy examples, current product-state and the ignored checkpoint. Clarify
+  current native General + optional CE operation separately from the unchanged
+  Developer/Reviewer source installer and historical three-role npm beta.8.
+  Keep the older General-delegation heading anchor for historical links.
+- Current decisions: Build selects methods without a user-selected A/B/C mode,
+  forced labels or a no-mixing rule. Descriptive method/skill usage may be
+  recorded for observation, and material cost/scope/security changes still need
+  approval. The earlier A/B/C comparison wording below is historical and does
+  not override this agent-selected-method contract.
+- Goal evidence clarification: removal verification established a valid v2
+  state file and active1/complete2 counts, not field-by-field invariance. A
+  changed hash and one-byte size difference do not prove that the only change
+  was periodic accounting. Preserved `active` records are inert on the verified
+  Goal-free service and need no pause/clear/reinstall. Other listeners remain
+  unverified, not proven to share that effective state.
+- Verification contract: no runtime-code behavior change or new tests required;
+  use existing source/package tests, local Markdown-link/anchor and statement
+  reconciliation, and the read-only work-status helper. Refresh the checkpoint
+  to the resulting Git HEAD at closeout. Runtime catalogs from 2026-10-09 are
+  dated prior evidence, not a new live/model/continuity/product acceptance test.
+- Outcome: aligned current General/optional-CE instructions and removed
+  operational Goal-create/resume advice from the active guides/examples;
+  retained installer commands, role templates and beta.8 version pins. Corrected
+  pending-cutover backlog/current-cache wording and marked preparation outcomes
+  historical. The ignored checkpoint selects this exact ledger section and uses
+  one HEAD field rather than a second stale body revision. After this repair,
+  structural/runtime freeze and real-use observation remain the default.
+- Verification (2026-10-10, base `6f42519` + the eight task-owned Markdown diffs):
+  `TMPDIR=/tmp/opencode npm run check` — 217 total, 215 pass, 0 fail, 2 existing
+  optional skips (real isolated Compose, auto-only final-summary overlay).
+  `TMPDIR=/tmp/opencode npm run check:package` — passed: offline disposable
+  two-role consumer, removed flags rejected, legacy role/routing preserved.
+  Local Markdown-link/anchor inspection — 64 links across all eight changed
+  documents, 0 broken; both current General and legacy Developer anchors valid.
+  Statement/checkpoint assertions passed (Goal-free resume, agent-vs-skill
+  boundary, no stale body HEAD/pause request, checkpoint <=80lines/6KiB).
+  `git diff --check` passed. Runtime/installer/template/script/test/manifest
+  paths have no diff from the base; no global configuration was edited.
+- Record/status evidence: before repair, `work-report --status --json` returned
+  ledger status `unknown`; with the explicit current-section selector, read-only
+  assertions returned `in progress` during work with zero warnings and no
+  publication/deployment inference. Closeout selects `technically complete`;
+  the checkpoint HEAD and clean-tree state are refreshed after the local commit.
+- Evidence strategy: documentation/cache only, no behavior-bearing runtime code
+  changed; existing tests used unchanged and no new/red test claimed. Scoped
+  local assertions and source/package checks replace a new prose-only test
+  suite. No independent Reviewer, provider-backed General/CE execution, real
+  product/browser test or fresh-session resume experiment was performed here.
+  Faster development, improved search decisions and autonomous completion are
+  still observation questions, not established by these checks.
+- Delivery/next: task-owned local commit only; checkpoint stays ignored. No
+  push/PR/publication/deployment, service reload/restart, model/permission/plugin
+  change or product task commissioned. Next is an authorized product goal in
+  its own existing record; OpenChamber/4096 and CE-path compatibility stay
+  separate, approval-gated work.
+
 ## Preserved contracts
 
 - Do not change native Plan/Build/General/Explore system prompts, other models,
@@ -232,7 +310,10 @@ All applied changes are outside Git; byte copies + SHA256 are in the evidence ro
 - Reload during a Goal/design drain can change a running task: do not cut over
   until the owning session is safe; retain exact rollback bytes and pending work.
 
-## Current outcome / blocker
+## Preparation outcome / blocker (historical, superseded)
+
+This section preserves the pre-cutover findings, not the current action list.
+The later cutover/removal records and current alignment section govern resume.
 
 Survey and private backup prepared; **no global cutover, role disabling, install,
 policy replacement, server restart, new execution Goal or product trial performed**.
@@ -313,8 +394,13 @@ product acceptance and external delivery remain unclaimed.
 
 ### Observation evaluation rubric (confirmed 2026-10-09)
 
-Unit: one real product task = one record, labeled with mode (A/B/C), model,
-task type and duration.
+Method-selection clarification (2026-10-10): the approved native-first,
+agent-selected-method contract takes precedence over the earlier comparison
+labels. A/B/C is optional descriptive shorthand, not a mode selector, required
+task label or prohibition on using a useful skill during native execution.
+
+Unit: one real product task = one existing task record, noting relevant
+methods/skills, model, task type and duration when available.
 
 - Primary criteria: outcome correctness (works in the real product with actual
   execution/reload/persistence and regression evidence — never self-reported);
@@ -330,11 +416,12 @@ task type and duration.
   (tokens/time) as an auxiliary signal only — never a standalone verdict;
   boundary compliance (no unapproved push/deploy, other projects and data
   protected, backups/rollback intact).
-- Judging rules: compare only same-model, similar-difficulty tasks; never mix
-  modes within one task; no generalization from a single task (2–3 per task
-  type before judging); compare against the Superpowers-era records and across
-  A/B/C; adjust the selection policy only on repeated observed under- or
-  over-use of CE.
+- Judging rules: compare same-model, similar-difficulty tasks; record material
+  method/model/scope changes instead of enforcing mode purity. No generalization
+  from a single task (2–3 per task type before judging); historical Superpowers
+  records and optional A/B/C descriptions are contextual comparisons, not
+  controlled efficiency proof. Adjust the selection policy only on repeated
+  observed under- or over-use of CE.
 - Excluded from verdicts: token/document-volume reduction alone; static counts
   of skills or agents.
 

@@ -4,6 +4,29 @@
 
 Plan supports understanding the project, comparing alternatives, analyzing risks and preparing consequential decisions without implementing ordinary product files. It is not a required stage for every edit or a substitute for an independent reviewer. Build can investigate and plan as part of execution, implement directly, delegate bounded work when authorized and useful, and reconcile the final result. Preserve both native system prompts.
 
+### Current KSI operation versus installer scope
+
+The KSI host's approved operating configuration changed on 2026-10-09: native
+Plan/Build coordinate, native General implements and self-tests, Explore
+investigates, and Reviewer is optional. Compound Engineering (CE) supplies
+optional skills, not another agent or a mandatory pipeline. Developer and Test
+Runner are disabled in that global environment; Superpowers and the Goal plugin
+are no longer registered there. These are dated host-specific facts, not proof
+that another server or project has the same effective configuration.
+
+The source installer still offers Developer + Reviewer; public npm beta.8 is
+the historical Developer + Test Runner + Reviewer release. Neither applies the
+global migration. Do not reinstall retired roles or plugins merely to match an
+installer example. Preserve unrelated installations and inspect the actual
+serving configuration when adopting or troubleshooting an environment.
+
+Build chooses native execution or relevant CE skills as the work needs, without
+asking the user to choose an A/B/C mode or imposing a no-mixing rule. Build and
+General may load skills their effective permissions allow. General cannot
+launch further subagents; its implementation assignment must not require that.
+Explore's current skill denial is not lifted by a CE instruction. Build owns any
+needed child dispatch and final integration; a skill grants no new authority.
+
 The optional [autonomous local execution policy](../examples/autonomous-development.md) delegates the agreed outcome through implementation, bounded helpers, integration, verification and task-owned local commits. Merge it into the appropriate global/project `AGENTS.md` only after adopting it; package installation does not apply it. This is operating guidance, not permission enforcement or a new runtime.
 
 ### Project judgment, not a replacement Plan role
@@ -20,9 +43,9 @@ Do not ask "should I continue?" between authorized tasks. Report meaningful prog
 
 Plan prepares decisions; it does not become the authority over the user's goal or
 the execution Primary. Build can also plan when the task is clear. Use the same
-workstream record whichever agent or installed skill helped write it. Superpowers
-provides applicable planning/development methods, not a second competing plan or
-extra product authority; keep required specs linked rather than duplicating them. Skills
+workstream record whichever agent or installed skill helped write it. Optional
+CE skills provide applicable methods, not a second competing plan or extra
+product authority; keep required specs linked rather than duplicating them. Skills
 are tools, not mandatory stages: choose the lightest effective path, and do not let
 process ceremony substitute for the model's own judgment. The checks the chosen path requires still apply.
 
@@ -77,7 +100,7 @@ but cannot declare work implemented/accepted from the plan alone or silently cha
 approved requirements. Build owns execution progress/common record updates; Plan
 proposal edits and Build evidence updates are handed off sequentially. Keep user
 acceptance and external delivery distinct. Native prompts/modes/permissions, design
-ownership, independent verification and explicitly requested goals remain unchanged;
+ownership, independent verification and external-effect boundaries remain unchanged;
 this guidance is not enforced plan loading, monitoring or guaranteed compliance.
 
 ### Own the completion loop, not a list for the user
@@ -93,8 +116,8 @@ task ledger, and continue all remaining authorized work without per-round approv
 
 Self-review does not replace independent evidence. Engineering uses actual code and
 changed-flow results; the design workspace owns actual rendered review/refinement
-and all visual repairs. Preserve independent Reviewer review and the integration
-checks the change needs; Developer tests are author evidence and Build reuses
+and all visual repairs. Preserve independent Reviewer review when warranted and the integration
+checks the change needs; General tests are author evidence and Build reuses
 already-valid checks instead of rerunning them. Do not force a helper per edit or
 treat a generator's self-rating as design approval. Rerun affected checks after a
 repair. A passing subset or an agent's “done” is not the agreed result.
@@ -142,7 +165,7 @@ Expand to specific diffs, logs or renders only when evidence is missing, stale o
 contradictory; a contract or interface conflict is plausible; unexpected or unrelated
 changes appear; or a high-risk boundary is touched (auth, permissions, data, external
 effects, irreversibility). Route each finding to its owning seat — implementation
-defect → Developer or design, review gap → Reviewer, evidence gap → Build (or an
+defect → General or design, review gap → Reviewer, evidence gap → Build (or an
 explicitly configured verification role), contract/scope → Build, then the user when
 material — with the concrete defect, and recheck affected behavior after the repair.
 Tag each recorded defect with its origin seat (self, Reviewer, design review,
@@ -223,7 +246,7 @@ none is implied by a checkbox or an agent's "done".
 | One active task ledger | Approval/scope, decisions, progress, inputs and verification evidence; links to any spec | Silent execution authority for a proposal |
 | `product-state.md` | Product goal/slice/acceptance and backlog summary, linked to the ledger | Copying the whole plan/history |
 | `.opencode/working-state.md` | Short worktree resume state and next actions, linked to the ledger | Product documentation or a committed approval record |
-| Skill-internal progress (e.g., a Superpowers SDD ledger) | The skill's own execution record while it runs | A second KSI state or mirrored progress; link it from the task ledger instead |
+| Skill-internal progress or a preserved legacy SDD ledger | The skill's own execution record | A second KSI state or mirrored progress; link it from the task ledger instead |
 
 One canonical record per concern: skill ledgers stay internal to the skill, the task
 ledger links to them rather than mirroring their content, and a native session's
@@ -267,25 +290,32 @@ These are adopted operating instructions, not automatic injection/synchronizatio
 runtime enforcement, guaranteed agent compliance or an OS sandbox. The npm installer
 still installs only two role files; it does not create records or merge policy.
 
-### Use Developer effectively, without mandatory delegation
+<a id="use-developer-effectively-without-mandatory-delegation"></a>
+
+### Use General effectively, without mandatory delegation
 
 Keep the current structure: Build may implement nonvisual work directly or assign it to
-Developer. Actively consider Developer for a coherent implementation/repair with identifiable
+General. Actively consider General for a coherent implementation/repair with identifiable
 scope, stable contracts and observable completion criteria; it is not only overflow help
 when Build is busy. Build can work directly when judgment is tightly coupled to its current
 context, a clear integration correction is needed, or handoff overhead outweighs the benefit.
 Choose by quality, rework and end-to-end efficiency, not task size or delegation count.
 Do not split work just to delegate, impose a usage quota, or investigate/implement everything
-first and then give Developer a ceremonial task. Build still does enough investigation to
-identify the right outcome, constraints and risks; Developer owns implementation investigation
+first and then give General a ceremonial task. Build still does enough investigation to
+identify the right outcome, constraints and risks; General owns implementation investigation
 and reversible technical choices within that contract.
+
+In an environment deliberately retaining Developer, the same bounded contract
+applies to that configured helper. This does not authorize re-enabling it in the
+current KSI global environment. The legacy heading anchor above preserves older
+documentation links, not the retired routing preference.
 
 #### Compact assignment and return
 
 Build selects the necessary context; do not require a user-authored task form, a full conversation
 copy or a second product plan. An ordinary assignment can contain these items in a short message:
 
-| Assignment from Build | Return from Developer |
+| Assignment from Build | Return from General |
 | --- | --- |
 | Desired outcome, current problem and observable success/failure criteria | Changed files and implementation summary |
 | Actual working directory/base revision, relevant paths and approved decisions | Actual self-test commands/results, the tested revision (workspace + HEAD + relevant uncommitted changes) and where raw evidence lives |
@@ -302,7 +332,7 @@ usable for a verdict, and no seat claims a check it did not run.
 
 For example: repair an API retry path, preserve response/data semantics and the existing UI,
 own the named nonvisual files, add a regression for the observed failure, and report the actual
-checks. Give Developer room to find the implementation; do not prescribe every line. A contract
+checks. Give General room to find the implementation; do not prescribe every line. A contract
 discrepancy or material new scope/architecture/data decision returns to Build and, when needed,
 the user. An assignment grants no additional permissions or install/external-delivery authority.
 
@@ -310,7 +340,7 @@ the user. An assignment grants no additional permissions or install/external-del
 
 Build inspects the actual diff and current workspace state against the contract, reconciles
 interfaces and verifies the integrated flow. A helper's “done”, test subset or report is not
-completion evidence by itself. Developer tests its own implementation; Build independently
+completion evidence by itself. General tests its own implementation; Build independently
 executes the integration/closeout checks the integrated revision needs (or an explicitly
 configured verification role does), records commands, results and relevant pending changes
 in the existing ledger, and reuses already-valid checks for the same revision instead of
@@ -331,12 +361,12 @@ blocker and continue independent authorized work where safe.
 Shared-file work is sequential, one writer at a time; parallel work follows the ownership and
 workspace rules below. All visual source/style changes, including tiny integration-related
 spacing fixes, remain design-owned. An unavailable design workspace is not permission for a
-Developer or Build visual fallback. These are operating guidelines, not runtime enforcement
+General or Build visual fallback. These are operating guidelines, not runtime enforcement
 or proof of improved real-development quality.
 
-Parallel work is conditional, not the default. Superpowers' parallel-agent guidance fits independent discovery, review, or bounded implementation with stable interfaces. Read-only helpers can run together; concurrent writers need disjoint ownership and separate worktrees. No additional KSI parallel coordinator role is needed. The Primary that accepts delegated work reconciles results and owns the final claim.
+Parallel work is conditional, not the default. Independent discovery, review, or bounded implementation with stable interfaces may benefit from it. Read-only helpers can run together; concurrent writers need disjoint ownership and separate worktrees. No additional KSI parallel coordinator role is needed. The Primary that accepts delegated work reconciles results and owns the final claim.
 
-OpenCode V2 keeps its own Build, Plan, and Explore prompts. Two installed `agents/*.md` files define only the additional roles (Developer, Reviewer). KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. The default Developer cannot delegate. Test Runner is no longer part of the default bundle and `--developer-test-runner` is removed; an already installed Test Runner file keeps working as an explicitly configured verification role. Treat helper output as author feedback, not independent acceptance.
+OpenCode V2 keeps its own Build, Plan, General, and Explore prompts. The source installer's two `agents/*.md` files define only its additional roles (Developer, Reviewer), not the current global operating configuration. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. Native General and the default Developer cannot delegate. Test Runner is no longer part of the source bundle and `--developer-test-runner` is removed; an already installed Test Runner file remains user-owned, not automatically retired or a required verification seat. Treat helper output as author feedback, not independent acceptance.
 
 There are no KSI slash commands: ask Build to reconcile or complete work and ask Reviewer to examine a change when needed. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
 
@@ -350,7 +380,7 @@ are reported before execution. Inspect the actual effective policy when isolatio
 matters; do not silently tighten global permissions or claim the role file enforces
 complete read-only access.
 
-Local autonomy is not perpetual background execution. Native session goals, when available, are separate and require an explicit request; do not infer or auto-create/resume goals from ordinary development tasks. Continue only an actually active goal within its native mode and budgets. Tool approval, step limits, context and connectivity can still stop execution; documentation and package tests cannot guarantee long-running model behavior.
+Local autonomy is not perpetual background execution. The current KSI host has no Goal plugin or goal auto-continuation. Preserved goal records, including an `active` entry, are historical data and do not authorize execution or require pausing/clearing. Do not reinstall the plugin to resume ordinary work; use the approved task record and actual Git state. Another environment with an explicitly adopted continuation mechanism must verify its own permissions, pauses and budgets separately. Tool approval, step limits, context and connectivity can still stop execution; documentation and package tests cannot guarantee long-running model behavior.
 
 ## Comfortable defaults, not extra ceremonies
 
@@ -430,7 +460,8 @@ directory. They are source helpers, not npm-installed commands or slash commands
 `--status` reads only project records/Git, without querying goal state, usage DB or
 notifier state. The full work report retains those on-demand sections, displaying
 missing/malformed sources as unavailable rather than evidence of no activity.
-Unlimited goal limits are informational and user-adjustable, not a failure warning.
+Legacy goal-state output is historical data on the current Goal-free host, not
+proof of a running task or a reason to restore the plugin.
 
 Status separates recorded work, current revision, human acceptance and upstream
 comparison. An idle checkpoint is not implementation completion; zero commits
@@ -463,22 +494,23 @@ It remains a source helper, not an installed command or runtime guard.
 ## Pause/resume in ordinary language
 
 For an explicit “pause this task/session” request, Build uses the existing native
-tools: first pause **this session's** notifier wake permission, then inspect the
-goal and pause it only if active. A goal-only or notification-only request is
-narrower and changes only the requested mechanism. Never create a goal to pause
-it, apply this to unrelated sessions, or edit state JSON directly.
+tools to pause **this session's** notifier wake permission and stop starting
+further task work. The current KSI host has no goal-continuation switch to pause.
+Preserved goal state is not an active execution mechanism; never reinstall a
+plugin to pause it, apply this to unrelated sessions, or edit state JSON directly.
 
-Report separately: automatic goal continuation, notification wake permission,
+Report separately: no installed goal auto-continuation, notification wake permission,
 and any external design execution still running. A pause is not an implicit
-cancel; a missing switch is a partial result, not “everything stopped.” The
-notifier itself still does not observe goal pause state.
+cancel; report an unavailable notifier switch or an already-running external
+execution rather than claiming “everything stopped.”
 
-On explicit resume, inspect actual goal status and mode. Resume eligible paused
-goal work only in Build, then resume requested notifier wake permission; do not
-revive cancelled/closed goals, recreate goals, or silently bypass Plan. With no
-goal, there is no goal execution to resume. Use the valid authorized task record
-for ordinary work. This procedure coordinates existing switches through the
-agent; it is not a new stop API, enforced atomic operation or background runner.
+On explicit resume, reconcile the authorized task record, actual Git state and
+native mode, then resume requested notifier wake permission. Plan may reassess
+but cannot resume implementation. Do not revive preserved goals or create new
+scope. In another environment with a separately authorized continuation plugin,
+inspect and control its actual live switch only if the request covers it. This
+procedure coordinates existing switches through the agent; it is not a new stop
+API, enforced atomic operation or background runner.
 
 ## Browser workflows and accessibility coverage
 
@@ -522,12 +554,12 @@ This agent-browser version bundles axe-core 4.12.1; `agent-browser --session <ta
 
 Both CLI capability checks exercised fresh snapshots, keyboard focus/submission, actual fixture POST/GET and backing-file persistence after reload, 390px viewport, screenshots, and console/network inspection; Playwright also exercised reduced-motion emulation. Four screenshots were inspected. These were independent **tool capability** sessions, not a requirement to run two drivers for every product change and not verification of a customer's authentication/API/routing. Apply the earlier change-focused real-product checks on each relevant development task.
 
-For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Use the existing native reviewer helper when useful, and reuse already-valid checks instead of rerunning them; there is no mandatory extra verifier after every edit. Keep native session goals as the explicit-request continuation mechanism. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
+For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Use the existing native reviewer helper when useful, and reuse already-valid checks instead of rerunning them; there is no mandatory extra verifier after every edit. Resume from the approved task record, not the preserved Goal state. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
 
 ## Portable skills versus host-specific plugins
 
 OpenCode V2 discovers portable skills from its native and documented compatibility locations. That is not a Claude Code plugin loader. A Claude Code plugin can bundle a manifest, skills, agents, hooks and MCP setup; OpenCode V2 plugins have their own API and lifecycle. The [OpenAI Playwright skill](https://github.com/openai/skills/tree/main/skills/.curated/playwright), [Playwright CLI skills](https://github.com/microsoft/playwright-cli) and [agent-browser skills](https://github.com/vercel-labs/agent-browser) are workflow candidates, not proof that their paths/dependencies are installed here.
 
-Reuse maintained skills after checking host assumptions, paths, commands and conflicts. Do not copy or rewrite Superpowers into competing KSI skills. Install or adapt a runtime plugin only for a demonstrated missing capability with scoped permission; do not add a second orchestrator or hooks that reopen completed decisions/run a full audit after every edit. Guidance is agent operating policy, not new runtime enforcement.
+Reuse maintained skills after checking host assumptions, paths, commands and conflicts. Do not copy or rewrite upstream skills into competing KSI skills, and preserve historical Superpowers/SDD records without treating their paths as a runtime dependency. Install or adapt a runtime plugin only for a demonstrated missing capability with scoped permission; do not add a second orchestrator or hooks that reopen completed decisions/run a full audit after every edit. Guidance is agent operating policy, not new runtime enforcement.
 
 Sources: [V2 skills](https://opencode.ai/v2/docs/skills), [V2 plugins](https://opencode.ai/v2/docs/plugins), [V2 worktree APIs](https://opencode.ai/v2/docs/build/sdk), [Claude Code plugin components](https://code.claude.com/docs/en/plugins), [axe-core](https://github.com/dequelabs/axe-core), [Guidepup actual readers](https://github.com/guidepup/guidepup), [virtual-reader limitations](https://github.com/guidepup/virtual-screen-reader).
