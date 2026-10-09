@@ -136,34 +136,57 @@ push/publication, product experiments and other-session interruption are not.
   catalog/routing, goals/designs, foreign Git status, owner/private backups.
   Actual OpenChamber reads recovered; catalog discrepancy and the third listener
   are explicit unresolved survey limits. Backups revalidated after interruption.
-- [ ] **2. Confirm safe cutover:** Site Intelligence owner pauses/finishes;
-  reuse the working official OpenChamber authentication client, and resolve the
-  third listener through its supported connection. Recheck serving processes'
-  drains and dependent runs; an idle drain alone does not pause a live Goal's
-  implementation/review contract. Never pause another Goal implicitly.
-- [ ] **3. Apply backed-up global cutover:** replace only the Superpowers plugin
-  entry with the official pinned CE git-spec; eliminate confirmed OpenCode-owned
-  active duplicates only. Preserve upstream/cache/other-tool copies and history.
-  Disable Developer/Test Runner while keeping their settings recoverable; verify
-  that later agent-file discovery does not resurrect them. Reviewer unchanged.
-  Apply the goal-plugin soft-disable per the verified plan section below (pause
-  active goals in their owning sessions first; `auto_continue:false`; preserve
-  the state file; keep `ksi.design-notifier` untouched).
-- [ ] **4. Simplify global policy:** apply the prepared private AGENTS candidate
-  after checking it against preserved contracts. No native system-prompt edits,
-  recursive orchestration or required per-task framework stages. Verify exact
-  non-target settings/role hashes and semantic config preservation.
-- [ ] **5. Refresh and verify actual servers:** use supported scoped reload; a
-  disruptive restart requires the verified safe boundary. Confirm CE's exact
-  resolved tag/source and requested skills/commands, no Superpowers registration,
-  no bootstrap in a new session, inactive retired roles, unchanged native prompts,
-  models/permissions/MCP/notifier and Reviewer. Registration is not functional proof.
-- [ ] **6. Cross-project smoke and closeout:** in two existing project locations,
-  verify effective global catalog and read-only skill use from fresh task-owned
-  sessions, no project installs/setup/docs or product modification. Inspect rendered
-  prompt context for absence of bootstrap; retain response/evidence limits. Review
-  the actual config/policy diff, reconcile records, report technical completion
-  separately from product acceptance, efficiency benchmarking and external delivery.
+- [x] **2. Confirm safe cutover:** superseded by the user's explicit “모두 개선해줘”
+  instruction. Applied while the Site Intelligence goal stayed active (its session
+  idle); a formal pause in that owning session is still recommended (session-scoped
+  tools cannot pause another session's goal). Listener4096 stayed unverified;
+  OpenChamber catalogs rechecked (still separate/empty). Applied at the owner's
+  instruction with backups and rollback bytes in place.
+- [x] **3. Apply backed-up global cutover:** done — Superpowers entry replaced by
+  pinned CE v3.30.4; goal plugin pinned0.1.54 with `auto_continue:false` added;
+  cli.json entry pinned; Developer/Test Runner disabled via `disabled:true` plus
+  agent-file rename (`agents/*.md.bak-1791546420134`) because config-only `disabled`
+  did not suppress file-based re-registration; Reviewer untouched.
+- [x] **4. Simplify global policy:** done — the prepared native-first AGENTS.md
+  applied with two recorded updates (delegated-design direction default; Goal
+  auto-continuation default off). No native prompts changed.
+- [x] **5. Refresh and verify actual servers:** done at catalog level —
+  `opencode reload` → “Configuration reloaded”; plugin list shows compound-engineering
+  `efcb657` (matches the verified tag), goal0.1.54, notifier; `/api/skill`60 with
+  34 `ce-*`, zero superpowers; `/api/agent` has no developer/test-runner and no
+  superpowers text; `/api/command`41 including `ce-*`; MCP keys unchanged;
+  behavioral auto-continuation-off confirmation still pending idle observation.
+  OpenChamber-managed server still returns an empty catalog (process env:
+  `OPENCODE_CONFIG=…opencode.managed.json`, `OPENCODE_DISABLE_CLAUDE_CODE`);
+  pre-existing, needs a user decision before touching that server. Listener4096
+  remains password-protected and untouched.
+- [x] **6. Cross-project smoke and closeout:** catalog-level smoke in
+  KSI-Site-Intelligence-Platform and KSI-Binance-Trader — both show the identical
+  global60-skill catalog (34 `ce-*`, `lfg`, no superpowers) with no per-project
+  install or generated docs. Repo checks: `npm run check`217/215/0/2 (the same two
+  optional skips); the updated notifier test passes. Closeout in this ledger,
+  product-state and checkpoint; efficiency, product acceptance and external
+  delivery remain unclaimed.
+
+### Applied change inventory and rollback map (2026-10-09)
+
+All applied changes are outside Git; byte copies + SHA256 are in the evidence root
+(`pre-cutover-*`, `pre-cutover-manifest.json`).
+
+- `/home/ksi/.config/opencode/opencode.jsonc` → plugins (CE pin, goal0.1.54 with
+  `auto_continue:false`), agents developer/test-runner `disabled:true` + comments.
+  Diff vs backup: 16 changed lines only; MCP/other sections untouched.
+- `/home/ksi/.config/opencode/cli.json` → goal entry pinned0.1.54.
+- `/home/ksi/.config/opencode/AGENTS.md` → native-first replacement (~6.1KB).
+- `~/.config/opencode/agents/developer.md`/`test-runner.md` → renamed to
+  `*.md.bak-1791546420134` (recoverable copies also in the evidence root).
+- Repo consistency (delegated-direction default): `docs/integrations/opendesign.md`
+  (3 spots), `README.md`, `docs/walkthrough.md`, `examples/project-AGENTS.md`,
+  `examples/autonomous-development.md`, `plugins/design-notifier/README.md` and the
+  delivered notifier guidance; `test/design-notifier-messages.test.mjs` updated to
+  the new contract; all covered by `npm run check`.
+- Rollback: restore the pre-cutover globals (or per-file copies), rename the agent
+  files back, revert the repo commit and run `opencode reload`.
 
 ### Goal plugin verified facts and safe-disable plan (2026-10-09)
 
@@ -230,6 +253,13 @@ installs; a Claude-official plugin is not a KSI skill; shared compatibility root
 (`~/.claude/skills`, `~/.agents/skills`) belong to other tools and are not
 OpenCode-owned deletion targets. Blockers unchanged: active Site Intelligence
 goal, unverified listener4096, OpenChamber catalog discrepancy.
+
+**Cutover applied (same day, user instruction “모두 개선해줘”).** The recorded plan
+executed with private backups; see the applied-change inventory above. Residual
+items: Site goal formal pause (owning session), listener4096 unverified,
+OpenChamber-managed server catalog still empty (pre-existing env), and behavioral
+confirmation of Goal auto-continuation off pending idle observation. Efficiency,
+product acceptance and external delivery remain unclaimed.
 
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,

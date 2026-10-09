@@ -41,9 +41,9 @@ plugin never claims success, never retries generation and never implements.
   (what/where/user impact/desired result) tracked fixed/open — never a good/bad
   verdict. Record the skill selected per stage. For an existing-screen redesign or
   vague dissatisfaction report, run a read-only design audit first and use its
-  defect list as the redesign's problem statement; for a new or ambiguous direction,
-  get 2-3 lightweight direction options and a user pick before full implementation
-  (skip options when the direction is already approved). Metadata `designQuality: "not_assessed"` is advisory, never a computed
+  defect list as the redesign's problem statement; for a user-delegated redesign, the design workspace resolves the direction
+  from the design system and brief and proceeds; 2-3 lightweight direction options
+  are commissioned only when the user asks or the brand identity is in question. Metadata `designQuality: "not_assessed"` is advisory, never a computed
   quality pass. No-improvement rounds mean quality unmet; no fixed round cap is
   imposed. Delivery/classification is unchanged; pinned copies need a verified update.
 - Strategy chains are followed: when a terminal run maps a follow-up run

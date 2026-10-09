@@ -103,7 +103,7 @@ not invent design artifacts or silently substitute a locally-invented design sys
 
 ## When to use OpenDesign
 
-The default design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new visual direction, client-facing deliverable, out-of-scope change or explicit review-first request; direction approval at those gates is distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
+The default design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new brand identity, client-facing deliverable, out-of-scope change or explicit review-first request; a delegated redesign's visual direction is design-owned and does not add a routine approval step. Gate approvals are distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
 
 ### Ownership: design work and engineering work
 
@@ -129,9 +129,10 @@ component composition and responsive presentation within the authorized outcome)
 Preserving behavior does not mean preserving a rejected layout. A request to
 improve substantially requires a diagnosis of the user's task friction and the
 structural change that addresses it, not merely a larger KPI or stronger color.
-Unapproved new brand/direction, client delivery, scope changes and review-first
-requests keep their decision gates; authorized structural improvement alone does
-not require repeated approval of routine iterations.
+Unapproved new brand identity, client delivery, scope changes and review-first
+requests keep their decision gates; a delegated redesign's visual direction is
+design-owned, and authorized structural improvement alone does not require
+repeated approval of routine iterations.
 
 ### Intake versus refinement
 
@@ -243,11 +244,13 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    dissatisfaction report, commission a read-only design audit first — a review
    skill on the actual current screens at the relevant viewports/states — and use
    its concrete defect list as the redesign's problem statement; the user should
-   not have to enumerate the problems. When the direction is new or ambiguous,
-   commission a lightweight direction options run (2-3 distinct direction boards,
-   each with a rendered sample of the critical screen area) and let the user pick
-   before full implementation; skip options when the approved direction already
-   exists, and continue non-dependent work while the choice is pending.
+   not have to enumerate the problems. For a user-delegated redesign, the design
+   workspace resolves the visual direction from the design system, brief and
+   references and proceeds without a user direction pick; commission a
+   lightweight direction options run (2-3 distinct direction boards with a
+   rendered sample of the critical screen area) only when the user asks for
+   options or the brand identity itself is in question, and continue
+   non-dependent work while any choice is pending.
 2. **Compact task contract.** Reuse the agreed purpose and current problem;
    supply invariants versus redesign freedom, actual source/components/tokens,
    inspected references and accessible images, sanitized states/viewports, expected
