@@ -21,7 +21,7 @@ function fixture(t) {
 }
 
 function setupLocal({ repo, configDir }, { design = "fixture-design-id", sourceWorkspace = null, extra = "" } = {}) {
-  for (const name of ["developer", "reviewer", "test-runner"]) writeFileSync(join(configDir, `agents/${name}.md`), "role fixture\n")
+  for (const name of ["developer", "reviewer"]) writeFileSync(join(configDir, `agents/${name}.md`), "role fixture\n")
   writeFileSync(join(configDir, "AGENTS.md"), "Fixture policy; no live activation proof\n")
   const sourceRow = sourceWorkspace === null ? "" : `| Source workspace | ${sourceWorkspace} |\n`
   writeFileSync(join(repo, "docs/superpowers/product-state.md"), `## Product binding\n\n| Field | Value |\n| --- | --- |\n| Repository | . |\n${sourceRow}| Design project | ${design} |\n| Design storage | . |\n| Entry | index.html |\n| Start command | node never-execute-this.mjs |\n| Verify command | node also-never-execute-this.mjs |\n| Product URL | https://example.invalid |\n| Brand source | tokens.css |\n${extra}`)

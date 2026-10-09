@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url"
 const root = fileURLToPath(new URL("..", import.meta.url))
 const required = [
   "bin/ksi-opencode.mjs", "src/native-bundle.mjs", "src/native-roles.mjs",
-  "templates/agents/developer.md", "templates/agents/test-runner.md", "templates/agents/reviewer.md",
+  "templates/agents/developer.md", "templates/agents/reviewer.md",
   "examples/project-AGENTS.md", "examples/autonomous-development.md", "README.md", "INSTALL.md",
   "docs/architecture.md", "docs/integrations/opendesign.md",
 ]
@@ -75,6 +75,7 @@ async function main() {
     assert.ok(!paths.includes("templates/agents/design.md"), "retired Design role must not be packaged")
     assert.ok(!paths.includes("templates/agents/research.md"), "retired Research role must not be packaged")
     assert.ok(!paths.includes("templates/agents/design-critic.md"), "retired Design Critic role must not be packaged")
+    assert.ok(!paths.includes("templates/agents/test-runner.md"), "retired Test Runner role must not be packaged")
     assert.ok(!paths.some((path) => path.startsWith("vendor/")), "vendored design kit must not be packaged")
     assert.ok(!paths.some((path) => path.startsWith("integrations/")), "manual deployment assets must not be packaged")
     assert.ok(!paths.some((path) => path.startsWith("docs/design")), "retired design docs must not be packaged")
@@ -112,7 +113,7 @@ async function main() {
     await assert.rejects(access(config), { code: "ENOENT" }, "preview must not create target")
     const ran = await runCli(["install", "--target", config, "--apply"])
     assert.equal(ran.code, 0, ran.stderr)
-    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
+    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md"])
     assert.deepEqual(await readdir(config), ["agents"])
     const repeat = await runCli(["install", "--target", config, "--apply"])
     assert.equal(repeat.code, 0, repeat.stderr)
@@ -123,8 +124,8 @@ async function main() {
     const conflict = await runCli(["install", "--target", config, "--apply", "--replace"])
     assert.notEqual(conflict.code, 0, "user routing must block replacement")
     assert.equal(await readFile(ownedRole, "utf8"), userRouting)
-    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
-    console.log("Package verification passed: installer-only tarball, offline three-role install, and retired design-kit rejection.")
+    assert.deepEqual((await readdir(join(config, "agents"))).sort(), ["developer.md", "reviewer.md"])
+    console.log("Package verification passed: installer-only tarball, offline two-role install, and retired design-kit rejection.")
   } finally {
     await rm(work, { recursive: true, force: true })
   }

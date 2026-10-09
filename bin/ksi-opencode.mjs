@@ -4,18 +4,19 @@ import { randomUUID } from "node:crypto"
 import { isAbsolute, join } from "node:path"
 import { buildNativeBundle } from "../src/native-bundle.mjs"
 
-const usage = "Usage: ksi-opencode install --target <absolute OpenCode config directory> [--apply] [--replace] [--developer-test-runner]"
+const usage = "Usage: ksi-opencode install --target <absolute OpenCode config directory> [--apply] [--replace]"
 const designKitRemoved = "The --with-design-kit option was removed in 0.5.0. The vendored design kit is no longer distributed; use the OpenDesign workspace for design work (see docs/integrations/opendesign.md)."
+const testRunnerRemoved = "The --developer-test-runner option was removed: Test Runner is no longer part of the default bundle. Developer owns the tests for its own implementation and Reviewer independently reviews code and test adequacy; an existing installed Test Runner role file is left untouched (see INSTALL.md)."
 
 function options(args) {
   if (args[0] !== "install") throw new Error(usage)
-  const result = { target: null, apply: false, replace: false, developerTestRunner: false }
+  const result = { target: null, apply: false, replace: false }
   for (let index = 1; index < args.length; index++) {
     const arg = args[index]
     if (arg === "--target" && !result.target && args[index + 1]) result.target = args[++index]
     else if (arg === "--apply") result.apply = true
     else if (arg === "--replace") result.replace = true
-    else if (arg === "--developer-test-runner") result.developerTestRunner = true
+    else if (arg === "--developer-test-runner") throw new Error(testRunnerRemoved)
     else if (arg === "--with-design-kit") throw new Error(designKitRemoved)
     else throw new Error(usage)
   }
@@ -93,7 +94,7 @@ async function apply(target, changes) {
 
 async function main() {
   const parsed = options(process.argv.slice(2))
-  const bundle = await buildNativeBundle({ developerTestRunner: parsed.developerTestRunner })
+  const bundle = await buildNativeBundle()
   const changes = await inspect(parsed.target, bundle)
   if (parsed.apply && !parsed.replace && changes.some((change) => change.status === "conflict")) {
     throw new Error("Existing native file conflict; review the preview, then pass --apply --replace to back up and replace it.")

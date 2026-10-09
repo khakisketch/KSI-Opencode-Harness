@@ -52,7 +52,7 @@ export function inspectReadiness({ repo = process.cwd(), configDir = join(proces
   let repositoryPresent = false;
   try { repositoryPresent = statSync(root).isDirectory(); } catch {}
   checks.push({ id: "repository", state: repositoryPresent ? "present" : "missing", detail: "Requested working directory presence; product binding still needs verification." });
-  const roles = ["developer", "test-runner", "reviewer"];
+  const roles = ["developer", "reviewer"];
   const missingRoles = roles.filter(name => !filePresent(join(config, `agents/${name}.md`)) && !filePresent(join(root, `.opencode/agents/${name}.md`)));
   checks.push({ id: "roles", state: missingRoles.length ? "missing" : "present", detail: missingRoles.length ? `Missing role files: ${missingRoles.join(", ")}` : "Role files present; effective role/model/permission catalog not inspected." });
   const policyPresent = filePresent(join(root, "AGENTS.md")) || filePresent(join(config, "AGENTS.md"));

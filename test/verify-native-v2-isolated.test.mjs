@@ -7,7 +7,7 @@ import * as verifier from "../scripts/verify-native-v2-isolated.mjs"
 function catalog(overrides = {}) {
   const agents = [
     ...["build", "plan"].map((id) => ({ id, mode: "primary" })),
-    ...["explore", "developer", "test-runner", "reviewer"].map((id) => ({ id, mode: "subagent" })),
+    ...["explore", "developer", "reviewer"].map((id) => ({ id, mode: "subagent" })),
   ]
   const developer = agents.find((agent) => agent.id === "developer")
   developer.model = { providerID: "opencode-go", id: "deepseek-v4.1-flash" }
@@ -40,7 +40,7 @@ test("catalog check retains built-in modes and user routing without requiring KS
   assert.match(checkAgents(agents).failures.join(" "), /developer.*subagent/)
   agents.find((agent) => agent.id === "developer").mode = "subagent"
   agents.find((agent) => agent.id === "developer").permissions = []
-  assert.match(checkAgents(agents).failures.join(" "), /developerTestRunner is not default-off/)
+  assert.match(checkAgents(agents).failures.join(" "), /delegation is not default-denied/)
 })
 
 test("catalog check rejects a custom-role skill blockade", () => {
@@ -53,7 +53,7 @@ test("catalog check rejects a custom-role skill blockade", () => {
 })
 
 test("catalog check rejects every leftover retired role", () => {
-  for (const retired of ["design", "research", "design-critic"]) {
+  for (const retired of ["design", "research", "design-critic", "test-runner"]) {
     const agents = catalog()
     agents.push({ id: retired, mode: "subagent" })
     assert.match(checkAgents(agents).failures.join(" "), new RegExp(`retired ${retired}`, "i"), retired)
@@ -128,8 +128,6 @@ function helperDecisions() {
   return [
     { agent: "reviewer", action: "edit", expected: "deny", effect: "deny" },
     { agent: "reviewer", action: "subagent", expected: "deny", effect: "deny" },
-    { agent: "test-runner", action: "edit", expected: "deny", effect: "deny" },
-    { agent: "test-runner", action: "subagent", expected: "deny", effect: "deny" },
   ]
 }
 
@@ -137,7 +135,7 @@ function helperDecisions() {
 test("helper permission evidence rejects an allowed edit or delegation", () => {
   assert.equal(typeof verifier.checkHelperPermissions, "function")
   assert.deepEqual(verifier.checkHelperPermissions(helperDecisions()), { ok: true, failures: [] })
-  for (let index = 0; index < 4; index++) {
+  for (let index = 0; index < 2; index++) {
     const decisions = helperDecisions()
     decisions[index].effect = "allow"
     const result = verifier.checkHelperPermissions(decisions)
@@ -152,7 +150,7 @@ test("helper permission evidence requires every unique native verdict and fixed 
   const missingEffect = helperDecisions()
   delete missingEffect[0].effect
   const duplicate = helperDecisions()
-  duplicate[3] = { ...duplicate[0] }
+  duplicate[1] = { ...duplicate[0] }
   const rewritten = helperDecisions()
   rewritten[0] = { ...rewritten[0], expected: "allow", effect: "allow" }
   for (const decisions of [[], helperDecisions().slice(1), missingEffect, duplicate, rewritten]) {

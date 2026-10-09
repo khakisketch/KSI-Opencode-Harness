@@ -19,11 +19,12 @@ test("package exposes a standalone installer and no OpenCode plugin entrypoint",
   assert.ok(packageJson.files.includes("examples/project-AGENTS.md"))
   assert.ok(packageJson.files.includes("docs/integrations/opendesign.md"))
   assert.ok(!packageJson.files.includes("src/agents.mjs"), "historical plugin policy must not ship")
-  assert.ok(!packageJson.files.includes("agents/"), "ship only the three custom role prompts")
-  for (const name of ["developer", "test-runner", "reviewer"]) {
+  assert.ok(!packageJson.files.includes("agents/"), "ship only the two custom role prompts")
+  for (const name of ["developer", "reviewer"]) {
     assert.ok(packageJson.files.includes(`templates/agents/${name}.md`))
     assert.ok(!packageJson.files.includes(`agents/${name}.md`), "historical plugin prompts must not ship")
   }
+  assert.ok(!packageJson.files.includes("templates/agents/test-runner.md"), "retired Test Runner role must not ship")
   assert.ok(!packageJson.files.includes("templates/agents/design.md"), "retired Design role must not ship")
   assert.ok(!packageJson.files.includes("templates/agents/research.md"), "retired role must not ship")
   assert.ok(!packageJson.files.includes("templates/agents/design-critic.md"), "retired critic must not ship")

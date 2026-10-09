@@ -18,7 +18,7 @@ function fixture(t) {
 }
 
 function setupLocal({ repo, configDir }, extra = "") {
-  for (const name of ["developer", "reviewer", "test-runner"]) writeFileSync(join(configDir, `agents/${name}.md`), "role fixture\n")
+  for (const name of ["developer", "reviewer"]) writeFileSync(join(configDir, `agents/${name}.md`), "role fixture\n")
   writeFileSync(join(configDir, "AGENTS.md"), "Fixture policy; no live activation proof\n")
   writeFileSync(join(repo, "docs/superpowers/product-state.md"), `## Product binding\n\n| Field | Value |\n| --- | --- |\n| Repository | . |\n| Design project | fixture-design |\n| Design storage | . |\n| Entry | index.html |\n| Start command | node never-execute-this.mjs |\n| Verify command | node also-never-execute-this.mjs |\n| Product URL | https://example.invalid |\n| Brand source | tokens.css |\n${extra}`)
 }
@@ -44,6 +44,15 @@ test("complete local files remain live-unverified and are never executed or chan
   assert.equal(result.checks.find(c => c.id === "effective-tools").state, "unknown")
   assert.equal(readFileSync(path, "utf8"), before)
   assert.deepEqual(readdirSync(f.repo).sort(), ["docs"])
+})
+
+test("extra legacy role files are tolerated and never deleted", t => {
+  const f = fixture(t)
+  setupLocal(f)
+  writeFileSync(join(f.configDir, "agents", "test-runner.md"), "legacy Test Runner fixture\n")
+  const result = report.inspectReadiness({ ...f })
+  assert.equal(result.checks.find(c => c.id === "roles").state, "present")
+  assert.equal(readFileSync(join(f.configDir, "agents", "test-runner.md"), "utf8"), "legacy Test Runner fixture\n")
 })
 
 test("mismatched repository binding is not usable even if all fields exist", t => {

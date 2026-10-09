@@ -1,4 +1,4 @@
-export const NATIVE_ROLE_NAMES = ["developer", "test-runner", "reviewer"]
+export const NATIVE_ROLE_NAMES = ["developer", "reviewer"]
 
 const rule = (action, effect, resource = "*") => ({ action, resource, effect })
 const allow = (...actions) => actions.map((action) => rule(action, "allow"))
@@ -15,11 +15,6 @@ const roles = {
       ...deny("subagent"),
     ],
   },
-  "test-runner": {
-    mode: "subagent",
-    description: "Run assigned trusted checks independently and report actual results.",
-    permissions: [...allow("read", "shell"), ...deny("edit", "subagent")],
-  },
   reviewer: {
     mode: "subagent",
     description: "Independent read-only review of code changes and behaviour; no approval authority.",
@@ -27,18 +22,8 @@ const roles = {
   },
 }
 
-const developerTestRunnerPrompt = `
-
-Developer-to-Test Runner assistance is enabled for this session. You may request a targeted Test Runner helper for author feedback, never as independent acceptance. The Primary still owns final testing and review.`
-
-export function nativeRoleDefinition(name, { developerTestRunner = false } = {}) {
+export function nativeRoleDefinition(name) {
   const role = roles[name]
   if (!role) throw new Error(`Unknown native role: ${name}`)
-  if (name !== "developer" || !developerTestRunner) return role
-  return {
-    ...role,
-    description: `${role.description} May request Test Runner feedback when explicitly enabled.`,
-    permissions: [...role.permissions, rule("subagent", "allow", "test-runner")],
-    promptSuffix: developerTestRunnerPrompt,
-  }
+  return role
 }

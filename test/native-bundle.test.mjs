@@ -2,9 +2,9 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import { buildNativeBundle } from "../src/native-bundle.mjs"
 
-const agentNames = ["developer", "test-runner", "reviewer"]
+const agentNames = ["developer", "reviewer"]
 
-test("native bundle adds three subagent roles without replacing built-in prompts or installing slash commands", async () => {
+test("native bundle adds two subagent roles without replacing built-in prompts or installing slash commands", async () => {
   const bundle = await buildNativeBundle()
   assert.deepEqual([...bundle.keys()].sort(), agentNames.map((name) => `agents/${name}.md`).sort())
   for (const name of agentNames) {
@@ -31,13 +31,12 @@ test("the retired design kit no longer contributes skills or craft references", 
   assert.deepEqual([...bundle.keys()].filter((path) => path.includes("vendor/")), [])
 })
 
-test("Developer to Test Runner delegation remains opt-in", async () => {
-  const regular = (await buildNativeBundle()).get("agents/developer.md")
-  const assisted = (await buildNativeBundle({ developerTestRunner: true })).get("agents/developer.md")
-  assert.doesNotMatch(regular, /Developer-to-Test Runner assistance is enabled/)
-  assert.match(assisted, /Developer-to-Test Runner assistance is enabled/)
-  assert.match(assisted, /"action":"subagent","resource":"test-runner","effect":"allow"/)
-  assert.doesNotMatch(regular, /"action":"subagent","resource":"test-runner","effect":"allow"/)
+test("the retired Test Runner role and its delegation variant are gone", async () => {
+  const bundle = await buildNativeBundle()
+  assert.equal(bundle.has("agents/test-runner.md"), false)
+  for (const name of agentNames) {
+    assert.doesNotMatch(bundle.get(`agents/${name}.md`), /Test Runner/)
+  }
 })
 
 test("Reviewer stays a code and behaviour review role without design ownership", async () => {

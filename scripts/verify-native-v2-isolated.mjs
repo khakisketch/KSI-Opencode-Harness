@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url"
 const root = fileURLToPath(new URL("..", import.meta.url))
 const roles = {
   build: "primary", plan: "primary",
-  explore: "subagent", developer: "subagent", "test-runner": "subagent",
+  explore: "subagent", developer: "subagent",
   reviewer: "subagent",
 }
 
@@ -22,13 +22,13 @@ const designPermissionCases = [
   { agent: "plan", action: "edit", expected: "deny" },
 ]
 
-const helperPermissionCases = ["reviewer", "test-runner"].flatMap(agent => [
+const helperPermissionCases = ["reviewer"].flatMap(agent => [
   { agent, action: "edit", resources: ["src/permission-boundary-probe.mjs"], expected: "deny" },
   { agent, action: "subagent", resources: ["general"], expected: "deny" },
 ])
 
 // These decisions describe inherited access; no observation is an isolation guarantee.
-const helperPermissionObservations = ["reviewer", "test-runner"].flatMap(agent => [
+const helperPermissionObservations = ["reviewer"].flatMap(agent => [
   { agent, action: "shell", resources: ["node -e synthetic_permission_probe"] },
   { agent, action: "execute", resources: ["*"] },
   { agent, action: "opendesign_write_file", resources: ["*"] },
@@ -62,15 +62,15 @@ export function checkAgents(agents) {
   if (agents.some((item) => item.id === "design")) failures.push("retired design role still installed")
   if (agents.some((item) => item.id === "research")) failures.push("retired research role still installed")
   if (agents.some((item) => item.id === "design-critic")) failures.push("retired design-critic role still installed")
-  for (const id of ["developer", "test-runner", "reviewer"]) {
+  if (agents.some((item) => item.id === "test-runner")) failures.push("retired test-runner role still installed")
+  for (const id of ["developer", "reviewer"]) {
     const agent = agents.find((item) => item.id === id)
     if (agent?.permissions?.some((rule) => rule.action === "skill" && rule.resource === "*" && rule.effect === "deny")) {
       failures.push(`${id} blocks native skill discovery`)
     }
   }
-  if (developer && (!developer.permissions?.some((rule) => rule.action === "subagent" && rule.resource === "*" && rule.effect === "deny")
-    || developer.permissions?.some((rule) => rule.action === "subagent" && rule.resource === "test-runner" && rule.effect === "allow"))) {
-    failures.push("developerTestRunner is not default-off")
+  if (developer && !developer.permissions?.some((rule) => rule.action === "subagent" && rule.resource === "*" && rule.effect === "deny")) {
+    failures.push("developer delegation is not default-denied")
   }
   return { ok: failures.length === 0, failures }
 }
@@ -232,7 +232,7 @@ async function verify() {
     const installedAgents = (await readdir(join(config, "agents"))).sort()
     const configEntries = (await readdir(config)).sort()
     const files = {
-      installed: installedAgents.join(",") === ["developer.md", "reviewer.md", "test-runner.md"].join(","),
+      installed: installedAgents.join(",") === ["developer.md", "reviewer.md"].join(","),
       modelAndStepsOmitted: !/\n(?:model|steps):/.test(source),
       builtinsUntouched: !installedAgents.some((name) => ["build.md", "plan.md", "explore.md"].includes(name)),
       noSkillsInstalled: !configEntries.includes("skills"),

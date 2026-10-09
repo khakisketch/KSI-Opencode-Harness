@@ -12,15 +12,14 @@ function frontmatter(definition) {
   return `${lines.join("\n")}\n---\n\n${definition.system.trim()}\n`
 }
 
-export async function buildNativeBundle({ developerTestRunner = false } = {}) {
-  if (typeof developerTestRunner !== "boolean") throw new Error("developerTestRunner must be boolean")
+export async function buildNativeBundle() {
   const bundle = new Map()
   for (const name of NATIVE_ROLE_NAMES) {
-    const definition = nativeRoleDefinition(name, { developerTestRunner })
+    const definition = nativeRoleDefinition(name)
     const prompt = await readFile(new URL(`../templates/agents/${name}.md`, import.meta.url), "utf8")
     bundle.set(`agents/${name}.md`, frontmatter({
       ...definition,
-      system: prompt + (definition.promptSuffix ?? ""),
+      system: prompt,
     }))
   }
   return bundle

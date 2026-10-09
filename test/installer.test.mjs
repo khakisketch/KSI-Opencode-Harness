@@ -18,20 +18,20 @@ async function withTarget(fn) {
   try { await fn(root) } finally { await rm(root, { recursive: true, force: true }) }
 }
 
-test("preview is read-only; apply creates only three custom native agents", async () => {
+test("preview is read-only; apply creates only two custom native agents", async () => {
   await withTarget(async (root) => {
     const target = join(root, "config")
     const preview = run(target)
     assert.equal(preview.status, 0, preview.stderr)
     assert.equal(preview.data.applied, false)
-    assert.equal(preview.data.changes.length, 3)
+    assert.equal(preview.data.changes.length, 2)
     await assert.rejects(lstat(target), { code: "ENOENT" })
 
     const applied = run(target, "--apply")
     assert.equal(applied.status, 0, applied.stderr)
     assert.equal(applied.data.applied, true)
     assert.deepEqual((await readdir(target)).sort(), ["agents"])
-    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
+    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["developer.md", "reviewer.md"])
     assert.match(await readFile(join(target, "agents", "developer.md"), "utf8"), /mode: subagent/)
     const again = run(target, "--apply")
     assert.equal(again.status, 0, again.stderr)
@@ -49,6 +49,28 @@ test("the removed design-kit flag fails loudly and writes nothing", async () => 
   })
 })
 
+test("the removed --developer-test-runner flag fails loudly and writes nothing", async () => {
+  await withTarget(async (root) => {
+    const target = join(root, "config")
+    const result = run(target, "--developer-test-runner", "--apply")
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /developer-test-runner.*removed/i)
+    await assert.rejects(lstat(target), { code: "ENOENT" })
+  })
+})
+
+test("an existing user Test Runner file is preserved and stays outside the bundle", async () => {
+  await withTarget(async (root) => {
+    const target = join(root, "config")
+    await mkdir(join(target, "agents"), { recursive: true })
+    await writeFile(join(target, "agents", "test-runner.md"), "existing user Test Runner role\n")
+    const installed = run(target, "--apply")
+    assert.equal(installed.status, 0, installed.stderr)
+    assert.equal(await readFile(join(target, "agents", "test-runner.md"), "utf8"), "existing user Test Runner role\n")
+    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["developer.md", "reviewer.md", "test-runner.md"])
+  })
+})
+
 test("a legacy installed design role is left untouched for explicit migration", async () => {
   await withTarget(async (root) => {
     const target = join(root, "config")
@@ -57,7 +79,7 @@ test("a legacy installed design role is left untouched for explicit migration", 
     const installed = run(target, "--apply")
     assert.equal(installed.status, 0, installed.stderr)
     assert.equal(await readFile(join(target, "agents", "design.md"), "utf8"), "legacy KSI Design role\n")
-    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md", "test-runner.md"])
+    assert.deepEqual((await readdir(join(target, "agents"))).sort(), ["design.md", "developer.md", "reviewer.md"])
   })
 })
 
