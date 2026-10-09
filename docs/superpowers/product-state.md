@@ -55,6 +55,8 @@ Historical: user explicitly rejected EVENTOUCH's bold agency-home result on 2026
 
 ## Backlog
 
+- QA delegation direction (2026-10-09) — **dedicated QA deferred; no new agent or Skill**. Retain the two-role bundle; for future authorized substantial product verification, use an existing General child session with a compact revision/environment/scenario/test-data/evidence contract when useful, without mandatory calls or repeating valid checks. Reconsider specialization only after actual recurring setup/permission/consistency costs are evidenced; no new pilot, tool install, product intervention or efficiency claim. [Recorded direction](plans/2026-10-07-recorded-handoffs.md#qa-delegation-direction--no-new-agent-2026-10-09).
+
 - Canonical product/design binding and actual-product preview (2026-10-08) — **harness scope complete and independently verified**; preview self-development cancelled by user; real-use acceptance separate. Historical [proposal](plans/2026-10-07-recorded-handoffs.md#proposed-product-binding-and-live-preview-improvement-2026-10-08); approved [plan](plans/2026-10-07-recorded-handoffs.md#approved-canonical-binding-and-actual-product-preview-2026-10-08). Preserve EVENTOUCH owning-session/history and product runtime.
 
 - Two-harness task contract and verdict boundary (2026-10-08) — **implemented as the current slice** (guidance-only; independently verified); real-use observation separate. Historical [proposal](plans/2026-10-07-recorded-handoffs.md#proposed-two-harness-task-contract-and-verdict-boundary-2026-10-08); approved and [closed section](plans/2026-10-07-recorded-handoffs.md#approved-two-harness-boundary-and-commissioning-contracts-2026-10-08).

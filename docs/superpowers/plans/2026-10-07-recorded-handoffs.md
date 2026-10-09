@@ -1457,3 +1457,40 @@ no new scope/design/security decision is required.
   live prompt behavior/efficiency remain unclaimed. Public beta.8 stays the
   older three-role artifact; a new public two-role release requires separate
   authorization. Product-judgment observation and B② retain their prior gates.
+
+## QA delegation direction — no new agent (2026-10-09)
+
+Status: current user direction recorded; no implementation, installation or
+product experiment authorized by this discussion.
+
+- QA is necessary work, not necessarily another standing agent. Defer the
+  dedicated `qa` proposal; retain the Developer + Reviewer default and native
+  Build/Plan/Explore/General. Earlier assistant recommendations to register QA
+  are discussion proposals, not approved changes to the bundle or environment.
+- For a later authorized product task, Build may delegate substantial functional
+  QA to an existing General child session when useful. Developer owns author
+  tests/repairs, Reviewer independent code/test-adequacy review, OpenDesign
+  visual implementation/rendered review, and Build integration/technical
+  completion. No mandatory QA call or duplicate check for valid same-revision
+  evidence; human acceptance remains separate.
+- A short task contract names actual product URL/app build, source revision,
+  scenarios, permitted test account/data changes, target/session ownership and
+  return: PASS/FAIL/BLOCKED/NOT_RUN, concrete defects/reproduction, evidence
+  locations and unverified scope. General's own effective permissions and safe
+  execution access must be checked; an assignment or Skill is not a sandbox.
+- Reuse prepared browser skills/tools. Android/iOS tool/device access is not
+  assumed; no automatic installs, credential/profile transfers or production
+  data changes. Playwright Agents remain optional and unadopted as recorded.
+- A reusable KSI QA contract Skill is only a consideration, not approved work.
+  Do not duplicate vendor skills or add it before a recurring gap is evidenced.
+  Reconsider a standing QA role only if General's repeated setup, inconsistent
+  contracts or needed permission specialization warrants it after actual use.
+- Observe delegated versus Build work, meaningful new defects, duplicate checks,
+  rework and combined context/time/usage where available in future authorized
+  development; neither agent count nor isolated parent-context reduction proves
+  whole-program efficiency. No new pilot, EVENTOUCH intervention, global policy
+  expansion, service change, push or publication follows from this direction.
+- Record-only verification on `main` above `28f08f3`: diff scope is exactly this
+  ledger and product-state; `git diff --check` clean and the new decision link
+  resolves. No role/source/config change or new test execution; existing code
+  verification remains bound to the unchanged implementation snapshot.
