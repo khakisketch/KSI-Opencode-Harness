@@ -1286,7 +1286,8 @@ pause for this specific change, nothing else):
 ## Approved post-retirement legacy audit and cleanup (2026-10-09)
 
 Status: user requested a comprehensive related legacy audit and cleanup;
-implementation/checks and independent review complete; local commit pending. This is a bounded follow-up,
+technically verified, independently reviewed and locally committed (`c18031f`);
+human acceptance and external delivery remain separate. This is a bounded follow-up,
 not renewed general guidance expansion or product-development ownership.
 
 ### Goal, basis and boundaries
@@ -1349,7 +1350,7 @@ evidence not mistaken for current acceptance.
 - [x] Run `npm run check`, `npm run check:package`, `git diff --check`, and
   changed-doc link checks; reuse the unchanged native permission/catalog
   evidence instead of restarting a shared service or retesting unrelated flows.
-- [ ] Independent read-only Reviewer checks actual task diff, evidence,
+- [x] Independent read-only Reviewer checks actual task diff, evidence,
   preservation and test adequacy; repair/recheck affected findings. Record
   exact tested workspace/revision/pending changes, update product-state and
   checkpoint, and commit only task-owned files locally. Human acceptance and
@@ -1440,3 +1441,19 @@ no new scope/design/security decision is required.
   `test/native-package.test.mjs` =
   `82f844484217c4ed682e482042408a94cb9103acf012dc855686149c23265c27`.
   Later record-only edits do not invalidate code/package test evidence.
+
+### Local closeout (2026-10-09)
+
+- Implementation/docs/checks/review receipts committed locally as `c18031f` on
+  canonical `main`; only the nine task-owned files were staged, index/diff
+  whitespace clean. This final record-only reconciliation follows on the same
+  local branch; no new push/publication/restart authority is implied.
+- L1-L4 are fixed/verified. Retained references are intentional removal errors,
+  safety/preservation regressions, explicit legacy-release/migration guidance,
+  optional user role/routing and historical evidence. No active default-role or
+  removed delegation implementation remains. No user-owned backup/worktree or
+  historical catalog was deleted, and no task worktree was created.
+- No in-scope blocker. Technical cleanup is complete; user acceptance and
+  live prompt behavior/efficiency remain unclaimed. Public beta.8 stays the
+  older three-role artifact; a new public two-role release requires separate
+  authorization. Product-judgment observation and B② retain their prior gates.
