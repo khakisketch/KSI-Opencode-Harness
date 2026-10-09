@@ -1223,3 +1223,47 @@ pause for this specific change, nothing else):
   `node scripts/verify-native-v2-isolated.mjs`, `git diff --check`, link sweep.
 - Independent Reviewer on the committed diff; independent execution
   verification on the integrated revision; receipts and record updates below.
+
+### Verification and closure (2026-10-09)
+
+- Author checks on the change: `npm run check` 212→213 total after the fix
+  (211 pass / 0 fail / 2 pre-existing optional skips), `npm run check:package`
+  pass with "offline two-role install", `node scripts/verify-native-v2-isolated.mjs`
+  pass on OpenCode v2.0.24 (files.installed true = developer.md+reviewer.md,
+  helper decisions 2 all deny, 0 provider requests), `git diff --check` clean,
+  shipped-doc link sweep 64/0, `npm run release:check` pass (7 pins, clean tree).
+- Independent Reviewer `ses_ee1a22dcaffei6salf7KtH2SiF` on `92f1612..ccb1bbc`:
+  no Critical/High; invariants confirmed from the actual diff (two-file bundle,
+  loud flag removal, preserved user file, unchanged collision guards and
+  Reviewer permissions, retained independent-verification path, history
+  preserved). Findings: Medium — shipped `opencode.jsonc.example` and
+  `docs/troubleshooting.md` still said three custom agents / three-role
+  installer; Low — `docs/releasing.md` still described a three-role inventory
+  and apply; Info — `buildNativeBundle({developerTestRunner:true})` was
+  silently ignored by a stale caller. All three addressed in `56fc131`
+  (wording fixes plus an argument guard with a regression test).
+- Independent execution verification on the integrated revision: Test Runner
+  `ses_ee1a22dc8ffew9cyGzbKw4Bok6` at `ccb1bbc` — 6/6 pass (clean tree, linear
+  history, `npm run check` 212/210/0/2, package check, isolated two-role
+  install/helper denials/0 provider requests, whitespace clean). Post-fix
+  recheck `ses_ee1a005a3ffeeb93nO0pl78yl7` at `56fc131` — 5/5 pass
+  (`npm run check` 213/211/0/2, package check, isolated verifier, and a live
+  probe that `--developer-test-runner` exits non-zero with the removal message
+  and creates no target).
+- Machine-global `AGENTS.md` adoption (operating guidance, per the approved
+  cleanup): backup `AGENTS.md.before` sha256
+  `4a5e4143a0f901c2fb1bac03149df12dc0626e066185cc3b6f4256f3290b7a60` in
+  `/tmp/opencode/ksi-tr-retirement-20261009/`; five targeted replacements on
+  four lines (self-review, Build evidence flow, defect routing/origin tagging,
+  role-verification seat); result sha256
+  `77f19b53b2ea929a5d43ef4131a8388765b48e594d5ddc0261445a2a70c0e482`,
+  reconstruction byte-exact, 124 lines unchanged, zero remaining Test Runner
+  references; the live instruction refresh confirmed the same diff.
+- Preserved: installed user files (`~/.config/opencode/agents/` including the
+  user-owned `test-runner.md` and customized `reviewer.md`), JSONC routing
+  (`test-runner` model entry untouched), historical records/specs/archives,
+  and the published `0.5.0-beta.8` state. No push, publication, service
+  restart, new agent, orchestrator or permission expansion.
+- Closure: commits `d233d06` + `ccb1bbc` + `56fc131` on local `main` (plus this
+  records commit); **not pushed** per the user's instruction — `origin/main`
+  remains `92f1612`, and a GitHub push needs separate approval.
