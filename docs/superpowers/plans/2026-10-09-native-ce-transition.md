@@ -88,6 +88,48 @@ push/publication, product experiments and other-session interruption are not.
   file for large responses; pipe captures truncated skill/OpenAPI JSON and are
   not accepted as catalog evidence. No sensitive contents copied into Git.
 
+### Extended dependency inventory (2026-10-09, later read-only pass)
+
+- `opencode plugin list` confirms exactly three active plugin sources: pinned
+  `superpowers` (JSONC entry), `local.goal-mode.server` 0.1.54 (goal plugin) and
+  local `ksi.design-notifier` auto-discovered from `~/.config/opencode/plugins/`
+  (not a JSONC entry). Compound Engineering is not installed yet.
+- The resolved skill catalog is 39 skills: 15 superpowers; built-in `opencode` and
+  `report`; 17 discovered from compatibility roots — 8 KSI (client-intake, contract,
+  design-proposal, labor-report, project-docs, proposal-message, quotation,
+  tier-proposal) plus docs, docx, google-workspace, import-memory, morning, pdf,
+  pptx, skill-creator and xlsx from `~/.claude/skills/synced/<bucket>/`; `grill-me`
+  and `ui-ux-pro-max` from `~/.agents/skills`; `agent-browser`, `mobbin-design` and
+  `playwright-cli` from `~/.config/opencode/skills`. No duplicate IDs observed.
+  Global JSONC has no `skills` array; discovery is via roots only.
+- Official V2 docs confirm the discovery set (global `~/.config/opencode/skills`;
+  compatibility `~/.claude/skills` and `~/.agents/skills`; project
+  `.opencode|.claude|.agents/skills`; explicit `skills` arrays) and plugin discovery
+  including the global plugins directory. `opencode debug paths|config|agents`,
+  `opencode plugin list` all work against the managed service.
+- Active agents: build/plan (primary), general/explore/developer/reviewer/test-runner
+  (subagents) plus hidden built-ins. Test Runner's residual global file and routing
+  are confirmed active. `design.md`, `design-critic.md` and `research.md` exist only
+  as inactive `.bak-*` files in the global agents dir; their final disposition is a
+  cleanup-stage item, not an active role.
+- Active MCP servers in resolved config and live session tools: context7, mobbin,
+  opendesign (od-mcp-host proxy), playwright. `opencode mcp list` returned
+  "No MCP servers configured", disagreeing with both the resolved config and the
+  live tools; do not use that command as the active-MCP source of truth in 2.0.24.
+- Candidate corrections: `impeccable-design-polish` and `web-design-guidelines` are
+  not global installs — they exist only as OpenDesign project assets in
+  `EVENTOUCH .../.od-skills/` (with design-review, frontend-design, od-design-refine),
+  used by current runs; preserve. `frontend-design` is a Claude Code official plugin
+  cache under `~/.claude/plugins/`, not OpenCode-discovered. GStack is not installed
+  in any user config root; only OpenDesign's own catalog references it upstream.
+  `ui-ux-pro-max` is active via the shared `~/.agents/skills` root; OpenCode-side
+  de-listing should use a `skill` permission deny rather than deleting a shared
+  install, and stays a separate single-variable decision from the SP/CE switch.
+  '고리' is not present in the active inventory; identification is still pending.
+- Goals re-check: Safety Edge and EVENTOUCH goals are complete; the Site Intelligence
+  goal remains active — cutover gate unchanged. No runtime, config, product or
+  shared-install change occurred in this read-only pass.
+
 ## Ordered execution and checks
 
 - [x] **1. Survey and backup:** real process/config identities, effective native
@@ -144,6 +186,13 @@ All seven backed-up live files remain byte-identical after the interruption.
 Continue from step2 when safety/access conditions are resolved; do not repeat
 approval of the already selected transition scope. No timing/efficiency or
 complete migration claim is made by these preparation records.
+
+Later same-day read-only inventory (above) extended the candidate list and
+corrected three assumptions: OpenDesign project skills are not global legacy
+installs; a Claude-official plugin is not a KSI skill; shared compatibility roots
+(`~/.claude/skills`, `~/.agents/skills`) belong to other tools and are not
+OpenCode-owned deletion targets. Blockers unchanged: active Site Intelligence
+goal, unverified listener4096, OpenChamber catalog discrepancy.
 
 Preparation verification above `260f53f`: `git diff --check` passes, the new
 product-state plan link resolves, all seven live/source backup hashes match,
