@@ -39,6 +39,10 @@ test("the retired Test Runner role and its delegation variant are gone", async (
   }
 })
 
+test("removed bundle options fail loudly instead of being silently ignored", async () => {
+  await assert.rejects(buildNativeBundle({ developerTestRunner: true }), /no longer accepts options/)
+})
+
 test("Reviewer stays a code and behaviour review role without design ownership", async () => {
   const reviewer = (await buildNativeBundle()).get("agents/reviewer.md")
   assert.match(reviewer, /"action":"edit","resource":"\*","effect":"deny"/)

@@ -12,7 +12,8 @@ function frontmatter(definition) {
   return `${lines.join("\n")}\n---\n\n${definition.system.trim()}\n`
 }
 
-export async function buildNativeBundle() {
+export async function buildNativeBundle(options) {
+  if (options !== undefined) throw new Error("buildNativeBundle no longer accepts options: the developerTestRunner variant was removed with Test Runner")
   const bundle = new Map()
   for (const name of NATIVE_ROLE_NAMES) {
     const definition = nativeRoleDefinition(name)
