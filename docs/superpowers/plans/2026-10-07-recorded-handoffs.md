@@ -1494,3 +1494,71 @@ product experiment authorized by this discussion.
   ledger and product-state; `git diff --check` clean and the new decision link
   resolves. No role/source/config change or new test execution; existing code
   verification remains bound to the unchanged implementation snapshot.
+
+## Approved General model preference and native-methodology discussion (2026-10-09)
+
+Status: explicit General preference applied and file-verified; role retirement
+and external-reviewer comparison remain proposals, not authorized execution.
+
+### Actual approved change
+
+- User explicitly requested Muse Spark `high` (interpreting "hugh" as `high`),
+  no General-specific step cap, and General remaining multipurpose rather than
+  an implementation-only replacement for Developer.
+- Global `~/.config/opencode/opencode.jsonc`: only General's existing model
+  variant changes `medium` → `high`, exact reference
+  `opencode-go/muse-spark-1.3-contributor#high`. General already had no `steps`;
+  none added. No `system`, role file or permission override added for General.
+  Native modes, permission rules, existing sessions and other roles' budgets
+  remain unchanged. Omission is not an unsupported `steps:0`/infinite-execution
+  override or an automatic continuation/goal authorization.
+- Native model discovery confirms Muse Spark 1.3 Contributor active, with `high`
+  among its supported variants. No model invocation or shared-service restart;
+  existing child-session models are not forcibly switched.
+- Private pre-edit backup/receipt root:
+  `/tmp/opencode/ksi-general-high-20261009-t0fky6db/` (directory700, files600).
+  JSONC before SHA256
+  `4fd5101a9f31ea8df135ce52c78311a15cbbb9443a90807be5259a8a5c744551`;
+  after `99b9162c509d405335c14c43bbd49f1084ca7b74bccd427a0ed10110e18e831e`.
+  Exact one-field byte reconstruction and parsed before/after equivalence
+  outside General.model pass. Five non-target files hash-identical:
+  `opencode.json`, global `AGENTS.md`, Developer, Reviewer and installed optional
+  Test Runner. Evidence `before-hashes.json`, private `opencode.jsonc.before`,
+  `verification.json`; no credentials/settings contents copied into Git.
+- Verification boundary: declared global file plus native model catalog;
+  effective settings in a newly invoked child and real implementation/QA/review
+  behavior have not been exercised. No unrelated full-suite replay for this
+  model preference; source implementation is unchanged.
+
+### Direction and unapproved follow-up
+
+- Prefer native agents and upstream-maintained methodology over duplicating
+  agent prompts; KSI's value is scoped product orchestration, completion
+  criteria, evidence, recovery and safe ownership, not agent count.
+- Developer retirement is a candidate, not a deletion instruction. General can
+  receive the existing compact task contract without replacing its native
+  prompt. Default bundle and installed role/routing files remain intact until
+  an approved migration with capability/permission and evidence checks.
+- Reviewer replacement by General + upstream review guidance is also a proposal.
+  The installed Superpowers reviewer template supports a general-purpose child
+  assignment; that does not reproduce KSI Reviewer's native edit/delegation
+  denials or constrain shell/MCP effects. Keep current Reviewer pending a
+  compatible review execution boundary; do not make multipurpose General
+  globally read-only or let it recursively delegate reviews. Any independent
+  General review must use a fresh child, not the implementation child reviewing
+  its own work.
+- Read-only inspection of the cited Anthropic feature-dev reviewer confirms
+  Claude-oriented tools, `model: sonnet`, CLAUDE.md conventions and confidence
+  filtering. No file was imported, modified, installed or adopted, and a mutable
+  upstream link is not a pinned maintained integration. Upstream compatibility,
+  methodology quality and update policy need validation before adoption.
+- No synthetic comparison or product trial launched; no EVENTOUCH intervention,
+  new Skill/agent/global policy, permission weakening, install, push, publication
+  or runtime loop. QA remains conditional General work, not a new standing role.
+- Closeout verification above `a095226`: fresh exact-change/parsed-preservation
+  check passes; five protected non-target hashes and the saved receipt still
+  match. Private backup permissions confirmed directory700/files600. Git diff
+  scope is only this ledger and product-state, `git diff --check` is clean, and
+  the new ledger anchor resolves. V2 agent docs confirm model `#variant` syntax
+  and positive-only `steps`; no native prompt or role source changes. These
+  records are local only; previous push approval does not cover this follow-up.
