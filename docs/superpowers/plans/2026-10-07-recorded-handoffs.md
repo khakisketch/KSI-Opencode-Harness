@@ -1497,8 +1497,9 @@ product experiment authorized by this discussion.
 
 ## Approved General model preference and native-methodology discussion (2026-10-09)
 
-Status: explicit General preference applied and file-verified; role retirement
-and external-reviewer comparison remain proposals, not authorized execution.
+Status: explicit General preference applied and file-verified; user confirmed
+the native-first operating direction. Role retirement and external-reviewer
+comparison remain proposals, not authorized execution.
 
 ### Actual approved change
 
@@ -1532,6 +1533,16 @@ and external-reviewer comparison remain proposals, not authorized execution.
 
 ### Direction and unapproved follow-up
 
+- Follow-up user confirmation: maximize native Plan/Build/General/Explore;
+  use Superpowers for methodology, OpenDesign for visual execution/review and
+  prepared browser tools for functional verification. KSI focuses on Build's
+  delegation/integration, product-goal judgment and accurate long-term recovery,
+  rather than maintaining more agent prompts. This is direction approval, not
+  a new policy expansion, role migration or comparison-experiment instruction.
+  Retirement remains conditional on evidence of quality, whole-program cost
+  and effective permission safety. Implementation and independent review use
+  separate children; before replacing Reviewer, verify an actual read-only
+  execution boundary rather than relying on a review prompt alone.
 - Prefer native agents and upstream-maintained methodology over duplicating
   agent prompts; KSI's value is scoped product orchestration, completion
   criteria, evidence, recovery and safe ownership, not agent count.
@@ -1562,3 +1573,7 @@ and external-reviewer comparison remain proposals, not authorized execution.
   the new ledger anchor resolves. V2 agent docs confirm model `#variant` syntax
   and positive-only `steps`; no native prompt or role source changes. These
   records are local only; previous push approval does not cover this follow-up.
+- Native-first confirmation follow-up above `07eeda9`: record-only diff in
+  this ledger/product-state; whitespace and ledger-link checks pass. General's
+  current config receipt and five protected global hashes remain unchanged.
+  No source test replay, migration, comparison run or external delivery.
