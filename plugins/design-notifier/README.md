@@ -119,6 +119,17 @@ renewEveryMs, leaseTtlMs }`. The default state directory honors
 
 ## Install (pinned runtime)
 
+Completion guidance also distinguishes user-task quality from tool use. Substantive
+review needs fresh native evaluation context, verified requested/effective review
+instructions and actual image-consumption evidence; screenshot hashes, skill names
+and separate run ids do not certify those facts. Normalized daemon events may omit
+image calls, so inspect the native trace rather than claiming non-consumption from
+missing normalized events. Report render/instruction conflicts and quality unmet;
+do not hide them or make the user rediscover routine defects. Small repairs may use
+a compact same-run design review/refinement, without calling it independent.
+These are advisory completion obligations, not new runtime enforcement. Classification,
+delivery, pause/retry behavior and `not_assessed`/`unverified` metadata are unchanged.
+
 The runtime should not load the live development tree. Copy a verified revision
 into the global OpenCode config directory and let discovery load it:
 

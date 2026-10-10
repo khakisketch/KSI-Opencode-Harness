@@ -30,10 +30,28 @@ The V2 global instruction file is refreshed before the next model request; polic
 no service restart. A repository name does not prove registration or folder association: resolve the
 actual target before work, rather than creating a replacement project by default.
 
+**Design-side global principles vs project context (two layers, applied 2026-10-10).**
+The design workspace's own global settings hold the design-side responsibility principles:
+understand the product before changing it, exercise professional design judgment across UX,
+IA, interaction, visual quality and consistency, use skills/systems/references/critique
+methods adaptively rather than mechanically, own end-to-end frontend implementation within
+the assigned scope, critically evaluate the actual rendered outcome rather than the process,
+resolve routine design problems autonomously instead of waiting for the user to enumerate
+them, and distinguish verified results from unverified assumptions. They deliberately do
+not force a specific skill, a fixed iteration/render count, a layout style, or OpenCode-side
+orchestration rules. Project-specific context — intended users, primary workflows, design
+system, existing UI structure, product constraints — belongs to the product's own repository
+documents (for example the resident `product-context.md`), not to the global layer and not
+to a new KSI design framework. The applied text is user-owned configuration and is not
+duplicated here. Principles are not capability: they do not by themselves add browser access
+or multimodal verification; the execution environment must support that, and their effect is
+judged on real delegated work — how many user-facing problems a delegated improvement finds
+and resolves without extra user direction.
+
 | Owner | Responsibility |
 | --- | --- |
-| OpenDesign | Visual analysis and decisions, layout, hierarchy, component presentation, actual UI source/style edits, responsive/visual interaction states, rendering, design review and direct refinement — including small CSS/spacing/overflow fixes |
-| OpenCode (Build) | Overall execution/integration and technical-completion evidence; purpose, functional/API/data/auth/brand contracts and production constraints; nonvisual engineering directly or through Developer; verification coordination, Git and reporting |
+| OpenDesign | UI/UX quality owner for the delegated scope: user/task understanding, autonomous problem discovery and prioritization, visual analysis and decisions, layout/hierarchy/component presentation, frontend implementation in actual UI source/styles (including small CSS/spacing/overflow fixes), responsive/visual interaction states, rendered self-review, verification of the affected result, autonomous refinement and completion evidence |
+| OpenCode (Build) | Scope definition and delegation (target, purpose, preservation constraints — not a presolved defect list or fix direction); overall execution/integration and technical-completion evidence; functional/API/data/auth/brand contracts and production constraints; nonvisual engineering directly or through Developer; regression/integration verification, Git and reporting |
 | Reviewer | Independent read-only code/behaviour review, including test adequacy (safe read-only checks only); does not substitute for rendered design review or human acceptance |
 | Human | Material direction/product decisions, final acceptance and external-delivery authorization; existing authorization is reused within its approved target/effects |
 
@@ -42,6 +60,19 @@ outcomes and invariants; OpenDesign has discretion over layout, information hier
 composition and responsive presentation within the authorized scope. With verified source access,
 the preferred path is direct product-source implementation, not a mockup that Developer must recreate.
 Plan can help define the contract but is not mandatory for clear tasks.
+
+**Delegating design work (Build side).** Delegate UI/UX quality for the scope, not a presolved
+design. A delegation states the target screen/flow, the purpose to achieve and the constraints to
+preserve (business rules, API/data/auth/permission contracts, brand/tokens, one writer, unrelated
+functionality); user complaints pass through as reported symptoms, not as the definitive defect
+list. Problem discovery, prioritization, direction, implementation, rendered verification and
+iterative refinement belong to the design workspace — so a short delegation is the norm, because
+the design-side global principles already carry that responsibility and Build need not restate the
+workflow each time. If the design side concludes that business rules or product direction must
+change, it reports the proposed change and it goes to the user for a decision — never adopted
+silently. When Build's functional verification finds remaining visual/UX defects, they return to
+the design workspace with evidence; Build neither patches nor re-critiques the visual result. Build
+keeps verifying that existing functionality, contracts, permissions and integration still hold.
 
 Build can detect design mismatches, responsive/accessibility regressions and production-contract
 conflicts, then provide evidence to design; it does not substitute its own visual repair or approval.
@@ -234,37 +265,50 @@ do not print raw event streams, credentials or provider telemetry in progress me
 
 ### Design-quality loop (design-owned analysis, review and refinement)
 
-The simple flow is **orientation (diagnose/options when needed) → OpenCode task
-contract → design analysis/implementation → design-rendered review/refinement →
+The simple flow is **scope/purpose delegation → design-owned discovery and
+prioritization → design analysis/implementation → design-rendered review/refinement →
 OpenCode functional verification → report**.
 Design review is a design responsibility, not an optional OpenCode aesthetic
 judgment or a user defect-finding exercise. Scale it to the task; no fixed round cap.
+The bar is successful **representative user tasks**: information priority,
+cognitive burden, mobile/desktop operation, cross-screen consistency and preserved
+functionality. Tool use, skill names, a generic score or denser layouts are not
+the outcome. Routine defects belong in the design-owned correction loop, not in
+a repeated request for the user to discover or direct them. For the delegated
+scope this loop is design-owned end to end: Build sets scope and constraints,
+verifies function and integration, and routes remaining design defects back to
+the design workspace rather than fixing or re-critiquing them itself.
 
-1. **Diagnose and orient before commissioning.** For an existing screen or a vague
-   dissatisfaction report, commission a read-only design audit first — a review
-   skill on the actual current screens at the relevant viewports/states — and use
-   its concrete defect list as the redesign's problem statement; the user should
-   not have to enumerate the problems. For a user-delegated redesign, the design
+1. **Diagnosis belongs to the delegated scope.** For an existing screen or a vague
+   dissatisfaction report, the design workspace derives its own prioritized problem
+   statement from the actual current screens at the relevant viewports/states — a
+   dedicated read-only design audit stage is a supported way to do this, but Build
+   neither authors the defect list nor prescribes the fixes; the user should not
+   have to enumerate the problems. For a user-delegated redesign, the design
    workspace resolves the visual direction from the design system, brief and
    references and proceeds without a user direction pick; commission a
    lightweight direction options run (2-3 distinct direction boards with a
    rendered sample of the critical screen area) only when the user asks for
    options or the brand identity itself is in question, and continue
    non-dependent work while any choice is pending.
-2. **Compact task contract.** Reuse the agreed purpose and current problem;
-   supply invariants versus redesign freedom, actual source/components/tokens,
-   inspected references and accessible images, sanitized states/viewports, expected
-   files and criteria. Write **observable** acceptance criteria — what must be
-   visible on the first screen, the primary action, the mobile scroll depth, and
-   what counts as failure — instead of vague adjectives; do not invent a universal
+2. **Compact task contract.** Carry the agreed scope and purpose, the constraints
+   to preserve versus redesign freedom, actual source/components/tokens,
+   inspected references and accessible images, sanitized states/viewports and
+   expected targets. Define success at the **observable purpose level** — what the
+   intended user must be able to do or know, and what counts as failure — instead
+   of vague adjectives; leave the concrete problem list, layout solutions and
+   verification detail to the design workspace, and do not invent a universal
    above-the-fold rule or arbitrary score. **Verify input access before
    commissioning**: the execution environment must be able to read the references,
    assets and actual source; if an input is unreadable, do not commission — block
    and report the gap instead of running blind.
    Verify the **render-review path** too: host browser tools are not automatically
    available inside the design execution environment. Use either a verified inner
-   renderer or actual product captures handed to the design reviewer, with a
-   confirmed file-read receipt and source revision/viewports/states. A source-only
+   renderer or actual product captures handed to the design reviewer, with an
+   **actual image-consumption receipt** and source revision/viewports/states.
+   File access, PNG hashes, screenshot existence and reviewer prose are not enough:
+   verify the image-view invocation and model image input (or equivalent observable
+   rendered-input evidence). A source-only
    audit does not satisfy rendered review. If neither path is available, block the
    dependent visual stage and continue independent nonvisual work; do not install
    browsers, restart containers, or substitute Build-side visual fixes implicitly.
@@ -275,13 +319,23 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    `design-review`, `plan-design-review` or `web-design-guidelines`; select by actual
    content and task, not name alone. A small repair can render/review/refine in one
    compact run; a substantive change needs the separate review stage below.
-4. **Required design review run with actual rendered inputs.** After the chain's
-   output is verified, commission a design review execution as a required stage —
-   a review skill distinct from the generator, not the generator's own approval and
-   not an optional self-check. Feed it the real source snapshot, the **actual
+4. **Required rendered review, independent for substantive changes.** After the
+   chain's output is verified, commission substantive review in a **fresh evaluation
+   context**, not the generator's own approval. Verify a new, unseeded native
+   conversation/thread, without inherited implementation history or a fork. A
+   different run id or review skill name does not prove independence; use supported
+   conversation selection and verify the underlying thread. A small repair may
+   use a compact same-run observation/refinement loop, labeled as such.
+   Check **requested versus effective review instructions** too: project plugin
+   bindings can replace the primary skill body, even when a review skill was
+   explicitly selected. Verify the delivered full-body review instructions; do
+   not count a generator recipe or upstream-install stub as a reviewer.
+   Feed it the real source snapshot, the **actual
    rendered states** at the target viewports plus empty/error/loading states,
    keyboard/focus, accessibility (axe where available) and motion/interaction
-   states, references and criteria; confirm the review actually read those inputs. This
+   states, references and criteria; confirm the review actually read and visually
+   consumed those inputs. Inspect native transcripts when normalized daemon events
+   omit image calls; missing normalized events alone do not prove non-consumption. This
    applies equally to HTML artifacts and successful source-direct edits with an
    invalid canonical-entry verdict. A report-only/plan-only stage is not UI output.
    Missing files or render access remain unverified; do not claim a pass from a
@@ -302,10 +356,17 @@ judgment or a user defect-finding exercise. Scale it to the task; no fixed round
    a full round with no measurable improvement stops as **quality unmet**, with
    remaining defects and next options, not “complete, only user acceptance left”.
    A genuine access/execution blocker or material decision is also a truthful stop.
+   Disclose render failures, unconsumed inputs and instruction conflicts. If active
+   rules limit rendering or forbid required post-write checks, the bar is unmet;
+   user custom instructions cannot override those rules. Do not silently change
+   the runtime, project binding, tools, model or permissions as a workaround.
 6. **Engineering verification and report.** Direct UI source edits can occur
    before quality pass but remain provisional. OpenCode verifies functional
    integration/build/routing/permissions/persistence on the actual product and
-   returns presentation issues to design; nonvisual bugs stay engineering-owned.
+   returns presentation issues to design rather than editing them; nonvisual
+   bugs stay engineering-owned. OpenCode does not re-critique the visual result
+   or substitute its own design; remaining UI/UX defects return to the design
+   workspace with evidence.
    Match the review evidence to the actual files/revision after later changes.
    Distinguish generated, design-reviewed with evidence, functionally verified
    and human-accepted; none implies the next. Keep existing direction/client/
@@ -331,7 +392,8 @@ below the fold"), so later briefs do not repeat known failures.
 
 **First-cycle evidence (real-use validation).** When a product runs its first
 design cycle under this flow, record in the task ledger: the review run id and
-skill used; the defect list with closed/open counts; how a `blocked` outcome was
+requested/effective instructions, native review-context identity and consumed-image
+receipt; the defect list with closed/open counts; how a `blocked` outcome was
 handled (deliberate continuation vs explicit scenario); rounds and elapsed time;
 the delivered review bundle; and the functional checks. This is the flow's
 real-use evidence — it does not replace human acceptance or prove design quality
@@ -365,6 +427,22 @@ scenario binding for the project; `POST /api/projects/:id/scenario/restore-autom
 reverts to the automatic scenario. Whether the strategy evaluation changes under
 an explicit scenario is not yet verified in this environment — verify it in the
 actual run and record the result.
+
+**Instruction/context caveats (verified 2026-10-10).** A bound plugin can replace
+the primary review skill body: the project's own explicit `od-design-refine`
+binding is what supplies the replacing body, so re-selecting that same scenario
+is not a remedy. Additional composed skill blocks are appended by the audited
+composition branch after the plugin body; whether a requested extra skill is
+actually delivered must be verified in the run's effective prompt, not assumed
+from the request. The MCP commissioning path reuses the project's earliest
+conversation, so a new run is not a fresh reviewer; prior implementation and
+review executions were observed to share one native conversation. The supported
+conversation endpoint can create an unseeded conversation for a scoped read-only
+review — pass its identity explicitly and verify a new native thread without a
+fork parent. Ask/chat mode has demonstrated local image viewing on a captured
+file; it does not by itself provide an independent production verification loop,
+and other run paths' write/verification policies were not exercised here. No
+automatic rebinding, runtime patching or browser install follows from these facts.
 
 **Writeback degradation (check every source-direct run).** A source-direct run's
 workspace should be the product checkout (`storage.kind` not `od-owned`). If a run

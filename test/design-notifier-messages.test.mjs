@@ -202,7 +202,8 @@ for (const status of ["failed", "canceled"]) {
 test("the design loop requires a review run fed with actual rendered states", () => {
   const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
   assert.match(delivery.text, /review run/i)
-  assert.match(delivery.text, /review skill distinct from the generator/i)
+  assert.match(delivery.text, /fresh evaluation context/i)
+  assert.match(delivery.text, /native conversation.*(?:different|new)|new.*native conversation/i)
   assert.match(delivery.text, /actual rendered states/i)
   assert.match(delivery.text, /viewport|390|768|1440/i)
   assert.match(delivery.text, /empty|error|loading/i)
@@ -212,12 +213,35 @@ test("the design loop requires a review run fed with actual rendered states", ()
   assert.match(delivery.text, /fixed.*open|open.*fixed/i)
 })
 
-test("the task contract requires observable acceptance criteria and input access", () => {
+test("render receipt requires actual image consumption, not just file access or hashes", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /image.*(?:tool|input).*(?:evidence|receipt)|(?:evidence|receipt).*image.*(?:tool|input)/i)
+  assert.match(delivery.text, /native.*(?:trace|transcript)|underlying.*(?:trace|transcript)/i)
+  assert.match(delivery.text, /hash.*(?:not|insufficient)|(?:not|insufficient).*hash/i)
+})
+
+test("requested review skills and new run ids do not prove effective review instructions or independence", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /requested.*effective.*(?:skill|instructions)/i)
+  assert.match(delivery.text, /(?:plugin|scenario).*binding.*(?:replace|overwrite)/i)
+  assert.match(delivery.text, /different run.*(?:not|insufficient)|(?:not|insufficient).*different run/i)
+})
+
+test("design completion is judged by user tasks and cannot hide a missing render check", () => {
+  const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
+  assert.match(delivery.text, /representative user tasks/i)
+  assert.match(delivery.text, /information priority/i)
+  assert.match(delivery.text, /cognitive burden/i)
+  assert.match(delivery.text, /cross.screen consistency/i)
+  assert.match(delivery.text, /(?:disclose|report).*render.*(?:failure|limit)|render.*(?:failure|limit).*(?:disclose|report)/i)
+})
+
+test("the task contract delegates discovery and keeps observable purpose-level criteria", () => {
   const delivery = buildDelivery({ run: validRun, sessionID: SESSION })
   assert.match(delivery.text, /observable/i)
-  assert.match(delivery.text, /first screen|primary action/i)
-  assert.match(delivery.text, /scroll depth/i)
-  assert.match(delivery.text, /what counts as failure|failure definition|failed state/i)
+  assert.match(delivery.text, /purpose level/i)
+  assert.match(delivery.text, /what the intended user must be able to/i)
+  assert.match(delivery.text, /not a presolved problem list/i)
   assert.match(delivery.text, /verify.*(input|reference|asset).*access/i)
   assert.match(delivery.text, /do not commission|block and report/i)
   assert.match(delivery.text, /record.*skill|skill.*record/i)
@@ -230,7 +254,7 @@ test("an existing-screen redesign starts from a design audit, not a user defect 
   assert.match(delivery.text, /design audit/i)
   assert.match(delivery.text, /current screens/i)
   assert.match(delivery.text, /user should not have to enumerate/i)
-  assert.match(delivery.text, /defect list.*redesign|redesign.*defect list/i)
+  assert.match(delivery.text, /problem statement/i)
 })
 
 test("a delegated redesign resolves its own direction; options only when asked or the brand is in question", () => {
