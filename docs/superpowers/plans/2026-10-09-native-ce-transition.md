@@ -14,6 +14,103 @@ does not defer this approved transition. Installation is authorized; external
 push/publication, product experiments and other-session interruption are not.
 **Workspace/base:** canonical `main`, `260f53f`; no new worktree, no product writes.
 
+## Rendered-review contract validation (2026-10-10)
+
+Status: technically complete
+
+- Authority: user approved the proposed environment probes, bounded completion
+  guidance/custom-instruction alignment and one read-only EVENTOUCH comparison
+  review ("진행해주세요"); interruption recovery continued that same action.
+  No product source/data, upstream runtime, model, permission, service restart,
+  Cloud switch, push, publication or deployment changes are authorized.
+- Follow-up user direction (2026-10-10, same session): (1) apply design-side
+  global principles ("Product Design & Frontend Ownership") to the OpenDesign
+  `customInstructions` setting — product-UX quality plus autonomous completion
+  responsibility, deliberately without forcing a specific skill, fixed iteration
+  count, layout style or OpenCode orchestration rules; (2) raise the Build-side
+  delegation contract — delegate scope, purpose and preservation constraints, not
+  a presolved defect list or fix direction; the design workspace owns discovery→
+  refinement; Build verifies function/contracts/integration and routes remaining
+  visual defects back to design; business-rule or product-direction changes go to
+  the user. Applied to `~/.config/opencode/AGENTS.md` (OpenDesign boundary), the
+  integration contract, notifier guidance and the setting itself.
+- Workspace/base: canonical `main` at `91865f7`, clean before work. Native inline
+  coordination and guidance edits; connected design execution owns visual review.
+  Existing ledger/checkpoint remain authoritative; no new framework or CE pipeline.
+- Private evidence/rollback root:
+  `/tmp/opencode/ksi-design-ownership-20261010-kes0mjjz/`. Existing global policy
+  and custom-instruction values backed up; snapshots contain no credentials.
+- P1/P2: image-only probe `1b0e4e6a-2604-421d-b4de-8c80935f5980` succeeded in a
+  newly created, unseeded conversation. Native transcript proves `view_image`
+  called via `exec`, followed by `input_image` with decoded PNG SHA256 matching
+  the supplied 390px capture exactly. Native thread has no fork parent and one
+  turn, distinct from the implementation/review conversation. This validates
+  captured-image observation and fresh context, not live browser/UX quality.
+  Normalized daemon events omit this image invocation; missing event text alone
+  cannot establish that earlier reviewers never saw images.
+- P3: built-in image-export probe returned HTTP501, desktop-runtime-only. This
+  specific renderer is unavailable here; other inner-browser capabilities remain
+  unverified. Actual product captures plus verified native image consumption are
+  the supported evidence path for this task; no browser install/server restart.
+- P4: the probe and the review run both delivered the project-bound `Design
+  refine` body as the primary skill, chat mode included; `server.ts:10100–10124`
+  replaces the primary `skillBody` with the binding. In the actual review run the
+  requested extra skill WAS delivered after it as `## Composed skill —
+  web-design-guidelines` (verified in the composed prompt) — composed additions
+  survive the plugin override when the plugin ships its own SKILL.md. The
+  reviewer correctly noted the refine workflow's patch step conflicts with the
+  read-only request and stopped at inspection. No project rebinding or upstream
+  modification; a requested extra skill must still be verified in the run's
+  effective prompt before it is relied on.
+- Product evidence conflict: initial EVENTOUCH baseline was `1f624be`; subsequent
+  unrelated work modified console CSS, list/checkin sources and browser tests.
+  Preserved untouched. Earlier rebuild review `4c074ba6` references overwritten
+  capture hashes and an older source snapshot; recovery scanning (1,159 PNGs,
+  zero hits) confirmed those inputs are gone. The review therefore used the
+  current frozen snapshot with explicit labels — no same-revision comparison or
+  current-product quality is claimed from reused filenames — and the product's
+  own ledger was not modified.
+- Custom instructions (setting, applied 2026-10-10): a draft was applied first
+  (`od-setting.after.json`), then replaced by the user-supplied text
+  (`design-custom-instructions.user.md` → `od-setting.user.json`; 4,434 chars,
+  readback exact, other config fields hash-unchanged; original `null` preserved
+  in `od-setting.before.json`). The review run's composed prompt carried the
+  then-active draft (subject-markers verified); runs after the replacement carry
+  the user text. Setting text is user-owned configuration, not duplicated here.
+- Review validation (`fb86129d-b2a7-47a2-96d4-9910e6749e16`): succeeded in a new
+  unseeded chat conversation `ef6e0260`. `no_artifact` is expected for a
+  read-only review, not a failure. Native verification: new thread `01a1263d`
+  (no fork parent, one turn, model gpt-6-luna); all six frozen capture hashes
+  decoded from the reviewer's `input_image` data exactly matched the expected
+  captures (`exactCapturesConsumed: true`); composed prompt 39,374 bytes
+  (sha256 `1ade54b3…`) contained the review task, the plugin-bound body, the
+  composed `web-design-guidelines` block and the draft custom instructions.
+  Product tree unchanged (status normalized + frozen file hashes; receipts in
+  `review-receipt.json`/`review-receipt-extra.json`; composed prompt saved).
+- Design-reported open defects (captured states at the 2026-10-10 03:28
+  list-ops revision; reported, not adjudicated here): (1) `현재 입장` metric not
+  prominent and the single check-in action not integrated into the tile
+  (390/320 evidence); (2) no recent-activity rows or full-history link despite
+  the page contract (all captured widths). The reviewer recorded the console.css
+  working-hash difference from the captured revision and could not confirm the
+  exact stylesheet revision used; unverified: loading/error, axe/screen-reader,
+  reduced-motion, physical devices, non-overview chrome, routes/permissions.
+  The earlier rebuild review's "no open defect" result stays historical (its
+  captures were overwritten); no same-revision comparison was possible. The
+  findings belong to the product workstream; no product source/data was touched.
+- Verification: `TMPDIR=/tmp/opencode npm run check` — 220 total, 218 pass,
+  0 fail, 2 existing optional skips (final state after all edits); notifier unit
+  file 35/35 pass after red→green updates; `npm run check:package` passed
+  (installer-only tarball, offline two-role install, retired flags rejected);
+  `git diff --check` clean. No runtime code, model, permission, service or
+  upstream-source change; no push, publication or deployment.
+- Delivery/next: local commits plus a verified pinned-notifier copy update
+  (installer + `--verify`) and a configuration reload so new runs use the new
+  guidance. Next: one real delegated design improvement observed against the
+  user's criterion — how many user-facing problems the design workspace finds
+  and resolves autonomously without extra user direction. EVENTOUCH findings and
+  the reviewer's `od-next` suggestions remain advisory to the product workstream.
+
 ## Current operating alignment (2026-10-10)
 
 Status: technically complete
