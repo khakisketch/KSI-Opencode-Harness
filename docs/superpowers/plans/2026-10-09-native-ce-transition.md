@@ -104,12 +104,17 @@ Status: technically complete
   (installer-only tarball, offline two-role install, retired flags rejected);
   `git diff --check` clean. No runtime code, model, permission, service or
   upstream-source change; no push, publication or deployment.
-- Delivery/next: local commits plus a verified pinned-notifier copy update
-  (installer + `--verify`) and a configuration reload so new runs use the new
-  guidance. Next: one real delegated design improvement observed against the
-  user's criterion — how many user-facing problems the design workspace finds
-  and resolves autonomously without extra user direction. EVENTOUCH findings and
-  the reviewer's `od-next` suggestions remain advisory to the product workstream.
+- Delivery/next: local commits `a2a5816` + `0428813`; pinned notifier copy
+  updated to source `0428813` (`--verify` ok; only `README.md` and
+  `lib/messages.js` differ from the prior copy — previous copy backed up in the
+  evidence root) and the managed service acknowledged `opencode reload`. Next:
+  one real delegated design improvement observed against the user's criterion —
+  how many user-facing problems the design workspace finds and resolves
+  autonomously without extra user direction. EVENTOUCH findings and the
+  reviewer's `od-next` suggestions remain advisory to the product workstream.
+  Open question: whether every location's plugin instance picked up the new
+  copy without a service restart — observable on the next design-run
+  notification.
 
 ## Current operating alignment (2026-10-10)
 
