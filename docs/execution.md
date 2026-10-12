@@ -201,7 +201,7 @@ OpenCode performs conditional Mobbin research before new/material or unresolved 
 
 After adoption, coherent verified task-owned local commits are routine delegated work unless the user or repository forbids them. Inspect the index/diff and preserve unrelated user work, secrets and checkpoints. This does not permit history rewriting, force pushes or destructive cleanup. A helper's role alone does not grant Git or publication authority; Build owns completion.
 
-Push, publish and deploy require explicit authorization for the target and relevant effects, including deployment triggered by a push. Authorization may be granted at task start and reused through delivery. Do not ask again unless the target, effects or risk materially change. Native tool approvals, authentication and browser approvals are still required when presented; policy is not a bypass.
+Push, publish and deploy require authorization for the target and relevant effects, including deployment triggered by a push. Explicitly invoking a shipping workflow (lfg, ce-commit-push-pr) authorizes its documented repository effects — pushing the task branch and opening its PR; deployment, registry publication and new credential access stay separate. Authorization may be granted at task start and reused through delivery. Do not ask again unless the target, effects or risk materially change. Native tool approvals, authentication and browser approvals are still required when presented; policy is not a bypass.
 
 ## When to return to the user
 
@@ -243,14 +243,15 @@ none is implied by a checkbox or an agent's "done".
 | --- | --- | --- |
 | `AGENTS.md` / adopted operating guidance | Stable routing and boundaries | Changing task progress or new task approval |
 | Existing spec, when required | Requirements and design | A duplicate execution log |
-| One active task ledger | Approval/scope, decisions, progress, inputs and verification evidence; links to any spec | Silent execution authority for a proposal |
+| One active task ledger, or the method's own record (a CE plan/run/review artifact) | Approval/scope, decisions, progress, inputs and verification evidence; links to any spec | Silent execution authority for a proposal |
 | `product-state.md` | Product goal/slice/acceptance and backlog summary, linked to the ledger | Copying the whole plan/history |
 | `.opencode/working-state.md` | Short worktree resume state and next actions, linked to the ledger | Product documentation or a committed approval record |
 | Skill-internal progress or a preserved legacy SDD ledger | The skill's own execution record | A second KSI state or mirrored progress; link it from the task ledger instead |
 
-One canonical record per concern: skill ledgers stay internal to the skill, the task
-ledger links to them rather than mirroring their content, and a native session's
-conversation is not a record.
+One canonical record per concern: a CE workflow's own artifacts are its record —
+link them rather than mirroring their content — and the KSI task ledger exists
+for workstreams that have no method record. A native session's conversation is
+not a record.
 
 #### Hand off the relevant basis, not the entire history
 
@@ -390,12 +391,25 @@ The default is change-focused verification, not no verification: a broken core f
 
 ## Workspace lifecycle owned by Build
 
-1. Inspect the selected repository, current branch/HEAD/status and worktree inventory. Default to the current checkout and branch with one writer. Use isolation only for concurrent writers, protection of the user's checkout, a rollback boundary that cannot safely remain in place, or an explicit request; a feature-sized task or a plan alone does not require it. Detect existing isolation, including the submodule exception, and reuse an appropriate owned workspace when needed. Never relocate dirty user work merely to achieve isolation.
-2. Record one minimal binding in the existing ledger: task owner, workspace path, branch, base revision and agreed local integration target. Resolve a genuinely unknown target once; do not ask the user to choose routine branch names or inspect each directory. A task can span multiple commits in the same workspace.
-3. Prefer exposed native workspace tools. OpenCode V2 has project-scoped worktree lifecycle APIs; a capability in the SDK is not proof that the current agent has that tool or permission. If no native tool is available, use a Git worktree in an ignored project-local directory. Bind the session with the supported directory-switch tool when available.
-4. Verify effective config/tool/skill discovery and server/test targets in the new context. Tool catalogs may temporarily refresh after a move; do not interpret the first empty catalog as permanent loss. A shell Git worktree is not guaranteed to include untracked local setup or another process's authentication. Use supported reconnection/context coordination instead of copying credentials/config wholesale. Avoid automatic dependency installs; reuse existing setup or obtain the required installation authorization.
-5. Implement, inspect task-owned diffs, run checks, and commit under the adopted policy. Assign concurrent writers separate owned workspaces and disjoint files; integrate through one Primary. Recheck the target before integration because another session may have changed it. The policy delegates non-destructive local integration into the recorded agreed target; it does not delegate an arbitrary target, remote delivery or destructive conflict resolution. Prefer fast-forward; verify the integrated result before reporting it.
-6. Retire only this task's proven-owned worktree and merged branch when required work is integrated, the workspace is inactive, and no unique user files/notes remain. Inspect status including untracked and relevant ignored files. Use native cleanup for native-owned workspaces or non-forced Git removal for a Git-owned one. If removal refuses or provenance/data is unclear, preserve it and report a retained exception; do not force, sweep other worktrees, prune globally or rewrite history.
+Workspace and branch mechanics follow the working method. The native flow works
+in the current checkout with one writer; a CE workflow applies its own
+workspace/branch rules when it runs. What stays with Build regardless of method:
+
+- Preserve dirty, active, externally managed, unfamiliar or unmerged workspaces
+  and branches. Never relocate dirty user work to achieve isolation, commandeer
+  an unfamiliar branch, reset, force-push, rewrite history, sweep other
+  worktrees or run broad prune/delete commands.
+- Concurrent writers get disjoint ownership and separate workspaces; one
+  Primary integrates and verifies. Recheck the target before integration,
+  prefer fast-forward, preserve unrelated changes and rerun relevant checks on
+  the integrated result.
+- Record the workspace/branch and integration target in the workstream's record
+  (a CE run record or the existing ledger) when a substantive write begins; do
+  not ask the user to choose routine branch names.
+- Clean up only workspaces proven created/owned by this task, after their
+  required commits are integrated and unique files/notes are preserved; use
+  non-forced removal and report retained exceptions briefly instead of asking
+  the user to manage the inventory.
 
 Shared working areas need one active driver: an evidence root, an isolated
 validation worktree, or a checkpoint has exactly one session writing to it at a

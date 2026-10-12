@@ -275,6 +275,40 @@ Status: source complete — live application pending a confirmed idle window
   reconcile the now-redundant descendant entries (postgres / ops-validation)
   in state. A supported disconnect/cleanup flow remains a follow-up.
 
+## CE philosophy alignment (2026-10-12)
+
+Status: technically complete
+
+- Authority: user direction — "설치한 것들에 맞게 맞추는 게 맞겠죠? CE를 쓰면 CE"
+  and "CE의 철학에 맞추고 중복 충돌 및 불필요한 거 걷어내면서 개선해봅시다".
+  Operating guidance and docs only; no tool, runtime, permission, service or
+  external-delivery change.
+- Principle: the selected working method owns its mechanics. KSI keeps purpose,
+  approval boundaries, preservation and cross-tool handoffs; it no longer
+  prescribes branch/worktree mechanics over a running CE workflow, no longer
+  mandates a parallel KSI ledger when the method produces its own record, and
+  no longer blanket-rejects the shipping workflows' documented effects.
+- Live global `~/.config/opencode/AGENTS.md` (private backup and before/after
+  SHA256 in `/tmp/opencode/ksi-ce-align-20261012/`; before `e1b9e959…d8d5`,
+  after `04ad60d4…4840`; diff = exactly the four intended hunks): CE
+  method-governance sentence, one-record rule, workspace-mechanics rule,
+  shipping-invocation authorization. Effective immediately for new turns.
+- Repository (this commit): `examples/autonomous-development.md` plan bullet,
+  shipping bullet and workspaces section compressed/aligned (8 bullets → 3);
+  `docs/execution.md` workspace-lifecycle section compressed to what stays
+  with Build regardless of method, record table + canonical-record paragraph
+  aligned, shipping-invocation authorization added;
+  `examples/project-AGENTS.md` record pointer; `README.md` workspace
+  paragraphs.
+- Unchanged boundaries: deployment/registry publication/new credential access
+  approvals; OpenDesign ownership; preservation of user work; one writer per
+  shared file.
+- Checks: `npm run check` — 224 total / 222 pass / 0 fail / 2 optional skips;
+  `git diff --check` clean.
+- Follow-up (only on observed need): the status helper parses only
+  `docs/superpowers` ledger pointers; if CE artifacts become primary records in
+  a project, extend the pointer or accept an unknown status then.
+
 ## Current operating alignment (2026-10-10)
 
 Status: technically complete
