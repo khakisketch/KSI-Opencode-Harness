@@ -385,6 +385,13 @@ Status: technically complete
 - Remaining verification: effective catalog of the shared server (skill removal
   auto-reloaded; agent-config effect to confirm on next catalog inspection) and
   real-use observation in the next product task.
+- Follow-up (same day): effective catalog verified via the local API — agents =
+  build/plan/general/explore (reviewer absent); skills = 59 total, 34 `ce-*`,
+  ui-ux-pro-max absent. The shipped example policies
+  (`examples/autonomous-development.md`, `examples/project-AGENTS.md`) were
+  compressed: the OpenDesign and delegation sections now keep the KSI-specific
+  ownership, gates and evidence distinctions and defer procedure to the
+  integration/execution guides instead of restating them.
 
 ## Current operating alignment (2026-10-10)
 
