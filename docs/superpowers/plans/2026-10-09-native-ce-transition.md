@@ -244,7 +244,7 @@ Status: technically complete
 
 ## Remote-workspace root coverage (2026-10-12)
 
-Status: source complete — live application pending a confirmed idle window
+Status: technically complete — applied live 2026-10-12
 
 - Authority: user direction — first "우회보다는 허용이 낫지 않나" (replace the
   exact-path workaround pattern with root-based allowance), then "그래요
@@ -266,14 +266,28 @@ Status: source complete — live application pending a confirmed idle window
   without new mounts and after reload; a sibling sharing a path-name prefix is
   not covered and still recreates.
 - Checks: `npm run check` — 224 total / 222 pass / 0 fail / 2 optional skips;
-  `git diff --check` clean. No live service, state or container change.
-- Next (live, to confirm): restart the gateway user service on the updated
-  module; remove `/home/ksi/Desktop` from `connections.json` and
-  `projects.compose.json` (operator edit; preserve the previous values for
-  rollback); recreate the container once while idle; verify an EVENTOUCH
-  worktree import/write through the official flow with no manual edits; then
-  reconcile the now-redundant descendant entries (postgres / ops-validation)
-  in state. A supported disconnect/cleanup flow remains a follow-up.
+  `git diff --check` clean (source checks at commit time; live application and
+  verification recorded below).
+- Live application (applied 2026-10-12, 0 non-terminal runs): private backups
+  of the live modules and state in
+  `~/.local/state/ksi-harness-backups/remote-workspace-state-20261012/` (with
+  SHA256SUMS); the updated `connector.mjs`/`path-policy.mjs` copied into
+  `~/.local/share/od-remote-workspace/`; gateway user service restarted
+  ("Remote workspace gateway ready", 127.0.0.1:17456 listening);
+  `/home/ksi/Desktop` and the two redundant EVENTOUCH-worktree entries removed
+  from `connections.json` and `projects.compose.json` (paths 9→6, volumes
+  8→6); one container recreation (a first compose attempt failed on the missing
+  token env with no partial state; retried with the service env file).
+- Live verification: mounts = connected roots only (Desktop gone; the EVENTOUCH
+  root covers its worktrees); container write→read→delete probes OK on the
+  EVENTOUCH main worktree, `eventouch-postgres` and `eventouch-ops-validation`;
+  internal `connected` = true for the unregistered ops-validation path
+  (descendant coverage, no manual entry) and false for an unconnected project;
+  security profile retained (CapDrop=ALL, CapEff=0, NoNewPrivs=1, seccomp +
+  `ksi-codex-userns` AppArmor, not privileged); MCP `list_projects` returns all
+  projects.
+- Follow-up: a supported disconnect/cleanup endpoint remains a follow-up;
+  connection removal is still a documented operator edit.
 
 ## CE philosophy alignment (2026-10-12)
 
