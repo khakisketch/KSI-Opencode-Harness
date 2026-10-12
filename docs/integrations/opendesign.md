@@ -826,10 +826,13 @@ impacts, unresolved items and evidence locations.
 
 First apply the representative reuse/source checks above. Only when registration
 or an authorized source rebind is genuinely needed, use the remote-workspace flow;
-the deployed daemon accepts only an **exact connected path**:
+the deployed daemon accepts a path inside a **connected project root** — a
+root's canonical subdirectories (its worktrees included) are covered:
 
-1. **Connect** the project folder — a new path recreates the design container
-   once, with automatic rollback: `POST /api/remote-workspace/connections`
+1. **Connect** the project folder — a genuinely new root recreates the design
+   container once, with automatic rollback; a path already covered by a
+   connected root returns `ready` without recreation:
+   `POST /api/remote-workspace/connections`
    with `{ "path": "<absolute path>", "requestId": "<uuid>" }` through the
    local gateway (or the in-container CLI `od project open-server <path>
    --gateway-url <origin> --json`), then poll the operation until `ready`.
@@ -851,8 +854,9 @@ the deployed daemon accepts only an **exact connected path**:
 Agents perform needed connection/registration steps, not a fresh import per task;
 this is a standing capability for eligible projects under home, not a per-project
 user decision. Reuse does not bypass exact-source verification or active writers.
-Never mount a broader parent directory as a shortcut: the daemon still requires
-the exact per-project connection, and this deployment deliberately avoids
+Never mount a broader parent directory as a shortcut: the boundary is the
+project root itself (its canonical subdirectories are covered, not the reverse),
+and this deployment deliberately avoids
 Desktop/home-wide mounts. Keep one writer at a time. After import, check the
 project's `metadata.scenarioBinding` / `strategyBinding` and record them in the
 task record; a folder import normally carries the automatic prototype binding
@@ -981,8 +985,9 @@ Build can return task-scoped product captures, observed differences and constrai
 ## Optional DGX remote-folder gateway (source-only)
 
 `integrations/opendesign/remote-workspace/` is separately approved host infrastructure, not part of
-the KSI installer. It browses the host home directory, connects only explicitly selected canonical
-project descendants as same-path writable binds, then uses existing folder import/working-directory APIs.
+the KSI installer. It browses the host home directory, connects explicitly selected canonical
+project roots as same-path writable binds (a connected root covers its canonical
+subdirectories), then uses existing folder import/working-directory APIs.
 Home and credential/configuration roots are not selectable projects. This is not an OS sandbox:
 connected roots share the same container and account.
 

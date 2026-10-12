@@ -142,3 +142,30 @@ test('late canonical-root swap during recreation never becomes ready and rolls b
   assert.equal(connector.isConnected(path.join(home, 'project')), false);
   assert.equal(calls, 2);
 });
+
+test('a connected root covers its canonical descendants without new mounts', async t => {
+  const { connector, config, home, effects, deps } = await fixture(t);
+  await mkdir(path.join(home, 'project', 'nested'), { recursive: true });
+  const root = await connector.connectProject({ path: 'project', requestId: randomUUID() });
+  assert.equal((await settled(connector, root.operationId)).status, 'ready');
+  assert.equal(effects.length, 1);
+  const descendant = await connector.connectProject({ path: 'project/nested', requestId: randomUUID() });
+  assert.equal(descendant.status, 'ready');
+  assert.equal(effects.length, 1);
+  assert.equal(connector.isConnected(path.join(home, 'project', 'nested')), true);
+  const resumed = await createConnector({ config, ...deps });
+  assert.equal(resumed.isConnected(path.join(home, 'project', 'nested')), true);
+});
+
+test('a sibling sharing a path-name prefix is not covered and still recreates', async t => {
+  const { connector, home, effects } = await fixture(t);
+  await mkdir(path.join(home, 'project-old'), { recursive: true });
+  const root = await connector.connectProject({ path: 'project', requestId: randomUUID() });
+  assert.equal((await settled(connector, root.operationId)).status, 'ready');
+  assert.equal(connector.isConnected(path.join(home, 'project-old')), false);
+  const sibling = await connector.connectProject({ path: 'project-old', requestId: randomUUID() });
+  assert.equal(sibling.status, 'pending');
+  assert.equal((await settled(connector, sibling.operationId)).status, 'ready');
+  assert.equal(connector.isConnected(path.join(home, 'project-old')), true);
+  assert.equal(effects.length, 2);
+});

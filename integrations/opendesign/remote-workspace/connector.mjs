@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { resolveWorkspacePath, workspaceError } from './path-policy.mjs';
+import { resolveWorkspacePath, workspaceError, withinRoot } from './path-policy.mjs';
 
 export async function atomicJson(file, value) {
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
@@ -52,6 +52,15 @@ export async function createConnector({ config, inspectRuns, recreate = composeR
   const verifyRoots = async selected => {
     for (const p of selected) if (await resolveWorkspacePath(p, { home: config.home, forSelection: true }) !== p) throw workspaceError('Connected directory changed during connection');
   };
+  // A connected project root covers its own canonical subdirectories: the
+  // container mounts the whole root tree, so a descendant needs neither a new
+  // exact-path entry nor a recreation. Both sides are canonical realpaths and
+  // the boundary check is path-relative (a sibling like `project-old` never
+  // matches). Unconnected roots still require the guarded connect flow.
+  const coveringRoot = p => {
+    for (const root of paths) if (withinRoot(root, p)) return root;
+    return null;
+  };
 
   async function perform(op, originalInput) {
     const previous = [...paths];
@@ -98,7 +107,7 @@ export async function createConnector({ config, inspectRuns, recreate = composeR
 
   return {
     isConnecting: () => active !== null,
-    isConnected: p => paths.has(p),
+    isConnected: p => coveringRoot(p) !== null,
     getOperation: id => {
       const op = operations.get(id);
       if (!op) throw workspaceError('Connection operation not found', 404);
@@ -118,7 +127,7 @@ export async function createConnector({ config, inspectRuns, recreate = composeR
         await persist();
         return visibleOperation(active);
       }
-      const op = { operationId: randomUUID(), requestIds: [input.requestId], path: canonical, status: paths.has(canonical) ? 'ready' : active ? 'busy' : 'pending' };
+      const op = { operationId: randomUUID(), requestIds: [input.requestId], path: canonical, status: coveringRoot(canonical) ? 'ready' : active ? 'busy' : 'pending' };
       operations.set(op.operationId, op);
       if (op.status === 'pending') active = op;
       await persist();

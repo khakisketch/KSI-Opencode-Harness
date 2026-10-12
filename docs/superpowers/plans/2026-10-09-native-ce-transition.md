@@ -242,6 +242,39 @@ Status: technically complete
   template and read-only helper changes only: no runtime, provider/model,
   permission, service, release or external-delivery change.
 
+## Remote-workspace root coverage (2026-10-12)
+
+Status: source complete — live application pending a confirmed idle window
+
+- Authority: user direction — first "우회보다는 허용이 낫지 않나" (replace the
+  exact-path workaround pattern with root-based allowance), then "그래요
+  해봐요". This step changes source, tests and docs only; the live gateway
+  restart and the `/home/ksi/Desktop` cleanup await separate confirmation.
+- Change: `connector.isConnected` now treats a connected canonical project root
+  as covering its canonical subdirectories (`withinRoot` exported from
+  `path-policy.mjs`; path-relative, so sibling name prefixes never match), and
+  `connectProject` returns `ready` without recreation for an already-covered
+  path — the manual `connections.json` edit the validation needed is no longer
+  necessary. Guards unchanged: canonical realpath resolution, credential roots,
+  home root, symlink escapes, active-run refusal, verified rollback.
+- Rationale: the container already mounts a connected root's whole tree, so the
+  former exact-path check added no protection inside a mounted root while
+  forcing manual state edits and one recreation per worktree. The mount is the
+  real boundary; the still-present `/home/ksi/Desktop` root and rw mount is the
+  broader exposure and is to be removed in the live step.
+- Tests: `connector.test.mjs` +2 — a root covers its canonical descendants
+  without new mounts and after reload; a sibling sharing a path-name prefix is
+  not covered and still recreates.
+- Checks: `npm run check` — 224 total / 222 pass / 0 fail / 2 optional skips;
+  `git diff --check` clean. No live service, state or container change.
+- Next (live, to confirm): restart the gateway user service on the updated
+  module; remove `/home/ksi/Desktop` from `connections.json` and
+  `projects.compose.json` (operator edit; preserve the previous values for
+  rollback); recreate the container once while idle; verify an EVENTOUCH
+  worktree import/write through the official flow with no manual edits; then
+  reconcile the now-redundant descendant entries (postgres / ops-validation)
+  in state. A supported disconnect/cleanup flow remains a follow-up.
+
 ## Current operating alignment (2026-10-10)
 
 Status: technically complete
