@@ -309,6 +309,50 @@ Status: technically complete
   `docs/superpowers` ledger pointers; if CE artifacts become primary records in
   a project, extend the pointer or accept an unknown status then.
 
+## Git policy alignment with Compound Engineering (2026-10-12)
+
+Status: technically complete
+
+- Authority: user direction — align the branch/worktree/commit policy with
+  Compound Engineering v3.30.4: feature-branch default with reuse, worktree
+  only for actual isolation, Build owning Git integration, no new KSI
+  plugin/agent/registry, no double review, existing approval scope preserved.
+- Comparison performed against the installed CE 3.30.4: `ce-work`
+  `references/workspace-setup.md` (default branch → create a feature branch;
+  otherwise continue on the invoked branch without renaming; a worktree only
+  when the user asked this session; pre-work dirty files are recorded and never
+  committed/published), `references/execution-strategy.md` (worker isolation is
+  the method's own concern; the orchestrator owns canonical commits),
+  `ce-worktree` (detect existing isolation first; one branch checked out in one
+  worktree), `references/shipping-workflow.md` (review-receipt gate; push/PR as
+  documented effects; merging stays with the user).
+- Differences found and fixed (minimal edits): (1) KSI said the native flow
+  "works in the current checkout" without a branch default — now a feature
+  branch is the default (created from the default branch when needed, the
+  workstream's existing feature branch reused), and a worktree is only for
+  actual isolation (concurrent writers/sessions, parallel development, checkout
+  protection); (2) nothing prevented running ce-code-review and the separate
+  Reviewer on the same change — now explicitly one or the other; (3) merge was
+  unspecified in the shipping authorization — now "merging stays the user's
+  decision unless separately granted". A CE workflow's own branch/workspace
+  handling (including internal worker isolation) owns that work; no KSI
+  workspace procedure is layered on top.
+- Applied: live global `~/.config/opencode/AGENTS.md` (exactly 3 hunks; private
+  backup and before/after SHA256 in `/tmp/opencode/ksi-git-align-20261012/`;
+  before `04ad60d4…`, after `ad9436c8…`); repository
+  `examples/autonomous-development.md` (workspaces bullet, self-review bullet,
+  shipping bullet), `docs/execution.md` (workspace-lifecycle intro,
+  review-depth paragraph, external-delivery paragraph), `README.md` (branch
+  paragraph, review sentence).
+- Unchanged: no new plugin/agent/registry; no CE upstream edit; local-commit
+  and preservation rules; a CE workflow's push/PR effects and the
+  deployment/registry/credential gates.
+- Checks: `npm run check` — 224 total / 222 pass / 0 fail / 2 optional skips;
+  `git diff --check` clean; global diff reviewed hunk-by-hunk.
+- Remaining verification: real-use observation only — the next actual product
+  task should confirm feature-branch reuse and worktree-when-needed behavior;
+  no code or runtime check is pending.
+
 ## Current operating alignment (2026-10-10)
 
 Status: technically complete

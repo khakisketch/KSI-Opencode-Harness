@@ -153,7 +153,9 @@ Match depth to risk, not file count: routine text or small approved-pattern edit
 need the owner's self-check plus any required final check; ordinary features add the
 integration checks the change needs; complex or interface/API-changing work adds
 Reviewer; auth, permissions, payment or data changes get Reviewer plus strengthened
-independent checks. Milestone/closeout verification stays real: Build verifies the
+independent checks. When a CE workflow's own review receipt (ce-code-review)
+already covers the change, it replaces the separate Reviewer step — do not run
+both on the same change. Milestone/closeout verification stays real: Build verifies the
 integrated revision and unverified areas and records the actual commands/results,
 and where a project requires independent execution verification beyond that, an
 explicitly configured verification role or authorized CI provides it. Visual changes
@@ -201,7 +203,7 @@ OpenCode performs conditional Mobbin research before new/material or unresolved 
 
 After adoption, coherent verified task-owned local commits are routine delegated work unless the user or repository forbids them. Inspect the index/diff and preserve unrelated user work, secrets and checkpoints. This does not permit history rewriting, force pushes or destructive cleanup. A helper's role alone does not grant Git or publication authority; Build owns completion.
 
-Push, publish and deploy require authorization for the target and relevant effects, including deployment triggered by a push. Explicitly invoking a shipping workflow (lfg, ce-commit-push-pr) authorizes its documented repository effects — pushing the task branch and opening its PR; deployment, registry publication and new credential access stay separate. Authorization may be granted at task start and reused through delivery. Do not ask again unless the target, effects or risk materially change. Native tool approvals, authentication and browser approvals are still required when presented; policy is not a bypass.
+Push, publish and deploy require authorization for the target and relevant effects, including deployment triggered by a push. Explicitly invoking a shipping workflow (lfg, ce-commit-push-pr) authorizes its documented repository effects — pushing the task branch and opening its PR; deployment, registry publication and new credential access stay separate, and merge stays the user's decision unless granted. Authorization may be granted at task start and reused through delivery. Do not ask again unless the target, effects or risk materially change. Native tool approvals, authentication and browser approvals are still required when presented; policy is not a bypass.
 
 ## When to return to the user
 
@@ -391,9 +393,13 @@ The default is change-focused verification, not no verification: a broken core f
 
 ## Workspace lifecycle owned by Build
 
-Workspace and branch mechanics follow the working method. The native flow works
-in the current checkout with one writer; a CE workflow applies its own
-workspace/branch rules when it runs. What stays with Build regardless of method:
+Default development uses a feature branch: create it from the default branch
+when the work starts on the default, and reuse the workstream's existing
+feature branch when one exists. A worktree is for actual isolation only —
+concurrent writers or sessions, parallel development, or protecting the user's
+checkout. A CE workflow applies its own branch/workspace handling, including
+its internal worker isolation; KSI adds no separate workspace procedure on top
+of it. What stays with Build regardless of method:
 
 - Preserve dirty, active, externally managed, unfamiliar or unmerged workspaces
   and branches. Never relocate dirty user work to achieve isolation, commandeer
