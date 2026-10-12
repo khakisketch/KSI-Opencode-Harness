@@ -73,7 +73,7 @@ After switching to Build with the relevant authorization, Build reads that actua
 source and the existing project record before implementing or delegating substantive
 work. If inaccessible, report the missing input instead of reconstructing it from
 memory. Preserve the reviewed content and the user's actual approval when recording
-it in `docs/superpowers/plans/` (and linking any required spec). Importing a proposal
+it in `docs/plans/` (and linking any required spec). Importing a proposal
 does not approve it. An unchanged approved plan does not need approval again merely
 because it was transferred; material content changes retain the decision gate.
 
@@ -226,7 +226,7 @@ mandatory task form.
 
 When the user requests a substantive multi-step plan, or a consequential scope/design
 decision must survive this session, persist it before delegation, pause or closeout.
-Reuse the active ledger under `docs/superpowers/plans/`; create a focused record
+Reuse the active ledger under `docs/plans/`; create a focused record
 only for a separate workstream. Applicable skills still determine whether a written
 spec or implementation plan is needed. Ordinary questions/trivial changes do not
 require a new spec, ledger or approval ceremony. Respect native Plan write limits;
@@ -431,7 +431,7 @@ User-facing reports should say what was integrated and whether anything importan
 
 ## Reuse project context; inspect status and preparation
 
-Keep project context in an existing `docs/superpowers/product-state.md` or the
+Keep project context in the project `.opencode/working-state.md` or the
 active task ledger, not another registry. When relevant, use this compact table
 (plain values; `unknown` for genuinely unverified fields):
 
