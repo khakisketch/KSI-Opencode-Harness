@@ -8,9 +8,9 @@ Plan supports understanding the project, comparing alternatives, analyzing risks
 
 The KSI host's approved operating configuration changed on 2026-10-09: native
 Plan/Build coordinate, native General implements and self-tests, Explore
-investigates, and Reviewer is optional. Compound Engineering (CE) supplies
-optional skills, not another agent or a mandatory pipeline. Developer and Test
-Runner are disabled in that global environment; Superpowers and the Goal plugin
+investigates, and review runs through the CE review skill. Compound Engineering (CE) supplies
+optional skills, not another agent or a mandatory pipeline. Developer, Test Runner and Reviewer are
+removed from that global environment; Superpowers and the Goal plugin
 are no longer registered there. These are dated host-specific facts, not proof
 that another server or project has the same effective configuration.
 
@@ -116,7 +116,7 @@ task ledger, and continue all remaining authorized work without per-round approv
 
 Self-review does not replace independent evidence. Engineering uses actual code and
 changed-flow results; the design workspace owns actual rendered review/refinement
-and all visual repairs. Preserve independent Reviewer review when warranted and the integration
+and all visual repairs. Preserve the CE review skill for changes that warrant review and the integration
 checks the change needs; General tests are author evidence and Build reuses
 already-valid checks instead of rerunning them. Do not force a helper per edit or
 treat a generator's self-rating as design approval. Rerun affected checks after a
@@ -151,26 +151,25 @@ and a helper's “done” is not approval.
 
 Match depth to risk, not file count: routine text or small approved-pattern edits
 need the owner's self-check plus any required final check; ordinary features add the
-integration checks the change needs; complex or interface/API-changing work adds
-Reviewer; auth, permissions, payment or data changes get Reviewer plus strengthened
-independent checks. When a CE workflow's own review receipt (ce-code-review)
-already covers the change, it replaces the separate Reviewer step — do not run
-both on the same change. Milestone/closeout verification stays real: Build verifies the
+integration checks the change needs; complex or interface/API-changing work runs the
+CE review skill (ce-code-review); auth, permissions, payment or data changes get
+that review plus strengthened independent checks. There is no separate KSI
+Reviewer step to run as well. Milestone/closeout verification stays real: Build verifies the
 integrated revision and unverified areas and records the actual commands/results,
 and where a project requires independent execution verification beyond that, an
 explicitly configured verification role or authorized CI provides it. Visual changes
 remain design-owned regardless of size.
 
 Do not re-read the whole implementation by default; that duplicates the
-Reviewer seat and spends the context Build needs for the remaining work.
+review step and spends the context Build needs for the remaining work.
 Expand to specific diffs, logs or renders only when evidence is missing, stale or
 contradictory; a contract or interface conflict is plausible; unexpected or unrelated
 changes appear; or a high-risk boundary is touched (auth, permissions, data, external
 effects, irreversibility). Route each finding to its owning seat — implementation
-defect → General or design, review gap → Reviewer, evidence gap → Build (or an
+defect → General or design, review gap → CE review (ce-code-review), evidence gap → Build (or an
 explicitly configured verification role), contract/scope → Build, then the user when
 material — with the concrete defect, and recheck affected behavior after the repair.
-Tag each recorded defect with its origin seat (self, Reviewer, design review,
+Tag each recorded defect with its origin seat (self, CE review, design review,
 independent verification) so agent contribution can be judged across tasks over
 time; this is tracking, not a quota or a forced-helper mandate.
 
@@ -325,8 +324,8 @@ copy or a second product plan. An ordinary assignment can contain these items in
 | Behavior/data/permissions/API invariants, owned files and excluded work | Incomplete/unverified work, blockers or contract discrepancies |
 | Trusted checks and any access/tool limits relevant to the task | Significant assumptions or follow-up needed for integration |
 
-The same evidence identification applies to every seat: Reviewer names the diff
-range and revision reviewed plus what it did not inspect; an independent
+The same evidence identification applies to every seat: the CE review names the
+diff range and revision reviewed plus what it did not inspect; an independent
 verification run names the exact commands, tested revision and skipped/not-run
 checks; design the changed screens and files on the actual source revision, the
 rendered-review evidence with defects tracked fixed/open, any functional-contract
@@ -347,9 +346,9 @@ completion evidence by itself. General tests its own implementation; Build indep
 executes the integration/closeout checks the integrated revision needs (or an explicitly
 configured verification role does), records commands, results and relevant pending changes
 in the existing ledger, and reuses already-valid checks for the same revision instead of
-rerunning them mechanically. Later affected edits require rechecking. Reviewer is
-independent read-only code/behavior review, not a substitute for Build's integration checks
-or design-owned rendered review.
+rerunning them mechanically. Later affected edits require rechecking. Independent
+review runs through the CE review skill (ce-code-review) — read-only, and not a
+substitute for Build's integration checks or design-owned rendered review.
 
 If a result is wrong or incomplete, return a concrete defect (location/state, expected versus
 observed behavior and missing evidence), not a vague demand to try harder. For a worker stop,
@@ -367,11 +366,11 @@ spacing fixes, remain design-owned. An unavailable design workspace is not permi
 General or Build visual fallback. These are operating guidelines, not runtime enforcement
 or proof of improved real-development quality.
 
-Parallel work is conditional, not the default. Independent discovery, review, or bounded implementation with stable interfaces may benefit from it. Read-only helpers can run together; concurrent writers need disjoint ownership and separate worktrees. No additional KSI parallel coordinator role is needed. The Primary that accepts delegated work reconciles results and owns the final claim.
+Parallel scheduling is the working method's own concern — a CE workflow follows its execution strategy, and native runs use OpenCode's subagent capability when separable work exists. Build integrates the results and owns the final claim; no separate KSI coordinator or parallel-development procedure is added.
 
 OpenCode V2 keeps its own Build, Plan, General, and Explore prompts. The source installer's two `agents/*.md` files define only its additional roles (Developer, Reviewer), not the current global operating configuration. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. Native General and the default Developer cannot delegate. Test Runner is no longer part of the source bundle and `--developer-test-runner` is removed; an already installed Test Runner file remains user-owned, not automatically retired or a required verification seat. Treat helper output as author feedback, not independent acceptance.
 
-There are no KSI slash commands: ask Build to reconcile or complete work and ask Reviewer to examine a change when needed. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
+There are no KSI slash commands: ask Build to reconcile or complete work and use the CE review skill (ce-code-review) when a change needs independent review. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
 
 Reviewer's native `edit` and `subagent` denials are targeted protections,
 not an all-write sandbox: shell, MCP/API and Code Mode side effects have separate
@@ -584,7 +583,7 @@ This agent-browser version bundles axe-core 4.12.1; `agent-browser --session <ta
 
 Both CLI capability checks exercised fresh snapshots, keyboard focus/submission, actual fixture POST/GET and backing-file persistence after reload, 390px viewport, screenshots, and console/network inspection; Playwright also exercised reduced-motion emulation. Four screenshots were inspected. These were independent **tool capability** sessions, not a requirement to run two drivers for every product change and not verification of a customer's authentication/API/routing. Apply the earlier change-focused real-product checks on each relevant development task.
 
-For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Use the existing native reviewer helper when useful, and reuse already-valid checks instead of rerunning them; there is no mandatory extra verifier after every edit. Resume from the approved task record, not the preserved Goal state. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
+For completion evidence, record the actual revision/relevant pending changes, target, command and result in the existing ledger; later changes require rechecking affected behavior. Run the CE review skill (ce-code-review) when a change warrants review, and reuse already-valid checks instead of rerunning them; there is no mandatory extra verifier after every edit. Resume from the approved task record, not the preserved Goal state. A future V2 evidence helper requires a demonstrated gap and its own approved design; it must not become a second orchestrator or a session-idle auto-fixer.
 
 ## Portable skills versus host-specific plugins
 

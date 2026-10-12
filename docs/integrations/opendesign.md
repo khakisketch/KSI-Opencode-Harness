@@ -52,7 +52,7 @@ and resolves without extra user direction.
 | --- | --- |
 | OpenDesign | UI/UX quality owner for the delegated scope: user/task understanding, autonomous problem discovery and prioritization, visual analysis and decisions, layout/hierarchy/component presentation, frontend implementation in actual UI source/styles (including small CSS/spacing/overflow fixes), responsive/visual interaction states, rendered self-review, verification of the affected result, autonomous refinement and completion evidence |
 | OpenCode (Build) | Scope definition and delegation (target, purpose, preservation constraints — not a presolved defect list or fix direction); overall execution/integration and technical-completion evidence; functional/API/data/auth/brand contracts and production constraints; nonvisual engineering directly or through Developer; regression/integration verification, Git and reporting |
-| Reviewer | Independent read-only code/behaviour review, including test adequacy (safe read-only checks only); does not substitute for rendered design review or human acceptance |
+| CE code review | Independent code/behaviour review of the change when warranted (ce-code-review; safe read-only checks only); does not substitute for rendered design review or human acceptance |
 | Human | Material direction/product decisions, final acceptance and external-delivery authorization; existing authorization is reused within its approved target/effects |
 
 This is a responsibility boundary, not an aesthetic command hierarchy. Build delegates purpose,
@@ -79,7 +79,7 @@ conflicts, then provide evidence to design; it does not substitute its own visua
 Design success is not whole-product completion. If an API connection breaks, Build fixes or delegates
 the nonvisual integration defect; visual defects return to design, with shared files handed off
 sequentially. Developer's author tests do not replace independent review or the integration checks
-the integrated revision needs: Reviewer reviews code and test adequacy, Build verifies the integrated
+the integrated revision needs: the CE review skill reviews code and test adequacy when warranted, Build verifies the integrated
 revision and unverified areas (reusing already-valid checks), and later relevant edits require
 affected checks again. These responsibilities
 do not create a native design child agent or another development Primary, or runtime enforcement.
@@ -193,7 +193,7 @@ a Korean brief card. Preserve the user's Korean requirements in the readable cha
 card fallback if a new-artifact card is needed. Do not alter upstream localization or fabricate a
 translated native card. Recheck this limitation after a relevant upstream upgrade.
 
-Installed ui-ux-pro-max or other UI-reference skills are supplementary guidance for focused review, accessibility, responsive risks and implementation constraints, not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If OpenDesign's local execution is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
+Installed UI-reference skills (if any) are supplementary reference material for briefs, accessibility notes, responsive risks and implementation constraints — not a review path and not an independent design-generation path. They must not replace an approved artifact or existing tokens/components with a competing palette, layout or system. If OpenDesign's local execution is unavailable, report that blocker and continue non-dependent engineering; do not silently substitute a skill-generated design. OpenDesign Cloud remains explicit-request only.
 
 - Any visual UI source/style change, from an existing-component repair to a new screen.
 - Layout, hierarchy, navigation presentation, responsive and interaction-state work.
@@ -439,7 +439,7 @@ remained open from the known problem set; how many user interventions it require
 (routine decisions target zero); and whether it introduced functional regressions
 (tests, routes, permissions, data). At the harness level the standing criteria
 stay: (1) Plan/Build make the product, priority and completion judgments; (2)
-roles and skills add real value without duplicate implementation — Reviewer
+roles and skills add real value without duplicate implementation — CE review
 surfaces real defects, and the design workspace runs its own quality loop; (3)
 long-term state stays in one canonical record with no competing source of truth;
 (4) approved work finishes without user intervention, with the user judging

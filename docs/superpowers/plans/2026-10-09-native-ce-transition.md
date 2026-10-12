@@ -353,6 +353,39 @@ Status: technically complete
   task should confirm feature-branch reuse and worktree-when-needed behavior;
   no code or runtime check is pending.
 
+## Native-first consolidation: removals (2026-10-12)
+
+Status: technically complete
+
+- Authority: user direction — "OpenCode가 이미 제공하는 기능은 네이티브에 맡기고,
+  CE가 잘하는 것은 CE에 맡기며, KSI에는 우리 제품 개발에만 필요한 책임과 판단
+  기준을 남기는 것이 좋겠습니다" and "명시적 비활성화보다는 쓰지 않거나
+  불필요하거나 안쓰면 제거해버려" (remove, do not disable).
+- Runtime removals (outside git; private backups preserved):
+  `~/.config/opencode/opencode.jsonc` — the developer/test-runner/reviewer
+  entries deleted entirely (no disabled flags remain; agents now plan/explore/
+  general; before `b1c61da4…`, after `351be069…`); `~/.config/opencode/agents/`
+  — all eight archived role files moved to
+  `~/.local/state/ksi-harness-backups/agent-removals-20261012/` (config agents
+  dir now empty); `~/.agents/skills/ui-ux-pro-max` removed from discovery and
+  archived at `~/.local/state/ksi-harness-backups/ui-ux-pro-max-20261012/`
+  (live catalog confirmed the skill is no longer available).
+- Policy/docs: independent review runs through the CE review skill
+  (ce-code-review); the separate KSI Reviewer seat is removed and the
+  double-review rule is gone with it. The KSI parallel-development procedure is
+  removed — a CE workflow follows its execution strategy and native runs use
+  OpenCode's subagent capability; Build integrates and owns the final claim.
+  OD guidance no longer assigns any review role to UI-reference skills. Docs
+  swept: global AGENTS.md, README, architecture, execution, opendesign, both
+  examples, troubleshooting.
+- Principle recorded: Native-first → existing specialized tools (CE) → only
+  problems neither solves get a minimal KSI rule.
+- Checks: `npm run check` — 224/222/0/2; `git diff --check` clean; JSONC parse
+  verified (agents: plan, explore, general).
+- Remaining verification: effective catalog of the shared server (skill removal
+  auto-reloaded; agent-config effect to confirm on next catalog inspection) and
+  real-use observation in the next product task.
+
 ## Current operating alignment (2026-10-10)
 
 Status: technically complete
