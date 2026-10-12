@@ -320,8 +320,11 @@ the design workspace rather than fixing or re-critiquing them itself.
      verify the app's entry/login path actually renders before capturing (a click
      that times out on an invisible control usually means a missing fixture env
      flag, not a UI defect); keep the fixture read-mostly and stop it afterwards.
-   - Capture with the product's prepared browser tooling at the task's viewports,
-     writing each shot into the project's evidence directory with pass and viewport
+   - Capture with the product's prepared browser tooling at the task's viewports;
+     if the browser session reports "not open", reopen it before capturing, and
+     bust the entry URL with a cache-buster query when the fixture has been
+     restarted (a stale page keeps the old fixture state and hides new flags).
+     Write each shot into the project's evidence directory with pass and viewport
      in the name (`validation-after-390.png`, `validation-r2-*`, …) so every round
      stays distinguishable.
    - Record a receipt per file: SHA256, viewport/state, and the source revision
@@ -330,6 +333,9 @@ the design workspace rather than fixing or re-critiquing them itself.
    - Give the review run the expected hashes and require it to stop and report on
      mismatch; keep the captures inside the project folder so the design side can
      read them.
+   - For a quick local sanity check, view downscaled copies (e.g. ~680 px JPEG)
+     instead of loading full-size PNGs into a token-limited session; the design
+     reviewer always judges the originals.
    - Re-capture after each refinement as a NEW file set — never overwrite the
      already-reviewed captures; hash-bound evidence must stay addressable.
 3. **Design execution.** Select the agent and task-appropriate skill from the live
@@ -359,7 +365,10 @@ the design workspace rather than fixing or re-critiquing them itself.
    keyboard/focus, accessibility (axe where available) and motion/interaction
    states, references and criteria; confirm the review actually read and visually
    consumed those inputs. Inspect native transcripts when normalized daemon events
-   omit image calls; missing normalized events alone do not prove non-consumption. This
+   omit image calls; missing normalized events alone do not prove non-consumption
+   (the run's archived rollout — observed at
+   `<CODEX_HOME>/archived_sessions/rollout-*-<thread-id>.jsonl` — is the fallback
+   source for the actual tool calls and image inputs). This
    applies equally to HTML artifacts and successful source-direct edits with an
    invalid canonical-entry verdict. A report-only/plan-only stage is not UI output.
    Missing files or render access remain unverified; do not claim a pass from a
