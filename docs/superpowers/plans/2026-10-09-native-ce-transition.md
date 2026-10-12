@@ -112,9 +112,77 @@ Status: technically complete
   how many user-facing problems the design workspace finds and resolves
   autonomously without extra user direction. EVENTOUCH findings and the
   reviewer's `od-next` suggestions remain advisory to the product workstream.
-  Open question: whether every location's plugin instance picked up the new
-  copy without a service restart — observable on the next design-run
-  notification.
+  Resolved 2026-10-12: subsequent design-run notifications delivered with the
+  updated guidance text (steps 2a/3/3a/4/7), so the pinned copy is effective.
+
+## Autonomous design delegation validation (2026-10-12)
+
+Status: technically complete — awaiting the user's evaluation/acceptance
+
+- Authority: user's validation directive — keep the three harness commits, no
+  further harness structural changes before this validation, run one real design
+  delegation on the EVENTOUCH operations home with purpose + preservation
+  constraints ONLY (no presolved defects or fix directions), measure autonomous
+  discovery/completion, keep validation separate from remote sync, and work in
+  an isolated environment. No push/publication/deployment; no product-branch
+  writes; product WIP from the other workstream untouched.
+- Isolation: new worktree `.worktrees/eventouch-ops-validation` (branch
+  `design/ops-autonomy-validation`, base `1f624be` = the frozen capture
+  revision); new OD project `EVENTOUCH Ops Validation (isolated)` via
+  `POST /api/import/folder`. The folder was registered in the remote-workspace
+  picker state (`connections.json`) + gateway restart WITHOUT container
+  recreation (the `/home/ksi/Desktop` mount already exposed the path); read and
+  write access probed (write→read→delete). Isolated fixture served the worktree
+  on port 46779 (same fixture DB schema; env incl. `EVENTOUCH_DEV_QUICK_LOGIN`).
+- Delegation: brief carried purpose, target route, context pointers and
+  preservation constraints only (`validation-brief.txt`); every previously found
+  UX problem and solution direction was excluded.
+- Runs and independent receipts (source-direct; `no_artifact` expected):
+  - `9ba65814` (implementation, refine pipeline inherited): autonomously
+    discovered the missing live check-in activity signal; test-first regression
+    test; `experience.js` +6/-3, `console.css` +16/-3 (최근 입퇴장 section: max 2
+    stored records, name/IN-OUT/short time/correction badge, 전체 기록 보기,
+    `canChecks` gate; non-LIVE keeps the menu tile). Disclosed its own render
+    limitation honestly.
+  - Host capture r1 → `3fb36c37` (rendered review, fresh conversation): 12/12
+    before/after captures consumed with exact hashes; delivered prompt carried
+    the plugin body + composed `web-design-guidelines` + the user's global
+    principles text; found one P2 (mobile activity metadata 11px < shared 14px)
+    and no other defect; disclosed the read-only/refine conflict.
+  - `cff755fa` (refinement): mobile override → `var(--small)`; focused test 1/1.
+  - Build objective re-verification: metadata 14px at 320/390/1280, no overflow,
+    all controls ≥44px, history destination (`checks`) renders; r2 captures
+    (`validation-r2-*`; the 1280 file is byte-identical to r1).
+  - `c7251c98` (re-check review, fresh conversation): 6 images consumed;
+    verdict “P2 closed — no open rendered defect in these states”.
+- Evaluation (the user's frame): autonomously discovered 2 defects (activity
+  signal; metadata size), both fixed and verified; not addressed by this pass:
+  the earlier read-only review's “현재 입장 tile integration” item (design chose
+  its own priorities within scope); user interventions: 0; functional
+  regressions: none — `npm test` 327/155/0/172, route/permission/metric/stage
+  logic untouched, other-screen spot captures normal. Unverified: loading/error/
+  empty-data states, axe/screen-reader, reduced-motion, physical devices, some
+  route/permission variants. Note: the 1024 “before” capture differs from the
+  Oct-10 frozen set (re-captured by the other workstream at 13:21; 5 of 6
+  byte-identical) — recorded, not used as a same-revision claim.
+- Result freeze: isolated-branch commit `c8f65ba` (3 files, +78/-3). Not merged
+  or pushed; the product branch and its WIP untouched. The OD project and the
+  worktree remain for inspection; the validation fixture was stopped after use.
+- Operations note: tool-call interruptions during the session traced to
+  concurrent drivers/parallel activity over the same evidence area; single
+  command/single driver discipline is recommended for validation workstreams.
+  A parallel session's traces (OpenChamber/4096 probing, one fixture start and
+  a page probe) appeared in the shared evidence root on 10-11 19:23–19:46 and
+  an untracked full `design-inputs` copy landed in the isolated worktree at
+  19:33 — preserved, not attributed to the design runs.
+- Harness improvement proposals (NOT applied; awaiting the user's decision):
+  (1) formalize the host-capture handoff recipe (naming, hash receipts, who
+  runs it) in the integration guide — this run needed ad-hoc steps; (2) adopt
+  the verified receipt schema for design reviews (thread identity, delivered
+  prompt markers, consumed-image hashes) as standard practice; (3) record the
+  user's four evaluation criteria as the standing delegation-evaluation frame;
+  (4) a single-driver note for validation workstreams. No installer, runtime,
+  agent or permission changes proposed.
 
 ## Current operating alignment (2026-10-10)
 
