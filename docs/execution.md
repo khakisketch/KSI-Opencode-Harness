@@ -399,11 +399,12 @@ The default is change-focused verification, not no verification: a broken core f
 
 Shared working areas need one active driver: an evidence root, an isolated
 validation worktree, or a checkpoint has exactly one session writing to it at a
-time. Concurrent drivers (another session or client over the same area) can abort
-in-flight tool calls and overwrite shared files. When traces of another session
-appear — unexpected files, foreign edits, its own scripts or logs — preserve them
-and never attribute them to your run; re-verify the area's state before
-continuing.
+time. Concurrent drivers over the same area risk interrupting in-flight tool
+calls or overwriting shared files, but an interruption's cause may stay unknown;
+record what was observed instead of attributing it. When traces of another
+session appear — unexpected files, foreign edits, its own scripts or logs —
+preserve them and never attribute them to your run; re-verify the area's state
+before continuing.
 
 For cleanup, a directory name such as `.worktrees/` is placement, **not ownership evidence**. Existing worktrees from earlier sessions are not automatically this task's property. A private completed checkpoint is a cache; preserve required evidence in the ledger and refresh the canonical checkout's checkpoint before safely retiring a task-owned workspace. Never move/rename checkpoints between worktrees or delete unique user content as housekeeping.
 
@@ -481,8 +482,9 @@ Missing/duplicate selectors or unselected multiple statuses surface unknown/ambi
 work rather than guessing the first/latest section. Single-status records need no
 extra field; this is agent bookkeeping, not a form for the user to fill in.
 
-Doctor checks local role/policy file presence and reusable binding; frontend mode
-also looks for a browser executable. It never executes recorded commands, fetches
+Doctor checks local policy file presence and the reusable binding; the optional
+Developer/Reviewer bundle is reported as optional, not required for native-first
+operation. Frontend mode also looks for a browser executable. It never executes recorded commands, fetches
 URLs, opens credentials/config contents, changes files, installs tools or restarts
 services. `needs-setup` means local prerequisites are absent/mismatched;
 `unverified` means effective native catalogs, actual design read/write and product

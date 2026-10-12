@@ -23,12 +23,22 @@ function setupLocal({ repo, configDir }, extra = "") {
   writeFileSync(join(repo, "docs/superpowers/product-state.md"), `## Product binding\n\n| Field | Value |\n| --- | --- |\n| Repository | . |\n| Design project | fixture-design |\n| Design storage | . |\n| Entry | index.html |\n| Start command | node never-execute-this.mjs |\n| Verify command | node also-never-execute-this.mjs |\n| Product URL | https://example.invalid |\n| Brand source | tokens.css |\n${extra}`)
 }
 
-test("absent roles and policy require setup rather than pretending ready", t => {
+test("absent policy requires setup; the optional role bundle never does", t => {
   assert.equal(typeof report.inspectReadiness, "function")
   const result = report.inspectReadiness(fixture(t))
   assert.equal(result.status, "needs-setup")
-  assert.equal(result.checks.find(c => c.id === "roles").state, "missing")
+  assert.equal(result.checks.find(c => c.id === "roles").state, "optional")
   assert.equal(result.checks.find(c => c.id === "policy").state, "missing")
+})
+
+// Native-first environments do not install the optional Developer/Reviewer bundle.
+test("a missing optional role bundle alone stays unverified, not needs-setup", t => {
+  const f = fixture(t)
+  writeFileSync(join(f.configDir, "AGENTS.md"), "Fixture policy\n")
+  writeFileSync(join(f.repo, "docs/superpowers/product-state.md"), `## Product binding\n\n| Field | Value |\n| --- | --- |\n| Repository | . |\n| Start command | node never-execute-this.mjs |\n| Verify command | node also-never-execute-this.mjs |\n`)
+  const result = report.inspectReadiness({ ...f })
+  assert.equal(result.checks.find(c => c.id === "roles").state, "optional")
+  assert.equal(result.status, "unverified")
 })
 
 // Catches running recorded commands or equating file presence to runtime capability.

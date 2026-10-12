@@ -157,7 +157,7 @@ two stores would invalidate one of them. **Re-run this whenever host credentials
 
 After reviewing the actual server's configuration, merge this **V2** example without replacing unrelated
 settings. This Docker command is specific to the recorded image/container, not a universal upstream command.
-The tested host retains a compatible older-shaped block; that is not the recommended new configuration.
+The tested host retains a compatible older-shaped block; that is not the recommended new configuration. The current deployment uses the host-side HTTP proxy instead ([host-side MCP continuity](../../docs/integrations/opendesign.md#host-side-mcp-continuity)); the Docker block below is kept as the original-deployment record.
 
 ```jsonc
 {

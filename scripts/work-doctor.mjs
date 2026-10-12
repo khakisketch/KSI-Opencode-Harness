@@ -54,7 +54,10 @@ export function inspectReadiness({ repo = process.cwd(), configDir = join(proces
   checks.push({ id: "repository", state: repositoryPresent ? "present" : "missing", detail: "Requested working directory presence; product binding still needs verification." });
   const roles = ["developer", "reviewer"];
   const missingRoles = roles.filter(name => !filePresent(join(config, `agents/${name}.md`)) && !filePresent(join(root, `.opencode/agents/${name}.md`)));
-  checks.push({ id: "roles", state: missingRoles.length ? "missing" : "present", detail: missingRoles.length ? `Missing role files: ${missingRoles.join(", ")}` : "Role files present; effective role/model/permission catalog not inspected." });
+  // The Developer/Reviewer bundle is optional: native-first operation
+  // (Build/Plan/General/Explore + optional Reviewer/CE) works without these
+  // files, so their absence is informational and never a setup blocker.
+  checks.push({ id: "roles", state: missingRoles.length ? "optional" : "present", detail: missingRoles.length ? `Optional KSI role bundle not installed (${missingRoles.join(", ")}); the native-first operation does not require it.` : "Optional KSI role bundle present; effective role/model/permission catalog not inspected." });
   const policyPresent = filePresent(join(root, "AGENTS.md")) || filePresent(join(config, "AGENTS.md"));
   checks.push({ id: "policy", state: policyPresent ? "present" : "missing", detail: "File presence only; adopted policy and instruction precedence require agent inspection." });
   const binding = readProductBinding(root);
@@ -84,7 +87,7 @@ export function inspectReadiness({ repo = process.cwd(), configDir = join(proces
   checks.push({ id: "notifier", state: filePresent(join(config, "plugins/design-notifier/installed.json")) ? "present" : "unknown", detail: "Optional runtime manifest presence; activation/revision/delivery not verified." });
   checks.push({ id: "effective-tools", state: "unknown", detail: "Use native catalog and real project read/changed-flow checks; no credentials, service calls or commands executed here." });
   const designNeedsSetup = designState === "mismatch" || designState === "invalid" || designState === "ambiguous" || (designState === "unknown" && explicitSnapshot);
-  const needsSetup = !repositoryPresent || missingRoles.length > 0 || !policyPresent || mismatch || designNeedsSetup || (frontend && missing.length > 0);
+  const needsSetup = !repositoryPresent || !policyPresent || mismatch || designNeedsSetup || (frontend && missing.length > 0);
   return {
     status: needsSetup ? "needs-setup" : "unverified",
     scope: "local metadata only; not runtime readiness, product acceptance or deployment",

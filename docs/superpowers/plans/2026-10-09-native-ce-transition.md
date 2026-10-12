@@ -155,26 +155,37 @@ Status: technically complete — awaiting the user's evaluation/acceptance
     (`validation-r2-*`; the 1280 file is byte-identical to r1).
   - `c7251c98` (re-check review, fresh conversation): 6 images consumed;
     verdict “P2 closed — no open rendered defect in these states”.
-- Evaluation (the user's frame): autonomously discovered 2 defects (activity
-  signal; metadata size), both fixed and verified; not addressed by this pass:
-  the earlier read-only review's “현재 입장 tile integration” item (design chose
-  its own priorities within scope); user interventions: 0; functional
-  regressions: none — `npm test` 327/155/0/172, route/permission/metric/stage
-  logic untouched, other-screen spot captures normal. Unverified: loading/error/
-  empty-data states, axe/screen-reader, reduced-motion, physical devices, some
+- Evaluation (the user's frame; corrected 2026-10-12): the implementation run
+  autonomously discovered one user-facing defect (the missing live check-in
+  activity signal); the second defect (mobile activity metadata 11px < the
+  shared 14px token) was introduced by that implementation and caught by the
+  host-coordinated independent rendered review. Both were fixed and reverified.
+  Not addressed by this pass: the earlier read-only review's “현재 입장 tile
+  integration” item (design chose its own priorities within scope).
+  Design-decision requests from the user: 0 — but the cycle was host-assisted
+  (fixture serving, captures, review commissioning) and included user
+  continuation/error prompts, so it is not evidence of fully hands-off
+  autonomous completion. Functional regressions: none observed in the checked
+  scope — `npm test` 327/155/0/172 (172 skipped for unavailable isolated
+  PostgreSQL test config), route/permission/metric/stage logic untouched,
+  other-screen spot captures normal. Unverified: loading/error/empty-data
+  states, axe/screen-reader, reduced-motion, physical devices, some
   route/permission variants. Note: the 1024 “before” capture differs from the
   Oct-10 frozen set (re-captured by the other workstream at 13:21; 5 of 6
   byte-identical) — recorded, not used as a same-revision claim.
 - Result freeze: isolated-branch commit `c8f65ba` (3 files, +78/-3). Not merged
   or pushed; the product branch and its WIP untouched. The OD project and the
   worktree remain for inspection; the validation fixture was stopped after use.
-- Operations note: tool-call interruptions during the session traced to
-  concurrent drivers/parallel activity over the same evidence area; single
-  command/single driver discipline is recommended for validation workstreams.
-  A parallel session's traces (OpenChamber/4096 probing, one fixture start and
-  a page probe) appeared in the shared evidence root on 10-11 19:23–19:46 and
-  an untracked full `design-inputs` copy landed in the isolated worktree at
-  19:33 — preserved, not attributed to the design runs.
+- Operations note (corrected 2026-10-12): tool-call interruptions occurred while
+  other activity shared the same evidence area. The observed cancellation
+  notices read "Command cancelled because the server restarted", so the
+  concurrent-driver cause was not conclusively established; keep single
+  command/single driver discipline for shared areas and record an
+  interruption's cause as unknown when it is unproven. A parallel session's
+  traces (OpenChamber/4096 probing, one fixture start and a page probe) appeared
+  in the shared evidence root on 10-11 19:23–19:46 and an untracked full
+  `design-inputs` copy landed in the isolated worktree at 19:33 — preserved,
+  not attributed to the design runs.
 - Harness improvement proposals — APPLIED 2026-10-12 on the user's approval
   ("그래 하네스 개선해봐"), docs-only: (1) the host-capture handoff recipe is now
   in the integration guide (serve/verify-entry/capture-naming/receipts/reuse
@@ -184,6 +195,42 @@ Status: technically complete — awaiting the user's evaluation/acceptance
   criteria are recorded as the standing delegation-evaluation frame; (4) the
   single-driver note for shared working areas is in `docs/execution.md`. No
   installer, runtime, agent or permission changes.
+
+## Harness audit corrections (2026-10-12)
+
+Status: technically complete
+
+- Authority: user direction — explain the harness and audit docs/README/other
+  parts, then apply the identified corrections and legacy cleanup ("모두
+  개선해주세요 레거시나 더이상 안쓰는 거 정리 및 정정"). Local commits only; no
+  push/publication/deployment.
+- Record accuracy: the evaluation and operations note in the section above were
+  corrected; working-state and product-state summaries reconciled with the
+  2026-10-12 state (host-assisted cycle, bounded regression claim, unproven
+  interruption cause, ahead-of-origin delivery state).
+- Diagnostics: `scripts/work-doctor.mjs` no longer treats the optional
+  Developer/Reviewer bundle as a required prerequisite — a native-first
+  environment reports `unverified` instead of `needs-setup`; regression test
+  added in `test/work-doctor.test.mjs`; the doctor description in
+  `docs/execution.md` updated.
+- Docs: packaged-doc links fixed (`docs/integrations/opendesign.md`,
+  `docs/verification.md`) with a new packaged-link guard
+  (`test/docs-links.test.mjs`); notifier resume wording aligned to the
+  implementation ("eligible on a later poll tick, subject to existing retry
+  delays"); capture-recipe claims reframed as observed cases, not general
+  causes; the architecture opening distinguishes the npm package from
+  repository-only records; README, `examples/project-AGENTS.md` and
+  `examples/autonomous-development.md` audit-first phrasing aligned with the
+  design-owned discovery contract; the shipped Developer prompt no longer cites
+  Superpowers; the deployment record points to the current host-side MCP proxy.
+- Legacy cleanup: unused retired-flow asset `.github/assets/pipeline.svg`
+  removed (recoverable from Git history). `.gitignore` was reviewed and left
+  unchanged: the ignored `design-previews/` material is still local review
+  content.
+- Checks: `npm run check` — 222 total / 220 pass / 0 fail / 2 optional skips;
+  `npm run check:package` passed; `git diff --check` clean. Documentation,
+  template and read-only helper changes only: no runtime, provider/model,
+  permission, service, release or external-delivery change.
 
 ## Current operating alignment (2026-10-10)
 

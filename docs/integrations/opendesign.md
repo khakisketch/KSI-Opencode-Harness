@@ -8,7 +8,7 @@ This is an **optional, user-managed integration**. Installing KSI does not insta
 Docker, model CLIs, credentials, or its MCP server. Follow [upstream installation instructions](https://github.com/nexu-io/open-design)
 for your platform; approve any installation, shared configuration, credential sharing, and service changes separately.
 The source repository's `integrations/opendesign/` assets record one Ubuntu arm64 deployment, not a portable
-automatic installer. Superpowers is also separately installed, not a prerequisite bundled with KSI.
+automatic installer.
 
 ## Division of responsibility
 
@@ -317,13 +317,14 @@ the design workspace rather than fixing or re-critiquing them itself.
    produces the captures mechanically — an evidence step, not Build-side design
    review — and hands them to the design side:
    - Serve the isolated checkout with the product's own fixture/test server and
-     verify the app's entry/login path actually renders before capturing (a click
-     that times out on an invisible control usually means a missing fixture env
-     flag, not a UI defect); keep the fixture read-mostly and stop it afterwards.
+     verify the app's entry/login path actually renders before capturing — a
+     hidden or non-responsive control is often a fixture env/feature-flag gap
+     rather than a UI defect, so check the fixture flags and page state before
+     concluding; keep the fixture read-mostly and stop it afterwards.
    - Capture with the product's prepared browser tooling at the task's viewports;
      if the browser session reports "not open", reopen it before capturing, and
-     bust the entry URL with a cache-buster query when the fixture has been
-     restarted (a stale page keeps the old fixture state and hides new flags).
+     after a fixture restart verify the page re-initialized (the 2026-10-12
+     validation needed a cache-buster query on the entry URL).
      Write each shot into the project's evidence directory with pass and viewport
      in the name (`validation-after-390.png`, `validation-r2-*`, …) so every round
      stays distinguishable.
@@ -546,7 +547,7 @@ with the receiving agent and the user; the notifier only observes and notifies.
   re-send of the same id is idempotent at the session.
 - **Wake permission is per session.** An unpaused session receives the completion with auto wake
   (`resume:true`, `delivery:queue`). A paused session is not contacted at all: the terminal result is
-  stored as `held` in notifier state, and `resume` delivers it with auto wake on the next poll tick.
+  stored as `held` in notifier state, and `resume` makes it eligible for auto wake on a later poll tick, subject to existing delivery retry delays and any remaining pause switches.
 - The message requires verification with `get_run` (preview URL and `agentMessage`), never claims a
   deliverable when `deliverableValid` is false, forbids blind regeneration, and defaults to finishing
   the job (implementation plus a result report with its preview) when the change follows the existing
@@ -576,7 +577,7 @@ remove any `plugins` config entry that points at the development tree so only th
 The `design_runs` tool lists tracked/held runs (with leadership and pause state), re-watches an
 existing run as a recovery path, and pauses/resumes wake permission for the calling session
 (`scope:"all"` for every session). Limits: same-host daemon reachability, up to one poll interval of
-latency (including after resume), leader takeover within the lease TTL after a crash, overlapping
+latency after a finish or resume (subject to existing delivery retry delays), leader takeover within the lease TTL after a crash, overlapping
 ticks during handover are fenced by the delivery claim, a pause racing an in-flight delivery takes
 effect on the next tick, and no knowledge of goal pause state other than the explicit switch. This
 component is not part of the npm package and does not install anything by itself.
@@ -1036,7 +1037,7 @@ conscious retry, using the original request ID for generation when appropriate.
 
 A host proxy crash or host reboot still requires normal client reconnection; this is not universal
 process supervision. Restart/idle test results and limits belong in the
-[technical closeout ledger](../superpowers/plans/2026-10-01-remote-workspace-closeout.md).
+[technical closeout ledger](https://github.com/khakisketch/KSI-Opencode-Harness/blob/main/docs/superpowers/plans/2026-10-01-remote-workspace-closeout.md).
 
 ### Attachment behavior
 
