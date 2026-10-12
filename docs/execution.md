@@ -390,44 +390,12 @@ After the operating policy is adopted, the user requests an outcome, not a branc
 
 The default is change-focused verification, not no verification: a broken core flow or an unrun required check cannot be called passing. Existing unrelated warnings and low-priority audit findings do not expand the current task automatically. Record them in backlog and continue independent authorized work. An explicit accessibility overhaul or delivery audit can require deeper coverage.
 
-## Workspace lifecycle owned by Build
+## Workspace lifecycle
 
-Default development uses a feature branch: create it from the default branch
-when the work starts on the default, and reuse the workstream's existing
-feature branch when one exists. A worktree is for actual isolation only —
-concurrent writers or sessions, parallel development, or protecting the user's
-checkout. A CE workflow applies its own branch/workspace handling, including
-its internal worker isolation; KSI adds no separate workspace procedure on top
-of it. What stays with Build regardless of method:
+Native work respects the current checkout and existing work; a CE workflow follows its own branch and workspace discipline. Do not create branches or worktrees by default; use them only for real isolation or parallel development needs — concurrent writers, protecting the user's checkout, or risky trials. Comply with the repository's protection rules. What stays with Build regardless of method:
 
-- Preserve dirty, active, externally managed, unfamiliar or unmerged workspaces
-  and branches. Never relocate dirty user work to achieve isolation, commandeer
-  an unfamiliar branch, reset, force-push, rewrite history, sweep other
-  worktrees or run broad prune/delete commands.
-- Concurrent writers get disjoint ownership and separate workspaces; one
-  Primary integrates and verifies. Recheck the target before integration,
-  prefer fast-forward, preserve unrelated changes and rerun relevant checks on
-  the integrated result.
-- Record the workspace/branch and integration target in the workstream's record
-  (a CE run record or the existing ledger) when a substantive write begins; do
-  not ask the user to choose routine branch names.
-- Clean up only workspaces proven created/owned by this task, after their
-  required commits are integrated and unique files/notes are preserved; use
-  non-forced removal and report retained exceptions briefly instead of asking
-  the user to manage the inventory.
-
-Shared working areas need one active driver: an evidence root, an isolated
-validation worktree, or a checkpoint has exactly one session writing to it at a
-time. Concurrent drivers over the same area risk interrupting in-flight tool
-calls or overwriting shared files, but an interruption's cause may stay unknown;
-record what was observed instead of attributing it. When traces of another
-session appear — unexpected files, foreign edits, its own scripts or logs —
-preserve them and never attribute them to your run; re-verify the area's state
-before continuing.
-
-For cleanup, a directory name such as `.worktrees/` is placement, **not ownership evidence**. Existing worktrees from earlier sessions are not automatically this task's property. A private completed checkpoint is a cache; preserve required evidence in the ledger and refresh the canonical checkout's checkpoint before safely retiring a task-owned workspace. Never move/rename checkpoints between worktrees or delete unique user content as housekeeping.
-
-User-facing reports should say what was integrated and whether anything important remains, not require the user to understand Git mechanics. Include branch/path details only when they help identify an actual blocker or retained exception.
+- Preserve dirty, unfamiliar or unmerged work and branches. Never relocate dirty user work, reset, force-push, rewrite history, or delete unique user content as housekeeping.
+- Clean up only workspaces proven created/owned by this task, after their required commits are integrated; use non-forced removal and report retained exceptions briefly.
 
 ## Reuse project context; inspect status and preparation
 
