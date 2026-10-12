@@ -227,6 +227,16 @@ Status: technically complete
   removed (recoverable from Git history). `.gitignore` was reviewed and left
   unchanged: the ignored `design-previews/` material is still local review
   content.
+- EVENTOUCH write-path check (2026-10-12, on user request): daemon and container
+  healthy; all three EVENTOUCH paths connected, mounted rw, and a container
+  write→read→delete probe succeeded on each; recent product runs edited real
+  files (mtimes inside their run windows) and the validation diff is on disk.
+  Corrected the guide's writeback check: `workspace.storage.kind: od-owned` is
+  not a regression signal — working runs report it too; the check now uses the
+  actual file change plus a probe when in doubt. Observation for a user
+  decision: `/home/ksi/Desktop` is still a connected root and an rw mount in
+  the container although the 2026-10-06 record says the parent bind was
+  reverted; nothing was changed without approval.
 - Checks: `npm run check` — 222 total / 220 pass / 0 fail / 2 optional skips;
   `npm run check:package` passed; `git diff --check` clean. Documentation,
   template and read-only helper changes only: no runtime, provider/model,

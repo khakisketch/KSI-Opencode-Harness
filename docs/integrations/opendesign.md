@@ -490,14 +490,21 @@ file; it does not by itself provide an independent production verification loop,
 and other run paths' write/verification policies were not exercised here. No
 automatic rebinding, runtime patching or browser install follows from these facts.
 
-**Writeback degradation (check every source-direct run).** A source-direct run's
-workspace should be the product checkout (`storage.kind` not `od-owned`). If a run
-reports `od-owned` storage, or the task record says runs cannot write outside the OD
-storage, treat it as a **capability regression**: re-verify with a small write probe,
-record the deviation (run id + observed workspace) in the task record, report it, and
-resolve it or get a user decision — do not silently switch to transcribe-and-copy.
-Transcribing stays a legitimate fallback only when direct access is confirmed
-unavailable, and the adopted changes must map to their OD source.
+**Writeback degradation (verify with the actual file change, not a status field).**
+A source-direct run must show its claimed edits as real changes in the connected
+product checkout (file paths in its output, actual diff/build/render evidence).
+Do not use `workspace.storage.kind` alone as the regression signal: on 2026-10-06
+the `od-owned` field correlated with a degraded state, but on 2026-10-11/12 runs
+that provably edited host product files (mtimes inside the run window; the
+validation diff itself) also reported `od-owned` with `baseDir: null`, so the
+field alone currently distinguishes nothing for MCP-started runs. Treat a run as
+degraded when its output claims edits that are absent from the folder, when it
+says it cannot write outside the OD storage, or when a small write probe fails —
+then record the deviation (run id + observed behavior) in the task record, report
+it, and resolve it or get a user decision — do not silently switch to
+transcribe-and-copy. Transcribing stays a legitimate fallback only when direct
+access is confirmed unavailable, and the adopted changes must map to their OD
+source.
 
 **Skill selection (observed).** The catalogue advertises more skills than have
 full bodies — some entries are stubs pointing at upstream bundles. For real
