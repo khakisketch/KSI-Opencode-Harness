@@ -175,14 +175,15 @@ Status: technically complete — awaiting the user's evaluation/acceptance
   a page probe) appeared in the shared evidence root on 10-11 19:23–19:46 and
   an untracked full `design-inputs` copy landed in the isolated worktree at
   19:33 — preserved, not attributed to the design runs.
-- Harness improvement proposals (NOT applied; awaiting the user's decision):
-  (1) formalize the host-capture handoff recipe (naming, hash receipts, who
-  runs it) in the integration guide — this run needed ad-hoc steps; (2) adopt
-  the verified receipt schema for design reviews (thread identity, delivered
-  prompt markers, consumed-image hashes) as standard practice; (3) record the
-  user's four evaluation criteria as the standing delegation-evaluation frame;
-  (4) a single-driver note for validation workstreams. No installer, runtime,
-  agent or permission changes proposed.
+- Harness improvement proposals — APPLIED 2026-10-12 on the user's approval
+  ("그래 하네스 개선해봐"), docs-only: (1) the host-capture handoff recipe is now
+  in the integration guide (serve/verify-entry/capture-naming/receipts/reuse
+  rules); (2) the review-receipt schema (thread identity, delivered-instruction
+  markers, consumed-image hashes, source hashes, verdict, fixed/open list) is
+  recorded as standard practice in the same guide; (3) the four evaluation
+  criteria are recorded as the standing delegation-evaluation frame; (4) the
+  single-driver note for shared working areas is in `docs/execution.md`. No
+  installer, runtime, agent or permission changes.
 
 ## Current operating alignment (2026-10-10)
 

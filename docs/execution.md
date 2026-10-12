@@ -397,6 +397,14 @@ The default is change-focused verification, not no verification: a broken core f
 5. Implement, inspect task-owned diffs, run checks, and commit under the adopted policy. Assign concurrent writers separate owned workspaces and disjoint files; integrate through one Primary. Recheck the target before integration because another session may have changed it. The policy delegates non-destructive local integration into the recorded agreed target; it does not delegate an arbitrary target, remote delivery or destructive conflict resolution. Prefer fast-forward; verify the integrated result before reporting it.
 6. Retire only this task's proven-owned worktree and merged branch when required work is integrated, the workspace is inactive, and no unique user files/notes remain. Inspect status including untracked and relevant ignored files. Use native cleanup for native-owned workspaces or non-forced Git removal for a Git-owned one. If removal refuses or provenance/data is unclear, preserve it and report a retained exception; do not force, sweep other worktrees, prune globally or rewrite history.
 
+Shared working areas need one active driver: an evidence root, an isolated
+validation worktree, or a checkpoint has exactly one session writing to it at a
+time. Concurrent drivers (another session or client over the same area) can abort
+in-flight tool calls and overwrite shared files. When traces of another session
+appear — unexpected files, foreign edits, its own scripts or logs — preserve them
+and never attribute them to your run; re-verify the area's state before
+continuing.
+
 For cleanup, a directory name such as `.worktrees/` is placement, **not ownership evidence**. Existing worktrees from earlier sessions are not automatically this task's property. A private completed checkpoint is a cache; preserve required evidence in the ledger and refresh the canonical checkout's checkpoint before safely retiring a task-owned workspace. Never move/rename checkpoints between worktrees or delete unique user content as housekeeping.
 
 User-facing reports should say what was integrated and whether anything important remains, not require the user to understand Git mechanics. Include branch/path details only when they help identify an actual blocker or retained exception.

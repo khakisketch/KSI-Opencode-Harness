@@ -312,6 +312,26 @@ the design workspace rather than fixing or re-critiquing them itself.
    audit does not satisfy rendered review. If neither path is available, block the
    dependent visual stage and continue independent nonvisual work; do not install
    browsers, restart containers, or substitute Build-side visual fixes implicitly.
+
+   **Host capture handoff (when the design environment has no renderer).** Build
+   produces the captures mechanically — an evidence step, not Build-side design
+   review — and hands them to the design side:
+   - Serve the isolated checkout with the product's own fixture/test server and
+     verify the app's entry/login path actually renders before capturing (a click
+     that times out on an invisible control usually means a missing fixture env
+     flag, not a UI defect); keep the fixture read-mostly and stop it afterwards.
+   - Capture with the product's prepared browser tooling at the task's viewports,
+     writing each shot into the project's evidence directory with pass and viewport
+     in the name (`validation-after-390.png`, `validation-r2-*`, …) so every round
+     stays distinguishable.
+   - Record a receipt per file: SHA256, viewport/state, and the source revision
+     (changed-file hashes); a reused "before" set keeps its original hashes and is
+     never presented as new evidence.
+   - Give the review run the expected hashes and require it to stop and report on
+     mismatch; keep the captures inside the project folder so the design side can
+     read them.
+   - Re-capture after each refinement as a NEW file set — never overwrite the
+     already-reviewed captures; hash-bound evidence must stay addressable.
 3. **Design execution.** Select the agent and task-appropriate skill from the live
    `list_agents`/`list_skills`; record the selection per stage. The design execution
    analyzes the product problem and edits actual UI source where access is verified.
@@ -330,6 +350,10 @@ the design workspace rather than fixing or re-critiquing them itself.
    bindings can replace the primary skill body, even when a review skill was
    explicitly selected. Verify the delivered full-body review instructions; do
    not count a generator recipe or upstream-install stub as a reviewer.
+   Record the review receipt in the task record (the schema validated 2026-10-12):
+   fresh thread identity without a fork, the delivered-instruction markers and
+   composition you verified, the consumed-image SHA256s, the source hashes read,
+   the verdict, and the fixed/open defect list with its unverified items.
    Feed it the real source snapshot, the **actual
    rendered states** at the target viewports plus empty/error/loading states,
    keyboard/focus, accessibility (axe where available) and motion/interaction
@@ -398,6 +422,18 @@ handled (deliberate continuation vs explicit scenario); rounds and elapsed time;
 the delivered review bundle; and the functional checks. This is the flow's
 real-use evidence — it does not replace human acceptance or prove design quality
 by itself.
+
+**Delegation evaluation (standing frame).** Judge a delegated pass on: what it
+discovered on its own; what it actually fixed and verified (revision-bound); what
+remained open from the known problem set; how many user interventions it required
+(routine decisions target zero); and whether it introduced functional regressions
+(tests, routes, permissions, data). At the harness level the standing criteria
+stay: (1) Plan/Build make the product, priority and completion judgments; (2)
+roles and skills add real value without duplicate implementation — Reviewer
+surfaces real defects, and the design workspace runs its own quality loop; (3)
+long-term state stays in one canonical record with no competing source of truth;
+(4) approved work finishes without user intervention, with the user judging
+outcomes and product decisions only.
 
 **Run mechanics (observed).** A single request may expand into a plan→execute
 run chain: stage 0 produces the direction and working material but no product
