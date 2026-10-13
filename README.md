@@ -8,7 +8,7 @@ OpenCode V2를 위한 **실무형 작업 방식 + 선택형 설치기** — 필�
 
 [![OpenCode V2](https://img.shields.io/badge/OpenCode-V2-blue)](https://opencode.ai) [![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org) [![Beta 0.5.0-beta.9](https://img.shields.io/badge/beta-0.5.0--beta.9-orange)](package.json) [![MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE) [![Check](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml)
 
-[빠른 시작](#빠른-시작) · [현장 UI 데모](#현장-안전점검-ui-데모) · [동작 방식](#동작-방식) · [검증](#검증과-품질) · [문서](#문서) · [문의](#만드는-곳)
+[빠른 시작](#빠른-시작) · [라이브 데모](https://khakisketch.github.io/KSI-Opencode-Harness/demo-safety/) · [동작 방식](#동작-방식) · [검증](#검증과-품질) · [문서](#문서) · [문의](#만드는-곳)
 
 </div>
 
@@ -42,7 +42,8 @@ OpenCode V2를 위한 **실무형 작업 방식 + 선택형 설치기** — 필�
 
 - **가상 정보:** 현장명·점검자·상태·시간은 모두 예시 데이터입니다.
 - **동작 범위:** 상단 버튼은 해당 현장으로 이동하고, 조치 버튼은 데모 안내를 보여줍니다. 실제 조치·저장·로그인·API 연결은 없습니다.
-- **페이지 소스:** [`docs/demo-safety/index.html`](docs/demo-safety/index.html) · [전체 개발 흐름과 캡처 유의사항](docs/walkthrough.md)
+- **라이브 데모:** [브라우저에서 열기](https://khakisketch.github.io/KSI-Opencode-Harness/demo-safety/) · **페이지 소스:** [`docs/demo-safety/index.html`](docs/demo-safety/index.html)
+- [전체 개발 흐름과 캡처 유의사항](docs/walkthrough.md)
 
 ## 빠른 시작
 
@@ -162,7 +163,7 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 
 - **GitHub 저장소:** [khakisketch/KSI-Opencode-Harness](https://github.com/khakisketch/KSI-Opencode-Harness) · 공개 저장소
 - **npm:** `ksi-opencode-harness@0.5.0-beta.9` · 공개 Beta · 설치 시 버전을 고정해 재현성을 유지합니다.
-- **라이브 데모:** GitHub Pages 배포가 활성화되면 이곳에 주소를 게시합니다. 현재 화면 파일은 [`docs/demo-safety/index.html`](docs/demo-safety/index.html)에서 확인할 수 있습니다.
+- **GitHub Pages:** [현장 안전점검 화면 시연 열기](https://khakisketch.github.io/KSI-Opencode-Harness/demo-safety/) · 화면 소스는 [`docs/demo-safety/index.html`](docs/demo-safety/index.html)입니다.
 
 ## 만드는 곳
 
