@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>KSI 안전점검 — 오늘의 현장 (시연용 데모)</title>
+<style>
+  :root {
+    --bg: oklch(0.965 0.005 250);
+    --surface: oklch(0.995 0.002 250);
+    --surface-raised: oklch(1 0 0);
+    --fg: oklch(0.22 0.015 250);
+    --muted: oklch(0.52 0.012 250);
+    --border: oklch(0.89 0.008 250);
+    --accent: oklch(0.55 0.16 255);
+    --accent-fg: oklch(1 0 0);
+    --accent-subtle: oklch(0.94 0.03 255);
+    --status-scheduled: oklch(0.55 0.08 250);
+    --status-progress: oklch(0.55 0.14 200);
+    --status-review: oklch(0.62 0.14 65);
+    --status-complete: oklch(0.52 0.12 155);
+    --status-blocked: oklch(0.58 0.18 25);
+    --status-bg-scheduled: oklch(0.94 0.02 250);
+    --status-bg-progress: oklch(0.94 0.03 200);
+    --status-bg-review: oklch(0.95 0.04 65);
+    --status-bg-complete: oklch(0.94 0.03 155);
+    --status-bg-blocked: oklch(0.95 0.04 25);
+    --radius: 6px;
+    --shadow-sm: 0 1px 2px oklch(0.22 0.015 250 / 0.06);
+    --shadow-md: 0 2px 8px oklch(0.22 0.015 250 / 0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 32px 48px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .product-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+  }
+
+  .page-title {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .date-display {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ── Summary line ── */
+  .summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    margin: 20px 0 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .summary-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--status-review);
+  }
+
+  .summary-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .summary-text strong {
+    font-weight: 650;
+    color: var(--status-review);
+  }
+
+  .summary-action {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+
+  .summary-action:hover {
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── List header ── */
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 10px;
+  }
+
+  .list-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .list-count {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Column headers ── */
+  .column-header {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.4fr 1fr 0.8fr auto;
+    gap: 16px;
+    padding: 0 16px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .column-header span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .column-header .col-time {
+    text-align: right;
+  }
+
+  .column-header .col-action {
+    text-align: right;
+  }
+
+  /* ── Inspection list ── */
+  .inspection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .inspection-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.4fr 1fr 0.8fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--surface);
+    transition: background 0.12s;
+  }
+
+  .inspection-row:hover {
+    background: var(--surface-raised);
+  }
+
+  .inspection-row + .inspection-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .inspection-row-critical {
+    border-left: 3px solid var(--status-blocked);
+    padding-left: 13px;
+  }
+
+  /* Site name */
+  .site-name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  .site-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* Inspection type */
+  .inspection-type {
+    font-size: 13px;
+    color: var(--fg);
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 550;
+    width: fit-content;
+  }
+
+  .status-badge svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .status-scheduled {
+    background: var(--status-bg-scheduled);
+    color: var(--status-scheduled);
+  }
+
+  .status-in-progress {
+    background: var(--status-bg-progress);
+    color: var(--status-progress);
+  }
+
+  .status-needs-review {
+    background: var(--status-bg-review);
+    color: var(--status-review);
+  }
+
+  .status-complete {
+    background: var(--status-bg-complete);
+    color: var(--status-complete);
+  }
+
+  .status-blocked {
+    background: var(--status-bg-blocked);
+    color: var(--status-blocked);
+  }
+
+  /* Inspector */
+  .inspector-name {
+    font-size: 13px;
+    color: var(--fg);
+  }
+
+  /* Time */
+  .time-display {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  /* Next action */
+  .next-action {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 5px 12px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .next-action:hover {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .next-action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .next-action-secondary {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    white-space: nowrap;
+    transition: border-color 0.12s, color 0.12s;
+  }
+
+  .next-action-secondary:hover {
+    border-color: var(--muted);
+    color: var(--fg);
+  }
+
+  .next-action-secondary:focus-visible {
+    outline: 2px solid var(--muted);
+    outline-offset: 2px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+  }
+
+  .empty-icon {
+    width: 40px;
+    height: 40px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .empty-desc {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 360px;
+  }
+
+  .empty-action {
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .empty-action:hover {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  /* ── Error state ── */
+  .error-state {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--status-bg-blocked);
+    border: 1px solid var(--status-blocked);
+    border-radius: var(--radius);
+    margin-top: 16px;
+  }
+
+  .error-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--status-blocked);
+    margin-top: 1px;
+  }
+
+  .error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--status-blocked);
+    margin-bottom: 2px;
+  }
+
+  .error-desc {
+    font-size: 13px;
+    color: var(--fg);
+  }
+
+  .error-retry {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--status-blocked);
+    text-decoration: none;
+    padding: 5px 12px;
+    border: 1px solid var(--status-blocked);
+    border-radius: var(--radius);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .error-retry:hover {
+    background: var(--status-blocked);
+    color: var(--surface);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 0;
+    margin-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 16px;
+  }
+
+  .footer-link {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.12s;
+  }
+
+  .footer-link:hover {
+    color: var(--fg);
+  }
+</style>
+</head>
+<body>
+<div class="app" data-od-id="field-inspection-screen">
+
+  <!-- 시연 안내 -->
+  <div class="summary-bar" data-od-id="demo-notice" style="margin-top:20px;">
+    <span class="summary-text">시연용 데모 화면입니다 · 가상 데이터 · 실제 현장 정보가 아닙니다 · 주식회사 케이에스아이 043-288-4860</span>
+    <a href="https://github.com/khakisketch/KSI-Opencode-Harness" class="summary-action">GitHub에서 보기</a>
+  </div>
+
+  <!-- Header -->
+  <header class="header" data-od-id="app-header">
+    <div class="header-left">
+      <span class="product-name">KSI 안전점검</span>
+      <span class="header-divider"></span>
+      <span class="page-title">오늘의 현장</span>
+    </div>
+    <div class="header-right">
+      <span class="date-display">2026년 9월 30일 수요일 — 오전 07:42</span>
+      <div class="user-avatar" title="Safety Manager">SM</div>
+    </div>
+  </header>
+
+  <!-- Summary line -->
+  <div class="summary-bar" data-od-id="summary-bar">
+    <svg class="summary-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M10 6v4l2.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="10" cy="10" r="7.5"/>
+    </svg>
+    <span class="summary-text"><strong>2곳</strong>이 오전 9시 브리핑 전에 조치가 필요합니다 — <strong>한강교량 4번 교각</strong>은 차단 상태이고 <strong>서초타워 12층</strong>은 검토 대기입니다.</span>
+    <a href="#" class="summary-action">차단 현장 보기</a>
+  </div>
+
+  <!-- List header -->
+  <div class="list-header" data-od-id="list-header">
+    <span class="list-title">오늘의 점검</span>
+    <span class="list-count">총 6건 · 07:42 동기화 (가상 데이터)</span>
+  </div>
+
+  <!-- Column headers -->
+  <div class="column-header" data-od-id="column-header">
+    <span>현장</span>
+    <span>점검 유형</span>
+    <span>상태</span>
+    <span>점검자</span>
+    <span class="col-time">시간</span>
+    <span class="col-action">조치</span>
+  </div>
+
+  <!-- Inspection list -->
+  <div class="inspection-list" data-od-id="inspection-list">
+
+    <!-- Row 1: Blocked -->
+    <div class="inspection-row inspection-row-critical" data-od-id="inspection-row-han-river">
+      <div>
+        <div class="site-name">한강교량 — 4번 교각</div>
+        <div class="site-meta">토목 · 구조물 건전성 점검</div>
+      </div>
+      <div class="inspection-type">구조 점검</div>
+      <div>
+        <span class="status-badge status-blocked">
+          <svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1L1 10h10L6 1z"/></svg>
+          차단
+        </span>
+      </div>
+      <div class="inspector-name">김도윤</div>
+      <div class="time-display">오전 06:15</div>
+      <a href="#" class="next-action">차단 해소</a>
+    </div>
+
+    <!-- Row 2: Needs review -->
+    <div class="inspection-row" data-od-id="inspection-row-seocho">
+      <div>
+        <div class="site-name">서초타워 — 12층</div>
+        <div class="site-meta">추락방호 · 안전대·앵커 점검</div>
+      </div>
+      <div class="inspection-type">안전 순찰</div>
+      <div>
+        <span class="status-badge status-needs-review">
+          <svg viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="5"/></svg>
+          검토 필요
+        </span>
+      </div>
+      <div class="inspector-name">박지훈</div>
+      <div class="time-display">오전 07:05</div>
+      <a href="#" class="next-action">지적사항 검토</a>
+    </div>
+
+    <!-- Row 3: In progress -->
+    <div class="inspection-row" data-od-id="inspection-row-gangnam">
+      <div>
+        <div class="site-name">강남역 — 3번 출구</div>
+        <div class="site-meta">전기 · 가설전선 점검</div>
+      </div>
+      <div class="inspection-type">전기 안전</div>
+      <div>
+        <span class="status-badge status-in-progress">
+          <svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l6 4-6 4V2z"/></svg>
+          진행 중
+        </span>
+      </div>
+      <div class="inspector-name">이서연</div>
+      <div class="time-display">오전 07:30</div>
+      <a href="#" class="next-action-secondary">모니터링</a>
+    </div>
+
+    <!-- Row 4: Scheduled -->
+    <div class="inspection-row" data-od-id="inspection-row-yeouido">
+      <div>
+        <div class="site-name">여의도공원 — 북문</div>
+        <div class="site-meta">소방 · 소화기·비상구 점검</div>
+      </div>
+      <div class="inspection-type">소방 안전</div>
+      <div>
+        <span class="status-badge status-scheduled">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 3.5V6l1.5 1.5" stroke-linecap="round"/></svg>
+          예정
+        </span>
+      </div>
+      <div class="inspector-name">최민준</div>
+      <div class="time-display">오전 09:00</div>
+      <a href="#" class="next-action-secondary">체크리스트</a>
+    </div>
+
+    <!-- Row 5: Complete -->
+    <div class="inspection-row" data-od-id="inspection-row-mapo">
+      <div>
+        <div class="site-name">마포창고 — 2번 구역</div>
+        <div class="site-meta">장비 · 크레인·지게차 점검</div>
+      </div>
+      <div class="inspection-type">장비 점검</div>
+      <div>
+        <span class="status-badge status-complete">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          완료
+        </span>
+      </div>
+      <div class="inspector-name">윤하늘</div>
+      <div class="time-display">오전 05:45</div>
+      <a href="#" class="next-action-secondary">보고서 보기</a>
+    </div>
+
+    <!-- Row 6: Complete -->
+    <div class="inspection-row" data-od-id="inspection-row-jongno">
+      <div>
+        <div class="site-name">종로플라자 — 옥상</div>
+        <div class="site-meta">일반 · 정리정돈·보호구 점검</div>
+      </div>
+      <div class="inspection-type">일반 안전</div>
+      <div>
+        <span class="status-badge status-complete">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          완료
+        </span>
+      </div>
+      <div class="inspector-name">한결</div>
+      <div class="time-display">오전 06:30</div>
+      <a href="#" class="next-action-secondary">보고서 보기</a>
+    </div>
+
+  </div>
+
+  <!-- Error state (hidden by default, shown when data fails to load) -->
+  <div class="error-state" data-od-id="error-state" style="display: none;">
+    <svg class="error-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M10 7v4" stroke-linecap="round"/>
+      <circle cx="10" cy="13.5" r="0.5" fill="currentColor"/>
+      <path d="M10 3L2.5 16h15L10 3z" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="error-title">Inspection data failed to load</div>
+      <div class="error-desc">The site list could not be retrieved. Your connection may be unstable, or the server is unavailable.</div>
+    </div>
+    <a href="#" class="error-retry">Retry</a>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" data-od-id="app-footer">
+    <span>KSI 안전점검 · 현장운영 v2.4 (시연용 데모)</span>
+    <div class="footer-links">
+      <a href="#" class="footer-link">도움말</a>
+      <a href="#" class="footer-link">동기화 상태</a>
+      <a href="#" class="footer-link">설정</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
