@@ -165,7 +165,17 @@ export function createStore({ dir, now = () => Date.now(), lockTimeoutMs = LOCK_
       try {
         handle = await open(lockPath, "wx");
       } catch (error) {
-        if (error?.code !== "EEXIST") throw error;
+        // Exclusive-create contention surfaces as EEXIST on POSIX, but on
+        // Windows the same race (sharing violation / pending delete while a
+        // holder closes and removes the lock) surfaces as EPERM, EACCES, or
+        // EBUSY. Treat all of them as a held lock and retry until the timeout.
+        if (
+          error?.code !== "EEXIST" &&
+          error?.code !== "EPERM" &&
+          error?.code !== "EACCES" &&
+          error?.code !== "EBUSY"
+        )
+          throw error;
         try {
           const info = await stat(lockPath);
           if (Date.now() - info.mtimeMs > STALE_LOCK_MS) {
