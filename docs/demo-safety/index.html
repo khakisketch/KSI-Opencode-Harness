@@ -493,127 +493,129 @@
   </div>
 
   <!-- Column headers -->
-  <div class="column-header" data-od-id="column-header">
-    <span>현장</span>
-    <span>점검 유형</span>
-    <span>상태</span>
-    <span>점검자</span>
-    <span class="col-time">시간</span>
-    <span class="col-action">조치</span>
+  <div role="table" aria-label="오늘의 점검 목록 (가상 데이터)" data-od-id="inspection-table">
+  <div class="column-header" data-od-id="column-header" role="row">
+    <span role="columnheader">현장</span>
+    <span role="columnheader">점검 유형</span>
+    <span role="columnheader">상태</span>
+    <span role="columnheader">점검자</span>
+    <span class="col-time" role="columnheader">시간</span>
+    <span class="col-action" role="columnheader">조치</span>
   </div>
 
   <!-- Inspection list -->
-  <div class="inspection-list" data-od-id="inspection-list">
+  <div class="inspection-list" data-od-id="inspection-list" role="rowgroup">
 
     <!-- Row 1: Blocked -->
-    <div class="inspection-row inspection-row-critical" id="inspection-row-han-river" data-od-id="inspection-row-han-river">
-      <div>
+    <div class="inspection-row inspection-row-critical" id="inspection-row-han-river" data-od-id="inspection-row-han-river" role="row">
+      <div role="rowheader">
         <div class="site-name">한강교량 — 4번 교각</div>
         <div class="site-meta">토목 · 구조물 건전성 점검</div>
       </div>
-      <div class="inspection-type">구조 점검</div>
-      <div>
+      <div class="inspection-type" role="cell">구조 점검</div>
+      <div role="cell">
         <span class="status-badge status-blocked">
           <svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1L1 10h10L6 1z"/></svg>
           차단
         </span>
       </div>
-      <div class="inspector-name">점검자 A</div>
-      <div class="time-display">오전 06:15</div>
+      <div class="inspector-name" role="cell">점검자 A</div>
+      <div class="time-display" role="cell">오전 06:15</div>
       <button class="next-action" type="button" data-demo-action="차단 해소">차단 해소</button>
     </div>
 
     <!-- Row 2: Needs review -->
-    <div class="inspection-row" data-od-id="inspection-row-seocho">
-      <div>
+    <div class="inspection-row" data-od-id="inspection-row-seocho" role="row">
+      <div role="rowheader">
         <div class="site-name">서초타워 — 12층</div>
         <div class="site-meta">추락방호 · 안전대·앵커 점검</div>
       </div>
-      <div class="inspection-type">안전 순찰</div>
-      <div>
+      <div class="inspection-type" role="cell">안전 순찰</div>
+      <div role="cell">
         <span class="status-badge status-needs-review">
           <svg viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="5"/></svg>
           검토 필요
         </span>
       </div>
-      <div class="inspector-name">점검자 B</div>
-      <div class="time-display">오전 07:05</div>
+      <div class="inspector-name" role="cell">점검자 B</div>
+      <div class="time-display" role="cell">오전 07:05</div>
       <button class="next-action" type="button" data-demo-action="지적사항 검토">지적사항 검토</button>
     </div>
 
     <!-- Row 3: In progress -->
-    <div class="inspection-row" data-od-id="inspection-row-gangnam">
-      <div>
+    <div class="inspection-row" data-od-id="inspection-row-gangnam" role="row">
+      <div role="rowheader">
         <div class="site-name">강남역 — 3번 출구</div>
         <div class="site-meta">전기 · 가설전선 점검</div>
       </div>
-      <div class="inspection-type">전기 안전</div>
-      <div>
+      <div class="inspection-type" role="cell">전기 안전</div>
+      <div role="cell">
         <span class="status-badge status-in-progress">
           <svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l6 4-6 4V2z"/></svg>
           진행 중
         </span>
       </div>
-      <div class="inspector-name">점검자 C</div>
-      <div class="time-display">오전 07:30</div>
+      <div class="inspector-name" role="cell">점검자 C</div>
+      <div class="time-display" role="cell">오전 07:30</div>
       <button class="next-action-secondary" type="button" data-demo-action="모니터링">모니터링</button>
     </div>
 
     <!-- Row 4: Scheduled -->
-    <div class="inspection-row" data-od-id="inspection-row-yeouido">
-      <div>
+    <div class="inspection-row" data-od-id="inspection-row-yeouido" role="row">
+      <div role="rowheader">
         <div class="site-name">여의도공원 — 북문</div>
         <div class="site-meta">소방 · 소화기·비상구 점검</div>
       </div>
-      <div class="inspection-type">소방 안전</div>
-      <div>
+      <div class="inspection-type" role="cell">소방 안전</div>
+      <div role="cell">
         <span class="status-badge status-scheduled">
           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 3.5V6l1.5 1.5" stroke-linecap="round"/></svg>
           예정
         </span>
       </div>
-      <div class="inspector-name">점검자 D</div>
-      <div class="time-display">오전 09:00</div>
+      <div class="inspector-name" role="cell">점검자 D</div>
+      <div class="time-display" role="cell">오전 09:00</div>
       <button class="next-action-secondary" type="button" data-demo-action="체크리스트">체크리스트</button>
     </div>
 
     <!-- Row 5: Complete -->
-    <div class="inspection-row" data-od-id="inspection-row-mapo">
-      <div>
+    <div class="inspection-row" data-od-id="inspection-row-mapo" role="row">
+      <div role="rowheader">
         <div class="site-name">마포창고 — 2번 구역</div>
         <div class="site-meta">장비 · 크레인·지게차 점검</div>
       </div>
-      <div class="inspection-type">장비 점검</div>
-      <div>
+      <div class="inspection-type" role="cell">장비 점검</div>
+      <div role="cell">
         <span class="status-badge status-complete">
           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           완료
         </span>
       </div>
-      <div class="inspector-name">점검자 E</div>
-      <div class="time-display">오전 05:45</div>
+      <div class="inspector-name" role="cell">점검자 E</div>
+      <div class="time-display" role="cell">오전 05:45</div>
       <button class="next-action-secondary" type="button" data-demo-action="보고서 보기">보고서 보기</button>
     </div>
 
     <!-- Row 6: Complete -->
-    <div class="inspection-row" data-od-id="inspection-row-jongno">
-      <div>
+    <div class="inspection-row" data-od-id="inspection-row-jongno" role="row">
+      <div role="rowheader">
         <div class="site-name">종로플라자 — 옥상</div>
         <div class="site-meta">일반 · 정리정돈·보호구 점검</div>
       </div>
-      <div class="inspection-type">일반 안전</div>
-      <div>
+      <div class="inspection-type" role="cell">일반 안전</div>
+      <div role="cell">
         <span class="status-badge status-complete">
           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           완료
         </span>
       </div>
-      <div class="inspector-name">점검자 F</div>
-      <div class="time-display">오전 06:30</div>
+      <div class="inspector-name" role="cell">점검자 F</div>
+      <div class="time-display" role="cell">오전 06:30</div>
       <button class="next-action-secondary" type="button" data-demo-action="보고서 보기">보고서 보기</button>
     </div>
 
   </div>
+  </div><!-- /inspection-table -->
 
   <!-- Footer -->
   <footer class="footer" data-od-id="app-footer">
