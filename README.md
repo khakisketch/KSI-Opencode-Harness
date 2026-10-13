@@ -4,11 +4,11 @@
 
 **AI에게 일을 맡기되, 방향과 완료 기준은 사람이 정합니다.**
 
-OpenCode V2를 위한 **실무형 작업 방식 + 선택형 설치기** — 필요한 역할만 얹고, 기존 환경은 건드리지 않습니다.
+OpenCode V2를 위한 **실무형 작업 방식 + 선택형 설치기** — 필요한 역할만 추가하고, 기존 설정은 자동 삭제·덮어쓰기하지 않습니다.
 
 [![OpenCode V2](https://img.shields.io/badge/OpenCode-V2-blue)](https://opencode.ai) [![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org) [![Beta 0.5.0-beta.9](https://img.shields.io/badge/beta-0.5.0--beta.9-orange)](package.json) [![MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE) [![Check](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/check.yml)
 
-[빠른 시작](#빠른-시작-30초) · [화면으로 보기](#화면으로-보기) · [현장 데모](#현장-적용-예시시연용-데모) · [동작 방식](#동작-방식) · [문서](#문서) · [문의](#만드는-곳)
+[빠른 시작](#빠른-시작) · [현장 UI 데모](#현장-안전점검-ui-데모) · [동작 방식](#동작-방식) · [검증](#검증과-품질) · [문서](#문서) · [문의](#만드는-곳)
 
 </div>
 
@@ -23,54 +23,28 @@ OpenCode V2를 위한 **실무형 작업 방식 + 선택형 설치기** — 필�
 | --- | --- |
 | **하는 일** | 승인된 작업을 끝까지 완주 — 구현 · 통합 · 검증 · 보고를 책임집니다 |
 | **설치 범위** | 선택한 설정 폴더에 `agents/developer.md`, `agents/reviewer.md` 2개만 추가 |
-| **하지 않는 일** | 기존 파일 자동 삭제 · 전역 설정 변경 · 강제 마이그레이션 없음 |
+| **하지 않는 일** | 기존 파일 자동 삭제·덮어쓰기 · 전역 설정 변경 · 강제 마이그레이션 없음 |
 | **확인 방법** | 미리보기 → 적용 → 에이전트 목록 확인 → `npm run check` |
 | **공개 상태** | Public Beta `0.5.0-beta.9` · MIT · npm 로그인 없이 설치 가능 |
 
-## 화면으로 보기
+## 현장 안전점검 UI 데모
 
-<table>
-<tr>
-<td width="50%">
+현장 담당자가 브리핑 전에 조치 대상을 빠르게 찾는 **안전점검 화면 시안**입니다.
+포트폴리오 설명을 위한 정적 HTML 시연물로, 이 저장소의 npm 설치기와는 별개입니다. 실제 현장·납품·운영 실적이나 연결된 제품이 아닙니다.
 
-**개발 흐름도** — 누가 무엇을 책임지는지 한 장에 정리
+![현장 안전점검 UI 시연 화면 — 가상 데이터](docs/assets/demo/safety-field-inspection.png)
 
-![개발 흐름도](docs/assets/walkthrough/00-flow.png)
+| 이 화면에서 보여주는 것 | 내용 |
+| --- | --- |
+| **우선순위 요약** | 오전 브리핑 전 조치가 필요한 현장을 상단에 표시 |
+| **현장별 상태** | 점검 종류와 진행 상태를 한눈에 비교 |
+| **후속 조치** | 점검자가 다음으로 할 일을 명확히 제시 |
 
-</td>
-<td width="50%">
+- **가상 정보:** 현장명·점검자·상태·시간은 모두 예시 데이터입니다.
+- **동작 범위:** 상단 버튼은 해당 현장으로 이동하고, 조치 버튼은 데모 안내를 보여줍니다. 실제 조치·저장·로그인·API 연결은 없습니다.
+- **페이지 소스:** [`docs/demo-safety/index.html`](docs/demo-safety/index.html) · [전체 개발 흐름과 캡처 유의사항](docs/walkthrough.md)
 
-**실제 제품 화면 예시** — 한국어 운영 화면 (데모 데이터)
-
-![제품 대시보드 예시](docs/assets/walkthrough/02-product-dashboard.png)
-
-</td>
-</tr>
-</table>
-
-> 전체 흐름 설명은 [시각 가이드](docs/walkthrough.md)에서 볼 수 있습니다.
-> 캡처 일부는 과거 실행 예시이며, 최신 상태 증빙이 아니라 흐름 이해용입니다.
-
-## 현장 적용 예시(시연용 데모)
-
-담당자가 가장 빨리 이해하는 화면 — **현장 안전점검 리스트**를 시연용 데모로 만들었습니다.
-현장명은 가상이며, 실제 현장 정보가 아닙니다.
-
-![현장 안전점검 데모 화면(시안 예시)](docs/assets/demo/safety-field-inspection.png)
-
-| 현장(가상) | 점검 유형 | 상태 | 조치 |
-| --- | --- | --- | --- |
-| 한강교량 — 4번 교각 | 구조 점검 | 차단 | 차단 해소 |
-| 서초타워 — 12층 | 안전 순찰 | 검토 필요 | 지적사항 검토 |
-| 강남역 — 3번 출구 | 전기 안전 | 진행 중 | 모니터링 |
-| 여의도공원 — 북문 | 소방 안전 | 예정 | 체크리스트 |
-| 마포창고 — 2번 구역 | 장비 점검 | 완료 | 보고서 보기 |
-| 종로플라자 — 옥상 | 일반 안전 | 완료 | 보고서 보기 |
-
-- **한글 데모 페이지:** [`docs/demo-safety/index.html`](docs/demo-safety/index.html) — GitHub Pages를 `/docs`로 열면 라이브 주소로 바로 공유됩니다.
-- **포인트:** 오전 브리핑 전 “조치가 필요한 2곳” 요약 → 상태 뱃지 → 다음 조치 버튼까지 한 화면. 발주처 보고용으로 그대로 쓸 수 있는 구조입니다.
-
-## 빠른 시작 (30초)
+## 빠른 시작
 
 준비물: **Node.js 20+**, **OpenCode V2**, 모델 provider 연결. npm 로그인은 필요 없습니다.
 
@@ -136,7 +110,7 @@ flowchart TD
 
 테스트 통과 · 사용자 수락 · 푸시/배포는 서로 다른 상태이며, 외부 반영은 대상·영향 승인이 필요합니다.
 
-## 검증 · 품질
+## 검증과 품질
 
 포트폴리오용이라도 검증 근거는 실제로 돌립니다.
 
@@ -184,19 +158,19 @@ node bin/ksi-opencode.mjs install --target "$PWD/.opencode" --apply
 
 </details>
 
-## 공개 · 배포 안내
+## 배포 정보
 
-- **GitHub:** 이 저장소를 Public으로 두고 README 상단 이미지·데모 링크가 바로 보이게 유지합니다.
-- **라이브 데모:** 저장소 Settings → Pages → Deploy from branch → `/docs` 선택 시
-  `docs/demo-safety/index.html`이 `https://<계정>.github.io/<저장소>/demo-safety/` 로 열립니다.
-- **npm:** `ksi-opencode-harness@0.5.0-beta.9` — 기본·`next` 채널 배포, 설치는 버전을 고정(pin)해서 쓰세요.
+- **GitHub 저장소:** [khakisketch/KSI-Opencode-Harness](https://github.com/khakisketch/KSI-Opencode-Harness) · 공개 저장소
+- **npm:** `ksi-opencode-harness@0.5.0-beta.9` · 공개 Beta · 설치 시 버전을 고정해 재현성을 유지합니다.
+- **라이브 데모:** GitHub Pages 배포가 활성화되면 이곳에 주소를 게시합니다. 현재 화면 파일은 [`docs/demo-safety/index.html`](docs/demo-safety/index.html)에서 확인할 수 있습니다.
 
 ## 만드는 곳
 
 **주식회사 케이에스아이** · 043-288-4860
 
-- AI·웹·현장 운영 화면까지, 실제 동작하는 결과물로 증명합니다.
-- 이 저장소의 화면·데모는 발주처 이해용 시연이며, 현장명·수치는 가상 데이터입니다.
+- AI 개발 도구와 현장 업무 화면을 이해하기 쉬운 흐름·인터페이스로 구체화합니다.
+- 이 저장소의 안전점검 화면은 포트폴리오용 정적 시연물이며, 현장명·점검자·수치는 모두 가상 데이터입니다.
+- 데모에는 실제 현장 운영, 저장, API 연동 또는 납품 완료를 주장하는 내용이 없습니다.
 - 도입·커스터마이징 문의는 전화로 연락 주세요.
 
 ## 라이선스
