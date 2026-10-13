@@ -1,5 +1,6 @@
 # Native installer troubleshooting
 
+- Absolute target, other machines: Linux/macOS use `"$PWD/.opencode"`; Windows PowerShell uses `(Join-Path (Get-Location) ".opencode")`. A project target affects one project; the server-global config directory (usually `~/.config/opencode`, managed/external servers differ) affects every project on that server. Verify the actual server's directory on that machine; no Windows/macOS execution outcome is promised.
 - `conflict`: A target custom `agents/*.md` file differs. Review the preview output. `--apply --replace` backs each replaced file up before writing; do not use it until the owner approves the change.
 - `symlink`: The installer refuses a symlinked managed directory or file. Choose the real intended config directory and inspect where the link points; do not bypass the check blindly.
 - A role still appears Primary: confirm its effective V2 `mode: subagent` from a fresh OpenCode session and inspect other global/project config layers. The installer does not rewrite existing JSONC or prove which layer wins. New custom roles otherwise default to Primary.

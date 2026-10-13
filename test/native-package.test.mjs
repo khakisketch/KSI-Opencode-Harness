@@ -5,7 +5,7 @@ import { access, readFile } from "node:fs/promises"
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
 
 test("manifest retains the last published beta until an authorized release bump", () => {
-  assert.equal(packageJson.version, "0.5.0-beta.8")
+  assert.equal(packageJson.version, "0.5.0-beta.9")
   assert.notEqual(packageJson.private, true)
 })
 

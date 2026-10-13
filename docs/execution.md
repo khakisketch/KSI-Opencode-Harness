@@ -8,17 +8,25 @@ Plan supports understanding the project, comparing alternatives, analyzing risks
 
 The KSI host's approved operating configuration changed on 2026-10-09: native
 Plan/Build coordinate, native General implements and self-tests, Explore
-investigates, and review runs through the CE review skill. Compound Engineering (CE) supplies
+investigates, the default Design Specialist owns visual frontend work
+(design/frontend/render), and review runs through the CE review skill. Compound Engineering (CE) supplies
 optional skills, not another agent or a mandatory pipeline. Developer, Test Runner and Reviewer are
 removed from that global environment; Superpowers and the Goal plugin
 are no longer registered there. These are dated host-specific facts, not proof
 that another server or project has the same effective configuration.
 
-The source installer still offers Developer + Reviewer; public npm beta.8 is
-the historical Developer + Test Runner + Reviewer release. Neither applies the
-global migration. Do not reinstall retired roles or plugins merely to match an
+The installer bundle still offers Developer + Reviewer (public npm 0.5.0-beta.9);
+previous public release 0.5.0-beta.8 was the historical Developer + Test Runner + Reviewer
+release. Neither applies the global migration. Do not reinstall retired roles or plugins merely to match an
 installer example. Preserve unrelated installations and inspect the actual
 serving configuration when adopting or troubleshooting an environment.
+
+Below, "the design workspace" means the default Design Specialist unless OpenDesign was
+separately and explicitly selected for that environment, in which case the external
+OpenDesign workspace takes that seat. OpenDesign is never the sole, default, or mandatory
+design path, and its absence never blocks visual work on the default path. Build owns
+overall integration and may apply simple mechanical UI transfers directly; API/data/auth
+contracts stay unchanged.
 
 Build chooses native execution or relevant CE skills as the work needs, without
 asking the user to choose an A/B/C mode or imposing a no-mixing rule. Build and
@@ -368,7 +376,7 @@ or proof of improved real-development quality.
 
 Parallel scheduling is the working method's own concern — a CE workflow follows its execution strategy, and native runs use OpenCode's subagent capability when separable work exists. Build integrates the results and owns the final claim; no separate KSI coordinator or parallel-development procedure is added.
 
-OpenCode V2 keeps its own Build, Plan, General, and Explore prompts. The source installer's two `agents/*.md` files define only its additional roles (Developer, Reviewer), not the current global operating configuration. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. Native General and the default Developer cannot delegate. Test Runner is no longer part of the source bundle and `--developer-test-runner` is removed; an already installed Test Runner file remains user-owned, not automatically retired or a required verification seat. Treat helper output as author feedback, not independent acceptance.
+OpenCode V2 keeps its own Build, Plan, General, and Explore prompts. The installer bundle's two `agents/*.md` files define only its additional roles (Developer, Reviewer), not the current global operating configuration. KSI's installer does not set models, variants, or steps. Existing positive step budgets stay in JSONC or other user-owned configuration; absent values use OpenCode defaults. Native General and the default Developer cannot delegate. Test Runner is no longer part of the source bundle and `--developer-test-runner` is removed; an already installed Test Runner file remains user-owned, not automatically retired or a required verification seat. Treat helper output as author feedback, not independent acceptance.
 
 There are no KSI slash commands: ask Build to reconcile or complete work and use the CE review skill (ce-code-review) when a change needs independent review. For continuity, read the project's `AGENTS.md`, `.opencode/working-state.md`, product-state, ledger, and current Git state when relevant; the installer no longer injects these automatically. Use ordinary authorized tools for repository evidence. Six former `ksi_*` evidence tools, automatic archival, and runtime task-contract guards are unavailable. Do not claim they ran. Authority comes from the user/adopted operating policy, not a role or passing test.
 

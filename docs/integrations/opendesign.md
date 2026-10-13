@@ -1,5 +1,11 @@
 # OpenDesign integration
 
+> 범위: 이 문서는 **별도로 명시적으로 선택한 환경에서만 쓰는 외부 워크스페이스 통합**의 상세
+> 절차서입니다. 시각 실행의 기본 담당은 Design Specialist이며, OpenDesign은 기본·유일·의무
+> 경로가 아닙니다. OpenDesign을 선택하지 않은 환경에서는 이 문서의 절차를 적용하지 않으며,
+> 그 미선택이 시각 작업의 차단 사유가 되지 않습니다. 아래의 상세 절차는 해당 선택이 이루어진
+> 경우에만 조건부로 적용됩니다.
+
 The design workspace is a separately deployed application, not a role in this
 installer and not a vendored skill kit. The installer ships no design skills, design system, or craft
 references; this document defines how the harness expects OpenCode to use the OpenDesign capability.
@@ -14,7 +20,8 @@ automatic installer.
 
 DGX user-level operating guidance is installed separately in `~/.config/opencode/AGENTS.md`, under
 `Design-to-engineering workflow`. It applies across that user's OpenCode projects; it is not installed
-by the KSI package. The default is **OpenDesign's local execution** (the execution agent/model is
+by the KSI package. Where OpenDesign was separately and explicitly selected, the design
+path is **OpenDesign's local execution** (the execution agent/model is
 chosen per run — not the standalone Codex CLI) in the connected server's execution environment,
 not the browser client's PC. **User-facing copy: call it "OpenDesign (local execution)".**
 "Local Codex" is the vendor's mode label (the OpenDesign MCP instructions list it as a product name);
@@ -132,9 +139,9 @@ Use the command supplied by your actual upstream installation; Docker deployment
 If the capability is absent, say so and continue with the engineering work that does not depend on it. Do
 not invent design artifacts or silently substitute a locally-invented design system.
 
-## When to use OpenDesign
+## When to use OpenDesign (only where explicitly selected)
 
-The default design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new brand identity, client-facing deliverable, out-of-scope change or explicit review-first request; a delegated redesign's visual direction is design-owned and does not add a routine approval step. Gate approvals are distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
+Where OpenDesign was separately and explicitly selected, the design path is OpenDesign's local execution. Reuse requirements and constraints already agreed in Plan/Build in the design brief instead of interviewing the user again. New artifacts still use the brief/confirmation flow; reuse does not fabricate answers or skip a missing material decision. Default to finish-and-report within the existing approved design language and authorized scope. Preview-and-wait only for a new brand identity, client-facing deliverable, out-of-scope change or explicit review-first request; a delegated redesign's visual direction is design-owned and does not add a routine approval step. Gate approvals are distinct from routine progress confirmation. Continue non-dependent engineering while waiting and, after resolving a gate, continue integration and verification without per-task permission prompts.
 
 ### Ownership: design work and engineering work
 

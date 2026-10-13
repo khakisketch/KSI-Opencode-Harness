@@ -2,14 +2,15 @@
 
 The published KSI package has two parts: two custom role templates and a standalone installer. The repository also carries optional, not-installed records and helpers — the design-notifier plugin, the OpenDesign deployment assets under `integrations/`, and the read-only `scripts/` diagnostics. The installer renders ordinary V2 `agents/*.md` files into a selected configuration directory. OpenCode reads those files natively; there is no distributed KSI `setup(ctx)`, `agent.transform`, or KSI entry in `plugins`. [OpenCode agents](https://opencode.ai/v2/docs/agents) and [configuration](https://opencode.ai/v2/docs/config) define the runtime semantics.
 
-OpenCode's built-in Build and Plan are the Primaries; native General and Explore are Subagents. Build/Plan/General/Explore retain their built-in system prompts. The optional installer adds Developer and Reviewer, but those package contents are not the active global configuration. The KSI host's approved 2026-10-09 operation uses General for implementation/self-tests and CE skills (review runs through ce-code-review); Developer/Test Runner/Reviewer are no longer present in the global configuration, and Superpowers/Goal are removed. Other servers need their own effective-config verification. Build may work directly or delegate as appropriate; General and the default Developer cannot delegate. There is no KSI design primary role.
+OpenCode's built-in Build and Plan are the Primaries; native General and Explore are Subagents. Build/Plan/General/Explore retain their built-in system prompts. The optional installer adds Developer and Reviewer, but those package contents are not the active global configuration. The KSI host's approved 2026-10-09 operation uses General for implementation/self-tests, the default Design Specialist for visual frontend ownership (design/frontend/render), and CE skills (review runs through ce-code-review); Developer/Test Runner/Reviewer are no longer present in the global configuration, and Superpowers/Goal are removed. Other servers need their own effective-config verification. Build owns overall execution/integration and may apply simple mechanical UI transfers directly; it may work directly or delegate as appropriate. API/data/auth contracts stay unchanged. General and the default Developer cannot delegate. There is no KSI design primary role.
 
 CE is a collection of procedures loaded by an executing agent, not another
 agent or a delegation target. Build selects useful methods; no full CE pipeline,
 user-selected A/B/C mode or no-mixing rule is mandatory. Skills neither grant
-permissions nor replace Build's integration/completion responsibility. The source
-installer remains Developer + Reviewer, and public npm beta.8 remains the historical
-three-role release; documenting current operation does not change either bundle.
+permissions nor replace Build's integration/completion responsibility. The installer bundle
+remains Developer + Reviewer (public npm 0.5.0-beta.9), and previous public release
+0.5.0-beta.8 was the historical three-role release; documenting current operation
+does not change either bundle.
 
 Plan is optional, not a required entry stage: it helps understand the project and prior decisions and define direction, scope, invariants and completion evidence. Clear tasks can start directly in Build. Build owns execution, integration, technical-completion evidence and reporting, not human acceptance or unapproved external delivery. Its relationship to the connected design workspace is a responsibility boundary, not a claim of superior visual expertise: Build supplies purpose, desired outcomes and functional/API/data/auth/brand invariants; design chooses and implements layout, hierarchy, composition and responsive presentation within them.
 
@@ -24,8 +25,9 @@ does not replace native prompts, expand permissions, auto-import files or enforc
 
 Within an authorized outcome, Build owns discovery, prioritization and the
 implementation → actual-result review → repair → affected verification loop, not
-just an improvement list handed back to the user. The design workspace remains
-the visual writer/reviewer, and independent verification — CE review and
+just an improvement list handed back to the user. The visual owner — the default
+Design Specialist, or the explicitly selected external workspace where chosen —
+remains the visual writer/reviewer, and independent verification — CE review and
 the integration checks the revision needs, or an explicitly configured
 verification role — remains distinct from author self-review. This [completion default](execution.md#own-the-completion-loop-not-a-list-for-the-user)
 does not turn audit/Plan-only requests into product-write authority, add a runtime
@@ -33,7 +35,14 @@ or automatically resume paused work/goals; material scope/security/delivery gate
 
 Native-first: keep tool behavior, provider/model prompting and native mode boundaries upstream; put KSI operating policy and project decision criteria in the appropriate `AGENTS.md`. A non-empty agent `system` (including a Markdown agent body) replaces the provider base prompt, while project instructions remain additional sources. An AGENTS.md supplement can still alter behavior, and OpenCode does not resolve conflicts automatically. Diagnose repeated failures against actual goals, state, loaded guidance, permissions and model/step constraints before considering a separately authorized prompt-replacement experiment. Compare the same tasks under matched conditions and preserve rollback; the installer must not turn an unverified experiment into a default built-in override.
 
-Design is a separate workspace, not a new native OpenCode role. [OpenDesign](integrations/opendesign.md) owns all visual frontend analysis, UI source/styles, responsive/interaction presentation, rendered design review and refinement, including small visual fixes. Build owns contracts, coordination, nonvisual business/API/data/auth work, functional integration/verification and Git. Mechanical artifact transfer is not permission to redesign. This installer distributes no design skills, craft references or design-system package; project brand and authorized outcome remain authoritative. No orchestrator role, KSI preview runtime, mandatory design stage for nonvisual work or model override is added.
+Design is a separate responsibility, not a new native OpenCode role. By default the
+Design Specialist owns all visual frontend analysis, UI source/styles,
+responsive/interaction presentation, rendered design review and refinement, including
+small visual fixes. [OpenDesign](integrations/opendesign.md) is an optional, separately
+and explicitly selected external-workspace integration that takes that seat only where
+chosen — never the sole, default, or mandatory design path, and its absence never blocks
+visual work on the default path. Build owns contracts, coordination, nonvisual
+business/API/data/auth work, functional integration/verification and Git. Mechanical artifact transfer is not permission to redesign. This installer distributes no design skills, craft references or design-system package; project brand and authorized outcome remain authoritative. No orchestrator role, KSI preview runtime, mandatory design stage for nonvisual work or model override is added.
 
 The workflow is asymmetric: OpenCode supplies a compact task contract; the design workspace analyzes, edits actual UI sources, renders, reviews and refines; Build checks review evidence and real product functionality, then reports. Presentation defects return to design; nonvisual functional defects stay engineering-owned. No automatic engineering-session callbacks, recursive generation or simultaneous same-file writers are added. Keep design review evidence separate from functional/product-server evidence; this is the existing MCP/source-or-artifact handoff, not enforced quality scoring.
 
@@ -41,7 +50,7 @@ Route by work nature, not size: a small spacing/overflow repair stays design-own
 
 For existing frontends, use the [product-aware design contract](integrations/opendesign.md#product-aware-frontend-improvement): actual relevant source/tokens and integration constraints feed supported UI output, which Build integrates faithfully and compares with the real product. The design workspace is not limited conceptually to unrelated mockups, but framework/source-edit capability is verified per target, not inferred from HTML support. Verified source-direct work in the actual product repository is the preferred path (one writer at a time; worktree optional), with separate output plus Build integration remaining the fallback when direct access is unavailable; guidance adoption alone still does not enable new mounts or security changes, which keep their own scoped authorization.
 
-Each installed custom role owns its description, mode, system prompt, and targeted native permission rules, not an exhaustive allowlist. The bundle has no skill whitelist and omits model/variant/steps so existing user settings remain in their native configuration layer. The installer does not parse or rewrite JSONC and refuses differing file collisions without explicit replacement and backup. A collision in a *different* config layer still requires effective-config inspection; file checks alone do not settle OpenCode precedence. OpenCode's last matching permission rule wins, and its permissions are not an OS sandbox.
+Each installed custom role owns its description, mode, system prompt, and targeted native permission rules, not an exhaustive allowlist. The bundle has no skill whitelist and omits model/variant/steps so existing user settings remain in their native configuration layer. The package installs no native roles or prompts, OpenCode, Node.js, providers, models, credentials, the Design Specialist, CE, browser tooling, global policy, or MCP connections. (On the KSI host only, the user explicitly requested OpenAI gpt-6-luna-fast for the Design Specialist with the max variant preserved; this preference is host-local and is never forced on other machines.) The installer does not parse or rewrite JSONC and refuses differing file collisions without explicit replacement and backup. A collision in a *different* config layer still requires effective-config inspection; file checks alone do not settle OpenCode precedence. OpenCode's last matching permission rule wins, and its permissions are not an OS sandbox.
 
 Reviewer denies native `edit` and `subagent`; other actions inherit effective defaults/configuration. Under V2's base allow, shell, MCP mutations and Code Mode can remain available. Code Mode's nested tools still enforce their own permissions, but an `edit` denial does not govern every other mutation action. Read-only review is a behavioral contract: the reviewer may not use another tool to modify implementation/configuration/services/external data, and runs only safe read-only checks; artifact-producing checks belong to Build/CI or an explicitly configured verification role. Verify effective rules per target; stricter shell/MCP policies or OS isolation require separate design/adoption, not automatic installer changes. See [current V2 permissions](https://opencode.ai/v2/docs/permissions).
 
