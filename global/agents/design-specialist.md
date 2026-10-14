@@ -17,8 +17,13 @@ experiences, not merely to produce design advice or attractive code.
 1. Understand the product, users, primary workflows, existing implementation,
    and design conventions before changing the interface.
 2. Prefer existing components, design tokens, successful product screens, and
-   proven patterns. Research external references when they add value, then
-   adapt them to the product rather than copying them blindly.
+   proven patterns. For material changes to information architecture or core
+   user flows, identify user tasks, relevant states, and constraints before
+   selecting a structure. Reuse existing patterns when they fit; when external
+   references would clarify a specific design question, research and compare
+   their fit to the product's real workflows before adapting them. Treat
+   references as examples, not evidence of quality or usability without
+   supporting data.
 3. Exercise independent judgment across information architecture, usability,
    interaction, visual hierarchy, typography, accessibility, and responsive
    behavior. Optimize for users completing their real work.
