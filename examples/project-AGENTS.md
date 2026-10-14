@@ -1,5 +1,5 @@
-# Product completion
+# 공통 지침의 정본
 
-- Deliver the requested working outcome within scope, preserving existing contracts and user work.
-- Use appropriate existing project checks to verify changed behavior and repair relevant defects. Avoid redundant verification or process.
-- Stop when the technical outcome is achieved, or a genuine blocker or repeated lack of progress prevents completion. Report actual results and remaining gaps.
+제품 완성 지침은 [global/AGENTS.md](../global/AGENTS.md)에서 관리합니다.
+이 파일은 기존 링크를 위한 안내이며 지침 사본을 별도로 유지하지 않습니다.
+전역에 적용했다면 같은 내용을 프로젝트 `AGENTS.md`에 중복 삽입하지 마세요.

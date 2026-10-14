@@ -1,0 +1,64 @@
+{
+  // Native agents, model routing and MCP tools; no separate workflow runtime.
+  "$schema": "https://opencode.ai/config.json",
+  "share": "disabled",
+  "update": "notify",
+  "mcp": {
+    // Design Specialist owns frontend work; retired design runtimes stay absent.
+    "mobbin": {
+      "type": "remote",
+      "url": "https://api.mobbin.com/mcp",
+      "enabled": true,
+      "timeout": 30000
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx", "--yes", "@playwright/mcp@0.0.83",
+        "--headless", "--isolated", "--block-service-workers",
+        "--browser", "chrome",
+        "--caps", "vision", "--image-responses", "allow",
+        "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
+        "--output-dir", "design-previews/artifacts"
+      ],
+      "enabled": true,
+      "timeout": 30000
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+      },
+      "oauth": false,
+      "enabled": true,
+      "timeout": 30000
+    }
+  },
+  "agents": {
+    // Native Markdown owns custom-role prompts and permissions; these are user routing preferences.
+    "plan": { "mode": "all" },
+    "explore": { "model": "opencode-go/muse-spark-1.3-contributor#low", "steps": 20 },
+    "general": { "model": "opencode-go/muse-spark-1.3-contributor#high" }
+  },
+  "providers": {
+    "opencode-go": {
+      "models": {
+        "muse-spark-1.3-contributor": {
+          // This endpoint accepts auto only. Native step-limit execution guards remain unchanged.
+          "body": { "tool_choice": "auto" }
+        }
+      }
+    }
+  },
+  "tool_output": {
+    "max_lines": 600,
+    "max_bytes": 24576
+  },
+  "compaction": {
+    "auto": true,
+    // V2 retains context by token budget; V1 prune/tail-turn controls have no V2 equivalent.
+    "keep": { "tokens": 8192 },
+    "buffer": 4096
+  }
+}
