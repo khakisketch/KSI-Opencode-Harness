@@ -3,6 +3,51 @@
 실제로 사용하는 **OpenCode Native 전역 하네스의 정본과 배포 파일**을 관리합니다.
 별도 실행 프레임워크·설치기·자동 재개 플러그인은 제공하지 않습니다.
 
+## 에이전트에게 설치 요청하기
+
+아래 프롬프트를 **파일 수정·명령 실행이 가능한 에이전트**에게 전달하세요.
+KSI 파일은 이 저장소에서 적용하고, 외부 스킬은 공식 출처에서 설치합니다.
+다른 사람의 계정·시크릿·개인 스킬 폴더를 복제하지 않습니다.
+
+```text
+https://github.com/khakisketch/KSI-Opencode-Harness 의 main을 확인하고,
+README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스를 설치해줘.
+확인한 Git 커밋과 외부 도구 버전을 최종 보고에 남겨줘.
+
+1. OS와 실제 OpenCode 전역 경로, 기존 설정·에이전트·스킬, Node.js와 브라우저를
+   먼저 확인해줘. 기존 파일은 백업하고 관련 항목만 병합해줘.
+   개인 지침·모델·MCP·자격증명·다른 도구의 설치는 보존하고,
+   같은 이름의 사용자 정의와 충돌할 때만 필요한 선택을 질문해줘.
+2. global/AGENTS.md, global/agents/design-specialist.md, global/opencode.jsonc를
+   전역에 적용해줘. 프로젝트에 공통 지침을 중복 삽입하지 말고,
+   OS·사용자 경로 차이는 환경에 맞춰 반영한 뒤 차이를 보고해줘.
+   모델·MCP 설정은 현재 OpenCode V2 공식 문서와 실제 로드 결과로 확인해줘.
+3. Impeccable은 공식 npm 배포본 4.5.2를 OpenCode에만 전역 설치해줘.
+   기존 설치를 먼저 확인하고 불필요한 재설치·강제 덮어쓰기는 하지 마.
+   필요한 경우 실행할 명령:
+   npx --yes impeccable@4.5.2 install --providers=opencode --scope=global --no-hooks
+   원본 스킬·엔진은 수정하지 말고 init·프로젝트 문서 생성·다른 클라이언트 훅은
+   이번 설치 작업으로 실행하지 마. 목록에 없는 개인 스킬은 임의로 추가하지 마.
+4. OpenCode Go·OpenAI 모델 접근과 Mobbin·Context7 인증 상태를 확인해줘.
+   인증·구독이 필요하면 사용자에게 공식 연결 방법을 안내하고 대기 상태로 보고해줘.
+   비밀값을 채팅·저장소에 기록하거나 비용이 다른 모델로 몰래 대체하지 마.
+   OAuth는 OpenCode의 /mcps에서 사용자가 진행하도록 안내해줘.
+5. 실제 로드된 에이전트·모델·MCP·impeccable 스킬 경로를 확인하고,
+   설치된 launcher로 detect 동작을 임시 fixture에서 검증해줘.
+   설치 파일 존재만으로 완료라고 하지 말고, 적용 완료·인증 대기·실행 실패를 구분해줘.
+   제품 코드·데이터를 바꾸거나 다른 세션·서비스를 임의로 중단하지 마.
+```
+
+이 안내는 전역 핵심 구성과 공식 Impeccable을 재현하는 범위입니다.
+현재 운영자의 모든 스킬을 동일하게 복제하는 설치는 아닙니다.
+OpenCode Go·OpenAI·Mobbin 이용 권한과 Context7 자격증명은 사용자별로 준비해야 합니다.
+
+| 외부 구성 | 설치 출처·기준 |
+| --- | --- |
+| Impeccable | [공식 저장소](https://github.com/pbakaus/impeccable), [npm 4.5.2](https://www.npmjs.com/package/impeccable/v/4.5.2) |
+| Playwright MCP | [공식 저장소](https://github.com/microsoft/playwright-mcp), `global/opencode.jsonc`의 `0.0.83` 명령으로 OpenCode가 시작 |
+| Mobbin·Context7 | `global/opencode.jsonc`의 공식 서비스에 연결, 사용자별 인증 필요 |
+
 ## 전역 정본과 적용 위치
 
 | 저장소 정본 | 전역 적용 위치 | 내용 |
