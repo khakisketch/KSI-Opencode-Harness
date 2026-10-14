@@ -92,7 +92,6 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 
 Impeccable은 [원본 명령과 설치 안내](https://github.com/pbakaus/impeccable)를 따르며,
 스킬·엔진을 이 저장소에 복제하거나 수정하지 않습니다. 명령별 질문·기록·위임 조건은 원본에서 확인하세요.
-기존 `impeccable-design-polish`는 공식 스킬과 다른 경량 적응판이며 설치 목록에 포함하지 않습니다.
 검사 통과나 참고 사례만으로 전체 사용성이 검증됐다고 판단하지 않습니다.
 
 [MIT](LICENSE) — Copyright (c) 2026 KSI
