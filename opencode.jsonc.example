@@ -1,37 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // KSI's standalone installer writes two custom native agents/*.md files
-  // next to this configuration file. Do not register KSI in plugins.
-  // Built-in Build, Plan, and Explore keep their original system prompts.
-  // Preserve your existing model, variant, positive steps, permissions,
-  // provider, MCP, and unrelated settings when adopting KSI.
+  // Merge this one field into the configuration of the server you actually use.
+  // Keep native prompts, permissions, models, variants and other settings.
+  // This enables primary AND child use; it does not force automatic delegation.
   "agents": {
-    // Optional explicit adoption for the design MCP connection named opendesign.
-    // Plan may inspect designs, but cannot generate, change, delete or cancel.
-    // Last match wins: unknown future tools remain denied. Rename the prefix
-    // if your MCP server has a different name. The installer does not apply this.
-    "plan": {
-      "permissions": [
-        { "action": "opendesign_*", "resource": "*", "effect": "deny" },
-        { "action": "opendesign_get_active_context", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_get_project", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_list_projects", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_list_files", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_get_file", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_get_artifact", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_search_files", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_list_skills", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_list_plugins", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_list_agents", "resource": "*", "effect": "allow" },
-        { "action": "opendesign_get_run", "resource": "*", "effect": "allow" }
-      ]
-    },
-    "developer": {
-      "model": "provider/model#variant",
-      "steps": 80
-    }
-  },
-  "plugins": [
-    // Optional, independent user-owned plugins may remain here.
-  ]
+    "plan": { "mode": "all" }
+  }
 }
