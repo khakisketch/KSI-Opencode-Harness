@@ -15,7 +15,9 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    기존 파일을 백업한 뒤 관련 항목만 병합해줘. 개인 설정·자격증명·다른 도구는
    보존하고, 같은 이름의 사용자 정의와 충돌하면 필요한 선택만 질문해줘.
 2. global/AGENTS.md, global/agents/design-specialist.md, global/opencode.jsonc를
-   전역에 적용하고 필요한 환경별 경로 차이를 보고해줘.
+    전역에 적용하고 필요한 환경별 경로 차이를 보고해줘.
+    global/plugins/ksi-impeccable-detector/도 전역 plugins/에 적용해줘.
+    OpenCode V2가 자동 발견하므로 중복 plugins 등록이나 npm 설치는 하지 마.
    프로젝트에 지침을 중복 삽입하지 말고 V2 공식 문서와 실제 설정을 확인해줘.
 3. 기존 설치를 확인하고 필요하면 공식 Impeccable 4.5.2를 설치해줘:
    npx --yes impeccable@4.5.2 install --providers=opencode --scope=global --no-hooks
@@ -25,7 +27,7 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    필요한 구독·인증만 안내하고, 비밀값을 채팅·저장소에 기록하거나
    비용이 다른 모델로 임의 대체하지 마. OAuth는 사용자가 /mcps에서 진행하게 해줘.
 5. 실제 에이전트·모델·MCP·impeccable 스킬 인식을 확인하고 임시 fixture에서
-   detect를 검증해줘. 적용 완료·인증 대기·실패를 구분하고,
+    detect와 변경 파일 자동 검사 훅을 검증해줘. 적용 완료·인증 대기·실패를 구분하고,
    설치한 Git 커밋·외부 도구 버전·환경별 차이를 보고해줘.
 ```
 
@@ -46,6 +48,7 @@ OpenCode Go·OpenAI·Mobbin 이용 권한과 Context7 자격증명은 사용자�
 | [global/AGENTS.md](global/AGENTS.md) | `~/.config/opencode/AGENTS.md` | 제품 완성·질문·위임·검증 기준 |
 | [global/agents/design-specialist.md](global/agents/design-specialist.md) | `~/.config/opencode/agents/design-specialist.md` | 디자인 역할·모델·브라우저 권한 |
 | [global/opencode.jsonc](global/opencode.jsonc) | `~/.config/opencode/opencode.jsonc` | Native 역할 라우팅·모델 요청 설정·MCP·출력·문맥 설정 |
+| [global/plugins/ksi-impeccable-detector/](global/plugins/ksi-impeccable-detector/) | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 허용된 UI 편집 뒤 원본 엔진의 제한된 소스 검사 |
 
 **정본 수정 → 전역 반영 → 검증 → 커밋·푸시**로 관리합니다.
 Clone/pull만으로 전역에 자동 적용되지는 않습니다. 기존 설정이 있는 환경에서는
@@ -57,6 +60,7 @@ Clone/pull만으로 전역에 자동 적용되지는 않습니다. 기존 설정
 cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
 cmp global/agents/design-specialist.md ~/.config/opencode/agents/design-specialist.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
+diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
 ```
 
 Context7 자격증명은 `CONTEXT7_API_KEY` 환경변수로 주입하며 실제 키를 저장소에 넣지 않습니다.
@@ -93,5 +97,39 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 Impeccable은 [원본 명령과 설치 안내](https://github.com/pbakaus/impeccable)를 따르며,
 스킬·엔진을 이 저장소에 복제하거나 수정하지 않습니다. 명령별 질문·기록·위임 조건은 원본에서 확인하세요.
 검사 통과나 참고 사례만으로 전체 사용성이 검증됐다고 판단하지 않습니다.
+
+## 변경 파일 자동 검사
+
+공식 Impeccable 4.5.2는 OpenCode 자동 훅을 배포하지 않습니다. 이 저장소의 작은
+Native V2 플러그인(`ksi.impeccable-detector`)이 성공한 `write`·`edit`·`patch` 뒤
+변경된 UI 소스를 검사하고 기존 도구 결과에 검사 요약을 덧붙입니다.
+원본 스킬·엔진은 수정하지 않으며 자동 수정·모델 재호출·검사 결과에 따른 작업 차단은 없습니다.
+
+- 세션 디렉터리 안의 UI 파일만 대상으로 하고, 삭제·비 UI·숨김·의존성·생성 파일은 제외합니다.
+  대상 확장자는 CSS·SCSS·SASS·LESS·HTML·HTM·JSX·TSX·Vue·Svelte·Astro이며, 일반 JS·TS는 제외합니다.
+- 읽기와 엔진 실행은 Native 권한을 확인합니다. 별도 허용 규칙을 추가하거나 거부를 우회하지 않습니다.
+- 이미 설치된 플랫폼 엔진만 사용합니다. 누락·실패·시간 초과는 검사 불가로 표시하며 다운로드하지 않습니다.
+- 허용된 파일의 복사본만 격리 검사합니다. HTML도 연결된 CSS를 따라가지 않는 정규식 검사입니다.
+  프로젝트 설정·디자인 시스템은 읽지 않으며 URL·렌더·전체 프로젝트 검사는 자동 실행하지 않습니다.
+  `--no-config` 검사이므로 프로젝트의 무시 설정도 적용되지 않습니다. 경고는 맥락을 보고 판단합니다.
+- 세션·에이전트·내용·엔진이 같은 경우 유효한 검사 결과를 재사용합니다.
+  파일당 512 KiB·엔진 실행 1.5초(종료 정리 별도), 편집당 최대 8파일·6초 검사 예산으로 제한하며 대기열을 쌓지 않습니다.
+  한도 초과·동시 검사 중 생략은 결과에 표시합니다. 쉘 명령·외부 편집기는 이 훅의 범위 밖입니다.
+
+검증 환경은 OpenCode **2.0.29 / Linux arm64**입니다. 다른 OS는 별도 확인이 필요합니다.
+플러그인 의존성은 OpenCode 런타임이 제공하므로
+이 폴더에서 `npm install`하지 않습니다. 비활성화는 프로젝트 또는 전역 설정의
+`plugins` 목록에 `"-ksi.impeccable-detector"`를 추가하면 됩니다.
+전역 자동 재로딩을 확인하고, 다른 세션이 실행 중이면 서비스를 임의 재시작하지 않습니다.
+
+검증 명령:
+
+```sh
+node --test tests/core.test.mjs tests/adapter.test.mjs
+node tests/native-hook-integration.mjs
+```
+
+Native 통합 검사는 고유한 임시 HOME·별도 포트·로컬 모의 모델을 사용하며 실제 모델 비용이 들지 않습니다.
+임시 증빙은 `/tmp/opencode/ksi-native-*`에 남기고, 기존 폴더를 지우거나 공유 서비스를 재시작하지 않습니다.
 
 [MIT](LICENSE) — Copyright (c) 2026 KSI
