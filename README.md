@@ -21,25 +21,39 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    프로젝트에 지침을 중복 삽입하지 말고 V2 공식 문서와 실제 설정을 확인해줘.
 3. 기존 설치를 확인하고 필요하면 공식 Impeccable 4.5.2를 설치해줘:
    npx --yes impeccable@4.5.2 install --providers=opencode --scope=global --no-hooks
+   Intent는 아래 공식 1.7.1 출처에서 journey·organize·wireframe만 전역 설치하고,
+   각 스킬의 원본 참고 자료도 보존해줘. --all·6개 에이전트·추가 훅은 설치하지 마.
+   기존 스킬·전역 lock을 확인하고 충돌이 없을 때 아래 선택 설치 명령을 적용해줘.
    원본 수정·강제 덮어쓰기·init·프로젝트 문서 생성·타 클라이언트 훅·목록 외 스킬
    추가는 하지 마. 제품 코드·데이터와 다른 세션·서비스도 변경하지 마.
 4. OpenCode Go·OpenAI 모델 접근과 Mobbin·Context7 인증을 확인해줘.
    필요한 구독·인증만 안내하고, 비밀값을 채팅·저장소에 기록하거나
    비용이 다른 모델로 임의 대체하지 마. OAuth는 사용자가 /mcps에서 진행하게 해줘.
-5. 실제 에이전트·모델·MCP·impeccable 스킬 인식을 확인하고 임시 fixture에서
+5. 실제 에이전트·모델·MCP·impeccable 및 Intent 3개 스킬 인식과 참고 자료를 확인하고 임시 fixture에서
     detect와 변경 파일 자동 검사 훅을 검증해줘. 적용 완료·인증 대기·실패를 구분하고,
    설치한 Git 커밋·외부 도구 버전·환경별 차이를 보고해줘.
 ```
 
-이 안내는 전역 핵심 구성과 공식 Impeccable을 재현하는 범위입니다.
+이 안내는 전역 핵심 구성·공식 Impeccable·선택한 Intent 3개 스킬을 재현하는 범위입니다.
 현재 운영자의 모든 스킬을 동일하게 복제하는 설치는 아닙니다.
 OpenCode Go·OpenAI·Mobbin 이용 권한과 Context7 자격증명은 사용자별로 준비해야 합니다.
 
 | 외부 구성 | 설치 출처·기준 |
 | --- | --- |
 | Impeccable | [공식 저장소](https://github.com/pbakaus/impeccable), [npm 4.5.2](https://www.npmjs.com/package/impeccable/v/4.5.2) |
+| Intent 선택 설치 | [공식 1.7.1](https://github.com/ghaida/intent/tree/v1.7.1), `journey`·`organize`·`wireframe`과 각 원본 참고 자료만 설치 |
 | Playwright MCP | [공식 저장소](https://github.com/microsoft/playwright-mcp), `global/opencode.jsonc`의 `0.0.83` 명령으로 OpenCode가 시작 |
 | Mobbin·Context7 | `global/opencode.jsonc`의 공식 서비스에 연결, 사용자별 인증 필요 |
+
+Intent 선택 설치 명령(POSIX 셸 기준):
+
+```sh
+DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.7.1 --skill journey --skill organize --skill wireframe -g -a opencode -y --copy
+```
+
+현재 공식 CLI는 이 3개를 `~/.agents/skills/`에 설치하며, OpenCode가 전역 호환 소스로 인식합니다.
+공유 스킬 위치와 `~/.agents/.skill-lock.json`의 기존 항목을 보존하고 중복 설치하지 않습니다.
+Intent 원본은 이 저장소에 복제하지 않습니다. `wireframe`의 CSS·JS·스타일가이드도 원본과 함께 설치합니다.
 
 ## 전역 정본과 적용 위치
 
@@ -90,6 +104,9 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 | 실제 동작·화면·관련 상태 확인 | 연결된 Native 브라우저 또는 기존 Playwright |
 | 한정된 코드·렌더 결함 검사 | Impeccable standalone `detect` |
 | 특정 디자인 개선·정식 비평 | 원본 Impeccable의 해당 스킬 명령 |
+| 핵심 업무 흐름·중단·복귀 설계 | 필요할 때 Intent `journey` |
+| 메뉴·분류·검색·정보 탐색 구조 | 필요할 때 Intent `organize` |
+| 별도 화면 구조 대안·클릭 프로토타입 비교 | 필요할 때 Intent `wireframe` |
 
 위 표는 필수 실행 순서가 아닙니다. 작은 수정에는 불필요한 조사·검사를 생략하고,
 중요한 구조 변경은 사용자 업무·상태·제약을 기준으로 판단합니다.
@@ -97,6 +114,17 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 Impeccable은 [원본 명령과 설치 안내](https://github.com/pbakaus/impeccable)를 따르며,
 스킬·엔진을 이 저장소에 복제하거나 수정하지 않습니다. 명령별 질문·기록·위임 조건은 원본에서 확인하세요.
 검사 통과나 참고 사례만으로 전체 사용성이 검증됐다고 판단하지 않습니다.
+
+Intent는 기존 Design Specialist가 사용하는 선택형 방법론입니다. 전체 스킬·에이전트 체인이나
+필수 선행 단계는 추가하지 않습니다. 기존 제품 문맥·기획·검증 결과를 재사용하며,
+작은 UI 수정에는 생략합니다. 와이어프레임의 회색 키트·다이어그램 스타일을 제품 디자인으로 옮기지 않습니다.
+색상·타이포·시각적 구현은 Impeccable과 제품의 디자인 체계를 따르고 실제 렌더로 확인합니다.
+React/Next.js 구현에는 사용자가 설치한 Vercel React Best Practices를 참고할 수 있습니다.
+Build 전용으로 제한하지 않으며, 해당 코드를 작성하는 Design Specialist도 활용합니다.
+
+사용 예: “주문 취소 흐름을 `@journey`로 점검해줘”, “관리자 메뉴를 `@organize`로 재구성해줘”,
+“구조 대안 두 가지를 `@wireframe`으로 HTML 비교해줘”. 각 원본 스킬의 질문·산출물 조건을 따릅니다.
+설치·인식 확인은 실제 사용성·시각 품질 개선의 입증이 아니며, 우선 실제 흐름 하나에서 효과와 작업 부담을 비교합니다.
 
 ## 변경 파일 자동 검사
 

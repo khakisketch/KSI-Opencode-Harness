@@ -52,3 +52,7 @@ alternative and report the limitation.
 
 Use skills and tools selectively for the task, following their original
 contracts. Existing product conventions take precedence over generic advice.
+Use Intent's journey and organize for materially unresolved flows or information
+structure; use wireframe only when a separate structural comparison helps.
+Reuse existing product context. These are not mandatory stages or additional
+agent roles, and wireframe artifacts are not the product's visual authority.
