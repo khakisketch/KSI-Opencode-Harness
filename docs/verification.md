@@ -21,8 +21,16 @@ V2 does not provide LSP tools/diagnostics; use project lint/typecheck/compiler c
 
 ## This repository
 
-- `npm run check`: native Node tests for documentation links and the minimal configuration example.
+- `npm run check`: native Node tests for documentation links, the complete minimal configuration example and the private/no-runtime package boundary.
 - `git diff --check`: patch whitespace only.
 
 No installer, provider-backed pilot, old integration fixture or review agent is needed for these checks.
 They verify this guidance repository, not product functionality, visual quality, human acceptance or delivery.
+
+## Installed runtime
+
+When checking setup, use `opencode --version`, `opencode debug config` and `opencode debug agents`
+in the actual project against the active server. Keep private configuration output local.
+Plan `all` enables primary/child use, subject to the parent's native permissions; it does not guarantee routing.
+An actual child call establishes execution, and an observed render establishes visual evidence—not catalog entries.
+Plan's edit denial is not a shell/MCP sandbox. Do not add permission overrides or mandatory setup pilots.
