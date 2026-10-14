@@ -19,7 +19,7 @@
         "--browser", "chrome",
         "--caps", "vision", "--image-responses", "allow",
         "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
-        "--output-dir", "design-previews/artifacts"
+        "--output-dir", "/tmp/opencode/playwright-artifacts"
       ],
       "enabled": true,
       "timeout": 30000

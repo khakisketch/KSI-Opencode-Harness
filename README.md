@@ -31,6 +31,9 @@ OpenCode Go·OpenAI 연결, MCP 인증과 로컬 Chrome/Node 실행 환경은 �
 Context7 자격증명은 `CONTEXT7_API_KEY` 환경변수로 주입하며 실제 키를 저장소에 넣지 않습니다.
 계정·OAuth 토큰·서비스 상태·세션·개인 `cli.json`·도구별 독립 스킬은 배포 사본에 포함하지 않습니다.
 기존에 사용 가능한 스킬을 선택적으로 활용하되 Superpowers·CE는 기본 의존성이 아닙니다.
+Playwright MCP가 자동으로 이름을 붙이는 캡처·로그는 `/tmp/opencode/playwright-artifacts`에 저장합니다.
+작업별 증거는 `/tmp/opencode` 아래 프로젝트·작업별 경로로 구분하세요. 명시적인 파일명은
+기본 출력 경로와 별개일 수 있으므로 저장소 안에 생성하지 않는지 확인합니다.
 
 제품별 요구사항과 검증은 해당 프로젝트의 기존 문서·테스트·CI에서 관리합니다.
 실행·설정·권한은 [OpenCode V2 공식 문서](https://opencode.ai/v2/docs/)를 따릅니다.
