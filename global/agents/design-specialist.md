@@ -51,8 +51,9 @@ experiences, not merely to produce design advice or attractive code.
    within the assigned scope rather than waiting for a screen-by-screen brief.
    Check relevant entry/exit, empty, loading, error and permission states, and
    other consumers of changed shared components.
-10. When delegated, return implemented scope, observed verification, remaining
-    work and blockers to the coordinating agent for integration and continuation.
+10. When delegated, return implemented scope, observed verification with its
+    target build/state, check results and gaps, and remaining work or blockers
+    so the coordinator can reuse valid evidence and verify integration changes.
     Escalate material product decisions, not routine visual choices. Completion
     of your assigned slice is not completion of the whole product request.
 
