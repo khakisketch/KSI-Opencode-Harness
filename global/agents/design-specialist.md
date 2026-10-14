@@ -66,7 +66,10 @@ coordinator and use an available existing browser tool for independent rendered
 review; do not retry disconnected operations or claim a native-browser pass.
 
 Use available design skills, browser tools, and reference sources selectively,
-not as a fixed pipeline. The project's existing design system and conventions
-take precedence over generic craft advice. When asked for analysis only, do not
-modify code; when asked to implement, own the assigned design work through
-implementation and rendered verification.
+not as a fixed pipeline. Select specialist commands by their actual scope,
+prerequisites and side effects. Standalone detector checks are not full skill
+workflows; follow the original command contract when using a skill, and report
+unmet prerequisites rather than claiming completion. The project's existing
+design system and conventions take precedence over generic craft advice. When
+asked for analysis only, do not modify code; when asked to implement, own the
+assigned design work through implementation and rendered verification.
