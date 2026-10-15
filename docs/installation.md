@@ -30,13 +30,12 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    공식 npm `latest` 태그를 사용해줘. 명령은 다음과 같아:
    npx --yes impeccable@latest install --providers=opencode --scope=global --no-hooks
    실제로 해결된 버전과 공식 출처를 기록하고 detect와 Native 연동을 검증해줘.
-   기존 설치가 확인한 latest와 같으면 재설치하지 마. 버전 번호를 고정 요구하지 말고,
-   매 작업마다 자동 업데이트하지 마. 최신 배포본의 자동 훅 지원은 확인 없이 단정하지 마.
-   Intent는 아래 공식 1.7.1 출처에서 journey·organize·wireframe만 전역 설치하고,
-   각 스킬의 원본 참고 자료도 보존해줘. --all·6개 에이전트·추가 훅은 설치하지 마.
-   기존 스킬·전역 lock을 확인하고 충돌이 없을 때 아래 선택 설치 명령을 적용해줘.
-   원본 수정·강제 덮어쓰기·init·프로젝트 문서 생성·타 클라이언트 훅·목록 외 스킬
-   추가는 하지 마. 제품 코드·데이터와 다른 세션·서비스도 변경하지 마.
+   기존 설치가 확인한 latest와 같으면 재사용해줘. 갱신은 새 설치·명시적 요청에만 하고,
+   최신 배포본의 훅 지원은 실제로 확인해줘.
+   Intent는 아래 공식 1.7.1 출처의 journey·organize·wireframe과 원본 참고 자료만
+   선택 설치해줘. 기존 스킬·전역 lock·원본을 보존하고 충돌 시 덮어쓰지 말고 질문해줘.
+   추가 에이전트·훅·목록 외 스킬과 프로젝트 초기화는 설치 범위가 아니야.
+   제품 코드·데이터와 다른 세션·서비스는 그대로 보존해줘.
 4. 연결된 데스크톱에서는 Native Browser, 연결되지 않은 자식·헤드리스 환경이나 반복 자동화에는
    Playwright CLI를 사용할 수 있게 확인해줘. 기존 CLI·Chrome·원본 playwright-cli 스킬을 재사용하고,
    CLI가 없을 때만 공식 @playwright/cli@0.1.22 설치를 검토해줘. 프로젝트 init이나 테스트 의존성
@@ -83,3 +82,5 @@ diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-im
 ```
 
 Context7 키는 `CONTEXT7_API_KEY` 환경변수로 주입하며 실제 키·OAuth 토큰·개인 `cli.json`은 저장소에 기록하지 않습니다. 필요한 서비스 인증은 사용자별로 진행하고, OAuth는 사용자가 OpenCode의 `/mcps`에서 처리합니다. 구성·서비스 상태·독립적인 개인 스킬은 전역 설정 사본에 포함되지 않습니다.
+
+등록·연결 문제가 의심되면 이 저장소에서 `node scripts/capabilities.mjs`로 [선택 진단](validation.md#능력-연결-진단)을 실행할 수 있습니다. 이 유틸리티는 전역 플러그인이 아니며 설치·자동 복구를 수행하지 않습니다.

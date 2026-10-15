@@ -59,6 +59,8 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 - 기존 권한·API·데이터 계약을 보존하고, 범위 밖 발견은 보고하며 필요한 결정은 질문합니다.
 - 모의·미검증 결과는 실제 완료와 구분하고, 유효한 검증은 재사용합니다. 진척이 멎으면 가설을 바꾸되 새 근거가 없으면 차단 사유를 보고합니다. 목표와 관련 검증을 충족하면 마칩니다.
 
+막히면 지침부터 늘리지 않고, 지식·관찰/접근·실행 수단·판단 중 무엇이 부족한지 구분합니다. 필요한 자료·스킬·도구·전문 역할을 선택합니다.
+
 ## 디자인 및 검증 도구
 
 Design Specialist는 필요한 도구와 스킬만 골라 씁니다. 정해진 순서는 없습니다.
@@ -70,6 +72,10 @@ Design Specialist는 필요한 도구와 스킬만 골라 씁니다. 정해진 �
 | 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
 | 디자인 비평·소스 검사 | Impeccable, 자동 UI 소스 검사 |
 | 실제 화면·상호작용 확인 | 데스크톱은 Native Browser, 헤드리스·반복은 Playwright CLI |
+| 저장·연동·실패 원인 확인 | 프로젝트의 API·로그·테스트 데이터·허용된 데이터 조회 |
+| React/Next.js 구현·성능 | Vercel React Best Practices(설치된 경우) |
+
+등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며, 결과는 실제 권한·동작·제품 품질의 증거가 아닙니다. [진단 범위](docs/validation.md#능력-연결-진단)
 
 Design Specialist 동작 흐름:
 
@@ -172,6 +178,7 @@ src/banner.css: findings — overused-font:1
 node --test tests/core.test.mjs tests/adapter.test.mjs
 node tests/native-hook-integration.mjs
 node --test tests/completion-guidance.test.mjs
+node --test tests/capabilities.test.mjs
 ```
 
 - 통합 검사는 격리 환경과 로컬 모의 모델을 쓰므로 비용이 들지 않습니다.
