@@ -4,7 +4,7 @@ OpenCode Native 기반으로 개발·디자인·검증 작업을 연결하는 �
 Native 에이전트와 제한된 UI 소스 검사기만 구성하며, 별도 실행 프레임워크는 없습니다.
 Clone/pull만으로는 전역 설정에 적용되지 않습니다.
 
-[시작하기](#시작하기) · [기본 OpenCode와 비교](#기본-opencode와-비교) · [개발 워크플로](#개발-워크플로) · [설정 및 설치 경로](#설정-및-설치-경로) · [디자인 및 검증 도구](#디자인-및-검증-도구) · [UI 소스 검사](#ui-소스-검사) · [추가 검증](#추가-검증)
+[시작하기](#시작하기) · [기본 OpenCode와 비교](#기본-opencode와-비교) · [개발 워크플로](#개발-워크플로) · [디자인 및 검증 도구](#디자인-및-검증-도구) · [UI 소스 검사](#ui-소스-검사) · [설정 및 설치 경로](#설정-및-설치-경로) · [추가 검증](#추가-검증)
 
 ## 시작하기
 
@@ -58,6 +58,62 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 - 승인 범위의 작업은 중간 재승인 없이 진행합니다.
 - 기존 권한·API·데이터 계약은 유지하고, 범위 밖 결정은 먼저 확인합니다.
 
+## 디자인 및 검증 도구
+
+필요한 도구만 사용하며 정해진 순서는 없습니다.
+
+| 필요한 일 | 도구 |
+| --- | --- |
+| 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin(선택·유료) |
+| 라이브러리 문서 | Context7 |
+| 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
+| 디자인 비평·소스 검사 | Impeccable, 아래 자동 UI 소스 검사 |
+| 실제 화면·상호작용 확인 | 데스크톱은 Native Browser, 헤드리스·반복은 Playwright CLI |
+
+CLI는 작업별 고유 세션만 열고 자신이 만든 세션만 닫습니다. 프로젝트 테스트와 기존 증빙은 보존합니다.
+브라우저 정책과 검증 이력: [검증 안내](docs/validation.md)
+
+## UI 소스 검사
+
+`write`·`edit`·`patch`가 성공하면 `ksi-impeccable-detector` 플러그인이 변경된 UI 파일을 설치된 Impeccable 엔진으로 검사하고, 도구 결과에 요약을 덧붙입니다.
+자동 수정·모델 재호출·작업 차단은 하지 않습니다.
+
+동작 흐름:
+
+```text
+편집 성공 (write / edit / patch)
+  ↓
+세션 디렉터리의 UI 파일인지 확인
+  ├─ 아니면 → 건너뜀
+  └─ 맞으면 → 파일 사본을 격리해 검사
+  ↓
+설치된 Impeccable 엔진 실행 (detect, 소스 전용)
+  ↓
+기존 도구 결과에 검사 요약 첨부
+```
+
+전후 비교 (예시):
+
+```text
+Created file successfully: src/banner.css
+```
+
+```text
+Created file successfully: src/banner.css
+
+[Impeccable source-only; non-blocking, not rendered UX verification]
+src/banner.css: findings — overused-font:1
+```
+
+| 구분 | 내용 |
+| --- | --- |
+| 대상 | CSS·SCSS·SASS·LESS·HTML·JSX·TSX·Vue·Svelte·Astro |
+| 제외 | 삭제·비 UI·숨김·의존성·생성 파일, 일반 JS·TS |
+| 범위 | 소스 전용. 연결 CSS·디자인 시스템·URL·렌더는 검사하지 않음 |
+| 한도 | 파일당 512 KiB, 편집당 8파일·6초 예산, 결과 50개 |
+
+검사 통과는 실제 화면 사용성·시각 품질 검증을 대신하지 않습니다. 상세: [검증 안내](docs/validation.md)
+
 ## 설정 및 설치 경로
 
 | 저장소 파일 | 전역 적용 위치 |
@@ -73,26 +129,6 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 - `CONTEXT7_API_KEY`는 환경변수로 전달하며 비밀값은 저장소에 넣지 않습니다.
 
 제품 요구사항과 회귀 검사는 각 프로젝트의 문서·테스트·CI에서 관리합니다.
-
-## 디자인 및 검증 도구
-
-필요한 도구만 사용하며 정해진 순서는 없습니다.
-
-| 필요한 일 | 도구 |
-| --- | --- |
-| 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin(선택·유료) |
-| 라이브러리 문서 | Context7 |
-| 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
-| 디자인 비평·소스 검사 | Impeccable, 아래 KSI 검사기 |
-| 실제 화면·상호작용 확인 | 데스크톱은 Native Browser, 헤드리스·반복은 Playwright CLI |
-
-CLI는 작업별 고유 세션만 열고 자신이 만든 세션만 닫습니다. 프로젝트 테스트와 기존 증빙은 보존합니다.
-브라우저 정책과 검증 이력: [검증 안내](docs/validation.md)
-
-## UI 소스 검사
-
-`write`·`edit`·`patch` 성공 후 대상 UI 파일을 검사해 결과에 요약을 더합니다.
-자동 수정이나 작업 차단은 없습니다. 대상 파일과 한도: [검증 안내](docs/validation.md)
 
 ## 추가 검증
 
