@@ -41,13 +41,13 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 | 항목 | 기본 OpenCode | KSI Harness |
 | --- | --- | --- |
-| 디자인 역할 | 없음 | Design Specialist가 조사·구현·렌더 검증 |
-| 완료 판단 | 모델 재량 | 승인 범위는 중간 재승인 없이 완료 |
-| 위임 | 도구만 제공 | 작업 단위 위임·공유 자원 단일 소유 |
-| UI 편집 검사 | 없음 | 편집 후 자동 소스 검사 |
+| 디자인 역할 | 사용자 정의 에이전트 지원 | Design Specialist 역할·검증 기준 구성 |
+| 완료 판단 | 기본 에이전트 지침 | 승인된 작업의 완료·재승인 기준 명시 |
+| 위임 | General·Explore·하위 세션 지원 | 작업 단위 위임·공유 자원 소유 기준 명시 |
+| UI 편집 검사 | 플러그인으로 확장 가능 | Impeccable 엔진의 편집 후 검사 연동 |
 | 디자인 방법론 | 별도 설치 | Impeccable·Intent를 선택 사용 |
-| 브라우저 | 없음 | Native Browser·Playwright CLI, 세션 규칙 |
-| 모델 라우팅 | 단일 | 일반은 저비용, 디자인은 비전 모델 |
+| 브라우저 | 데스크톱 Native Browser 제공 | Native Browser·Playwright CLI 선택·세션 기준 |
+| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Design Specialist 모델 지정 |
 
 구조와 과정을 정리한 것이며, 디자인 품질 향상을 A/B로 입증한 것은 아닙니다.
 
@@ -77,6 +77,7 @@ Design Specialist 동작 흐름:
 │
 ├ 1 · 기존 확인
 │     코드 · 디자인 시스템 · 현재 렌더 상태
+│     개선은 잘된 부분을 보존, 전면 재설계와 구분
 │
 ├ 2 · 레퍼런스 — 필요할 때만
 │     해당 제품 우선 → 필요하면 Mobbin
@@ -94,6 +95,7 @@ Design Specialist 동작 흐름:
 │
 ├ 6 · 렌더 · 상호작용 검증
 │     Native Browser / Playwright CLI → 문제는 그 자리에서 수정
+│     필요하면 기존 UI의 전후·동작 비교 (목업·적용본 구분)
 │
 ├ 7 · 디자인 비평 — 필요할 때
 │     Impeccable 명령

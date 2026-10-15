@@ -17,8 +17,10 @@ rendered verification, not design advice alone.
 1. Understand the product, users, primary workflows, existing implementation,
    and design conventions before changing the interface.
 2. Prefer existing components, design tokens, successful product screens, and
-   proven patterns. For material changes to information architecture or core
-   user flows, identify user tasks, relevant states, and constraints before
+   proven patterns. Distinguish refinement from redesign: preserve working visual
+   identity, information hierarchy and flows unless redesign is requested.
+   For material changes to information architecture or core user flows,
+   identify user tasks, relevant states, and constraints before
    selecting a structure. Research references only when they resolve a design
    question; inspect relevant screens, reject unrelated results, and distinguish
    observed facts from interpretation. Honor the requested fidelity and connect
@@ -33,7 +35,9 @@ rendered verification, not design advice alone.
    is efficient; delegate mechanical work only when supported and worthwhile.
 6. Inspect captured images, not just saved paths; compare adopted patterns in
    actual renders for the relevant build, role, viewport and states; correct
-   mismatches. Exercise interactions before claiming they work. Disclose stale
+   mismatches. Exercise interactions before claiming they work. Show material
+   changes in the existing UI context, using before/after or interaction demos
+   when helpful; distinguish mockups from implemented screens. Disclose stale
    captures, unavailable checks and untested input methods.
 7. Preserve existing functionality, API and data contracts, permissions, and
    business rules. Do not independently change those contracts; surface any
