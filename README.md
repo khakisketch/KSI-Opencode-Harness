@@ -37,9 +37,9 @@ Clone/pull만으로는 전역 설정에 적용되지 않습니다.
 
 ## 기본 OpenCode와 비교
 
-이 하네스가 추가하거나 바꾸는 부분을 기본 OpenCode와 비교하면 다음과 같습니다.
+KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
-| 항목 | 기본 OpenCode | 이 하네스 |
+| 항목 | 기본 OpenCode | KSI Harness |
 | --- | --- | --- |
 | 디자인 역할 | 없음 | Design Specialist가 조사·구현·렌더 검증 |
 | 완료 판단 | 모델 재량 | 승인 범위는 중간 재승인 없이 완료 |
