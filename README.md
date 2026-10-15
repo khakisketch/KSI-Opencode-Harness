@@ -26,10 +26,14 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    기존 스킬·전역 lock을 확인하고 충돌이 없을 때 아래 선택 설치 명령을 적용해줘.
    원본 수정·강제 덮어쓰기·init·프로젝트 문서 생성·타 클라이언트 훅·목록 외 스킬
    추가는 하지 마. 제품 코드·데이터와 다른 세션·서비스도 변경하지 마.
-4. OpenCode Go·OpenAI 모델 접근과 Mobbin·Context7 인증을 확인해줘.
+4. 연결된 데스크톱에서는 Native Browser, 연결되지 않은 자식·헤드리스 환경이나 반복 자동화에는
+   Playwright CLI를 사용할 수 있게 확인해줘. 기존 CLI·Chrome·원본 playwright-cli 스킬을 재사용하고,
+   CLI가 없을 때만 공식 @playwright/cli@0.1.22 설치를 검토해줘. 프로젝트 init이나 테스트 의존성
+   교체는 하지 말고 Playwright MCP·agent-browser를 기본 도구로 추가하지 마.
+5. OpenCode Go·OpenAI 모델 접근과 Mobbin·Context7 인증을 확인해줘.
    필요한 구독·인증만 안내하고, 비밀값을 채팅·저장소에 기록하거나
    비용이 다른 모델로 임의 대체하지 마. OAuth는 사용자가 /mcps에서 진행하게 해줘.
-5. 실제 에이전트·모델·MCP·impeccable 및 Intent 3개 스킬 인식과 참고 자료를 확인하고 임시 fixture에서
+6. 실제 에이전트·모델·MCP·impeccable 및 Intent 3개 스킬 인식과 참고 자료를 확인하고 임시 fixture에서
     detect와 변경 파일 자동 검사 훅을 검증해줘. 적용 완료·인증 대기·실패를 구분하고,
    설치한 Git 커밋·외부 도구 버전·환경별 차이를 보고해줘.
 ```
@@ -42,7 +46,7 @@ OpenCode Go·OpenAI·Mobbin 이용 권한과 Context7 자격증명은 사용자�
 | --- | --- |
 | Impeccable | [공식 저장소](https://github.com/pbakaus/impeccable), [npm 4.5.2](https://www.npmjs.com/package/impeccable/v/4.5.2) |
 | Intent 선택 설치 | [공식 1.7.1](https://github.com/ghaida/intent/tree/v1.7.1), `journey`·`organize`·`wireframe`과 각 원본 참고 자료만 설치 |
-| Playwright MCP | [공식 저장소](https://github.com/microsoft/playwright-mcp), `global/opencode.jsonc`의 `0.0.83` 명령으로 OpenCode가 시작 |
+| Playwright CLI | [공식 저장소·원본 스킬](https://github.com/microsoft/playwright-cli), 기존 `@playwright/cli` 0.1.22 사용. MCP는 기본 구성에 포함하지 않음 |
 | Mobbin·Context7 | `global/opencode.jsonc`의 공식 서비스에 연결, 사용자별 인증 필요 |
 
 Intent 선택 설치 명령(POSIX 셸 기준):
@@ -79,7 +83,8 @@ diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-im
 
 Context7 자격증명은 `CONTEXT7_API_KEY` 환경변수로 주입하며 실제 키를 저장소에 넣지 않습니다.
 계정·OAuth 토큰·서비스 상태·세션·개인 `cli.json`·도구별 독립 스킬은 배포 사본에 포함하지 않습니다.
-Playwright MCP가 자동으로 이름을 붙이는 캡처·로그는 `/tmp/opencode/playwright-artifacts`에 저장합니다.
+브라우저 검증 산출물은 `/tmp/opencode`의 작업별 경로에 두고, CLI는 고유한 명명 세션을 사용합니다.
+다른 프로젝트가 사용하는 공유 CLI·공식 스킬·브라우저 세션은 임의 삭제하거나 종료하지 않습니다.
 
 제품별 요구사항과 검증은 해당 프로젝트의 기존 문서·테스트·CI에서 관리합니다.
 실행·설정·권한은 [OpenCode V2 공식 문서](https://opencode.ai/v2/docs/)를 따릅니다.
@@ -113,15 +118,19 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 2026-10-15 확인에서는 기존·수정 지침 모두 3/3 완주했습니다. 수정 후 검사는 시험용 권한도 좁혔으므로
 기능 회귀 확인으로만 해석하며, 지침 변경의 개선 효과나 긴 세션 문제 해결을 입증한 A/B 결과로 보지 않습니다.
 
-자식 세션의 Native 브라우저는 데스크톱 연결이 필요하며, 연결되지 않으면 기존 Playwright를 사용할 수 있습니다.
+Native Browser는 연결된 데스크톱에서 우선 사용하는 선택지이지 필수 단계가 아닙니다.
+연결되지 않은 자식·SSH·헤드리스 환경과 반복 자동화에는 기존 Playwright CLI를 사용합니다.
+각 작업은 고유한 세션 이름을 쓰고 자신이 만든 세션만 종료합니다. `close-all`·`kill-all` 등
+전체 세션 정리는 사용하지 않습니다. 프로젝트의 Playwright Test·기존 감사 스크립트는 별개로 보존합니다.
+공유 `agent-browser` 설치·공식 스킬은 보존하되 Design Specialist의 기본 경로에서는 제외합니다.
 
 ## 선택형 디자인 도구
 
 | 필요한 것 | 선택할 수단 |
 | --- | --- |
-| 실제 제품 패턴 비교 | 기존 제품 패턴, 필요할 때 Mobbin |
+| 실제 제품 패턴 비교 | 기존 제품, 전문 제품의 공식 화면·문서·데모, 필요할 때 Mobbin |
 | 구현 문법·라이브러리 정보 | Context7 |
-| 실제 동작·화면·관련 상태 확인 | 연결된 Native 브라우저 또는 기존 Playwright |
+| 실제 동작·화면·관련 상태 확인 | 환경에 맞는 Native Browser 또는 Playwright CLI |
 | 한정된 코드·렌더 결함 검사 | Impeccable standalone `detect` |
 | 특정 디자인 개선·정식 비평 | 원본 Impeccable의 해당 스킬 명령 |
 | 핵심 업무 흐름·중단·복귀 설계 | 필요할 때 Intent `journey` |
@@ -130,6 +139,14 @@ Build에서 위임하거나 사용자가 메인으로 직접 선택할 수 있�
 
 위 표는 필수 실행 순서가 아닙니다. 작은 수정에는 불필요한 조사·검사를 생략하고,
 중요한 구조 변경은 사용자 업무·상태·제약을 기준으로 판단합니다.
+레퍼런스의 실제 관찰과 해석, 요청한 재현 수준을 구분하고 채택한 패턴을 사용자 과업과 연결합니다.
+캡처 경로만 남기지 않고 이미지 자체를 확인하며, 상호작용은 직접 실행한 범위만 검증했다고 보고합니다.
+
+2026-10-15 Linux arm64 / OpenCode 2.0.29에서 Native Browser의 외부 페이지·캡처·기본 클릭을 확인했습니다.
+Playwright MCP를 하네스 위치에서 비활성화한 뒤, Design Specialist 자식 세션에서 CLI 0.1.22를
+DISPLAY·WAYLAND_DISPLAY 없이 실행해 외부 화면과 로컬 상태 전환, PNG 3개 읽기를 확인했습니다.
+자식 종료 후 별도 보호 세션의 상태가 유지됨도 확인하고 전역 MCP 항목을 제거했습니다.
+이는 도구 경로 검증이며 실제 제품 UI 품질이나 다른 OS·원격 SSH 환경 전체의 검증은 아닙니다.
 
 Impeccable은 [원본 명령과 설치 안내](https://github.com/pbakaus/impeccable)를 따르며,
 스킬·엔진을 이 저장소에 복제하거나 수정하지 않습니다. 명령별 질문·기록·위임 조건은 원본에서 확인하세요.

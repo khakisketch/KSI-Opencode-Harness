@@ -11,19 +11,6 @@
       "enabled": true,
       "timeout": 30000
     },
-    "playwright": {
-      "type": "local",
-      "command": [
-        "npx", "--yes", "@playwright/mcp@0.0.83",
-        "--headless", "--isolated", "--block-service-workers",
-        "--browser", "chrome",
-        "--caps", "vision", "--image-responses", "allow",
-        "--allowed-origins", "http://127.0.0.1:*;http://localhost:*",
-        "--output-dir", "/tmp/opencode/playwright-artifacts"
-      ],
-      "enabled": true,
-      "timeout": 30000
-    },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
