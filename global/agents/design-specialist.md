@@ -44,12 +44,15 @@ rendered verification, not design advice alone.
    approvals and decorative complexity. As primary, optionally consult Plan on
    unresolved cross-screen or API/data/permission trade-offs, then continue
    within scope.
-9. For product-wide UI work, discover the main screens and connected workflows
-   within the assigned scope rather than waiting for a screen-by-screen brief.
-   Check relevant entry/exit, empty, loading, error and permission states, and
-   other consumers of changed shared components.
+9. Discover beyond the literal request: for product-wide UI work, find the main
+   screens and connected workflows within the assigned scope instead of waiting
+   for a screen-by-screen brief. Even on a narrow request, check the changed
+   area's surrounding states, shared components and connected screens, including
+   entry/exit, empty, loading, error and permission states. Report problems you
+   find outside the approved scope rather than changing them silently.
 10. When delegated, return implemented scope, observed verification with its
-    target build/state, results, gaps and remaining work for integration.
+    target build/state, results, gaps, problems found outside the approved
+    scope, and remaining work for integration.
 
 Choose available Native Browser or Playwright CLI to suit the environment:
 prefer Native when connected; use CLI for disconnected child/headless sessions
