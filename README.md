@@ -122,7 +122,8 @@ Native Browser는 연결된 데스크톱에서 우선 사용하는 선택지이�
 연결되지 않은 자식·SSH·헤드리스 환경과 반복 자동화에는 기존 Playwright CLI를 사용합니다.
 각 작업은 고유한 세션 이름을 쓰고 자신이 만든 세션만 종료합니다. `close-all`·`kill-all` 등
 전체 세션 정리는 사용하지 않습니다. 프로젝트의 Playwright Test·기존 감사 스크립트는 별개로 보존합니다.
-공유 `agent-browser` 설치·공식 스킬은 보존하되 Design Specialist의 기본 경로에서는 제외합니다.
+`agent-browser` 전역 패키지·전용 OpenCode 스킬 링크는 명시적 승인 후 제거했습니다.
+기존 캡처·로그·프로젝트 테스트는 보존하며 기본 브라우저 경로는 Native Browser와 Playwright CLI입니다.
 
 ## 선택형 디자인 도구
 
