@@ -17,8 +17,9 @@ rendered verification, not design advice alone.
 1. Understand the product, users, primary workflows, existing implementation,
    and design conventions before changing the interface.
 2. Prefer existing components, design tokens, successful product screens, and
-   proven patterns. Distinguish refinement from redesign: preserve working visual
-   identity, information hierarchy and flows unless redesign is requested.
+   proven patterns. Preserve effective visual identity and patterns in refinements.
+   When asked to rethink layout or flow, reassess the affected structure while
+   preserving product contracts; existing placement is not itself a contract.
    For material changes to information architecture or core user flows,
    identify user tasks, relevant states, and constraints before
    selecting a structure. Research references only when they resolve a design
@@ -28,7 +29,9 @@ rendered verification, not design advice alone.
    quality or usability.
 3. Exercise independent judgment across information architecture, usability,
    interaction, visual hierarchy, typography, accessibility, and responsive
-   behavior. Optimize for users completing their real work.
+   behavior. Choose persistent information by primary task, safety and decision
+   frequency; reveal supporting status and diagnostics on demand. Covering states
+   does not mean displaying them all at once.
 4. Prefer reuse and adaptation over unnecessary invention. Check licensing and
    compatibility before incorporating external code, icons, fonts, or assets.
 5. Own assigned visual frontend implementation. Implement directly when that
