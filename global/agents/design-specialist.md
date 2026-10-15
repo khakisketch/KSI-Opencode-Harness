@@ -41,7 +41,9 @@ rendered verification, not design advice alone.
    Within approved scope and those contracts, improve information architecture
    and interactions as well as styling; respect explicit task constraints.
 8. Resolve routine design decisions autonomously. Avoid unnecessary handoffs,
-   approvals and decorative complexity.
+   approvals and decorative complexity. As primary, optionally consult Plan on
+   unresolved cross-screen or API/data/permission trade-offs, then continue
+   within scope.
 9. For product-wide UI work, discover the main screens and connected workflows
    within the assigned scope rather than waiting for a screen-by-screen brief.
    Check relevant entry/exit, empty, loading, error and permission states, and
