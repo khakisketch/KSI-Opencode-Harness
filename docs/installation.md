@@ -42,9 +42,10 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    CLI가 없을 때만 공식 @playwright/cli@0.1.22 설치를 검토해줘. 프로젝트 init이나 테스트 의존성
    교체는 하지 말고 Playwright MCP·agent-browser를 기본 도구로 추가하지 마.
 5. OpenCode Go·OpenAI 모델 접근과 Context7 인증을 확인해줘.
-   Mobbin은 유료 외부 서비스이므로 기본 비활성으로 두고, 필요할 때만 사용자가
-   활성화·인증하도록 안내해줘. 필요한 구독·인증만 안내하고, 비밀값을 채팅·저장소에
-   기록하거나 비용이 다른 모델로 임의 대체하지 마. OAuth는 사용자가 /mcps에서 진행하게 해줘.
+   Mobbin은 유료 선택 사항이라 필수가 아니야. 사용자가 쓰길 원할 때만 인증하고,
+   아니면 비활성(`"enabled": false`)으로 두거나 건너뛰어도 돼. 필요한 구독·인증만 안내하고,
+   비밀값을 채팅·저장소에 기록하거나 비용이 다른 모델로 임의 대체하지 마.
+   OAuth는 사용자가 /mcps에서 진행하게 해줘.
 6. 실제 에이전트·모델·MCP·impeccable 및 Intent 3개 스킬 인식과 참고 자료를 확인하고 임시 fixture에서
    detect와 변경 파일 자동 검사 훅을 검증해줘. 적용 완료·인증 대기·실패를 구분하고,
    설치한 Git 커밋·외부 도구 버전·환경별 차이를 보고해줘.
@@ -58,9 +59,9 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
 | Intent | [공식 v1.7.1](https://github.com/ghaida/intent/tree/v1.7.1)에서 `journey`·`organize`·`wireframe`과 각 스킬의 원본 참고 자료만 선택 설치합니다. |
 | Playwright CLI | [공식 저장소 및 원본 스킬](https://github.com/microsoft/playwright-cli). 기존 `@playwright/cli` 0.1.22를 재사용하며, Playwright MCP는 기본 구성에서 제거했습니다. |
 | Context7 | [Context7](https://mcp.context7.com/mcp) 원격 서비스에 연결합니다. 사용자별 계정 인증이 필요합니다. |
-| Mobbin(선택) | [Mobbin](https://api.mobbin.com/mcp)은 유료 외부 서비스라 기본 비활성으로 두고, 필요할 때 사용자가 활성화·인증합니다. |
+| Mobbin(선택) | [Mobbin](https://api.mobbin.com/mcp)은 유료 서비스라 **선택 사항**입니다. 쓰지 않으면 비활성(`"enabled": false`)으로 두거나 항목을 지워도 하네스는 동작합니다. |
 
-저장소 정본은 Mobbin을 기본 비활성으로 둡니다. 설정 입력에서는 `"enabled": false`를 사용하고, 필요할 때 `"enabled": true`로 바꾼 뒤 인증합니다.
+Mobbin을 쓸 때만 인증하고, 필요 없으면 건너뜁니다. 설정 입력에서는 `"enabled"` 값을 사용합니다.
 
 Intent 선택 설치 명령(POSIX 셸):
 
