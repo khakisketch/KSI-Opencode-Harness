@@ -64,7 +64,7 @@ Clone/pull만으로는 전역 설정에 적용되지 않습니다.
 
 | 필요한 일 | 도구 |
 | --- | --- |
-| 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin |
+| 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin(선택·유료) |
 | 라이브러리 문서 | Context7 |
 | 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
 | 디자인 비평·소스 검사 | Impeccable, 아래 KSI 검사기 |
