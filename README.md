@@ -1,83 +1,84 @@
 # KSI OpenCode Harness
 
-KSI OpenCode Harness는 개발·디자인·검증 작업을 연결하는 OpenCode Native 기반 AI 개발 환경입니다. 별도 워크플로 실행기 대신 Native 에이전트·설정과 제한된 UI 소스 검사기를 구성합니다. 저장소를 clone/pull해도 개인 전역 설정에 자동 적용되지는 않습니다.
+OpenCode Native 기반으로 개발·디자인·검증 작업을 연결하는 전역 설정입니다.
+Native 에이전트와 제한된 UI 소스 검사기만 구성하며, 별도 실행 프레임워크는 없습니다.
+Clone/pull만으로는 전역 설정에 적용되지 않습니다.
 
 [시작하기](#시작하기) · [개발 워크플로](#개발-워크플로) · [설정 및 설치 경로](#설정-및-설치-경로) · [디자인 및 검증 도구](#디자인-및-검증-도구) · [UI 소스 검사](#ui-소스-검사) · [추가 검증](#추가-검증)
 
 ## 시작하기
 
-OpenCode의 에이전트 선택기에서 메인 에이전트를 고르고, 일반 문장으로 요청하세요. 별도 명령이나 `@agent` 문법은 필요하지 않습니다.
+메인 에이전트를 고르고 일반 문장으로 요청합니다. 별도 명령은 필요 없습니다.
 
-- **개발 요청:** Build를 메인으로 선택하고 “주문 내역 CSV 내보내기를 구현해줘. 기존 권한과 API 계약을 유지하고 관련 테스트와 실제 흐름을 검증해줘.”라고 요청하면 Build가 구현을 통합하고 관련 회귀를 확인합니다.
-- **UI 개선 요청:** Design Specialist를 메인으로 선택하고 “결제 완료 흐름을 개선해줘. 기존 제품 패턴과 상태를 확인하고 구현한 뒤 실제 렌더와 상호작용을 검증해줘.”라고 요청합니다.
+- **개발:** Build 선택 → “CSV 내보내기를 구현하고 테스트와 실제 흐름을 검증해줘.”
+- **UI 개선:** Design Specialist 선택 → “결제 완료 흐름을 개선하고 실제 렌더로 검증해줘.”
 
 | 역할 | 맡는 일 |
 | --- | --- |
-| **Build** | 개발 작업의 기본 메인 에이전트. 구현·통합·검증을 맡고, UI 작업은 Design Specialist에 위임할 수 있습니다. |
-| **Design Specialist** | UI/UX 작업을 조사·설계·구현하고 실제 렌더와 상호작용을 확인합니다. UI 중심 요청은 이 역할을 메인으로 선택합니다. |
-| **General** | 메인 에이전트가 맡기는 독립 구현·테스트·조사 작업을 수행해 결과를 돌려줍니다. |
-| **Explore** | 저장소와 코드를 빠르게 읽기 전용으로 탐색해 파일·구조를 찾습니다. |
-| **Plan** | 불명확한 아키텍처·호환성·구현 경계를 비교할 때 쓰는 선택형 자문이며 필수 단계가 아닙니다. |
+| **Build** | 개발의 기본 메인. 구현·통합·검증, UI는 Design Specialist에 위임 가능 |
+| **Design Specialist** | UI/UX 조사·구현·렌더 검증 |
+| **General** | 위임된 독립 구현·테스트·조사 |
+| **Explore** | 읽기 전용 코드·구조 탐색 |
+| **Plan** | 선택형 자문. 아키텍처·호환성 비교가 필요할 때 |
 
 ```text
 사용자: 목표와 제약 전달
   ↓
-메인 에이전트: Build 또는 Design Specialist
+메인 에이전트 (Build 또는 Design Specialist)
   ├─ 직접 처리
   ├─ 독립 작업 → General / Explore
-  ├─ 메인이 Build이며 UI 작업일 때
-  │    → Design Specialist에 위임 가능
-  └─ 필요할 때 Plan에 선택형 자문
+  ├─ Build가 메인이고 UI 작업이면 → Design Specialist
+  └─ 필요할 때만 → Plan 자문
   ↓
-메인이 결과를 통합하고 관련 사항을 검증
+메인이 통합·검증
   ↓
-완료 보고 또는 실제 차단 사유 보고
+완료 보고 또는 차단 사유 보고
 ```
 
 ## 개발 워크플로
 
-- OpenCode Native의 세션·계획·대화 이력을 활용하며, 고정된 작업 단계나 추적 파일을 요구하지 않습니다.
-- 메인 에이전트가 프로젝트 문맥을 확인하고 위임 작업까지 통합해 요청 전체를 마무리합니다. 승인된 범위의 실행 가능한 작업은 중간 단계마다 재승인 없이 완료까지 진행합니다.
-- 기존 권한·API·데이터 계약과 제품 규칙을 유지합니다. 범위 밖 결정이 필요한 경우에는 먼저 확인합니다.
+- Native 세션·계획·이력을 사용하고, 고정 단계나 추적 파일을 요구하지 않습니다.
+- 메인이 프로젝트 문맥을 확인하고 위임 작업까지 통합해 요청을 완료합니다.
+- 승인 범위의 작업은 중간 재승인 없이 진행합니다.
+- 기존 권한·API·데이터 계약은 유지하고, 범위 밖 결정은 먼저 확인합니다.
 
 ## 설정 및 설치 경로
 
-저장소의 전역 설정 파일은 개인 OpenCode 환경에 명시적으로 적용합니다. 파일별 대상과 설치 프롬프트는 [설치 안내](docs/installation.md)를 참고하세요.
+| 저장소 파일 | 전역 적용 위치 |
+| --- | --- |
+| `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` |
+| `global/agents/design-specialist.md` | `~/.config/opencode/agents/design-specialist.md` |
+| `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` |
+| `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` |
 
-| 저장소 파일 | 전역 적용 위치 | 내용 |
-| --- | --- | --- |
-| `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업 지침 |
-| `global/agents/design-specialist.md` | `~/.config/opencode/agents/design-specialist.md` | UI/UX 역할 설정 |
-| `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | Native 에이전트·모델·MCP 설정 |
-| `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | UI 소스 검사기 |
+- 기존 파일은 백업하고 관련 항목만 병합합니다.
+- 적용 후 `cmp`·`diff`로 저장소 정본과 비교할 수 있습니다.
+- 설치 프롬프트와 외부 도구 출처: [설치 안내](docs/installation.md)
+- `CONTEXT7_API_KEY`는 환경변수로 전달하며 비밀값은 저장소에 넣지 않습니다.
 
-공통 지침과 Design Specialist 역할 파일은 에이전트 동작을 정의하고, `opencode.jsonc`는 OpenCode Native 역할·모델 요청과 MCP 연결을 설정합니다. 플러그인은 편집 뒤 제한된 UI 소스 검사 결과를 더합니다. 따라서 저장소는 제품별 기능이나 프로젝트 테스트 도구를 설치하는 대신, OpenCode 전역 사용 경험을 설정합니다.
-같은 전역 설정을 여러 프로젝트에서 쓰며, 공통 지침을 프로젝트마다 복사하는 방식은 아닙니다. 적용할 때는 환경과 기존 파일을 먼저 확인하고, 기존 설정을 그대로 덮어쓰지 말고 관련 항목만 병합합니다. 적용 후에는 `cmp`·`diff`로 전역 설정과 저장소 파일을 비교할 수 있습니다. 전체 확인 절차와 명령은 [설치 안내](docs/installation.md)에 있습니다.
-
-Context7 인증은 `CONTEXT7_API_KEY` 환경변수로 전달하며 실제 비밀값은 저장소에 넣지 않습니다. 외부 도구와 공식 출처는 [설치 안내](docs/installation.md)에 정리되어 있습니다.
-
-제품별 요구사항과 회귀 검사는 각 프로젝트의 문서·테스트·CI에서 이어집니다. 설치 대상 인증과 도구 버전은 환경마다 다를 수 있으므로 실제 적용 결과를 따릅니다.
+제품 요구사항과 회귀 검사는 각 프로젝트의 문서·테스트·CI에서 관리합니다.
 
 ## 디자인 및 검증 도구
 
-필요한 도구만 선택해 사용하며, 정해진 도구 순서는 없습니다.
+필요한 도구만 사용하며 정해진 순서는 없습니다.
 
 | 필요한 일 | 도구 |
 | --- | --- |
-| 제품 화면·라이브러리 참고 | 제품 패턴은 먼저 해당 제품에서 확인하고, 필요하면 Mobbin을 참고합니다. 라이브러리 문서는 Context7에서 찾습니다. |
-| UI 흐름·정보 구조·별도 화면 구조 비교 | Intent는 취소·복귀 흐름의 `@journey`, 관리자 메뉴·검색 구조의 `@organize`, 화면 배치 대안의 `@wireframe`처럼 필요에 맞춰 선택합니다. 작은 수정에 모든 도구를 차례로 적용하지 않습니다. |
-| 디자인 비평·제한된 UI 소스 검사 | Impeccable 디자인 도구와 아래 KSI 검사기를 사용합니다. |
-| 실제 화면·상호작용 확인 | 연결된 데스크톱은 Native Browser 우선, 분리·헤드리스·반복 작업은 Playwright CLI를 사용합니다. |
+| 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin |
+| 라이브러리 문서 | Context7 |
+| 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
+| 디자인 비평·소스 검사 | Impeccable, 아래 KSI 검사기 |
+| 실제 화면·상호작용 확인 | 데스크톱은 Native Browser, 헤드리스·반복은 Playwright CLI |
 
-CLI를 쓰는 경우 작업별 고유 세션을 열고 자신이 만든 세션만 종료하며, 프로젝트 테스트와 기존 증빙은 보존합니다. 도구별 적용 조건과 전체 브라우저 정책·검증 이력은 [검증 안내](docs/validation.md)에 있습니다. 선택 설치하는 외부 도구와 공식 출처는 [설치 안내](docs/installation.md)를 참고하세요.
+CLI는 작업별 고유 세션만 열고 자신이 만든 세션만 닫습니다. 프로젝트 테스트와 기존 증빙은 보존합니다.
+브라우저 정책과 검증 이력: [검증 안내](docs/validation.md)
 
 ## UI 소스 검사
 
-전역 Native 플러그인은 성공한 `write`·`edit`·`patch` 뒤 변경된 대상 UI 파일을 Impeccable 검사 엔진으로 살펴보고 기존 도구 결과에 요약을 덧붙입니다. 자동 수정하거나 작업을 막지는 않습니다. 지원 파일, 제외 항목, 권한, 크기·시간 한도는 [검증 안내](docs/validation.md)를 참고하세요.
+`write`·`edit`·`patch` 성공 후 대상 UI 파일을 검사해 결과에 요약을 더합니다.
+자동 수정이나 작업 차단은 없습니다. 대상 파일과 한도: [검증 안내](docs/validation.md)
 
 ## 추가 검증
-
-기본 확인은 검사기 단위 테스트, Native 훅 통합 테스트, 완료 안내 회귀 테스트로 나뉩니다.
 
 ```sh
 node --test tests/core.test.mjs tests/adapter.test.mjs
@@ -85,14 +86,13 @@ node tests/native-hook-integration.mjs
 node --test tests/completion-guidance.test.mjs
 ```
 
-Native 훅 통합 테스트는 격리된 임시 환경과 로컬 모의 모델을 사용하므로 실제 모델 비용이 들지 않습니다. 실모델 검사는 선택 사항이며 계정 사용량이 발생합니다. 명령별 전제와 결과 해석은 [검증 안내](docs/validation.md)에 있습니다. 현재 확인 환경은 OpenCode 2.0.29 / Linux arm64이며 다른 OS는 확인하지 않았습니다.
-
-2026-10-15 선택형 확인에서 기존·수정 지침은 모두 3/3 케이스를 완료했습니다. 수정 후 검사는 권한 범위도 좁혔으므로 기능 회귀 확인으로만 해석하며, 개선 효과 비교 결과는 아닙니다.
+- 통합 검사는 격리 환경과 로컬 모의 모델을 쓰므로 비용이 들지 않습니다.
+- 확인 환경: OpenCode 2.0.29 / Linux arm64 (다른 OS는 미확인)
+- 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)
 
 ## 알아둘 점
 
-- 설치 전에 전역 경로와 기존 파일을 확인하고 관련 설정만 병합하세요.
-- 소스 검사는 실제 화면의 사용성·시각 품질이나 기능 검증을 대신하지 않습니다.
-- 상세 설치 절차는 [설치 안내](docs/installation.md), 검사 범위와 한도는 [검증 안내](docs/validation.md)를 참고하세요.
+- 소스 검사는 실제 화면 사용성·시각 품질·기능 검증을 대신하지 않습니다.
+- 상세: [설치 안내](docs/installation.md) · [검증 안내](docs/validation.md)
 
 [MIT](LICENSE) — Copyright (c) 2026 KSI
