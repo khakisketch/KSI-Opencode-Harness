@@ -60,6 +60,8 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
 | Context7 | [Context7](https://mcp.context7.com/mcp) 원격 서비스에 연결합니다. 사용자별 계정 인증이 필요합니다. |
 | Mobbin(선택) | [Mobbin](https://api.mobbin.com/mcp)은 유료 외부 서비스라 기본 비활성으로 두고, 필요할 때 사용자가 활성화·인증합니다. |
 
+저장소 정본은 Mobbin을 기본 비활성으로 둡니다. 설정 입력에서는 `"enabled": false`를 사용하고, 필요할 때 `"enabled": true`로 바꾼 뒤 인증합니다.
+
 Intent 선택 설치 명령(POSIX 셸):
 
 ```sh

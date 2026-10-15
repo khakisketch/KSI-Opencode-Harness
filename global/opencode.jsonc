@@ -5,11 +5,11 @@
   "update": "notify",
   "mcp": {
     // Design Specialist owns frontend work; retired design runtimes stay absent.
-    // Mobbin is a paid external service: keep it configured but disabled by default, enable when needed.
+    // Mobbin is a paid external service: keep it configured but disabled by default; set enabled true when needed.
     "mobbin": {
       "type": "remote",
       "url": "https://api.mobbin.com/mcp",
-      "disabled": true,
+      "enabled": false,
       "timeout": 30000
     },
     "context7": {
