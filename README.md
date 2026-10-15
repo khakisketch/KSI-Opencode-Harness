@@ -18,15 +18,16 @@ Build가 개발을 구현·통합하고 Design Specialist가 UI/UX 작업을 조
 ```text
 사용자: 목표·요구사항·제약 전달
               ↓
-Build: 기존 코드·프로젝트 기록 확인, 작업 분리
+메인(Build 또는 Design Specialist): 기존 코드·프로젝트 기록 확인, 작업 분리
               ├─ 작은 변경·긴밀한 작업 → 직접 처리
               ├─ 독립 구현·조사·검증 → General
               ├─ 코드 위치·구조 탐색 → Explore
-              └─ 주요 UI/UX → Design Specialist
+              ├─ 주요 UI/UX (조사→구현→렌더 검증) → Design Specialist
+              └─ 미결정 대안·호환성·회귀 위험 자문(선택) → Plan
               ↓
-Build: 결과 통합·필요한 회귀 검증
+메인: 결과 통합 · 관련 회귀 검증
               ↓
-승인 범위 완료 또는 실제 차단 사유 보고
+승인 범위 완료 보고 또는 실제 차단 사유 보고
 ```
 
 | 역할 | 맡길 일 |
