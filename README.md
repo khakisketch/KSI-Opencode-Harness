@@ -23,18 +23,13 @@ Build가 개발을 구현·통합하고 Design Specialist가 UI/UX 작업을 조
 
 ```mermaid
 flowchart TD
-    task["사용자가 과업 설명"] --> choose{"OpenCode에서 메인 에이전트 선택"}
-    choose --> build["Build"]
-    choose --> design["Design Specialist"]
-    build -->|필요한 일만 선택형 위임| delegate["General / Explore / Design Specialist"]
-    design -->|필요한 일만 선택형 위임| delegate
-    delegate --> main["메인 에이전트가 결과를 결정·통합"]
-    build -->|미결정 선택이 있을 때만 자문| plan["Plan: 선택형 대안·위험 자문"]
-    design -->|필요할 때만 자문| plan
-    plan --> main
-    build --> main
-    design --> main
-    main --> done["구현·통합·관련 동작 검증"]
+    task["목표·제약 전달"] --> main["메인: Build 또는<br/>Design Specialist"]
+    main --> work["메인이 구현·통합·검증"]
+    main -. "독립 작업이 있을 때" .-> delegate["General / Explore<br/>또는 Design Specialist"]
+    main -. "대안 비교가 필요할 때" .-> plan["Plan 자문"]
+    delegate -. "작업 결과" .-> work
+    plan -. "자문 결과" .-> work
+    work --> report["결과·검증·차단 보고"]
 ```
 
 **Plan은 선택형 자문입니다.**
