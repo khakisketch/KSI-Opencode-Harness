@@ -1,6 +1,7 @@
 {
   // Native agents, model routing and MCP tools; no separate workflow runtime.
   "$schema": "https://opencode.ai/config.json",
+  "default_agent": "build",
   "share": "disabled",
   "update": "notify",
   "mcp": {
