@@ -33,6 +33,12 @@ const realSkills = [
 ];
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
+describe('tracked role inventory', () => {
+  it('tracks 6 visible roles including architect and scout', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout']);
+  });
+});
+
 describe('canonical id shapes', () => {
   it('matches agent/skill by id when display name differs', () => {
     const agents = projectAgents(realAgents);

@@ -2,14 +2,59 @@
 
 이 저장소는 개인 전역 OpenCode 환경에 자동 설치되지 않습니다. 설치 전 대상 환경과 기존 파일을 확인하고, 사용자 설정과 자격증명을 보존하면서 관련 항목만 적용하세요.
 
+## 배포 구성과 적용 후 흐름
+
+배포 정본은 `global/`입니다. README·이 문서는 사용법과 적용 절차를 설명하며, 실행 시 별도 워크플로 엔진을 설치하지 않습니다.
+
+```text
+Build — 제품 목표·통합·최종 인수
+ ├─ Plan → Explore 조사
+ └─ Design Architect — 맡은 UI 개선 단위 조율
+      ├─ UX Scout — 필요한 화면·레퍼런스 조사
+      ├─ Explore — 코드 탐색
+      └─ General — 구현·검증·수정
+            ↕ Architect의 실제 렌더 재평가·교정
+```
+
+이 트리는 작업별 선택 사항입니다. Build는 General 등도 직접 호출할 수 있고, 작은 수정은 직접 처리합니다. UI 중심 작업에서는 Architect를 메인으로 선택할 수도 있습니다. 메인 책임자는 한 명이며, 중첩 허용은 매 단계의 사용자 승인이나 자동 맥락 상속을 뜻하지 않습니다.
+
+설치·업데이트는 다음을 하나의 구성으로 적용해야 합니다.
+
+1. **공통 지침:** 제품 목표·원문/가설 구분·위임·증거·인수 원칙.
+2. **커스텀 역할 2개:** Architect는 설계·작업자 조율·재평가, Scout는 조사와 원본 인계. General·Explore·Plan은 Native 역할을 재사용합니다.
+3. **설정 병합:** `experimental.subagent_depth=2`, Build·Plan 호출 허용 목록, 모델·MCP 설정. Architect의 호출 권한은 Markdown 역할 파일에 있습니다.
+4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
+5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
+
+배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Scout=`openai/gpt-6-luna-fast#high`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build·Plan은 전역 모델을 고정하지 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
+
+스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. Scout의 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
+
 ## 적용 파일
 
 | 저장소 파일 | 전역 적용 위치 | 용도 |
 | --- | --- | --- |
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업·완료 지침 |
-| `global/agents/design-specialist.md` | `~/.config/opencode/agents/design-specialist.md` | Design Specialist 역할·권한 |
+| `global/agents/design-architect.md` | `~/.config/opencode/agents/design-architect.md` | Design Architect 역할·권한 (`openai/gpt-6.1-sol#high`, `mode: all`) |
+| `global/agents/ux-scout.md` | `~/.config/opencode/agents/ux-scout.md` | UX Scout 선택형 하위 조사 (`openai/gpt-6-luna-fast#high`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 제한된 UI 소스 검사 플러그인 |
+
+## 에이전트 이름 변경 (design-specialist → design-architect)
+
+`design-architect`(`openai/gpt-6.1-sol#high`, `mode: all`)가 기존 `design-specialist` 자리를 대체하고, `ux-scout`(`openai/gpt-6-luna-fast#high`, subagent, 선택형)를 새로 추가합니다. Scout는 넓은 관찰·문제 후보·Mobbin/외부 참고와 원본 근거를 넘기며 설계 승인·제품 코드 작성·완료 인수는 하지 않습니다. 제품 편집·추가 위임·임의 Shell은 거부하고, 필요한 읽기·웹·Browser·Code Mode·명명된 Playwright 검사 명령과 Mobbin 검색 3개만 허용합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니며, 테스트 환경·계정과 지정 산출물 위치가 필요합니다. [실제 권한·실행 검증 범위](validation.md#역할-구조-변경-2026-10-17)
+
+- 같은 이름의 사용자 정의 역할이 있으면 덮어쓰지 말고 백업한 뒤 필요한 선택만 질문합니다.
+- 은퇴한 같은 출처 에이전트 파일(`design-specialist.md`)은 발견되는 `agents/` 밖에 보관·이동하고, 새 파일 2개를 적용합니다. 발견 디렉터리에 이전 ID의 별칭·복사본을 남기지 않습니다.
+- 기존 세션의 선택·저장된 모델은 자동 이전되지 않으므로, 새 작업부터 새 ID·모델을 선택합니다.
+
+```sh
+cmp global/agents/design-architect.md ~/.config/opencode/agents/design-architect.md
+cmp global/agents/ux-scout.md ~/.config/opencode/agents/ux-scout.md
+cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
+cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
+diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
+```
 
 ## 설치 요청 프롬프트
 
@@ -21,11 +66,16 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
 1. OS·실제 전역 경로·기존 설치·Node.js·브라우저를 확인하고,
    기존 파일을 백업한 뒤 관련 항목만 병합해줘. 개인 설정·자격증명·다른 도구는
    보존하고, 같은 이름의 사용자 정의와 충돌하면 필요한 선택만 질문해줘.
-2. global/AGENTS.md, global/agents/design-specialist.md, global/opencode.jsonc를
-   전역에 적용하고 필요한 환경별 경로 차이를 보고해줘.
+2. global/AGENTS.md, global/agents/design-architect.md, global/agents/ux-scout.md, global/opencode.jsonc를
+   전역에 적용하고 필요한 환경별 경로 차이를 보고해줘. 은퇴한 design-specialist.md는
+   agents/ 밖에 보관·이동하고, 같은 이름의 사용자 정의와 충돌하면 덮어쓰지 말고
+   백업 뒤 필요한 선택만 질문해줘. 기존 세션은 자동 이전되지 않으니 새 작업부터 새 ID·모델을 써줘.
    global/plugins/ksi-impeccable-detector/도 전역 plugins/에 적용해줘.
-   OpenCode V2가 자동 발견하므로 중복 plugins 등록이나 npm 설치는 하지 마.
-   프로젝트에 지침을 중복 삽입하지 말고 V2 공식 문서와 실제 설정을 확인해줘.
+    OpenCode V2가 자동 발견하므로 중복 plugins 등록이나 npm 설치는 하지 마.
+    프로젝트에 지침을 중복 삽입하지 말고 V2 공식 문서와 실제 설정을 확인해줘.
+    experimental.subagent_depth=2와 Build/Plan의 subagent 허용 목록을 관련 설정과 함께 병합하고,
+    Architect가 작업자를 직접 호출할 수 있게 Markdown 권한도 적용해줘.
+    기존 프로젝트별 제약이 충돌하면 덮어쓰거나 제한을 우회하지 말고 그 충돌을 보고해줘.
 3. 기존 Impeccable 설치를 확인하고, 새 설치나 명시적 갱신이 필요할 때만
    공식 npm `latest` 태그를 사용해줘. 명령은 다음과 같아:
    npx --yes impeccable@latest install --providers=opencode --scope=global --no-hooks
@@ -76,10 +126,13 @@ DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.
 
 ```sh
 cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
-cmp global/agents/design-specialist.md ~/.config/opencode/agents/design-specialist.md
+cmp global/agents/design-architect.md ~/.config/opencode/agents/design-architect.md
+cmp global/agents/ux-scout.md ~/.config/opencode/agents/ux-scout.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
 diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
 ```
+
+중첩 위임 허용치 `experimental.subagent_depth=2`(기본값 1)는 전역 설정이 소유합니다. 저장소 `global/opencode.jsonc`와 설치본의 일치는 위 `cmp`로 확인하고, 선언값은 `node tests/agent-routing-native.mjs`가 현재 로드된 설치 위치에서 검사합니다(콜드 위치 탐색·준비 검사가 아님). 깊이는 최대 허용치이며 매번 깊은 트리를 강제하지 않습니다. 실제 2단계 중첩 실행의 근거와 미검증 범위: [검증 안내](validation.md#역할-구조-변경-2026-10-17)
 
 Context7 키는 `CONTEXT7_API_KEY` 환경변수로 주입하며 실제 키·OAuth 토큰·개인 `cli.json`은 저장소에 기록하지 않습니다. 필요한 서비스 인증은 사용자별로 진행하고, OAuth는 사용자가 OpenCode의 `/mcps`에서 처리합니다. 구성·서비스 상태·독립적인 개인 스킬은 전역 설정 사본에 포함되지 않습니다.
 

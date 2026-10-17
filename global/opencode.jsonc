@@ -4,8 +4,12 @@
   "default_agent": "build",
   "share": "disabled",
   "update": "notify",
+  "experimental": {
+    // Build -> Architect -> implementation/research; a ceiling, not a required chain.
+    "subagent_depth": 2
+  },
   "mcp": {
-    // Design Specialist owns frontend work; retired design runtimes stay absent.
+    // Design Architect owns design outcomes; UX Scout optionally gathers evidence.
     // Mobbin is an optional paid service: this operator enables it, but the harness works without it.
     "mobbin": {
       "type": "remote",
@@ -25,7 +29,23 @@
   },
   "agents": {
     // Native Markdown owns custom-role prompts and permissions; these are user routing preferences.
-    "plan": { "mode": "all" },
+    "build": {
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "plan", "effect": "allow" },
+        { "action": "subagent", "resource": "design-architect", "effect": "allow" },
+        { "action": "subagent", "resource": "general", "effect": "allow" },
+        { "action": "subagent", "resource": "explore", "effect": "allow" },
+        { "action": "subagent", "resource": "ux-scout", "effect": "allow" }
+      ]
+    },
+    "plan": {
+      "mode": "all",
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "explore", "effect": "allow" }
+      ]
+    },
     "explore": { "model": "opencode-go/muse-spark-1.3-contributor#low", "steps": 20 },
     "general": { "model": "opencode-go/muse-spark-1.3-contributor#high" }
   },
