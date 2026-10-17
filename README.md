@@ -197,6 +197,7 @@ node --test tests/core.test.mjs tests/adapter.test.mjs
 node tests/native-hook-integration.mjs
 node --test tests/completion-guidance.test.mjs
 node --test tests/capabilities.test.mjs
+node --test tests/compaction-continuity.test.mjs
 node tests/agent-routing-native.mjs
 ```
 
@@ -204,6 +205,7 @@ node tests/agent-routing-native.mjs
 - 확인 환경: OpenCode 2.0.32 / Linux arm64 (다른 OS는 미확인)
 - `agent-routing-native.mjs`는 설정 원본의 `experimental.subagent_depth==2` 선언 일치와 역할별 호출 정책·역할 모델(Plan 포함)을 검사합니다(55개 통과). 임의의 병합 설정이나 실제 실행을 이 검사만으로 보장하지 않습니다.
 - 모의 UI에서는 실제 `Build → Architect → General` 중첩 호출·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 모든 호출 경로·실제품 품질·장기 완주·비용 절감을 입증한 것은 아닙니다. [실행 근거와 한계](docs/validation.md#역할-구조-변경-2026-10-17)
+- `compaction-continuity-live.mjs`(선택형)는 수동 Compact 전후의 목표·확정 결정·미확정 후보·작업 상태 유지와 곁작업 복귀를 확인합니다. 2026-10-17 두 변형(keep 8192/15000) 모두 통과해 현재 설정을 유지했습니다. [결과와 한계](docs/validation.md#긴-세션-compact-연속성-검사-2026-10-17)
 - 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)
 
 ## 알아둘 점
