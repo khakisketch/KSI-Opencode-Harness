@@ -22,7 +22,7 @@
 
 ```text
 Build — 목표·통합·최종 인수
- ├─ Plan — 중요한 기술 판단 자문
+ ├─ Plan — 기술 자문·방향 점검
  │    └─ Explore — 필요한 코드 조사
  └─ Design Architect — 맡은 UI 개선 전체 책임
       ├─ UX Scout — 화면·문제 후보·레퍼런스 조사
@@ -37,7 +37,7 @@ Build는 UI 외의 구현을 General에 직접 맡기거나 Explore·Scout를 �
 | 역할 / Native ID | 책임 | 모드 | 배포 기본 모델 |
 | --- | --- | --- | --- |
 | **Build** / `build` | 목표·장기 맥락·통합·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
-| **Plan** / `plan` | 영향이 큰 기술 선택·트레이드오프 자문 | all | 세션 선택/호출 시 상속, 전역 모델 미고정 |
+| **Plan** / `plan` | 영향이 큰 기술 선택 자문 + 큰 전환·복귀 시 방향 점검 | all | `openai/gpt-6.1-sol#xhigh` |
 | **Design Architect** / `design-architect` | 진단·UX/UI 설계·작업자 조율·렌더 개선 | all | `openai/gpt-6.1-sol#high` |
 | **UX Scout** / `ux-scout` | 선택형 관찰·문제 후보·외부 사례·원본 근거 수집 | subagent | `openai/gpt-6-luna-fast#high` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
@@ -46,7 +46,8 @@ Build는 UI 외의 구현을 General에 직접 맡기거나 Explore·Scout를 �
 - `experimental.subagent_depth=2`는 `Build → Architect → 작업자`까지 허용하는 **최대 깊이**입니다. `mode: all`은 메인/하위 실행을 모두 지원한다는 뜻이지 무제한 위임 권한이 아닙니다.
 - Architect는 General·Scout·Explore를 직접 호출하고 같은 작업의 세션을 재사용합니다. 기술 자문이 필요하면 남은 깊이 안에서 Plan도 호출할 수 있습니다.
 - Plan은 Explore 조사만 위임합니다. General·Scout·Explore는 추가 위임하지 않습니다. 허용 목록 밖의 역할을 추가하려면 호출 권한도 명시적으로 조정해야 합니다.
-- 중요한 기술 결정은 Plan의 근거를 활용하되, Plan을 필수 승인자나 두 번째 구현 총괄로 만들지 않습니다.
+- 장기 작업의 연속성은 Build가 Native 세션·이력·프로젝트 자료로 유지하고, 곁작업 뒤에는 승인 범위의 제품 개발로 복귀합니다. 큰 전환, 상당한 곁작업, 원래 문제를 해결하지 못하는 국소 수정 정체, 장기 목표의 완료 판단 전에는 Plan에 원래 목표 대비 방향·누락·남은 작업 점검을 요청할 수 있습니다.
+- Plan은 자문이며 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다. 매 작업마다 호출하지 않으며, 점검 결과를 반영하고 다음 작업을 잇는 책임은 Build에 있습니다. Plan 모델은 명시돼 있지 않으면 부모 세션 모델을 상속하므로, 별도 판단 모델로 동작하게 하려면 위 표의 모델 고정이 필요합니다.
 - 기존 세션의 역할·모델은 설정 변경만으로 자동 이전되지 않습니다. 특히 Architect를 메인으로 고를 때는 세션 모델도 확인하세요.
 
 Architect는 맡은 UI 단위의 구현·검토를 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신, 중요한 결정·충돌·실제 차단과 최종 통합 결과를 반환합니다.
@@ -65,7 +66,7 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 | UI 편집 검사 | 플러그인으로 확장 가능 | Impeccable 엔진의 편집 후 검사 연동 |
 | 디자인 방법론 | 별도 설치 | Impeccable·Intent를 선택 사용 |
 | 브라우저 | 데스크톱 Native Browser 제공 | Native Browser·Playwright CLI 선택·세션 기준 |
-| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Design Architect·UX Scout 모델 지정 |
+| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Design Architect·UX Scout 모델 지정 |
 
 구조와 과정을 정리한 것이며, 디자인 품질 향상을 A/B로 입증한 것은 아닙니다.
 
@@ -201,7 +202,7 @@ node tests/agent-routing-native.mjs
 
 - `native-hook-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용해 외부 모델을 호출하지 않습니다. 역할 라우팅 검사도 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
 - 확인 환경: OpenCode 2.0.32 / Linux arm64 (다른 OS는 미확인)
-- `agent-routing-native.mjs`는 설정 원본의 `experimental.subagent_depth==2` 선언 일치와 역할별 호출 정책을 검사합니다(54개 통과). 임의의 병합 설정이나 실제 실행을 이 검사만으로 보장하지 않습니다.
+- `agent-routing-native.mjs`는 설정 원본의 `experimental.subagent_depth==2` 선언 일치와 역할별 호출 정책·역할 모델(Plan 포함)을 검사합니다(55개 통과). 임의의 병합 설정이나 실제 실행을 이 검사만으로 보장하지 않습니다.
 - 모의 UI에서는 실제 `Build → Architect → General` 중첩 호출·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 모든 호출 경로·실제품 품질·장기 완주·비용 절감을 입증한 것은 아닙니다. [실행 근거와 한계](docs/validation.md#역할-구조-변경-2026-10-17)
 - 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)
 

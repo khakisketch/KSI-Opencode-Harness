@@ -8,7 +8,7 @@
 
 ```text
 Build — 제품 목표·통합·최종 인수
- ├─ Plan → Explore 조사
+ ├─ Plan — 기술 자문·방향 점검 (+ Explore 조사)
  └─ Design Architect — 맡은 UI 개선 단위 조율
       ├─ UX Scout — 필요한 화면·레퍼런스 조사
       ├─ Explore — 코드 탐색
@@ -22,11 +22,11 @@ Build — 제품 목표·통합·최종 인수
 
 1. **공통 지침:** 제품 목표·원문/가설 구분·위임·증거·인수 원칙.
 2. **커스텀 역할 2개:** Architect는 설계·작업자 조율·재평가, Scout는 조사와 원본 인계. General·Explore·Plan은 Native 역할을 재사용합니다.
-3. **설정 병합:** `experimental.subagent_depth=2`, Build·Plan 호출 허용 목록, 모델·MCP 설정. Architect의 호출 권한은 Markdown 역할 파일에 있습니다.
+3. **설정 병합:** `experimental.subagent_depth=2`, Build·Plan 호출 허용 목록, 역할 모델(Plan=`openai/gpt-6.1-sol#xhigh` 포함)·MCP 설정. Architect의 호출 권한은 Markdown 역할 파일에 있습니다.
 4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
-배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Scout=`openai/gpt-6-luna-fast#high`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build·Plan은 전역 모델을 고정하지 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
+배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Scout=`openai/gpt-6-luna-fast#high`, Plan=`openai/gpt-6.1-sol#xhigh`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. Plan 모델을 지정하지 않으면 부모 세션 모델을 상속하므로, DeepSeek Build와 분리된 자문 판단을 위해 이 명시가 필요합니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
 
 스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. Scout의 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
 

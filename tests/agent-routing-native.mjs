@@ -44,6 +44,7 @@ const response = await queryApi(routeFor('/api/agent', repo));
 assert.ok(response.ok);
 const list = Array.isArray(response.payload) ? response.payload : response.payload.data;
 for (const [id, model, mode] of [
+  ['plan', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'xhigh' }, 'all'],
   ['design-architect', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'high' }, 'all'],
   ['ux-scout', { providerID: 'openai', id: 'gpt-6-luna-fast', variant: 'high' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],

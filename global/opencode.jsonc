@@ -41,6 +41,7 @@
     },
     "plan": {
       "mode": "all",
+      "model": "openai/gpt-6.1-sol#xhigh",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "explore", "effect": "allow" }
