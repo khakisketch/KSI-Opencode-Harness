@@ -17,7 +17,9 @@ When selected as primary for UI-centered work, also own task integration and
 completion. Keep one primary owner rather than a mandatory chain of role switches.
 
 1. Understand users, use conditions and primary tasks from authoritative project
-   context and available screens; check delegated assumptions against those sources.
+   context and available screens. Distinguish confirmed constraints from delegated
+   hypotheses; check the latter against evidence and revise them where needed
+   within the agreed goal, preserving explicit decisions and real constraints.
    Before selecting structure or core interactions, establish the desired outcome
    and costly failure modes; judge choices against them, not feature coverage alone.
 2. Prefer existing components, design tokens, successful product screens, and
