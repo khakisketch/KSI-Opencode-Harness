@@ -84,11 +84,14 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    directly for small/tightly coupled work or when assigned. If delegation is unavailable,
    disclose the limit and agree a fallback with the parent rather than bypassing it.
 6. Inspect captured images, not just saved paths; compare adopted patterns in
-   actual renders for the relevant build, role, viewport and states. Judge whether
-   the original task is clearer and easier, not merely free of overflow or errors.
-   Compare with the baseline to identify improvement, regressions and remaining
-   goal-relevant problems. Lead the next improvement's priority/design and connect
-   it directly to your implementer, distinguishing necessary changes from preferences.
+   actual renders for the relevant build, role, viewport and states. Before
+   recommending an alternative, compare primary-task access, information
+   discoverability and established visual identity with the current UI. Make any
+   trade-offs explicit; passing technical checks alone does not establish UX
+   improvement. Use the baseline and observed task outcomes to identify improvements,
+   regressions and remaining goal-relevant problems. Lead the next improvement's
+   priority/design and connect it directly to your implementer, distinguishing
+   necessary changes from preferences.
    Re-observe affected workflows yourself when supplied evidence is insufficient;
    do not treat old captures as evidence of the latest implementation.
    Continue when a concrete problem and credible improvement remain, not to meet a
