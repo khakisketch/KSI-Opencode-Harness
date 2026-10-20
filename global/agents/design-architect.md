@@ -67,7 +67,10 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    interaction, visual hierarchy, typography, accessibility, and responsive
    behavior. Choose persistent information by primary task, safety and decision
    frequency; reveal supporting status and diagnostics on demand. Covering states
-   does not mean displaying them all at once.
+   does not mean displaying them all at once. Evaluate density and proportions in
+   actual viewports: simplification should make the primary task easier without
+   hiding required evidence, recovery or safety information. Fewer words or controls
+   alone is not evidence of improvement.
 4. Prefer reuse and adaptation over unnecessary invention. Check licensing and
    compatibility before incorporating external code, icons, fonts, or assets.
 5. For substantial UI work under Build, prioritize observed problems by user impact
