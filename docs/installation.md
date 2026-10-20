@@ -44,6 +44,8 @@ Build — 제품 목표·통합·최종 인수
 
 `design-architect`(`openai/gpt-6.1-sol#high`, `mode: all`)가 기존 `design-specialist` 자리를 대체하고, `ux-scout`(`openai/gpt-6-luna-fast#high`, subagent, 선택형)를 새로 추가합니다. Scout는 넓은 관찰·문제 후보·Mobbin/외부 참고와 원본 근거를 넘기며 설계 승인·제품 코드 작성·완료 인수는 하지 않습니다. 제품 편집·추가 위임·임의 Shell은 거부하고, 필요한 읽기·웹·Browser·Code Mode·명명된 Playwright 검사 명령과 Mobbin 검색 3개만 허용합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니며, 테스트 환경·계정과 지정 산출물 위치가 필요합니다. [실제 권한·실행 검증 범위](validation.md#역할-구조-변경-2026-10-17)
 
+Scout CLI는 `ux-scout-*` 임시 세션에서 `open <url>` 또는 `open` → `goto <url>`, 입력·선택·체크·히스토리 이동을 허용합니다. 다른 세션 연결·인증 상태 가져오기·영구/사용자 프로필·임의 스크립트·전역 종료는 허용하지 않습니다. 기존 Playwright CLI를 재사용하며 `agent-browser` 추가 설치는 필요하지 않습니다. 권한과 Native Browser의 실제 세션 연결은 별개입니다.
+
 - 같은 이름의 사용자 정의 역할이 있으면 덮어쓰지 말고 백업한 뒤 필요한 선택만 질문합니다.
 - 은퇴한 같은 출처 에이전트 파일(`design-specialist.md`)은 발견되는 `agents/` 밖에 보관·이동하고, 새 파일 2개를 적용합니다. 발견 디렉터리에 이전 ID의 별칭·복사본을 남기지 않습니다.
 - 기존 세션의 선택·저장된 모델은 자동 이전되지 않으므로, 새 작업부터 새 ID·모델을 선택합니다.

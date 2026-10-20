@@ -64,7 +64,7 @@ permissions:
     resource: "playwright-cli --version"
     effect: allow
   - action: shell
-    resource: "playwright-cli -s=ux-scout-* open"
+    resource: "playwright-cli -s=ux-scout-* open *"
     effect: allow
   - action: shell
     resource: "playwright-cli -s=ux-scout-* goto *"
@@ -91,6 +91,30 @@ permissions:
     resource: "playwright-cli -s=ux-scout-* press *"
     effect: allow
   - action: shell
+    resource: "playwright-cli -s=ux-scout-* fill *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* type *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* select *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* check *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* uncheck *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* go-back"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* go-forward"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* reload"
+    effect: allow
+  - action: shell
     resource: "playwright-cli -s=ux-scout-* close"
     effect: allow
   - action: shell
@@ -104,6 +128,12 @@ permissions:
     effect: deny
   - action: shell
     resource: "*--profile*"
+    effect: deny
+  - action: shell
+    resource: "*--persistent*"
+    effect: deny
+  - action: shell
+    resource: "playwright-cli -s=ux-scout-* * -s=*"
     effect: deny
 ---
 
@@ -148,9 +178,15 @@ Use only when observation or reference gathering is substantial enough to help.
 Prefer Native Browser when connected; use existing Playwright CLI for disconnected
 or headless sessions. Load playwright-cli when using it. Use a unique
 `ux-scout-<task>` session; never attach to or close someone else's session. Use
-`open` then `goto`, and only your own `close`; no global cleanup. Have the main
-provide the running URL, test data and approved artifact directory. Save captures
-there through browser/CLI tools; edit/write permissions remain denied.
+`open <url>` or `open` then `goto <url>`, and only your own `close`; no global cleanup.
+Have the main provide the running URL, test data and approved artifact directory.
+Save captures there through browser/CLI tools; edit/write permissions remain denied.
+Use snapshot refs for click, fill, type, select and check/uncheck; history navigation
+and reload are available in your own session. Use temporary browser profiles: attach,
+persistent/custom profiles and authentication-state imports are not authorized.
+Distinguish missing Native connection from CLI permission denial, network failure
+and authentication requirements. Report the attempted operation and exact blocker;
+existing screenshots can support partial findings, not claims of current live inspection.
 
 Shell is limited to named Playwright inspection commands, not arbitrary scripts,
 run-code/eval, installs, Git, deployment, credential access or server setup. Mobbin

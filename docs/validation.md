@@ -33,6 +33,18 @@ node scripts/capabilities.mjs /path/to/project
 
 해당 환경에서는 Native Browser로 외부 페이지 열기·캡처·기본 클릭을 확인했습니다. 전역 Playwright MCP를 비활성화한 뒤 Design Specialist 자식 세션에서 CLI 0.1.22를 `DISPLAY`·`WAYLAND_DISPLAY` 없이 실행해 외부 화면, 로컬 상태 전환, PNG 3개 읽기를 확인했습니다. 자식 세션이 끝난 뒤 별도 보호 세션도 유지됐습니다. 이는 브라우저 경로 확인이지 실제 제품 UI의 품질 검증은 아니며, 다른 OS나 전체 원격 SSH 환경의 검증을 의미하지 않습니다.
 
+### Scout CLI 호출·권한 보정 (2026-10-21)
+
+10/20 실프로젝트의 Scout는 `playwright-cli -s=ux-scout-… open <url>`에서 `Permission denied: shell`을 받았고, 실시간 탐색을 하지 못했다고 보고했습니다. 기존 허용 목록은 인수 없는 `open`만 허용했으나 설치된 CLI 0.1.22는 두 호출 형식을 모두 지원합니다. `open <url>`도 허용하도록 맞추고, 같은 명명 세션의 `fill/type/select/check/uncheck/go-back/go-forward/reload`를 허용했습니다.
+
+제품 편집·임의 Shell·추가 위임은 계속 거부하며 `run-code/eval`, 사용자 config/profile, 영구 프로필, 다른 세션 attach, 인증 상태 가져오기, 업로드, 전역 종료는 허용하지 않습니다. 추가 `-s=`로 세션을 바꾸는 명령도 거부합니다. 기존 CLI와 브라우저를 재사용하며 `agent-browser`나 새 MCP는 추가하지 않았습니다. 명령별 Native 권한 평가는 76개 통과했으며, 이는 네트워크/파일시스템 샌드박스나 실제 브라우저 실행의 증거를 대신하지 않습니다.
+
+실제 하위 Scout(`openai/gpt-6-luna-fast#high`, OpenCode 2.1.1 / CLI 0.1.22 / Linux arm64)로 격리된 loopback 화면을 확인했습니다. Native `tabs.list`는 도구가 노출돼도 여전히 `browser.disconnected`였으며, 이 연결 전달 문제를 해결했다고 주장하지 않습니다. 자신의 CLI 임시 세션에서는 `open <url>`·`goto`·입력(`fill/type/press`)·선택·체크/해제·클릭·뒤로/앞으로·새로고침과 390×844 PNG 저장·원본 판독을 완료했습니다. 메인도 같은 PNG를 읽고 서버의 입력/선택 이벤트·두 번의 history 이동·reload 후 값 유지를 대조했습니다. 별도 보호 브라우저 세션은 종료되거나 값이 바뀌지 않았고 픽스처 소스 해시도 불변이었습니다.
+
+첫 입력은 잘못 옮긴 ref(`e1e7`)로 한 번 실패했고 snapshot의 실제 ref(`f1e7`)로 교정해 성공했습니다. 권한 거부를 우회하거나 임의 스크립트를 실행한 것은 아닙니다. 최초 `open` 출력의 콘솔 오류 1건과 최종 `console`의 0건은 구분해 기록했으며, 세션 전체에 오류가 없었다고 일반화하지 않습니다. 자신의 CLI 세션만 닫았고 보호 세션과 fixture 서버는 메인이 따로 정리했습니다. 원본 기록·서버 이벤트·PNG·검증 요약은 `/tmp/opencode/ksi-scout-browser-pFTXlz/`에 있습니다.
+
+이는 이번 명령·환경의 접근 경로 smoke이며 실제 제품 UX, 인증된 고객 환경, 다른 OS·하위 세션 전체의 Native 연결을 보장하지 않습니다. 스킬 호출·성능 검사는 하지 않았고, 제품 파일·실데이터·다른 프로젝트의 브라우저 상태는 변경하지 않았습니다.
+
 ## 디자인 판단의 적용 범위
 
 제품 개발은 기본 Build가 제품 목표·통합·최종 인수를 소유합니다. 중요한 UI는 Design Architect가 직접 관찰·개선 우선순위·설계·렌더 재평가를 주도하고 General이 코딩·실행·기술적 결함 수정을 맡는 것을 기본으로 합니다. UX Scout는 선택형 하위 조사이며 넓은 관찰·문제 후보·Mobbin/외부 참고와 원본 근거를 간결히 넘기고, 설계 승인·제품 코드 작성·완료 인수는 하지 않습니다. 전역 `experimental.subagent_depth=2`(기본값 1)는 Build→Architect→작업자(General·Scout·Explore)의 한 단계 중첩을 허용하는 최대치이며, 매번 깊은 트리를 강제하지 않습니다. Architect는 맡은 UI 단위를 통째로 소유해 작업자 세션을 직접 호출·재사용하며 구현·렌더·검토를 잇고, 매 반복마다 Build를 거치지 않습니다. Architect는 이정표·결정·충돌·실제 차단 사유와 최종 통합 증거를 반환하고 전체 대화 이력을 복사하지 않습니다. Build는 목표·범위 변경이나 역할 간 충돌·최종 인수에 개입하며 일상적인 설계 승인은 요구하지 않습니다. 작은 수정·밀접한 작업이나 명시적으로 맡긴 구현은 직접 처리할 수 있습니다. UI 중심 작업은 선택된 Design Architect가 메인으로 책임질 수 있습니다(`mode: all` 유지). UX Scout는 선택형이며 메인 또는 맡은 단위 안에서는 Architect가 직접 호출합니다. Plan은 선택형 기술 자문이고 매번 호출하지 않으며, Explore 조사만 위임하고 General·Architect를 두 번째 구현 책임자로 호출하지 않습니다. Build는 장기 연속성을 세션·이력·프로젝트 자료로 유지하고, 큰 전환·상당한 곁작업 후 복귀·국소 정체·장기 목표 완료 판단 전에 Plan에 방향·누락·남은 작업 점검을 요청할 수 있습니다. Plan은 승인 관문이나 기억 저장소가 아닙니다. [공식 Subagent 도구](https://opencode.ai/v2/docs/tools#subagent)
