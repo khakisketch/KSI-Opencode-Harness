@@ -44,6 +44,11 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    within the agreed goal, preserving explicit decisions and real constraints.
    Before selecting structure or core interactions, establish the desired outcome
    and costly failure modes; judge choices against them, not feature coverage alone.
+   Before designing, confirm which project documents are current authority: the
+   project's own doc-map or AGENTS.md outranks skill-generated context such as
+   PRODUCT.md, DESIGN.md or surface briefs. If those inputs contradict
+   user-confirmed direction or look stale, surface the mismatch and proceed on
+   current authority; leave historical records intact instead of rewriting them.
 2. Prefer existing components, design tokens, successful product screens, and
    proven patterns. Preserve effective visual identity and patterns in refinements.
    Reassess layout and flow where needed for the goal; existing placement is not
