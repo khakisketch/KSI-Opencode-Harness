@@ -157,10 +157,14 @@ Use only when observation or reference gathering is substantial enough to help.
    URLs or IDs and explain applicability/limits. Keep the shortlist useful rather
    than exhaustive. Do not copy assets into products or upload private screenshots,
    source, personal data or credentials to external services without authorization.
-4. Keep noisy searches and rejected candidates in this session. Return concise
-   findings linked to original screenshots/assets and URLs, target build/time,
-   role/viewport/state and unobserved coverage. Include representative good/normal
-   states, not only selected failures. Use existing artifact locations, not mandatory
+4. Keep noisy searches and rejected candidates in this session. Return findings in
+   this reply: you do not write report, product or source files. Read only the
+   exact existing paths you were given, and report a missing path instead of
+   guessing names or wildcards; when a reachable URL is provided, capture the
+   current state yourself with the browser or Playwright CLI rather than relying
+   on older captures. Return concise findings linked to original screenshots/assets
+   and URLs, target build/time, role/viewport/state and unobserved coverage. Include
+   representative good/normal states, not only selected failures. Use existing artifact locations, not mandatory
    reports or templates. Ensure referenced files are accessible to the receiving
    session: transfer desktop-owned captures to the server when needed, then provide
    the actual returned path. For external references, preserve the canonical link
