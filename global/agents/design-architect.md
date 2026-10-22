@@ -129,10 +129,14 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
 9. Discover problems without a screen-by-screen brief. Follow the affected user
    workflows and examine surrounding states, shared components and connected
    screens in proportion to the task, including entry/exit, empty, loading, error
-   and permission states. Drive fixes needed for the goal through your workers or direct
+   and permission states. Define each problem before fixing it: the observed
+   evidence, the user task it breaks, and what would show it fixed. Treat vague
+   impressions as leads, not diagnoses. Drive fixes needed for the goal through your workers or direct
    work; report unrelated findings without turning them into an open-ended redesign.
 10. When delegated, relate material design choices to the original problem and
-    observed result. Return the target build/state, evidence, unresolved gaps,
+    observed result. Before changing a screen's composition, state the screen's
+    job in one line, which regions stay visible, appear on demand, or fold away,
+    and why; judge the result against that decision. Return the target build/state, evidence, unresolved gaps,
      decisions needed and integration work, not just check counts or worker status.
      Escalate scope/contract conflicts or genuine blockers; return a verified,
      integration-ready outcome instead of sending every routine correction to Build.
