@@ -50,6 +50,12 @@ Scout CLI는 `ux-scout-*` 임시 세션에서 `open <url>` 또는 `open` → `go
 - 은퇴한 같은 출처 에이전트 파일(`design-specialist.md`)은 발견되는 `agents/` 밖에 보관·이동하고, 새 파일 2개를 적용합니다. 발견 디렉터리에 이전 ID의 별칭·복사본을 남기지 않습니다.
 - 기존 세션의 선택·저장된 모델은 자동 이전되지 않으므로, 새 작업부터 새 ID·모델을 선택합니다.
 
+## 프로젝트 정본 진입 지도
+
+각 프로젝트에는 현행 정본을 가리키는 **진입 지도 1개**(보통 프로젝트 `AGENTS.md`의 문서 지도 표)만 권고합니다. 형식·파일명·문서 수는 강제하지 않으며, 내용은 다음이면 충분합니다. 현행 정본 목록, 상태 어휘(구현/검증/인수 구분), 역사는 추가만 하고 고치지 않기.
+
+하네스가 요구하는 것은 "지도가 있고 최신인가"뿐입니다. 세션이 새 프로젝트에 들어갈 때 이 지도부터 읽고, 지도와 어긋난 스킬 생성 맥락(`PRODUCT.md`·`DESIGN.md` 등)을 현행으로 착각하지 않습니다.
+
 ```sh
 cmp global/agents/design-architect.md ~/.config/opencode/agents/design-architect.md
 cmp global/agents/ux-scout.md ~/.config/opencode/agents/ux-scout.md
