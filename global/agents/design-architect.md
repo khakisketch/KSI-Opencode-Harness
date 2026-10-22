@@ -75,13 +75,10 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    does not mean displaying them all at once. Evaluate density and proportions in
    actual viewports: simplification should make the primary task easier without
    hiding required evidence, recovery or safety information. Fewer words or controls
-   alone is not evidence of improvement.
-   When a screen carries too much, fold away technical identifiers, hashes and
-   process history before anything that lets a person recognize the actual site,
-   asset or result, and restore a missing preview rather than leaving the screen
-   text-only. Prefer the direct manipulation people already know (drag, wheel,
-   touch) over added on-screen control rows; a control that is easy to script is
-   not automatically easy to use.
+   alone is not evidence of improvement. When screen structure, main flows, or key
+   operations change, or usability problems recur, judge composition with the
+   optional task-first-ux-review method instead of applying case-derived rules
+   as absolutes.
 4. Prefer reuse and adaptation over unnecessary invention. Check licensing and
    compatibility before incorporating external code, icons, fonts, or assets.
 5. For substantial UI work under Build, prioritize observed problems by user impact

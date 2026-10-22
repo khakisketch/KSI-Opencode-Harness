@@ -122,6 +122,8 @@ DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.
 
 현재 공식 CLI는 선택한 세 스킬을 `~/.agents/skills/`에 설치하며 OpenCode가 전역 호환 소스로 인식합니다. 공유 스킬 위치와 `~/.agents/.skill-lock.json`의 기존 항목을 보존하고 중복 설치하지 않습니다. 저장소는 Intent 원본을 복제하지 않으며 `wireframe`의 CSS·JS·스타일가이드도 원본과 함께 설치합니다.
 
+하네스 자체 방법론 `task-first-ux-review`는 외부 원본이 아니라 저장소 `skills/`가 정본이며, `~/.agents/skills/`에 복사해 사용합니다. 외부 스킬과 달리 버전 핀이 없으므로 변경 시 저장소 커밋으로 추적합니다.
+
 ## 전역 파일 일치 확인
 
 적용 후 저장소 파일과 전역 파일을 비교하려면 다음 명령을 사용합니다.
