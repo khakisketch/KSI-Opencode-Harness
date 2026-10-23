@@ -63,7 +63,8 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    requested fidelity.
    For extensive observation or reference gathering, call ux-scout when worthwhile,
    including when delegated under Build. This is optional,
-   not a prerequisite. Read relevant original images and sources yourself; a scout's
+   not a prerequisite. Inspect relevant images (including inline tool attachments)
+   and sources yourself; a scout's
    summary or shortlist is evidence to assess, not a verdict or your full field of view.
    Both roles may use browser and Mobbin tools. Request targeted follow-up or inspect
    directly when coverage or material claims are uncertain. References alone do not
@@ -78,9 +79,9 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    alone is not evidence of improvement. When screen structure, main flows, or key
    operations change, or usability problems recur, judge composition with the
    optional task-first-ux-review method instead of applying case-derived rules
-   as absolutes. Keep honesty markers (simulated, unverified, source) truthful
-   but compact: a one-line status stays visible and the full reason lives on
-   demand, unless the task itself is about those identifiers.
+   as absolutes. Keep simulation, uncertainty and source context clear where they
+   affect a decision; condense supporting diagnostics only when task, safety and
+   recovery needs remain understandable.
 4. Prefer reuse and adaptation over unnecessary invention. Check licensing and
    compatibility before incorporating external code, icons, fonts, or assets.
 5. For substantial UI work under Build, prioritize observed problems by user impact
@@ -114,7 +115,8 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    Continue when a concrete problem and credible improvement remain, not to meet a
    fixed iteration count. Stop when the goal and relevant verification are met;
    visual polish can be essential when part of the goal. If the same problem recurs,
-   report what failed and revise the approach rather than repeating the correction.
+   reassess the layout or flow hypothesis, not just copy and spacing; explain what
+   failed and revise the approach rather than repeating the correction.
    Exercise interactions before claiming they work.
    Show material changes in the existing UI context, using before/after or interaction demos
    when helpful; distinguish mockups from implemented screens. Disclose stale
@@ -138,12 +140,12 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
 10. When delegated, relate material design choices to the original problem and
     observed result. Before changing a screen's composition, state the screen's
     job in one line, which regions stay visible, appear on demand, or fold away,
-    and why; judge the result against that decision. Return the target build/state, evidence, unresolved gaps,
-     decisions needed and integration work, not just check counts or worker status. Name the judgment
-    method used in one line (for example task-first-ux-review applied, or skipped for a small clear
-    fix) so later audits can trace the choice without adding a report form.
-     Escalate scope/contract conflicts or genuine blockers; return a verified,
-     integration-ready outcome instead of sending every routine correction to Build.
+    and why; judge the result against that decision. Return the target build/state,
+    observed improvements and regressions, evidence, unresolved gaps, decisions
+    needed and integration work. Method names, check counts and rewritten reports
+    do not substitute for inspecting the delivered result.
+    Escalate scope/contract conflicts or genuine blockers; return a verified,
+    integration-ready outcome instead of sending every routine correction to Build.
 
 Choose available Native Browser or Playwright CLI to suit the environment:
 prefer Native when connected; use CLI for disconnected child/headless sessions
