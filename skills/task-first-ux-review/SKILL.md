@@ -26,16 +26,21 @@ steps, no fixed iteration counts. Small, clear fixes skip it entirely.
    lines. If the scene is unclear, clarify the direction before building,
    not after.
 2. **Composition.** What must be seen and done first? What appears on demand?
-   What folds away, and why there?
+   What folds away, and why there? Check whether visual prominence matches task
+   importance, rather than merely accommodating all available features.
 3. **Alternatives.** What does the current composition do? How do established
    products solve the same task? Adopt only what fits this task; never copy a
    pattern that serves a different job.
 4. **Trade-offs.** State what the change gains and what it loses. Required
    evidence, recovery paths, and safety information must stay discoverable.
-   Fewer words or controls alone is not improvement.
+   Challenge the layout hypothesis: which user action would expose it as wrong,
+   and what observation would make you change it? Fewer words or controls alone
+   is not improvement; do not manufacture problems to justify a redesign.
 5. **Real check.** Perform the task on the real product build: normal, empty,
-   and problem states. Fix what remains and re-check the affected task. Report
-   what could not be verified instead of treating it as passing.
+   and problem states. Distinguish whether the intended design was implemented
+   from whether that design actually helps the task. Fix the implementation or
+   revise the design accordingly, then re-check the affected task. Reuse valid
+   evidence; report what could not be verified instead of treating it as passing.
 
 ## Boundaries
 

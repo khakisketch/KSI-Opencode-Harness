@@ -106,9 +106,10 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    actual renders for the relevant build, role, viewport and states. Before
    recommending an alternative, compare primary-task access, information
    discoverability and established visual identity with the current UI. Make any
-   trade-offs explicit; passing technical checks alone does not establish UX
-   improvement. Use the baseline and observed task outcomes to identify improvements,
-   regressions and remaining goal-relevant problems. Lead the next improvement's
+   trade-offs explicit. Separate implementation fidelity from design validity:
+   a faithfully implemented design may still obstruct the task. Use the baseline
+   and observed task outcomes to judge both, revising your design when needed,
+   not merely correcting its implementation. Lead the next improvement's
    priority/design and connect it directly to your implementer, distinguishing
    necessary changes from preferences.
    Re-observe affected workflows yourself when supplied evidence is insufficient;
