@@ -30,6 +30,7 @@ node scripts/capabilities.mjs /path/to/project
 - CLI는 고유한 작업별 세션 이름으로 실행하고 자신이 만든 세션만 종료합니다. 전체 정리용 `close-all`·`kill-all`은 사용하지 않습니다.
 - 프로젝트의 Playwright Test, 감사 스크립트, 기존 캡처·로그를 보존하고 산출물 위치·보고 규칙을 따릅니다. 프로젝트 초기화나 테스트 의존성 교체를 하지 않습니다.
 - Playwright MCP와 `agent-browser`는 기본 구성에서 제거했습니다. 기존 CLI·Chrome·원본 `playwright-cli` 스킬을 재사용하고, CLI가 없을 때만 공식 `@playwright/cli@0.1.22` 설치를 검토합니다.
+- 하위용 `agent-browser`를 추가 설치하지 않습니다(2026-10-23). `browser: allow`는 데스크톱 브라우저를 자식 세션에 연결하지 않으며, 별도 헤드리스를 붙이면 공유 브라우저 단일 소유와 Scout 설치·서버 금지에 어긋나고 위 재사용 결정과 충돌합니다. 연결된 Main/Architect는 Native(보이는 창 필수), 분리 자식·헤드리스·반복 자동화는 작업별 Playwright CLI를 유지합니다. `browser.disconnected`와 `Screenshot needs a visible tab`은 실패가 아니라 경로 전환·창 가시화 신호로 보고합니다.
 
 해당 환경에서는 Native Browser로 외부 페이지 열기·캡처·기본 클릭을 확인했습니다. 전역 Playwright MCP를 비활성화한 뒤 Design Specialist 자식 세션에서 CLI 0.1.22를 `DISPLAY`·`WAYLAND_DISPLAY` 없이 실행해 외부 화면, 로컬 상태 전환, PNG 3개 읽기를 확인했습니다. 자식 세션이 끝난 뒤 별도 보호 세션도 유지됐습니다. 이는 브라우저 경로 확인이지 실제 제품 UI의 품질 검증은 아니며, 다른 OS나 전체 원격 SSH 환경의 검증을 의미하지 않습니다.
 
