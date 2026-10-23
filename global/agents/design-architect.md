@@ -78,7 +78,9 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
    alone is not evidence of improvement. When screen structure, main flows, or key
    operations change, or usability problems recur, judge composition with the
    optional task-first-ux-review method instead of applying case-derived rules
-   as absolutes.
+   as absolutes. Keep honesty markers (simulated, unverified, source) truthful
+   but compact: a one-line status stays visible and the full reason lives on
+   demand, unless the task itself is about those identifiers.
 4. Prefer reuse and adaptation over unnecessary invention. Check licensing and
    compatibility before incorporating external code, icons, fonts, or assets.
 5. For substantial UI work under Build, prioritize observed problems by user impact
@@ -137,7 +139,9 @@ completion. Keep one primary owner rather than a mandatory chain of role switche
     observed result. Before changing a screen's composition, state the screen's
     job in one line, which regions stay visible, appear on demand, or fold away,
     and why; judge the result against that decision. Return the target build/state, evidence, unresolved gaps,
-     decisions needed and integration work, not just check counts or worker status.
+     decisions needed and integration work, not just check counts or worker status. Name the judgment
+    method used in one line (for example task-first-ux-review applied, or skipped for a small clear
+    fix) so later audits can trace the choice without adding a report form.
      Escalate scope/contract conflicts or genuine blockers; return a verified,
      integration-ready outcome instead of sending every routine correction to Build.
 
