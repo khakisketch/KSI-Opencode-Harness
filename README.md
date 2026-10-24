@@ -47,8 +47,7 @@ Native 이름 **Plan·Build·General·Explore**는 유지하고, 기본 전문 �
 Build — depth 0 · 제품 실행 총괄·통합·최종 인수
  ├─ Engineer — depth 1 · 독립 기술 개발 단위 완결
  │    ├─ General — depth 2 · 구현·테스트·수정
- │    └─ Plan — depth 2 · 중요한 방향·기술 계약 자문
- │         └─ Explore — depth 3 · 관련 코드 탐색
+ │    └─ Plan — depth 2 · 방향·기술 계약 자문 (Explore/Research/Critic)
  ├─ Design — depth 1 · UX 단위 설계·구현 조율·렌더 교정
  │    └─ General — depth 2 · UI 구현·기술적 결함 수정
  └─ Critic — depth 1 · 필요한 제품/UX/기술 독립 비평
@@ -74,7 +73,7 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | 역할 / Native ID | 책임 | 모드 | 배포 기본 모델 |
 | --- | --- | --- | --- |
 | **Build** / `build` | 제품 실행 총괄·다음 작업 연결·통합·테스트·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
-| **Plan** / `plan` | 제품·기술 방향, 요구·우선순위·대안·의존성 독립 자문 | all | `opencode-go/muse-spark-1.3-contributor#xhigh` |
+| **Plan** / `plan` | 제품·기술 방향, 요구·우선순위·대안·의존성 독립 자문 (Explore·Research·Critic 분석) | all | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
 | **Engineer** / `engineer` | 기술 단위 설계·구현 조율·테스트·복구·반복 개선 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
@@ -206,9 +205,9 @@ General·Explore·Research는 Critic을 직접 호출하지 않고 소유자에�
 - 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·General은 `high`, Research는 `medium`(시험 배정), Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다. Variant별 실제 품질·비용 우위는 아직 비교 측정하지 않았으며, 근거가 쌓이면 조정합니다.
 
 - `experimental.subagent_depth=3`은 **루트 0 아래 최대 3단계**입니다. 기본적으로 1~2단계를 사용하고 유용한 필요가 있을 때만 세 번째를 사용합니다. `all`은 메인/하위 실행 가능이라는 뜻이며 권한·위임 깊이와 별개입니다.
-- Build·Plan·Engineer·Design은 허용된 전문가를 선택해 호출합니다. Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·Architect는 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
+- Build·Plan·Engineer·Design은 허용된 전문가를 선택해 호출합니다. Plan은 Explore·Research·Critic만 호출하며 Engineer·Design·General에는 직접 위임하지 않습니다. Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·Architect는 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
 - 깊이가 다 찼거나 도구가 차단되면 허용 작업을 직접 수행하거나 부족한 전문 작업을 부모에게 반환합니다. 같은 과업을 조상에게 재위임하거나 막힌 호출을 반복하지 않습니다.
-- Plan은 Native 프롬프트와 일반 파일 편집 제한을 유지합니다. 계획·분석만 승인됐으면 하위 Design/General도 그 범위만 수행해야 합니다. **Plan의 역할 제한은 자동 상속되지 않지만, 명시한 Native 세션 제한은 자식 생성 시 상속할 수 있습니다.** 엄격한 보호가 필요하면 기존 제한을 보존한 세션 규칙 또는 제한 실행환경을 하위 생성 전에 준비하고 실제 거부를 확인합니다. Plan 선택만으로 세션 제한이 자동 설치되거나 기존 자식에 소급 적용되는 것은 아니며 OS·네트워크 샌드박스도 아닙니다.
+- Plan은 Native 프롬프트와 일반 파일 편집 제한을 유지합니다. Plan은 Explore·Research·Critic에만 분석을 요청하고, 구현 가능 역할은 Build를 통해 부릅니다. **Plan의 역할 제한은 자동 상속되지 않지만, 명시한 Native 세션 제한은 자식 생성 시 상속할 수 있습니다.** 엄격한 보호가 필요하면 기존 제한을 보존한 세션 규칙 또는 제한 실행환경을 하위 생성 전에 준비하고 실제 거부를 확인합니다. Plan 선택만으로 세션 제한이 자동 설치되거나 기존 자식에 소급 적용되는 것은 아니며 OS·네트워크 샌드박스도 아닙니다.
 - 중요한 진척·재개·곁작업 후에는 Build가 남은 목표와 다음 통합 결과를 판단합니다. 선택·기술 계약이 중요하거나 불명확하면 Plan의 방향 반박을 활용하고 실제 실행·결과 확인으로 잇습니다. 일상적 설계·수정은 Engineer·Design이 해결합니다. 자문 보고만으로 멈추거나 새 범위를 임의로 시작하지 않습니다. Plan은 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다.
 - 하위 조사·설계·구현이 실패하거나 Critic이 중요한 문제를 발견하면 각 부모가 유효한 부분 결과와 실패 근거를 확인하고 다음 접근을 판단합니다. 새 자료·교정된 조건·변경된 가설 없이 같은 요청을 반복하지 않습니다. 필요한 기존 담당자에게 교정을 연결하거나 접근법·배분을 바꾸고, 실제 차단은 해당 범위만 명시하며 독립적인 승인 작업은 계속합니다.
 - 기존 세션의 역할·모델은 설정 변경만으로 자동 이전되지 않습니다. 특히 Plan·Design을 메인으로 고를 때는 세션 모델도 확인하세요.
@@ -334,7 +333,7 @@ Build — 제품 통합·교차 일관성·최종 인수
 
 **Critic은 필수 게이트가 아닙니다.** 중요한 UX/IA 변경, 기능 간 연결·제품 계약 영향, 반복되는 사용자 지적, 인수 근거 부족처럼 독립 판단이 필요한 때 호출합니다. 구현 전에는 구조·흐름 가설을, 구현 후에는 실제 빌드·상태·상호작용을 검토합니다. Design의 자체 렌더 검증은 UI 인수에 필요하며, Critic의 발견은 Design이 타당성을 판단해 같은 구현 담당 세션의 수정·재검증으로 연결합니다. Critic은 수정·재설계·최종 인수를 하지 않습니다. Design이 메인이면 맡은 UI 단위의 통합·완료를 담당하며 제품 전체 인수로 확대하지 않습니다.
 
-**Plan은 언제 쓰나.** 매 작업의 필수 단계가 아닙니다. 요구·우선순위가 불명확하거나, 큰 방향 전환·기술+제품 계약 판단이 필요하거나, 국소 수정이 반복 실패할 때 호출합니다. Plan은 Explore/Research로 근거를 확인하고 대안·의존성·권장 순서를 비교하지만 구현·승인·artifact 작성은 하지 않습니다. Plan의 분석 범위는 하위 호출에도 유지되어야 하며, 엄격한 격리는 자식 생성 전에 세션 제한으로 준비해야 합니다.
+**Plan은 언제 쓰나.** 매 작업의 필수 단계가 아닙니다. 요구·우선순위가 불명확하거나, 큰 방향 전환·기술+제품 계약 판단이 필요하거나, 국소 수정이 반복 실패할 때 호출합니다. Plan은 Explore로 코드 사실, Research로 외부 근거·대안, Critic으로 독립 기술·디자인 비평을 확인하고 대안·의존성·권장 순서를 비교하지만 구현·승인·artifact 작성은 하지 않습니다. Engineer·Design·General에는 직접 위임하지 않고, 구현 가능성이 걸린 질문은 Build로 반환합니다. Plan의 분석 범위는 하위 호출에도 유지되어야 하며, 엄격한 격리는 자식 생성 전에 세션 제한으로 준비해야 합니다.
 
 **Critic은 무엇으로 검토하나.**
 

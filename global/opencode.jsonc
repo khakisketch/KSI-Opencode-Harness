@@ -45,16 +45,13 @@
       ]
     },
     "plan": {
-      "description": "Requirements and planning advisor. Compares priorities, alternatives and dependencies; coordinates scoped planning research without authorizing implementation.",
+      "description": "Requirements and planning advisor. Uses Explore, Research and Critic for analysis; compares priorities, alternatives and dependencies without authorizing implementation or calling implementation-capable roles.",
       "mode": "all",
       "model": "opencode-go/muse-spark-1.3-contributor#xhigh",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
-        { "action": "subagent", "resource": "engineer", "effect": "allow" },
-        { "action": "subagent", "resource": "design", "effect": "allow" },
         { "action": "subagent", "resource": "research", "effect": "allow" },
         { "action": "subagent", "resource": "critic", "effect": "allow" },
-        { "action": "subagent", "resource": "general", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" }
       ]
     },

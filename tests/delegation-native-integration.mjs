@@ -17,7 +17,7 @@
 // The scripted model drives REAL native `subagent` tool calls through representative
 // runtime chains (script markers in Native tool I/O only verify delegation mechanics;
 // they say nothing about model quality):
-//   A  build(0) -> plan(1) -> design(2) -> research(3, forced depth-4 attempt blocked)
+//   A  build(0) -> engineer(1) -> plan(2) -> research(3, forced depth-4 attempt blocked)
 //   B  build(0) -> engineer(1) -> plan(2) -> explore(3)   (required Engineer path)
 //   J  build(0) -> engineer(1) -> general(2, write+read dev-unit, then SAME child
 //      resumed for repair)   (required Engineer dev-unit mechanics: actual files,
@@ -58,7 +58,7 @@
 //   I  explicit session-scoped restrictions inherit to later-created children (no
 //      plugin/router/alias): a NEW owned analysis root keeps one retained deny,
 //      gains edit+shell denies via PATCH (replace semantics: existing rules are
-//      re-sent, never dropped), then delegates Build0->Plan1->Design2->General3.
+//      re-sent, never dropped), then delegates Build0->Engineer1->Design2->General3.
 //      Children created BEFORE the patch keep the old snapshot (non-retroactive);
 //      children created AFTER carry the full snapshot, so even broad Design and
 //      General children refuse real write/edit attempts while reads succeed.
@@ -127,7 +127,7 @@ const CONTRACT = {
   },
   edges: {
     build: ["plan", "engineer", "design", "general", "explore", "research", "critic"],
-    plan: ["engineer", "design", "research", "critic", "general", "explore"],
+    plan: ["research", "critic", "explore"],
     engineer: ["plan", "design", "general", "explore", "research", "critic"],
     design: ["plan", "engineer", "research", "critic", "general", "explore"],
     research: ["explore"],
@@ -330,9 +330,9 @@ function chainMarker(text) {
   return null;
 }
 const NEXT = {
-  "KSI-DELEG-A0": { agent: "plan", next: "KSI-DELEG-A1", done: "CHAIN-A-ROOT-OK" },
-  "KSI-DELEG-A1": { agent: "design", next: "KSI-DELEG-A2", done: "CHAIN-A-PLAN-OK" },
-  "KSI-DELEG-A2": { agent: "research", next: "KSI-DELEG-A3", done: "CHAIN-A-DESIGN-OK" },
+  "KSI-DELEG-A0": { agent: "engineer", next: "KSI-DELEG-A1", done: "CHAIN-A-ROOT-OK" },
+  "KSI-DELEG-A1": { agent: "plan", next: "KSI-DELEG-A2", done: "CHAIN-A-ENGINEER-OK" },
+  "KSI-DELEG-A2": { agent: "research", next: "KSI-DELEG-A3", done: "CHAIN-A-PLAN-OK" },
   "KSI-DELEG-B0": { agent: "engineer", next: "KSI-DELEG-B1", done: "CHAIN-B-ROOT-OK" },
   "KSI-DELEG-B1": { agent: "plan", next: "KSI-DELEG-B2", done: "CHAIN-B-ENGINEER-OK" },
   "KSI-DELEG-B2": { agent: "explore", next: "KSI-DELEG-B3", done: "CHAIN-B-PLAN-OK" },
@@ -626,7 +626,7 @@ function scriptFor(marker, advertised, ctx = {}) {
   }
   // I: session-scoped restriction flow. I0A roots the pre-patch turn (Plan child
   // snapshots webfetch-only rules); I0B roots the post-patch turn with the full
-  // Build0->Plan1->Design2->General3 chain under the inherited snapshot.
+  // Build0->Engineer1->Design2->General3 chain under the inherited snapshot.
   if (marker === "KSI-DELEG-I0A") {
     if (step === 0) {
       if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
@@ -642,7 +642,7 @@ function scriptFor(marker, advertised, ctx = {}) {
       if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
       return {
         kind: "tools",
-        calls: [{ name: "subagent", args: { agent: "plan", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I1B") } }],
+        calls: [{ name: "subagent", args: { agent: "engineer", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I1B") } }],
       };
     }
     return { kind: "text", text: `I-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
@@ -662,7 +662,7 @@ function scriptFor(marker, advertised, ctx = {}) {
         calls: [{ name: "subagent", args: { agent: "design", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I2") } }],
       };
     }
-    return { kind: "text", text: `I1B-PLAN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+    return { kind: "text", text: `I1B-ENGINEER-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
   if (marker === "KSI-DELEG-I2") {
     if (step === 0) {
@@ -1426,7 +1426,7 @@ async function main() {
         agents.push(kids[0].agent ?? null);
         chainA.push(cur);
       }
-      check("A native parentID chain is plan->design->research", JSON.stringify(agents.slice(0, 3)) === JSON.stringify(["plan", "design", "research"]), agents.join(">"));
+      check("A native parentID chain is engineer->plan->research", JSON.stringify(agents.slice(0, 3)) === JSON.stringify(["engineer", "plan", "research"]), agents.join(">"));
     }
     const logA = reqLog();
     for (const mk of ["KSI-DELEG-A0", "KSI-DELEG-A1", "KSI-DELEG-A2", "KSI-DELEG-A3"]) {
@@ -1435,7 +1435,7 @@ async function main() {
     // Result-return evidence: each parent's tool result input (logged toolMsgs)
     // carries the child's OK marker back up. Transmission only, not understanding.
     const blobsA = logA.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-A")).flatMap((r) => r.toolMsgs ?? []).join("\n");
-    for (const [parentMk, childOk] of [["KSI-DELEG-A0", "CHAIN-A-PLAN-OK"], ["KSI-DELEG-A1", "CHAIN-A-DESIGN-OK"], ["KSI-DELEG-A2", "CHAIN-A-RESEARCH-LEAF-OK"]]) {
+    for (const [parentMk, childOk] of [["KSI-DELEG-A0", "CHAIN-A-ENGINEER-OK"], ["KSI-DELEG-A1", "CHAIN-A-PLAN-OK"], ["KSI-DELEG-A2", "CHAIN-A-RESEARCH-LEAF-OK"]]) {
       const seg = logA.filter((r) => r.marker === parentMk).flatMap((r) => r.toolMsgs ?? []).join("\n");
       check(`A native result returns (${parentMk} sees ${childOk})`, seg.includes(childOk));
     }
@@ -1928,7 +1928,7 @@ async function main() {
     check("I pre-patch child keeps its exact snapshot (deep-equal, no retroactive rewrite)",
       iPre !== null && isDeepStrictEqual(iPrePerms1, iPrePerms),
       `rules=${JSON.stringify(iPrePerms1)}`.slice(0, 200));
-    // Turn B AFTER the patch: Build0->Plan1->Design2->General3 (depth 3 max).
+    // Turn B AFTER the patch: Build0->Engineer1->Design2->General3 (depth 3 max).
     const ibMsgs = await promptTurn(iRoot,
       `KSI-DELEG-I0B ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate the analysis down the allowed chain under the current session rules and return the leaf finding to Main.`,
       "I-ROOT-OK", "chain-i0b");
@@ -1940,17 +1940,17 @@ async function main() {
     const iPostKids = await childrenOf(iRoot);
     let iPlan = null;
     for (const k of iPostKids) {
-      if (k.agent !== "plan" || k.id === iPre) continue;
+      if (k.agent !== "engineer" || k.id === iPre) continue;
       const km = requireDataArray(
-        await mustApi("GET", `/api/session/${k.id}/message?limit=20&order=asc`, undefined, "I plan child identify"),
-        "I plan child identify",
+        await mustApi("GET", `/api/session/${k.id}/message?limit=20&order=asc`, undefined, "I engineer child identify"),
+        "I engineer child identify",
       );
       if (JSON.stringify(km).includes("KSI-DELEG-I1B")) { iPlan = k.id; break; }
     }
-    check("I turn-B plan child identified (distinct from pre-patch child)", typeof iPlan === "string" && iPlan !== iPre, iPlan ?? "none");
+    check("I turn-B engineer child identified (distinct from pre-patch child)", typeof iPlan === "string" && iPlan !== iPre, iPlan ?? "none");
     const iDesignKids = iPlan ? await childrenOf(iPlan) : [];
     const iDesign = iDesignKids.length === 1 && iDesignKids[0].agent === "design" ? iDesignKids[0].id : null;
-    check("I plan owns one design child", typeof iDesign === "string", iDesign ?? "none");
+    check("I engineer owns one design child", typeof iDesign === "string", iDesign ?? "none");
     const iGenKids = iDesign ? await childrenOf(iDesign) : [];
     const iGen = iGenKids.length === 1 && iGenKids[0].agent === "general" ? iGenKids[0].id : null;
     check("I design owns one general leaf (depth 3, no fourth level)", typeof iGen === "string", iGen ?? "none");
@@ -1959,7 +1959,7 @@ async function main() {
     // against the actual root-after GET array (preserved above) and against the
     // exact expected ordered rules, so added/reordered rules cannot hide.
     const I_EXPECTED_AFTER = [I_RETAINED, ...I_APPENDED];
-    for (const [label, sid] of [["plan", iPlan], ["design", iDesign], ["general", iGen]]) {
+    for (const [label, sid] of [["engineer", iPlan], ["design", iDesign], ["general", iGen]]) {
       const perms = sid ? (await mustApi("GET", `/api/session/${sid}`, undefined, `I ${label} rules read`))?.data?.permissions : null;
       check(`I ${label} session rules deep-equal the post-patch snapshot (ordered)`,
         sid !== null && isDeepStrictEqual(perms, iRootPerms1) && isDeepStrictEqual(perms, I_EXPECTED_AFTER),
@@ -2008,10 +2008,10 @@ async function main() {
       .some((r) => (r.toolMsgs ?? []).some((text) => text.includes(child) && text.includes("SCOPE-NOTE-CONTENT")));
     check("I design received the leaf evidence (I3-GENERAL-OK + bytes in I2 inputs)",
       iReceived("KSI-DELEG-I2", "I3-GENERAL-OK"));
-    check("I plan received the evidence (I2-DESIGN-OK + bytes in I1B inputs)",
+    check("I engineer received the evidence (I2-DESIGN-OK + bytes in I1B inputs)",
       iReceived("KSI-DELEG-I1B", "I2-DESIGN-OK"));
-    check("I root received the evidence (I1B-PLAN-OK + bytes in I0B inputs)",
-      iReceived("KSI-DELEG-I0B", "I1B-PLAN-OK"));
+    check("I root received the evidence (I1B-ENGINEER-OK + bytes in I0B inputs)",
+      iReceived("KSI-DELEG-I0B", "I1B-ENGINEER-OK"));
     check("I root returned the evidence to Main (I-ROOT-OK + bytes in root text)",
       assistantTexts(ibMsgs).includes("I-ROOT-OK") && assistantTexts(ibMsgs).includes("SCOPE-NOTE-CONTENT"));
     check("I turn-B branch children are free of pre-patch results (own histories only)", await (async () => {
@@ -2019,7 +2019,7 @@ async function main() {
       // I1B): the resumed ROOT legitimately retains turn-A tool results in its
       // request history (Native continuity, same as G proves desirable), so the
       // root blob is the wrong place to demand amnesia.
-      for (const [label, sid, own] of [["plan", iPlan, "KSI-DELEG-I1B"], ["design", iDesign, "KSI-DELEG-I2"], ["general", iGen, "KSI-DELEG-I3"]]) {
+      for (const [label, sid, own] of [["engineer", iPlan, "KSI-DELEG-I1B"], ["design", iDesign, "KSI-DELEG-I2"], ["general", iGen, "KSI-DELEG-I3"]]) {
         if (typeof sid !== "string") return false;
         const cm = JSON.stringify(requireDataArray(
           await mustApi("GET", `/api/session/${sid}/message?limit=100&order=asc`, undefined, `I turn-B ${label} history`),
@@ -2029,8 +2029,8 @@ async function main() {
       }
       return true;
     })());
-    check("I chain results returned up (I1B-PLAN-OK -> I2-DESIGN-OK -> I3-GENERAL-OK)",
-      blobsI.includes("I1B-PLAN-OK") && blobsI.includes("I2-DESIGN-OK") && blobsI.includes("I3-GENERAL-OK"));
+    check("I chain results returned up (I1B-ENGINEER-OK -> I2-DESIGN-OK -> I3-GENERAL-OK)",
+      blobsI.includes("I1B-ENGINEER-OK") && blobsI.includes("I2-DESIGN-OK") && blobsI.includes("I3-GENERAL-OK"));
 
     // Final guards across F/G/H/I/J/K/N/L: still analysis-only, still the same bytes.
     // J/K/N/L own exactly their separate task-local files; the shared scope

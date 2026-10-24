@@ -177,8 +177,9 @@ check('experimental.subagent_depth declared == 3, consistent', () => {
   assert.equal(depthDecls[0].depth, 3);
 });
 // Scoped owner delegation. Build owns product goal/integration/final acceptance;
-// Plan and Design (mode all) advise/coordinate and call permitted workers
-// directly; Engineer executes dev units and calls
+// Plan (mode all) analyzes and calls only research/critic/explore; Design
+// (mode all) advises/coordinates and calls permitted workers directly;
+// Engineer executes dev units and calls
 // plan/design/general/explore/research/critic; Design calls
 // plan/engineer/general/explore/research/critic; Research calls explore
 // only; General/Explore/Critic are leaves that call nothing. Effects below are
@@ -203,8 +204,8 @@ await probeSubagent('build', [
   ['build', 'deny'], [UNKNOWN, 'deny'],
 ]);
 await probeSubagent('plan', [
-  ['engineer', 'allow'], ['design', 'allow'], ['research', 'allow'],
-  ['critic', 'allow'], ['general', 'allow'], ['explore', 'allow'],
+  ['research', 'allow'], ['critic', 'allow'], ['explore', 'allow'],
+  ['engineer', 'deny'], ['design', 'deny'], ['general', 'deny'],
   ['architect', 'deny'],
   ['plan', 'deny'], ['build', 'deny'], [UNKNOWN, 'deny'],
 ]);
