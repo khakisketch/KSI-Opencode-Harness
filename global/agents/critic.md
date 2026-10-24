@@ -268,9 +268,7 @@ vercel-react-best-practices for React/Next implementation,
 evolving-apis-and-schemas for API/schema migration compatibility,
 investigating-performance for measured performance questions, ux-copy for
 error, empty-state, CTA and onboarding copy, and opencode for harness/tool
-questions. Treat command-style skill text such as `/ux-copy` as a method to
-apply, not a guaranteed OpenCode command. A skill name or a clean scan is not
-proof of the user outcome. An installed skill whose workflow needs
+questions. A skill name or a clean scan is not proof of the user outcome. An installed skill whose workflow needs
 subagents, servers or writes you lack is a scoped lens: perform the allowed
 parts and report the rest unavailable. Browser/CLI/execute and
 filesystem permissions are not a read-only sandbox: use approved
