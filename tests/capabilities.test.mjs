@@ -34,8 +34,8 @@ const realSkills = [
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
 describe('tracked role inventory', () => {
-  it('tracks 7 visible roles including architect, scout, and critic', () => {
-    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout', 'ui-ux-critic']);
+  it('tracks 8 visible roles including architect, scout, critic, and product-reviewer', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']);
   });
   it('exposes critic registration; unregistered critic is false absence, not unknown', () => {
     const withCritic = projectAgents([
@@ -50,6 +50,29 @@ describe('tracked role inventory', () => {
     assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').registered, false);
     assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').mode, 'unknown');
     assert.ok(!JSON.stringify(withoutCritic).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+  });
+  it('exposes product-reviewer registration; unregistered reviewer is false absence, not unknown', () => {
+    const withReviewer = projectAgents([
+      { id: 'build', name: 'Build', mode: 'primary' },
+      { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent', apiKey: SECRET },
+    ]);
+    assert.equal(withReviewer.find((a) => a.name === 'product-reviewer').registered, true);
+    assert.equal(withReviewer.find((a) => a.name === 'product-reviewer').mode, 'subagent');
+    assert.equal(withReviewer.find((a) => a.name === 'ui-ux-critic').registered, false);
+    assert.ok(!JSON.stringify(withReviewer).includes(SECRET));
+    const withoutReviewer = projectAgents([]);
+    assert.equal(withoutReviewer.find((a) => a.name === 'product-reviewer').registered, false);
+    assert.equal(withoutReviewer.find((a) => a.name === 'product-reviewer').mode, 'unknown');
+    assert.ok(!JSON.stringify(withoutReviewer).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+  });
+  it('tracks 8 roles in projections and mocks without secret exposure', () => {
+    assert.equal(projectAgents([]).length, 8);
+    assert.equal(projectAgents([]).find((a) => a.name === 'product-reviewer').registered, false);
+    const mocked = projectAgents([
+      { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent', headers: { auth: SECRET } },
+    ]);
+    assert.equal(mocked.find((a) => a.name === 'product-reviewer').registered, true);
+    assert.ok(!JSON.stringify(mocked).includes(SECRET));
   });
 });
 

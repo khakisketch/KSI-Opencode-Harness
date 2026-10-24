@@ -14,7 +14,8 @@ Build — 제품 목표·제약·계획·통합·최종 인수
  │    ├─ General — 구현·검증·수정
  │    ├─ UI/UX Critic — 설계안·실제 렌더 독립 비평
  │    └─ Explore — 코드 탐색
- └─ UI/UX Critic — 필요한 최종 독립 UI 검토(새 세션)
+ ├─ UI/UX Critic — 필요한 최종 독립 UI 검토(새 세션)
+ └─ Product Reviewer — 원래 요구·실제 제품·종단 과업 독립 검토
 ```
 
 이 트리는 작업별 선택 사항입니다. Build는 General 등도 직접 호출할 수 있고, 작은 수정은 직접 처리합니다. 위임·인수의 Build는 같은 책임자이며, Critic 두 표시는 같은 역할의 별도 세션 경로이지 두 역할이나 필수 이중 검수가 아닙니다. UI 중심 작업에서는 Architect를 메인으로 선택할 수도 있습니다. 메인 책임자는 한 명이며, 중첩 허용은 매 단계의 사용자 승인이나 자동 맥락 상속을 뜻하지 않습니다.
@@ -22,12 +23,12 @@ Build — 제품 목표·제약·계획·통합·최종 인수
 설치·업데이트는 다음을 하나의 구성으로 적용해야 합니다.
 
 1. **공통 지침:** 제품 목표·원문/가설 구분·위임·증거·인수 원칙.
-2. **커스텀 역할 3개:** Architect는 설계·작업자 조율·재평가, Scout는 조사·실제 조작 관찰·원본 인계, Critic은 독립 UI/UX 비평. General·Explore·Plan은 Native 역할을 재사용합니다.
+2. **커스텀 역할 4개:** Architect는 설계·작업자 조율·재평가, Scout는 조사·관찰·패턴 분석, Critic은 독립 UI/UX 비평, Product Reviewer는 원요구 대비 종단 과업·제품 적합성 검토. General·Explore·Plan은 Native 역할을 재사용합니다.
 3. **설정 병합:** `experimental.subagent_depth=2`, Build·Plan 호출 허용 목록, 역할 모델(Plan=`openai/gpt-6.1-sol#xhigh` 포함)·MCP 설정. Architect의 호출 권한은 Markdown 역할 파일에 있습니다.
 4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
-배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Critic=`opencode-go/muse-spark-1.3-contributor#xhigh`, Scout=`opencode-go/muse-spark-1.3-contributor#high`, Plan=`openai/gpt-6.1-sol#xhigh`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. 모델 미지정 하위 역할은 부모 모델을 상속하므로, 자문·비평 역할에는 배포 선호 모델을 명시합니다. Scout는 이미지·사용 흐름의 맥락 판단을 고려해 `high`를 기본으로 권고하며, Critic의 `xhigh`는 유지합니다. 이는 medium/high의 실측 비교 결과가 아닙니다. 역할·모델 분리가 더 좋은 비평을 보장하지는 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
+배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Critic·Product Reviewer=`opencode-go/muse-spark-1.3-contributor#xhigh`, Scout=`opencode-go/muse-spark-1.3-contributor#high`, Plan=`openai/gpt-6.1-sol#xhigh`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. 모델 미지정 하위 역할은 부모 모델을 상속하므로, 자문·비평 역할에는 배포 선호 모델을 명시합니다. Scout의 `high`는 과업 맥락 판단을 고려한 권고이고, Product Reviewer의 `xhigh`는 사용자 지정입니다. 이는 모델/variant의 실측 비교 결과가 아니며 역할·모델 분리가 더 좋은 판단을 보장하지 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
 
 스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. Scout의 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
 
@@ -39,6 +40,7 @@ Build — 제품 목표·제약·계획·통합·최종 인수
 | `global/agents/design-architect.md` | `~/.config/opencode/agents/design-architect.md` | Design Architect 역할·권한 (`openai/gpt-6.1-sol#high`, `mode: all`) |
 | `global/agents/ux-scout.md` | `~/.config/opencode/agents/ux-scout.md` | UX Scout 선택형 하위 조사 (`opencode-go/muse-spark-1.3-contributor#high`, subagent) |
 | `global/agents/ui-ux-critic.md` | `~/.config/opencode/agents/ui-ux-critic.md` | 선택형 UI/UX 비평 (`opencode-go/muse-spark-1.3-contributor#xhigh`, subagent) |
+| `global/agents/product-reviewer.md` | `~/.config/opencode/agents/product-reviewer.md` | 선택형 제품 적합성 검토 (`opencode-go/muse-spark-1.3-contributor#xhigh`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 제한된 UI 소스 검사 플러그인 |
 
@@ -60,6 +62,12 @@ Scout CLI는 `ux-scout-*` 임시 세션에서 `open <url>` 또는 `open` → `go
 
 Critic의 CLI는 `ux-critic-*` 고유 세션의 지정 탐색·입력·캡처 명령만 허용합니다. 임의 Shell·설치·서버 기동·프로필/인증 상태 가져오기·업로드·전역 종료는 거부하며, 스킬은 기존 `playwright-cli`와 자체 `task-first-ux-review`만 허용합니다. Browser·Code Mode·CLI 허용은 읽기 전용 샌드박스가 아니므로 승인된 테스트 환경·계정·상태 전이를 제공해야 합니다. 기존 세션·서비스를 재시작하거나 다른 프로젝트에 파일을 주입하지 않습니다. [검증 범위](validation.md#선택형-uiux-critic-전역-추가-2026-10-24)
 
+## 선택형 Product Reviewer 추가
+
+`product-reviewer`는 Build가 원래 요구·확정 계약과 실제 제품의 종단 과업을 독립 대조하도록 호출하는 전역 공통 하위 역할입니다. 기존 UI/UX Critic·기술 검증·Plan의 방향 자문을 대체하지 않으며, 제품 범위·로드맵·설계·코드를 변경하거나 최종 인수를 승인하지 않습니다. 개발 단위의 완료와 제품 전체의 가능성·출시 준비를 구분하고, 접근/근거가 부족하면 미검증으로 보고합니다.
+
+같은 ID의 사용자 정의가 없는지 확인한 뒤 새 역할 파일과 Build의 JSONC 호출 허용을 함께 적용합니다. Build만 호출할 수 있고 Reviewer는 추가 위임하지 않습니다. 기존 역할 모델·권한과 깊이 2는 유지합니다. 승인된 환경·데이터·상태 전이를 Build가 제공하며, Reviewer는 필요한 원본 실행 근거를 요청할 수 있지만 직접 서버·임의 스크립트·설치·배포를 실행하지 않습니다. CLI는 `product-review-*` 고유 세션의 지정 검사·입력·캡처 명령과 `playwright-cli` 스킬만 허용합니다. Browser/CLI/execute 허용을 읽기 전용 샌드박스로 보지 않습니다. [역할·검증 범위](validation.md#product-reviewer-전역-추가-2026-10-24)
+
 ## 프로젝트 정본 진입 지도
 
 각 프로젝트에는 현행 정본을 가리키는 **진입 지도 1개**(보통 프로젝트 `AGENTS.md`의 문서 지도 표)만 권고합니다. 형식·파일명·문서 수는 강제하지 않으며, 내용은 다음이면 충분합니다. 현행 정본 목록, 상태 어휘(구현/검증/인수 구분), 역사는 추가만 하고 고치지 않기.
@@ -70,6 +78,7 @@ Critic의 CLI는 `ux-critic-*` 고유 세션의 지정 탐색·입력·캡처 �
 cmp global/agents/design-architect.md ~/.config/opencode/agents/design-architect.md
 cmp global/agents/ux-scout.md ~/.config/opencode/agents/ux-scout.md
 cmp global/agents/ui-ux-critic.md ~/.config/opencode/agents/ui-ux-critic.md
+cmp global/agents/product-reviewer.md ~/.config/opencode/agents/product-reviewer.md
 cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
 diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
@@ -86,7 +95,7 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    기존 파일을 백업한 뒤 관련 항목만 병합해줘. 개인 설정·자격증명·다른 도구는
    보존하고, 같은 이름의 사용자 정의와 충돌하면 필요한 선택만 질문해줘.
 2. global/AGENTS.md, global/agents/design-architect.md, global/agents/ux-scout.md,
-   global/agents/ui-ux-critic.md, global/opencode.jsonc를
+   global/agents/ui-ux-critic.md, global/agents/product-reviewer.md, global/opencode.jsonc를
    전역에 적용하고 필요한 환경별 경로 차이를 보고해줘. 은퇴한 design-specialist.md는
    agents/ 밖에 보관·이동하고, 같은 이름의 사용자 정의와 충돌하면 덮어쓰지 말고
    백업 뒤 필요한 선택만 질문해줘. 기존 세션은 자동 이전되지 않으니 새 작업부터 새 ID·모델을 써줘.
@@ -96,6 +105,7 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    experimental.subagent_depth=2와 Build/Plan의 subagent 허용 목록을 관련 설정과 함께 병합하고,
    Build/Architect가 ui-ux-critic을 직접 호출할 수 있게 JSONC/Markdown 권한도 적용해줘.
    Critic은 하위 전용·추가 위임 금지이며 Architect 자기 호출 금지를 유지해줘.
+   product-reviewer는 Build만 호출하는 말단 검토 역할로 추가하고 최종 제품 인수는 Build가 유지해줘.
     기존 프로젝트별 제약이 충돌하면 덮어쓰거나 제한을 우회하지 말고 그 충돌을 보고해줘.
 3. 기존 Impeccable 설치를 확인하고, 새 설치나 명시적 갱신이 필요할 때만
    공식 npm `latest` 태그를 사용해줘. 명령은 다음과 같아:
@@ -152,6 +162,7 @@ cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
 cmp global/agents/design-architect.md ~/.config/opencode/agents/design-architect.md
 cmp global/agents/ux-scout.md ~/.config/opencode/agents/ux-scout.md
 cmp global/agents/ui-ux-critic.md ~/.config/opencode/agents/ui-ux-critic.md
+cmp global/agents/product-reviewer.md ~/.config/opencode/agents/product-reviewer.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
 diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
 ```

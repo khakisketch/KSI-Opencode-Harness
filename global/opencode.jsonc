@@ -37,7 +37,8 @@
         { "action": "subagent", "resource": "general", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" },
         { "action": "subagent", "resource": "ux-scout", "effect": "allow" },
-        { "action": "subagent", "resource": "ui-ux-critic", "effect": "allow" }
+        { "action": "subagent", "resource": "ui-ux-critic", "effect": "allow" },
+        { "action": "subagent", "resource": "product-reviewer", "effect": "allow" }
       ]
     },
     "plan": {

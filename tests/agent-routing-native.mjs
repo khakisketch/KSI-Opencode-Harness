@@ -7,6 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { settleSourceFreeAskProbe } from '../scripts/permission-probe.mjs';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = await mkdtemp('/tmp/opencode/ksi-agent-routing-');
 const fixture = path.join(root, 'case');
@@ -24,18 +25,47 @@ async function api(op, params = [], data = null) {
       stdio: ['ignore', out, err], timeout: 15000,
     });
   } finally { closeSync(out); closeSync(err); }
-  assert.equal(result.status, 0, `${op} failed; inspect ${file}`);
+  if (result.status !== 0) {
+    // Nonzero CLI exit: throw an explicit error preserving ONLY the structured
+    // routing fields (operation + native tag/request id). Raw payloads,
+    // messages, credentials, and stdout/stderr stay in the private files.
+    let nativeTag; let nativeRequestID;
+    try {
+      const text = await readFile(file, 'utf8');
+      const trimmed = text.trim();
+      if (trimmed) {
+        let parsed = null;
+        try { parsed = JSON.parse(trimmed); } catch { parsed = null; }
+        const holder = parsed && typeof parsed === 'object' ? parsed : null;
+        const tag = holder?._tag;
+        const rid = holder?.requestID;
+        if (typeof tag === 'string') nativeTag = tag;
+        if (typeof rid === 'string') nativeRequestID = rid;
+      }
+    } catch { /* keep fail-closed below */ }
+    const err = new Error(`${op} failed; inspect ${file}`);
+    err.operation = op;
+    if (nativeTag !== undefined) err.nativeTag = nativeTag;
+    if (nativeRequestID !== undefined) err.nativeRequestID = nativeRequestID;
+    throw err;
+  }
   const text = await readFile(file, 'utf8');
-  return text.trim() ? JSON.parse(text).data : null;
+  if (!text.trim()) return null;
+  let parsed;
+  try { parsed = JSON.parse(text); } catch { throw new Error(`${op} failed; inspect ${file}`); }
+  assert.ok(parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+    && Object.hasOwn(parsed, 'data'), `${op} returned an unknown response shape; inspect ${file}`);
+  return parsed.data;
 }
 let checks = 0;
 function check(label, fn) { fn(); checks++; console.log(`PASS ${label}`); }
 async function rejectIfPending(sessionID, r) {
   // Source-free policy probes can return ask without a pending tool request.
-  if (r.effect === 'ask') {
-    const pending = await api('session.permission.list', [`sessionID=${sessionID}`]);
-    if (pending.some(p => p.id === r.id)) await api('session.permission.reply', [`sessionID=${sessionID}`, `requestID=${r.id}`], { decision: 'reject' });
-  }
+  // Same call sites as before; idempotent cleanup lives in the helper.
+  const res = await settleSourceFreeAskProbe({
+    sessionID, probe: r, api, notice: `own-session cleanup session=${sessionID} probe=${r?.id}`,
+  });
+  if (res.settled !== 'noop') console.log(`NOTICE source-free probe ${res.settled}: ${res.notice}`);
 }
 // CLI operation-id route below uses a directory query to inspect this project.
 // Do not change the shared location/configuration to make checks pass.
@@ -50,10 +80,11 @@ for (const [id, model, mode] of [
   ['ui-ux-critic', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
   ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'low' }, 'subagent'],
+  ['product-reviewer', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
 ]) {
   const a = list.find(a => a.id === id);
   check(`${id} model/mode`, () => { assert.ok(a); assert.deepEqual(a.model, model); assert.equal(a.mode, mode); });
-  if (id === 'design-architect' || id === 'ux-scout' || id === 'ui-ux-critic') {
+  if (id === 'design-architect' || id === 'ux-scout' || id === 'ui-ux-critic' || id === 'product-reviewer') {
     // Source of truth is the repo global file; Main owns
     // global/agents/ui-ux-critic.md creation and system install.
     const rel = `agents/${id}.md`;
@@ -102,25 +133,32 @@ async function probeSubagent(caller, targets) {
 }
 await probeSubagent('build', [
   ['plan', 'allow'], ['design-architect', 'allow'], ['general', 'allow'],
-  ['explore', 'allow'], ['ux-scout', 'allow'], ['ui-ux-critic', 'allow'], [UNKNOWN, 'deny'],
+  ['explore', 'allow'], ['ux-scout', 'allow'], ['ui-ux-critic', 'allow'], ['product-reviewer', 'allow'], [UNKNOWN, 'deny'],
 ]);
 await probeSubagent('design-architect', [
   ['general', 'allow'], ['ux-scout', 'allow'], ['ui-ux-critic', 'allow'], ['explore', 'allow'], ['plan', 'allow'],
+  ['product-reviewer', 'deny'],
   ['build', 'deny'], ['design-architect', 'deny'], [UNKNOWN, 'deny'],
 ]);
 await probeSubagent('plan', [
   ['explore', 'allow'], ['general', 'deny'], ['design-architect', 'deny'], ['plan', 'deny'],
-  ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], [UNKNOWN, 'deny'],
+  ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], ['product-reviewer', 'deny'], [UNKNOWN, 'deny'],
 ]);
-await probeSubagent('general', [['explore', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], [UNKNOWN, 'deny']]);
-await probeSubagent('explore', [['general', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], [UNKNOWN, 'deny']]);
-// Scout stays a leaf: no subordinate calls, including the new critic leaf.
-await probeSubagent('ux-scout', [['ui-ux-critic', 'deny'], ['general', 'deny'], [UNKNOWN, 'deny']]);
+await probeSubagent('general', [['explore', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], ['product-reviewer', 'deny'], [UNKNOWN, 'deny']]);
+await probeSubagent('explore', [['general', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'], ['product-reviewer', 'deny'], [UNKNOWN, 'deny']]);
+// Scout stays a leaf: no subordinate calls, including the critic and product-reviewer leaves.
+await probeSubagent('ux-scout', [['ui-ux-critic', 'deny'], ['product-reviewer', 'deny'], ['general', 'deny'], [UNKNOWN, 'deny']]);
 // Critic is a selectable leaf: every subagent target denies, known or unknown.
 await probeSubagent('ui-ux-critic', [
   ['general', 'deny'], ['explore', 'deny'], ['plan', 'deny'],
   ['design-architect', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'],
-  ['build', 'deny'], [UNKNOWN, 'deny'],
+  ['product-reviewer', 'deny'], ['build', 'deny'], [UNKNOWN, 'deny'],
+]);
+// ProductReviewer is a selectable leaf: Build alone may call it; it calls nothing.
+await probeSubagent('product-reviewer', [
+  ['general', 'deny'], ['explore', 'deny'], ['plan', 'deny'],
+  ['design-architect', 'deny'], ['ux-scout', 'deny'], ['ui-ux-critic', 'deny'],
+  ['product-reviewer', 'deny'], ['build', 'deny'], [UNKNOWN, 'deny'],
 ]);
 // Evaluate in the already-loaded install location inspected above. Cold-location
 // discovery/readiness is distinct and is not evidence of a permission decision.
@@ -300,6 +338,119 @@ check(`critic browser *: probe=${browserProbe.effect} matches merged-effective=$
   () => assert.equal(browserProbe.effect, browserEffective,
     `critic browser * probe=${browserProbe.effect} merged-effective=${browserEffective}`));
 console.log(`critic browser: probe=${browserProbe.effect} vs merged-effective=${browserEffective}; live connection/execution/exposure NOT verified`);
+// ProductReviewer contract mirrors Main-owned global/agents/product-reviewer.md:
+// default '*' deny first, then read/glob/grep allow with *.env* deny /
+// *.env.example allow; external_directory ask except /tmp/opencode/* allow;
+// webfetch, execute, browser allow; skill playwright-cli ONLY allow (every other
+// skill denies); no edit, no subagent, no arbitrary shell/install/server/
+// deploy/credential. Playwright CLI allows only --version plus the designated
+// inspection verbs in the reviewer's own product-review-* session; late
+// run-code/eval/--config/--profile/--persistent/extra -s= deny, and
+// attach/state-load/upload/close-all/other-session use denies. Captures leave
+// only via screenshot-command output; arbitrary file writes stay denied.
+// Browser/execute/CLI allow rules are NOT an OS sandbox: they authorize live
+// inspection in test environments/read-only accounts only, never real
+// transactions or destructive changes (same distinction as critic/scout).
+// This block probes permission effects in its own session only; it performs
+// zero model calls and touches only the private fixture above.
+const reviewer = await api('session.create', [], { location: { directory: repo }, agent: 'product-reviewer' });
+assert.ok(reviewer.id);
+for (const [action, resource, expected] of [
+  ['read', 'probe.css', 'allow'], ['read', '.env', 'deny'], ['read', '.env.example', 'allow'],
+  ['glob', 'probe.css', 'allow'], ['grep', 'probe.css', 'allow'],
+  ['edit', 'probe.css', 'deny'], ['edit', '/tmp/opencode/reviewer-output.md', 'deny'],
+  ['subagent', 'general', 'deny'], ['subagent', 'ux-scout', 'deny'], ['subagent', 'ui-ux-critic', 'deny'], ['subagent', 'product-reviewer', 'deny'], ['subagent', UNKNOWN, 'deny'],
+  ['execute', '*', 'allow'], ['webfetch', 'https://example.com/', 'allow'],
+  ['external_directory', '/tmp/opencode/shot.png', 'allow'],
+  ['skill', 'playwright-cli', 'allow'],
+  ['skill', 'task-first-ux-review', 'deny'], ['skill', 'mobbin-design', 'deny'], ['skill', 'impeccable', 'deny'], ['skill', 'journey', 'deny'],
+  ['shell', 'node -e "console.log(1)"', 'deny'], ['shell', 'npm install anything', 'deny'],
+  ['shell', 'git push origin main', 'deny'],
+  ['shell', 'playwright-cli --version', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe open', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe open http://127.0.0.1:1234/', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe goto http://127.0.0.1:1234/', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe resize 1280 800', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe snapshot', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe screenshot --filename=/tmp/opencode/shot.png', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe console', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe requests', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe click e1', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe press e1 Enter', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe fill e1 "Review Test"', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe type "Browser path verified"', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe select e3 mobile', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe check e4', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe uncheck e4', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe go-back', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe go-forward', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe reload', 'allow'],
+  ['shell', 'playwright-cli -s=product-review-probe close', 'allow'],
+  ['shell', 'playwright-cli open http://127.0.0.1:1234/', 'deny'],
+  ['shell', 'playwright-cli -s=other open http://127.0.0.1:1234/', 'deny'],
+  ['shell', 'playwright-cli -s=other fill e1 "Review Test"', 'deny'],
+  ['shell', 'playwright-cli -s=other close', 'deny'],
+  ['shell', 'playwright-cli close-all', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe close-all', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe attach', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe state-load /tmp/opencode/auth.json', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe upload /tmp/opencode/file.txt', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe run-code "async page => {}"', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe run-code "x goto y"', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe eval "x goto y"', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe --config=untrusted open', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe open http://127.0.0.1:1234/ --config=untrusted', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe open http://127.0.0.1:1234/ --profile=/tmp/opencode/profile', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe open http://127.0.0.1:1234/ --persistent', 'deny'],
+  ['shell', 'playwright-cli -s=product-review-probe open http://127.0.0.1:1234/ -s=other', 'deny'],
+]) {
+  const normalized = ['read', 'edit'].includes(action) ? path.resolve(fixture, resource) : resource;
+  const r = await api('session.permission.create', [`sessionID=${reviewer.id}`], { action, resources: [normalized], agent: 'product-reviewer' });
+  await rejectIfPending(reviewer.id, r);
+  check(`reviewer ${action} ${resource}: ${expected}`, () => assert.equal(r.effect, expected, `reviewer ${action} ${normalized}`));
+}
+// Shared canonical frontmatter parser for the reviewer source check. The critic
+// inline parser above stays untouched; this helper applies the same canonical
+// three-field rule format and fails closed on unparsed rules.
+const parseSourceRules = (source) => {
+  const header = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  assert.ok(header, 'missing role frontmatter');
+  const block = header[1].split(/permissions:\r?\n/)[1];
+  assert.ok(block, 'missing canonical permission list');
+  const unquote = (v) => v.trim().replace(/^(["'])(.*)\1$/, '$2');
+  const rules = [...block.matchAll(/^\s*- action: ([^\r\n]+)\r?\n\s+resource: ([^\r\n]+)\r?\n\s+effect: (allow|deny|ask)[ \t]*$/gm)]
+    .map((m) => ({ action: unquote(m[1]), resource: unquote(m[2]), effect: m[3] }));
+  assert.equal(rules.length, [...block.matchAll(/^\s*- action:/gm)].length, 'unparsed source permission rule');
+  return rules;
+};
+const reviewerSource = await readFile(path.join(repo, 'global', 'agents', 'product-reviewer.md'), 'utf8');
+check('reviewer source declares browser allow', () => {
+  assert.ok(/(^|\n)\s*-\s*action:\s*browser\s*\n\s*resource:\s*["']?\*["']?\s*\n\s*effect:\s*allow/.test(reviewerSource),
+    'product-reviewer source lacks browser * allow; declaration check fails');
+});
+check('reviewer source ordered rules retain effective browser allow', () => {
+  const rules = parseSourceRules(reviewerSource);
+  assert.equal(browserRulesOf(rules).at(-1)?.effect, 'allow', 'source role itself must not end in browser deny');
+});
+const reviewerEntry = list.find((a) => a && a.id === 'product-reviewer');
+assert.ok(reviewerEntry, 'product-reviewer missing from merged /api/agent list');
+const reviewerRules = Array.isArray(reviewerEntry.permissions) ? reviewerEntry.permissions : null;
+check('reviewer merged permissions expose ordered rules', () => {
+  assert.ok(reviewerRules, 'no ordered permission rules on merged /api/agent entry; browser scope unverifiable, refusing to pass');
+});
+const reviewerBrowserRelevant = browserRulesOf(reviewerRules);
+const reviewerBrowserEffective = reviewerBrowserRelevant.length ? reviewerBrowserRelevant[reviewerBrowserRelevant.length - 1].effect : null;
+console.log(`reviewer merged rules relevant to (browser, *): [${reviewerBrowserRelevant.map((rl) => `${rl.action} ${rl.resource} ${rl.effect}`).join(', ')}] => merged-effective=${reviewerBrowserEffective}`);
+check('reviewer merged view determines a browser effective value', () => {
+  assert.ok(reviewerBrowserEffective === 'allow' || reviewerBrowserEffective === 'deny',
+    `no merged rule covers (browser, *); refusing to pass with effect=${reviewerBrowserEffective}`);
+});
+const reviewerBrowserProbe = await api('session.permission.create', [`sessionID=${reviewer.id}`], { action: 'browser', resources: ['*'], agent: 'product-reviewer' });
+await rejectIfPending(reviewer.id, reviewerBrowserProbe);
+check(`reviewer browser *: probe=${reviewerBrowserProbe.effect} matches merged-effective=${reviewerBrowserEffective} (declaration/effective split; unconditional allow is not install proof on this path)`,
+  () => assert.equal(reviewerBrowserProbe.effect, reviewerBrowserEffective,
+    `reviewer browser * probe=${reviewerBrowserProbe.effect} merged-effective=${reviewerBrowserEffective}`));
+console.log(`reviewer browser: probe=${reviewerBrowserProbe.effect} vs merged-effective=${reviewerBrowserEffective}; live connection/execution/exposure NOT verified`);
 const fixtureContent = await readFile(path.join(fixture, 'probe.css'), 'utf8');
 check('product fixture unchanged', () => assert.equal(fixtureContent, 'body { color: black; }\n'));
 await writeFile(path.join(root, 'result.json'), JSON.stringify({ checks, sessionID: session.id, modelCalls: 0 }, null, 2));
