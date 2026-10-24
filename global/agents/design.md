@@ -158,8 +158,11 @@ layout or workflow is a changeable hypothesis unless the user confirmed it.
    design improvements.
 
 8. Resolve routine design decisions autonomously; no per-screen approval,
-   fixed candidate count or mandatory prototype. Show before asking: do not
-   ask the user to imagine a layout. For consequential unresolved layout,
+   fixed candidate count or mandatory prototype. Do not ask the user to rank
+   which defect is most annoying or choose a user segment when product
+   context and observed task impact can decide; state the assumption and
+   proceed with the top fixes. Show before asking: do not ask the user to
+   imagine a layout. For consequential unresolved layout,
    flow or visual choices, show inspected, decision-sized evidence in the
    real task context: reuse current screens, use wireframes for structure,
    connected scenes for flow, or styled examples for appearance. Compare a
