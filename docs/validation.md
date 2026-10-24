@@ -44,7 +44,7 @@ Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode�
 - **자체 부품 폐기:** 저장소 번들 `task-first-ux-review` 스킬과 `ksi-impeccable-detector` 편집 훅 플러그인을 제거했습니다. Design은 공식 Impeccable `detect --json` 수동 검사를 사용하고, 네이티브는 소스 검사를 건너뜁니다. 이전 검증 기록의 task-first·플러그인 수치는 당시 이력으로만 보존합니다.
 - **프롬프트 밀도:** 네 역할 말미의 동일 depth/handoff footer를 제거해 Engineer 634→562, Design 1,925→1,678, Research 1,588→1,377 words로 줄였습니다. Critic은 스킬 매핑을 추가해 1,409→1,415, 공통 AGENTS는 Build의 단위 배정과 결과 검증 문장을 추가해 1,912→1,920 words입니다. 역할별 중복을 줄이고 공통 파일에는 교차 계약만 남겼으며, Critic의 스킬 prose와 실제 allowlist 불일치를 9개 목록으로 맞췄습니다.
 - **OpenSpec:** 요구 승인·통합·아카이브는 Build, 기술 artifact 내용은 Engineer, UX artifact 내용은 Design이 맡습니다. Plan은 분석·제안만 하며 승인 artifact를 대신 작성하지 않습니다. `openspec-propose`의 계획 경계는 일반적인 "승인 작업 계속"보다 우선합니다.
-- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 전역 설치 후 `agent-routing-native` 일치는 **292/292**로 확인했으며, 실제 Muse 모델의 역할별 품질·비용 비교는 아직 미검증입니다.
+- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 제품 개발 전체 흐름, Build의 첫 소유자 선택, Engineer의 Explore/Research/Plan/General/Design/Critic 사용 조건, Critic 호출자별 검토 질문, Architect 은퇴 상태, UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 전역 설치 후 `agent-routing-native` 일치는 **292/292**로 확인했으며, 실제 Muse 모델의 역할별 품질·비용 비교는 아직 미검증입니다.
 
 ### 장기 개발 연속성·실패 복구 후속 보완
 

@@ -60,7 +60,9 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
-표는 저장소의 배포 정본이며 2026-10-24 전역 적용본과 일치합니다. 실제 모델의 역할별 품질·비용 검증은 별도입니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md). Architect는 원본 파일을 변경하지 않고 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. Plan의 자문 성능을 충분히 관찰하기 전에는 최종 폐기하지 않습니다.
+표는 저장소의 배포 정본이며 2026-10-24 전역 적용본과 일치합니다. 실제 모델의 역할별 품질·비용 검증은 별도입니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md).
+
+**Architect와 이전 역할:** `architect`는 더 이상 등록·호출되지 않습니다. 원본은 `docs/archive/agents/architect.md`에 보존합니다. 기술 단위 설계·구현은 Engineer, 중요한 방향·아키텍처 자문은 Plan, UI 단위는 Design이 맡습니다. `design-architect`는 `design`, `ux-scout`는 `research`, `ui-ux-critic`·`product-reviewer`는 `critic`으로 이전됐고, 이전 ID를 새 작업의 별칭으로 다시 등록하지 않습니다. 기존 세션은 idle 상태로 보존되지만 새 작업의 호출 대상은 아닙니다.
 
 **작업 단위 기준**은 호출 가능한 역할 목록과 별개입니다.
 
@@ -75,6 +77,84 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | 독립 검토 | Critic | 구현·재설계·최종 인수 없음 |
 
 한 단위의 소유자는 바뀌지 않습니다. 전문 역할 호출은 별도 하위 산출물이 있을 때만 하며, 같은 단위를 Engineer↔Design 또는 Plan↔Engineer 사이에서 왕복시키지 않습니다. 경계 자문은 소유권 이전이 아닙니다.
+
+### Build의 첫 소유자 선택
+
+Build는 역할 이름이 아니라 **작업 단위와 책임**으로 첫 소유자를 고릅니다.
+
+```text
+제품 목표·제약 → (필요 시 Plan/Research) → Build가 다음 통합 결과 선택
+  ├─ 기술 단위 → Engineer → General/Explore/Research/Plan/Design/Critic ↺
+  └─ UX 단위   → Design   → General/Research/Engineer/Critic ↺
+→ Build 통합·종단 과업 검증·최종 인수
+```
+
+1. **요구·우선순위·방향이 불명확하거나 큰 전환·정체** → Plan에 분석 자문. Plan은 구현·승인하지 않습니다.
+2. **UX/인터페이스 표면이 있음** → 크기와 무관하게 Design. 작은 UI 수정도 Design이 소유하고, 결정된 슬라이스만 General이 실행할 수 있습니다.
+3. **미해결 구현 결정·여러 파일/계약/상태·테스트/수리 반복** → Engineer. Engineer가 기술 단위를 끝까지 소유합니다.
+4. **대상 파일·수정·검증이 이미 정해진 단일 슬라이스** → General 또는 직접. 범위가 커지면 Engineer/Design으로 반환합니다.
+5. **기술과 UX가 함께 있는 제품 단위** → Build가 공통 계약·순서를 정하고 Engineer와 Design에 나눕니다. Design은 UI 단위, Engineer는 그 뒤의 기술 계약을 소유하며, 같은 파일·브라우저 상태는 한 소유자만 변경합니다.
+6. **코드 위치·사실이 불명확** → Explore. **자료가 충돌하거나 대안·적용 조건을 비교해야 함** → Research. 둘 다 소유자가 결과를 해석합니다.
+7. **중요한 독립 검토가 필요** → Critic. 필수 게이트가 아니며, 발견은 소유자의 수정·반증으로 이어집니다.
+
+이 원칙은 기술+UX 혼합 작업에도 적용됩니다. Engineer와 Design이 직접 협의할 수는 있지만, 같은 단위를 조상에게 되돌리거나 두 역할이 동시에 소유하지 않습니다.
+
+### Engineer 기술 단위 흐름
+
+기술 단위도 바로 코드부터 쓰지 않습니다. 먼저 계약·상태·실패 경로를 확인하고, 필요한 근거를 모은 뒤 구현·검증·수리까지 소유합니다. 아래는 예시이며 고정 단계가 아닙니다.
+
+```text
+[1] 접수와 경계
+Build → Engineer: 목표·확정 계약·허용 범위·현재 상태·검증 조건
+Engineer: API/데이터·상태 소유·권한·호환성·마이그레이션·복구 위험 확인
+
+[2] 근거
+  ├─ 코드 위치·호출 경로 → Explore
+  ├─ 외부 문서·대안·충돌 근거 → Research / Context7
+  └─ 요구·우선순위·기술+제품 방향이 불명확 → Plan 자문
+
+[3] 설계·구현
+Engineer: 인터페이스·데이터/상태 소유·실패 복구·마이그레이션 설계
+  ├─ UI 경계·상태·상호작용 계약 → Design과 직접 협의 (UI 소유권은 Design)
+  ├─ 이미 결정된 파일·수정·테스트 슬라이스 → General
+  └─ 작은/긴밀한 작업 → Engineer 직접 구현
+
+[4] 검증·수리
+General/Engineer: 빌드·테스트·실행 → 기술 결함 수정 ↺
+Engineer: 실제 런타임·데이터·복구·호환성 확인
+  └─(선택) Critic: 계약·아키텍처·보안·테스트 엄밀성 독립 비평
+
+[5] 반환
+Engineer → Build: 변경·검증 환경/버전·목표 충족·미해결·통합 작업
+```
+
+**Engineer가 다른 역할을 쓰는 조건**
+
+| 역할 | 쓰는 조건 | 기대 반환 | 하지 않는 것 |
+| --- | --- | --- | --- |
+| Explore | 파일·심볼·호출 경로가 불명확 | 경로·사실 | 설계·대안 판단 |
+| Research | 외부 문서·사례·대안·충돌 근거가 필요 | 원본·비교·적용 조건·미확인 | 제품 코드·최종 설계 |
+| Plan | 요구·우선순위·방향·큰 전환이 불명확 | 대안·의존성·권장 순서 | 구현·승인 |
+| General | 대상 파일·수정·테스트가 이미 결정됨 | 구현·실행·국소 수리 | 아키텍처·UX 결정 |
+| Design | UI 경계·상태·상호작용 계약이 걸림 | UX 단위 설계·렌더 판단 | 기술 단위 소유권 이전 |
+| Critic | 계약·보안·아키텍처·테스트 엄밀성 검토가 중요 | 근거 있는 발견 | 수정·재설계·인수 |
+
+General은 강제가 아닙니다. Engineer가 직접 구현할 수 있고, General에는 발견·설계·조율이 필요한 작업을 맡기지 않습니다. Plan 자문은 분석 범위에 머물며, Engineer가 구현 승인을 대신받는 통로가 아닙니다.
+
+Engineer는 `evolving-apis-and-schemas`, `investigating-performance`, `reviewing-security`, `vercel-react-best-practices`, `building-accessible-interfaces`를 필요한 범위에서 사용합니다. 스킬은 역할이나 필수 단계가 아니라 판단 렌즈입니다.
+
+### Critic 호출 지점
+
+Critic은 제품·UX·코드·기술 설계의 독립 검토를 맡지만, 모든 작업의 필수 게이트가 아닙니다. 호출자는 질문과 실제 근거를 넘기고, 발견은 소유자가 수정·반증·미해결로 처리합니다.
+
+| 호출자 | 검토 질문 | 넘길 근거 | 결과 처리 |
+| --- | --- | --- | --- |
+| Build | 제품 통합·종단 과업·인수 근거가 충분한가 | 원요구·확정 계약·실제 빌드/렌더 | 소유자 수정 후 Build 인수 |
+| Design | 구현 전 구조·흐름 가설, 구현 후 실제 렌더·상태·상호작용 | 목표·제약·원본 캡처·빌드/상태 | Design이 타당성 판단 후 같은 General 또는 직접 수정 |
+| Engineer | 기술 계약·아키텍처·보안·테스트 엄밀성 | 코드·계약·실행/실패 경로·버전 | Engineer가 수정·반증 |
+| Plan | 계획·대안·우선순위의 가정과 누락 | 원요구·제약·분석 근거 | Plan이 분석에 반영, 구현 승인 아님 |
+
+General·Explore·Research는 Critic을 직접 호출하지 않고 소유자에게 반환합니다. Critic은 수정·재설계·최종 인수를 하지 않으며, 문제 개수·점수·필수 반복 횟수를 만들지 않습니다. 중요한 최종 검토는 작업에 참여하지 않은 새 세션에 맡깁니다.
 
 - 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·General은 `high`, Research는 `medium`(시험 배정), Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다. Variant별 실제 품질·비용 우위는 아직 비교 측정하지 않았으며, 근거가 쌓이면 조정합니다.
 
