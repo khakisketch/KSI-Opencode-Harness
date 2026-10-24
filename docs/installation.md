@@ -24,7 +24,7 @@ Build — depth 0 · 제품 실행 총괄·통합·인수
 1. **공통 지침:** 제품 목표·원문/가설 구분·위임·증거·인수 원칙.
 2. **기본 커스텀 역할 4개:** Engineer는 기술 단위 구현·검증·개선, Design은 UI/UX 설계·구현 조율·렌더 교정, Research는 심층 근거·대안 조사, Critic은 제품·UX·코드·기술 설계의 독립 비평. Native Build·Plan·General·Explore 프롬프트와 이름은 유지합니다. Architect 파일은 원본 바이트 그대로 발견 경로 밖 `docs/archive/agents/architect.md`에 보존하며 최종 폐기를 유보합니다.
 3. **설정 병합:** `experimental.subagent_depth=3`, Build·Plan의 호출 허용 목록, 모델·MCP 설정. 커스텀 역할의 호출 권한은 Markdown 파일에 있습니다. Plan의 Native 프롬프트와 일반 파일 편집 제한은 유지합니다.
-4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
+4. **기존 도구 재사용:** 브라우저·선택 스킬·공식 Impeccable 수동 소스 검사. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
 배포 정본의 모델은 [README 표](../README.md#역할과-위임-구조)를 따르며 [실제 가용성·정책·검증 상태](engineer-routing-validation.md)를 별도로 확인합니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. Plan·Design은 `all`, Build는 `primary`, 나머지는 `subagent`입니다. 기존 세션의 역할·모델은 강제로 바꾸지 않습니다. 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고 역할별 Variant만 조정합니다. Contributor 모델은 학습 사용 조건이 있으므로 비공개 코드·고객 데이터는 승인된 제공자 경로에만 전달합니다.
@@ -134,7 +134,6 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    agent-routing-native.mjs로 권한을, delegation-native-integration.mjs의 격리 로컬 모의 모델로
    Plan의 재위임·깊이3·상한 차단·실제 도구 거부·소유 세션 재개·새 근거로의 복구와
    명시 세션 제한의 상속/비소급을 확인해줘. 사용자 기존 세션의 규칙은 수정하지 마.
-   임시 fixture에서 기존 UI 소스 검사 훅도 검증해줘.
    실제 모델 품질·브라우저 연결·장기 완주와 설정/모의 검사를 구분하고,
    적용 완료·인증 대기·실패·설치 커밋·도구 버전·환경별 차이를 보고해줘.
 ```

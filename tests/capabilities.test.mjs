@@ -37,6 +37,16 @@ describe('tracked role inventory', () => {
   it('tracks 8 roles in exact order build,plan,general,explore,engineer,design,research,critic', () => {
     assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'general', 'explore', 'engineer', 'design', 'research', 'critic']);
   });
+  it('tracks all 17 harness-wired skills (core, external gap 6, trial 2, opencode)', () => {
+    assert.deepEqual(TRACKED_SKILLS, [
+      'impeccable', 'journey', 'organize', 'wireframe',
+      'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design',
+      'opencode',
+      'designing-user-experience', 'building-accessible-interfaces', 'evolving-apis-and-schemas',
+      'investigating-performance', 'reviewing-security', 'ux-heuristics-audit',
+      'diagnosing-bugs', 'ux-copy',
+    ]);
+  });
   it('exposes research registration; unregistered research is false absence, not unknown', () => {
     const withResearch = projectAgents([
       { id: 'build', name: 'Build', mode: 'primary' },

@@ -41,9 +41,12 @@
 - [x] 4A.3 Set Engineer/Design=high, Critic/Plan=xhigh, General=high,
   Research=medium trial, Explore=low; record the unverified-model caveat.
 - [x] 4A.4 Reduce prompt duplication: remove four shared depth/handoff
-  footers and align Critic's prose allowlist with its 12 permissions.
-- [x] 4A.5 Re-run regression, OpenSpec and Native scripted verification;
-  record evidence in `docs/validation.md`.
+  footers, consolidate overlapping role/AGENTS prose (7,600→5,568 words across
+  the 5 files, all AGENTS.md lines <2,000 chars), and align Critic's prose
+  allowlist with its 12 permissions.
+- [x] 4A.5 Re-run regression (102/102), OpenSpec (2/2), Native routing
+  (327/327) and Native scripted verification (312/312); record evidence in
+  `docs/validation.md`.
 - [x] 4A.6 Trial-install `diagnosing-bugs` (Engineer) and `ux-copy`
   (Design/Critic); record provenance, role permissions and usage flows.
   Effect measurement remains pending.

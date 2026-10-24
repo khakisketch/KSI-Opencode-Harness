@@ -11,7 +11,14 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore', 'engineer', 'design', 'research', 'critic'];
-export const TRACKED_SKILLS = ['impeccable', 'journey', 'organize', 'wireframe', 'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design'];
+export const TRACKED_SKILLS = [
+  'impeccable', 'journey', 'organize', 'wireframe',
+  'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design',
+  'opencode',
+  'designing-user-experience', 'building-accessible-interfaces', 'evolving-apis-and-schemas',
+  'investigating-performance', 'reviewing-security', 'ux-heuristics-audit',
+  'diagnosing-bugs', 'ux-copy',
+];
 export const TRACKED_MCP = ['context7', 'mobbin'];
 export const TRACKED_BINARIES = ['node', 'playwright-cli', 'gh'];
 export const AGENT_MODES = ['primary', 'subagent', 'all'];

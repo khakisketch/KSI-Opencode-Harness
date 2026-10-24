@@ -63,8 +63,18 @@ design ownership. One unit SHALL have one owner.
 #### Scenario: Small UI change
 
 - **WHEN** a small UX/interface change is requested
-- **THEN** Design owns it; General may execute a settled UI slice under
-  Design without becoming the design owner.
+- **THEN** Design owns it; Design executes simple single-file UI changes
+  directly or uses General for a settled UI slice without becoming the design
+  owner.
+
+#### Scenario: Mixed technical and UX feature
+
+- **WHEN** a product feature spans technical and UX units
+- **THEN** Build (or the leading owner) defines the shared interface contract
+  (API/data shapes, state transitions, error/recovery payloads, and
+  file/browser ownership) before parallel or sequential execution; pure
+  non-visual data/event wiring to an existing UI component may be completed
+  within Engineer's integration while UX/interface changes remain with Design.
 
 #### Scenario: UI result delivered
 
@@ -98,9 +108,10 @@ descendants.
 
 #### Scenario: Plan delegates analysis
 
-- **WHEN** Plan calls Engineer, Design or General for planning evidence
-- **THEN** the call is limited to an analysis subdeliverable and does not
-  authorize implementation.
+- **WHEN** Plan calls Explore, Research or Critic for planning evidence
+- **THEN** the call is limited to an analysis subdeliverable, and Plan does
+  not call implementation-capable Engineer, Design or General or authorize
+  implementation.
 
 #### Scenario: Plan consultation
 
@@ -177,19 +188,23 @@ implementation.
 ### Requirement: Staged-skills compatibility
 
 The workflow SHALL preserve existing skill IDs, avoid same-ID collisions,
-require an MIT license plus script/permission review for any selected-gap
-skill, and never execute a destructive installer. Project-local adoption
-of 6 skills is decided; later global installation stays pending under
-active-config protection, with no fixed approval phase.
+require a permissive license (MIT for the 6 gap skills; MIT or Apache-2.0
+for trial skills) plus script/permission review for any adopted or trial
+external skill, and never execute a destructive installer. Global
+installation SHALL respect active-config protection (idle legacy sessions
+and backup before apply), with no fixed approval phase, and trial skills
+(`diagnosing-bugs`, `ux-copy`) SHALL be retained only if they reduce rework
+or copy corrections over 2–3 real tasks.
 
 #### Scenario: Additive global install considered
 
-- **WHEN** a staged skill is proposed for additive global installation
-- **THEN** its gap rationale, license, script/permission review, and overlap
-  mapping are cited from `docs/openspec-and-skills.md`, existing IDs and
-  the active role config are left untouched, the osmontero `install.sh`
-  (destructive: removes non-repo skills, replaces global config) is never
-  executed, and workers do not write global state.
+- **WHEN** a staged or trial skill is installed project-locally or globally
+- **THEN** its gap rationale, license (MIT for the 6 gap skills; MIT or
+  Apache-2.0 for trial skills), script/permission review, and overlap
+  mapping are cited from `docs/openspec-and-skills.md`, existing IDs are
+  preserved, the osmontero `install.sh` (destructive: removes non-repo
+  skills, replaces global config) is never executed, and workers do not
+  mutate unapproved global state.
 
 #### Scenario: Discovery is not application proof
 
