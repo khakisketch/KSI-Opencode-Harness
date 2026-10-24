@@ -97,6 +97,19 @@ Build는 역할 이름이 아니라 **작업 단위와 책임**으로 첫 소유
 6. **코드 위치·사실이 불명확** → Explore. **자료가 충돌하거나 대안·적용 조건을 비교해야 함** → Research. 둘 다 소유자가 결과를 해석합니다.
 7. **중요한 독립 검토가 필요** → Critic. 필수 게이트가 아니며, 발견은 소유자의 수정·반증으로 이어집니다.
 
+**Build → General vs Build → Engineer**
+
+| | Build → General | Build → Engineer |
+| --- | --- | --- |
+| 조건 | 접근·계약·검증이 이미 정해진 단일 슬라이스 | 아직 결정·조정이 필요한 다단계 기술 단위 |
+| 예 | 오타, 단일 테스트 수정, 알려진 설정 변경, 명확한 국소 리팩터 | 새 API+데이터/마이그레이션, 권한·상태·동시성, 원인 불명 버그, 여러 모듈 통합 |
+| Build가 넘기는 것 | 대상 파일·변경·완료 조건·검증 | 목표·확정 계약·허용 범위·현재 상태·검증 조건 |
+| 소유권 | Build가 작은 슬라이스를 관리하고 General은 실행만 | 기술 단위 소유권이 Engineer로 이전 |
+| 하위 호출 | 없음 | General·Explore·Research·Plan·Design·Critic |
+| 범위가 커지면 | Engineer/Design으로 반환 | Engineer가 계속 소유 |
+
+General은 “작은 Engineer”가 아니라 **이미 결정된 슬라이스의 실행자**입니다. Engineer는 “큰 General”이 아니라 **기술 단위의 소유자**입니다. Build가 General을 직접 호출하는 것은 Engineer를 거치지 않는 독립적인 작은 실행이고, Engineer가 General을 호출하는 것은 Engineer 단위 안의 구현 슬라이스를 맡기는 것입니다.
+
 이 원칙은 기술+UX 혼합 작업에도 적용됩니다. Engineer와 Design이 직접 협의할 수는 있지만, 같은 단위를 조상에게 되돌리거나 두 역할이 동시에 소유하지 않습니다.
 
 ### Engineer 기술 단위 흐름
