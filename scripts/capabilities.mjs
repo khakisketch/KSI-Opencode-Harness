@@ -10,7 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const TRACKED_AGENTS = ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout'];
+export const TRACKED_AGENTS = ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout', 'ui-ux-critic'];
 export const TRACKED_SKILLS = ['impeccable', 'journey', 'organize', 'wireframe', 'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design'];
 export const TRACKED_MCP = ['context7', 'mobbin'];
 export const TRACKED_BINARIES = ['node', 'playwright-cli', 'gh'];

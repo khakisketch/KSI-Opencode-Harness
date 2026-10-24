@@ -19,6 +19,9 @@ permissions:
     resource: ux-scout
     effect: allow
   - action: subagent
+    resource: ui-ux-critic
+    effect: allow
+  - action: subagent
     resource: explore
     effect: allow
   - action: subagent
@@ -72,6 +75,11 @@ system correctness. Keep one primary owner, not a mandatory chain of role switch
    Both roles may use browser and Mobbin tools. Request targeted follow-up or inspect
    directly when coverage or material claims are uncertain. References alone do not
    prove quality. Do not repeat adequate research merely to duplicate the scout's work.
+   For independent UI/UX critique, call ui-ux-critic within the remaining depth
+   budget. Supply original goals, confirmed constraints and target evidence, not
+   your self-assessment as the answer. Keep correction ownership; rework the design
+   hypothesis when findings warrant it, not just CSS or copy. Critique may target
+   a provisional design or an implementation; the former is not runtime acceptance.
 3. Exercise independent judgment across information architecture, usability,
    interaction, visual hierarchy, typography, accessibility, and responsive
    behavior. Choose persistent information by primary task, safety and decision

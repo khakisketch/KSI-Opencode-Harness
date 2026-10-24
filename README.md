@@ -14,7 +14,7 @@
 - **개발:** Build 선택 → “CSV 내보내기를 구현하고 테스트와 실제 흐름을 검증해줘.”
 - **UI 중심 작업:** Design Architect를 메인으로 선택해도 됩니다 → “결제 완료 흐름을 개선하고 실제 렌더로 검증해줘.”
 
-한 작업의 메인은 한 명입니다. 이는 책임 소유 원칙이지 작업자 한 명이나 직렬 실행을 뜻하지 않습니다. UI 중심으로 Architect를 메인으로 선택했다면 그 역할이 통합·인수도 책임지며, 별도의 Build를 추가하지 않습니다.
+한 작업의 메인은 한 명입니다. 이는 책임 소유 원칙이지 작업자 한 명이나 직렬 실행을 뜻하지 않습니다. UI 중심으로 Architect를 메인으로 선택했다면 맡은 UI 단위의 통합·완료를 책임지며, 별도의 Build를 추가하지 않습니다. 이를 제품 전체의 인수로 확대하지 않습니다.
 
 ## 역할과 위임 구조
 
@@ -24,8 +24,10 @@
 Build — 목표·통합·최종 인수
  ├─ Plan — 기술 자문·방향 점검
  │    └─ Explore — 필요한 코드 조사
+ ├─ UI/UX Critic — 필요한 최종 UI 비평(별도 세션)
  └─ Design Architect — 맡은 UI 개선 전체 책임
-      ├─ UX Scout — 화면·문제 후보·레퍼런스 조사
+      ├─ UX Scout — 사례 조사·현재 제품의 실제 과업 관찰
+      ├─ UI/UX Critic — 전제·구성·상호작용 독립 비평
       ├─ Explore — 기존 코드·컴포넌트 탐색
       └─ General — 구현·실행·기술 검증·수정
            ↕
@@ -51,12 +53,13 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Plan** / `plan` | 영향이 큰 기술 선택 자문 + 큰 전환·복귀 시 방향 점검 | all | `openai/gpt-6.1-sol#xhigh` |
 | **Design Architect** / `design-architect` | 진단·UX/UI 설계·작업자 조율·렌더 개선 | all | `openai/gpt-6.1-sol#high` |
 | **UX Scout** / `ux-scout` | 선택형 관찰·문제 후보·외부 사례·원본 근거 수집 | subagent | `openai/gpt-6-luna-fast#high` |
+| **UI/UX Critic** / `ui-ux-critic` | 선택형 독립 비평·설계 가설 반증, 수정·제품 인수는 하지 않음 | subagent | `openai/gpt-6.1-sol#high` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
 
 - `experimental.subagent_depth=2`는 `Build → Architect → 작업자`까지 허용하는 **최대 깊이**입니다. `mode: all`은 메인/하위 실행을 모두 지원한다는 뜻이지 무제한 위임 권한이 아닙니다.
-- Architect는 General·Scout·Explore를 직접 호출하고 같은 작업의 세션을 재사용합니다. 기술 자문이 필요하면 남은 깊이 안에서 Plan도 호출할 수 있습니다.
-- Plan은 Explore 조사만 위임합니다. General·Scout·Explore는 추가 위임하지 않습니다. 허용 목록 밖의 역할을 추가하려면 호출 권한도 명시적으로 조정해야 합니다.
+- Architect는 General·Scout·Critic·Explore를 직접 호출할 수 있습니다. 수정 담당 세션은 재사용하되, 독립 비평은 해당 설계에 참여하지 않은 별도 세션에 맡깁니다. 기술 자문이 필요하면 남은 깊이 안에서 Plan도 호출할 수 있습니다.
+- Plan은 Explore 조사만 위임합니다. General·Scout·Critic·Explore는 추가 위임하지 않습니다. `Build → Architect → Critic`도 깊이 2 안의 경로이며, Critic은 추가 작업자를 호출하지 않습니다.
 - 장기 작업의 연속성은 Build가 Native 세션·이력·프로젝트 자료로 유지하고, 곁작업 뒤에는 승인 범위의 제품 개발로 복귀합니다. 큰 전환, 상당한 곁작업, 원래 문제를 해결하지 못하는 국소 수정 정체, 장기 목표의 완료 판단 전에는 Plan에 원래 목표 대비 방향·누락·남은 작업 점검을 요청할 수 있습니다.
 - Plan은 자문이며 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다. 매 작업마다 호출하지 않으며, 점검 결과를 반영하고 다음 작업을 잇는 책임은 Build에 있습니다. Plan 모델은 명시돼 있지 않으면 부모 세션 모델을 상속하므로, 별도 판단 모델로 동작하게 하려면 위 표의 모델 고정이 필요합니다.
 - 기존 세션의 역할·모델은 설정 변경만으로 자동 이전되지 않습니다. 특히 Architect를 메인으로 고를 때는 세션 모델도 확인하세요.
@@ -65,19 +68,21 @@ Architect는 맡은 UI 단위의 구현·검토를 직접 연결합니다. Build
 
 Scout의 검색·탐색 과정은 자신의 세션에 남깁니다. Architect에는 간결한 관찰과 **같은 원본 이미지·URL·화면 상태**를 전달합니다. Architect도 원본을 직접 확인하고 필요한 추가 조사를 할 수 있으며, Scout의 요약이 설계 확정이나 최종 합격을 대신하지 않습니다.
 
+Critic은 최초 과업·확정 제약·정확한 시안/빌드/상태를 보고 현재 구성이 맞거나 틀렸다고 미리 가정하지 않습니다. 원본 렌더와 관련 조작에서 구조적 문제와 국소 구현 문제를 구분하고, 유지할 장점도 근거로 설명합니다. 문제를 억지로 만들거나 점수·개수를 채우지 않으며, 설계자의 자기평가를 정답으로 받지 않습니다. Architect는 비평을 받아 필요하면 설계 가설부터 교정합니다. 설계 교정에 참여했던 Critic의 후속 평가를 완전히 새로운 독립 인수로 부르지 않으며, Build는 필요할 때 새 Critic 세션으로 최종 UI 비평을 요청합니다. 시안 비평은 실제 제품 검증을 대신하지 않습니다. 역할·세션 분리는 판단력 향상의 보증이 아닙니다.
+
 ## 기본 OpenCode와 비교
 
 KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 | 항목 | 기본 OpenCode | KSI Harness |
 | --- | --- | --- |
-| 디자인 역할 | 사용자 정의 에이전트 지원 | Design Architect 역할·선택형 UX Scout 구성 |
+| 디자인 역할 | 사용자 정의 에이전트 지원 | Design Architect·선택형 UX Scout·UI/UX Critic |
 | 완료 판단 | 기본 에이전트 지침 | 승인된 작업의 완료·재승인 기준 명시 |
 | 위임 | General·Explore·하위 세션 지원 | 작업 단위 위임·공유 자원 소유 기준 명시 |
 | UI 편집 검사 | 플러그인으로 확장 가능 | Impeccable 엔진의 편집 후 검사 연동 |
 | 디자인 방법론 | 별도 설치 | Impeccable·Intent를 선택 사용 |
 | 브라우저 | 데스크톱 Native Browser 제공 | Native Browser·Playwright CLI 선택·세션 기준 |
-| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Design Architect·UX Scout 모델 지정 |
+| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Architect·Scout·Critic 모델 지정 |
 
 구조와 과정을 정리한 것이며, 디자인 품질 향상을 A/B로 입증한 것은 아닙니다.
 
@@ -117,7 +122,7 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 외부 스킬의 제한된 실행과 제품 전체의 인수를 구분하는 적용 정책은 [스킬 연결 검토](docs/validation.md#스킬-연결-검토-2026-10-17)에 기록했습니다. 사용자 범위·예산은 지키며, 스킬 종료를 미충족 제품의 완료로 간주하지 않습니다. 등록이나 본문 검토를 실제 활용 성능 검증으로 간주하지 않습니다.
 
-등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며, 결과는 실제 권한·동작·제품 품질의 증거가 아닙니다. 추적 대상은 build·general·explore·plan·design-architect·ux-scout 6개 역할입니다. Scout는 제품 편집·추가 위임·임의 Shell을 거부하며, 기존 웹·브라우저 도구와 명명된 Playwright 검사·상호작용 명령을 사용합니다. Mobbin은 확인한 검색 3개만 허용하고 나머지는 승인을 요구합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니므로 테스트 환경·승인된 상태 전이를 사용합니다. [진단·권한 검증 범위](docs/validation.md#역할-구조-변경-2026-10-17)
+등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며, 결과는 실제 권한·동작·제품 품질의 증거가 아닙니다. 추적 대상은 build·general·explore·plan·design-architect·ux-scout·ui-ux-critic 7개 역할입니다. Scout와 Critic은 제품 편집·추가 위임·임의 Shell을 거부하며, 기존 브라우저 도구와 각각 `ux-scout-*` / `ux-critic-*`의 명명된 Playwright 검사·상호작용 명령을 사용합니다. Critic의 허용 스킬은 `playwright-cli`·`task-first-ux-review`이며, 임의 보고서 파일을 쓰거나 서버를 기동하지 않습니다. Scout의 Mobbin 검색 3개 허용은 유지합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니므로 테스트 환경·승인된 상태 전이를 사용합니다. [진단·권한 검증 범위](docs/validation.md#선택형-uiux-critic-전역-추가-2026-10-24)
 
 ### UI 개선의 두 루프
 
@@ -200,6 +205,7 @@ src/banner.css: findings — overused-font:1
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` |
 | `global/agents/design-architect.md` | `~/.config/opencode/agents/design-architect.md` |
 | `global/agents/ux-scout.md` | `~/.config/opencode/agents/ux-scout.md` |
+| `global/agents/ui-ux-critic.md` | `~/.config/opencode/agents/ui-ux-critic.md` |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` |
 
@@ -208,7 +214,7 @@ src/banner.css: findings — overused-font:1
 - 설치 프롬프트와 외부 도구 출처: [설치 안내](docs/installation.md)
 - `CONTEXT7_API_KEY`는 환경변수로 전달하며 비밀값은 저장소에 넣지 않습니다.
 
-두 역할 파일만 복사하면 충분하지 않습니다. 중첩 깊이와 Build·Plan 호출 권한을 담은 설정, 공통 지침을 함께 병합해야 위 구조로 동작합니다. 사용자 인증·개인 설정은 배포 사본에 포함하지 않습니다.
+세 역할 파일만 복사하면 충분하지 않습니다. 중첩 깊이와 Build·Plan 호출 권한을 담은 설정, Architect의 Critic 호출 허용과 공통 지침을 함께 적용해야 위 구조로 동작합니다. 사용자 인증·개인 설정은 배포 사본에 포함하지 않습니다.
 
 제품 요구사항과 회귀 검사는 각 프로젝트의 문서·테스트·CI에서 관리합니다.
 
@@ -224,8 +230,8 @@ node tests/agent-routing-native.mjs
 ```
 
 - `native-hook-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용해 외부 모델을 호출하지 않습니다. 역할 라우팅 검사도 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
-- 최근 확인 환경: OpenCode 2.1.1 / Playwright CLI 0.1.22 / Linux arm64 (이전 검사의 버전·범위는 검증 기록 참고, 다른 OS는 미확인)
-- `agent-routing-native.mjs`는 설정 원본의 `experimental.subagent_depth==2` 선언 일치와 역할별 호출 정책·역할 모델(Plan 포함), Scout CLI의 허용·거부 경계를 검사합니다(76개 통과). 임의의 병합 설정이나 실제 실행을 이 검사만으로 보장하지 않습니다.
+- 최근 확인 환경: OpenCode 2.1.3 / Playwright CLI 0.1.22 / Linux arm64 (이전 검사의 버전·범위는 검증 기록 참고, 다른 OS는 미확인)
+- `agent-routing-native.mjs`는 설정 원본의 `experimental.subagent_depth==2` 선언 일치와 역할별 호출 정책·모델·본문, Scout/Critic CLI의 허용·거부 경계를 검사합니다. 현재 검사 결과는 [Critic 적용 기록](docs/validation.md#선택형-uiux-critic-전역-추가-2026-10-24)에 구분하며, 임의의 병합 설정·실제 실행·디자인 판단력을 이 검사만으로 보장하지 않습니다.
 - 모의 UI에서는 실제 `Build → Architect → General` 중첩 호출·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 모든 호출 경로·실제품 품질·장기 완주·비용 절감을 입증한 것은 아닙니다. [실행 근거와 한계](docs/validation.md#역할-구조-변경-2026-10-17)
 - `compaction-continuity-live.mjs`(선택형)는 수동 Compact 전후의 목표·확정 결정·미확정 후보·작업 상태 유지와 곁작업 복귀를 확인합니다. 2026-10-17 두 변형(keep 8192/15000) 모두 통과해 현재 설정을 유지했습니다. [결과와 한계](docs/validation.md#긴-세션-compact-연속성-검사-2026-10-17)
 - 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)

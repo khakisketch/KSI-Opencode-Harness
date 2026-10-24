@@ -5,7 +5,7 @@
   "share": "disabled",
   "update": "notify",
   "experimental": {
-    // Build -> Architect -> implementation/research; a ceiling, not a required chain.
+    // Build -> Architect -> implementation/research/critique; a ceiling, not a required chain.
     "subagent_depth": 2
   },
   "mcp": {
@@ -36,7 +36,8 @@
         { "action": "subagent", "resource": "design-architect", "effect": "allow" },
         { "action": "subagent", "resource": "general", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" },
-        { "action": "subagent", "resource": "ux-scout", "effect": "allow" }
+        { "action": "subagent", "resource": "ux-scout", "effect": "allow" },
+        { "action": "subagent", "resource": "ui-ux-critic", "effect": "allow" }
       ]
     },
     "plan": {

@@ -34,8 +34,22 @@ const realSkills = [
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
 describe('tracked role inventory', () => {
-  it('tracks 6 visible roles including architect and scout', () => {
-    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout']);
+  it('tracks 7 visible roles including architect, scout, and critic', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout', 'ui-ux-critic']);
+  });
+  it('exposes critic registration; unregistered critic is false absence, not unknown', () => {
+    const withCritic = projectAgents([
+      { id: 'build', name: 'Build', mode: 'primary' },
+      { id: 'ui-ux-critic', name: 'UI UX Critic', mode: 'subagent', extra: SECRET },
+    ]);
+    assert.equal(withCritic.find((a) => a.name === 'ui-ux-critic').registered, true);
+    assert.equal(withCritic.find((a) => a.name === 'ui-ux-critic').mode, 'subagent');
+    assert.equal(withCritic.find((a) => a.name === 'ux-scout').registered, false);
+    assert.ok(!JSON.stringify(withCritic).includes(SECRET));
+    const withoutCritic = projectAgents([]);
+    assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').registered, false);
+    assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').mode, 'unknown');
+    assert.ok(!JSON.stringify(withoutCritic).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
 });
 
