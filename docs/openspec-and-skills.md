@@ -102,7 +102,7 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.
 - 기술 검증 현황: 회귀 **101/101**, OpenSpec 2/2, Native scripted
-  **311/311**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
+  **312/312**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
   검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아니다.
   실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문과
   Research medium의 비교 품질은 미검증이며, 상세는

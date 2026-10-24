@@ -25,7 +25,7 @@ Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode�
 이전 역할 세션 6개가 모두 idle임을 확인한 뒤 준비된 정본을 전역에 적용했습니다. 적용 시각은 **2026-10-24T11:12:08Z**이며, 적용 전 `AGENTS.md`·`opencode.jsonc`·4개 역할 파일과 폐기 부품은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다.
 
 - 전역 등록은 Native 4개 + Engineer·Design·Research·Critic **8개**이며, 깊이 3·Research medium 시험 배정·Critic 9개 스킬 허용을 포함합니다.
-- `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-IaA26u`).
+- `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-513Usu`).
 - `scripts/capabilities.mjs`에서 8개 역할 등록, Context7·Mobbin 연결, `vercel-react-best-practices`를 포함한 외부 스킬 발견을 확인했습니다.
 - 선별 외부 스킬 6종을 `~/.agents/skills/`에 동일 바이트로 설치했고, OpenCode `/api/skill` 조회에서 6종·OpenSpec·기존 전역 스킬을 포함한 고유 ID **25개**를 확인했습니다(근거 `/tmp/opencode/skills-api-final.json`).
 - 이전 역할 파일은 `agents/` 발견 경로 밖으로 이동했고, `task-first-ux-review`와 `ksi-impeccable-detector` 전역 사본도 백업 후 제거했습니다.
@@ -36,15 +36,16 @@ Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode�
 이 감사는 현재 정본과 실제 전역 설치본을 읽고, 역할별 작업 기준·호출 루프·스킬 책임·OpenSpec 사용·프롬프트 중복을 점검한 결과입니다. 모델 품질 비교나 실제 제품 개발 성과를 입증하지 않습니다.
 
 - **Engineer vs General:** Engineer는 미해결 구현 결정·여러 파일/계약/상태·테스트/수리 반복이 있는 다단계 기술 단위를 소유합니다. General은 대상 파일·수정·검증이 이미 정해진 단일 슬라이스만 실행합니다. 발견·설계·조율이 필요해지면 Engineer/Design 소유 단위로 돌아갑니다. 같은 작업을 두 역할이 동시에 소유하지 않습니다.
+- **모델 교체와 소유권:** General/Engineer의 구분은 모델 성능·실행 위치가 아니라 작업 단위 소유권으로 유지합니다. General을 Qwen 27B·Qwen Flash Next 같은 로컬 코딩 모델로 바꾸더라도 결정된 슬라이스 실행자라는 계약은 변하지 않으며, 불명확한 기술 단위의 소유권은 Engineer에 남습니다.
 - **Design 우선:** 모든 UX/인터페이스 단위는 크기와 무관하게 Design이 소유합니다. 작은 UI 수정도 General이 Design 소유 아래에서 실행할 수는 있지만 디자인 책임은 Design에 남습니다.
 - **UI/UX 검토 흐름:** Design이 조사·설계 후 General에 구현을 맡기고, 실제 렌더에서 연구·레퍼런스·설계 의도 반영과 원래 과업을 확인합니다. 중요한 단위는 구현 전 가설 또는 구현 후 결과를 Critic이 독립 비평할 수 있으며, 발견은 Design의 판단을 거쳐 같은 General 세션의 교정·재검증으로 이어집니다. Critic은 필수 게이트가 아니고 수정·인수하지 않습니다. 이는 새 역할·필수 단계를 추가한 것이 아니라 기존 허용 루프를 README에 명시한 것입니다.
 - **Explore vs Research:** 경계는 도구가 아니라 질문입니다. Explore는 범위가 정해진 검색·원본 추출, Research는 충돌 자료의 비교·대안·적용 조건·미확인 종합입니다.
 - **루프:** Engineer↔Design·Plan↔Engineer 직접 호출은 별도 하위 산출물이 있을 때만 유지합니다. 깊이 3, 자기 호출 금지, 조상 왕복 금지가 무한 확장을 막지만 소유권·분석 전용 범위는 프롬프트 정책이며 Native 권한만으로 강제되지 않습니다. Plan의 Engineer/Design/General 호출은 분석 하위 산출물에 한정하고, 엄격한 격리는 자식 생성 전에 명시 세션 제한으로 준비해야 합니다.
 - **모델:** Engineer·Design=high, Critic=Plan=xhigh, General=high, Explore=low를 유지하고 Research만 medium으로 시험합니다. xhigh 상시 기본의 품질·비용 우위는 미검증이며, Research medium이 비교 품질을 떨어뜨리면 high로 되돌립니다.
 - **자체 부품 폐기:** 저장소 번들 `task-first-ux-review` 스킬과 `ksi-impeccable-detector` 편집 훅 플러그인을 제거했습니다. Design은 공식 Impeccable `detect --json` 수동 검사를 사용하고, 네이티브는 소스 검사를 건너뜁니다. 이전 검증 기록의 task-first·플러그인 수치는 당시 이력으로만 보존합니다.
-- **프롬프트 밀도:** 네 역할 말미의 동일 depth/handoff footer를 제거해 Engineer 634→562, Design 1,925→1,678, Research 1,588→1,377 words로 줄였습니다. Critic은 스킬 매핑을 추가해 1,409→1,415, 공통 AGENTS는 Build의 단위 배정과 결과 검증 문장을 추가해 1,912→1,920 words입니다. 역할별 중복을 줄이고 공통 파일에는 교차 계약만 남겼으며, Critic의 스킬 prose와 실제 allowlist 불일치를 9개 목록으로 맞췄습니다.
+- **프롬프트 밀도:** 네 역할 말미의 동일 depth/handoff footer를 제거해 Engineer 634→596, Design 1,925→1,678, Research 1,588→1,377 words로 줄였습니다. Critic은 스킬 매핑을 추가해 1,409→1,415, 공통 AGENTS는 Build의 단위 배정·결과 검증·모델 독립 소유권 문장을 추가해 1,912→1,926 words입니다. 역할별 중복을 줄이고 공통 파일에는 교차 계약만 남겼으며, Critic의 스킬 prose와 실제 allowlist 불일치를 9개 목록으로 맞췄습니다.
 - **OpenSpec:** 요구 승인·통합·아카이브는 Build, 기술 artifact 내용은 Engineer, UX artifact 내용은 Design이 맡습니다. Plan은 분석·제안만 하며 승인 artifact를 대신 작성하지 않습니다. `openspec-propose`의 계획 경계는 일반적인 "승인 작업 계속"보다 우선합니다.
-- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 제품 개발 전체 흐름, Build의 첫 소유자 선택, Engineer의 Explore/Research/Plan/General/Design/Critic 사용 조건, Critic 호출자별 검토 질문, Architect 은퇴 상태, UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 전역 설치 후 `agent-routing-native` 일치는 **292/292**로 확인했으며, 실제 Muse 모델의 역할별 품질·비용 비교는 아직 미검증입니다.
+- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **312/312** 통과(근거 `/tmp/opencode/ksi-deleg-WRonka`). README에 제품 개발 전체 흐름, Build의 첫 소유자 선택, Engineer의 Explore/Research/Plan/General/Design/Critic 사용 조건, Critic 호출자별 검토 질문, Architect 은퇴 상태, UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 전역 설치 후 `agent-routing-native` 일치는 **292/292**로 확인했으며, 실제 Muse 모델의 역할별 품질·비용 비교는 아직 미검증입니다.
 
 ### 장기 개발 연속성·실패 복구 후속 보완
 
@@ -86,7 +87,7 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 - cold serve는 location-scoped 조회·설정 로드·역할 확인을 거친 뒤 첫 정식 권한 기대값부터 검사합니다. 초기 빈 카탈로그/첫 probe deny를 임의 warmup으로 버리지 않습니다. 그 첫 거부의 정확한 원인은 미확정이며, 최종 실행에서는 재현되지 않았습니다.
 - 기존 UI 소스 검사 훅 **20/20** 통과: `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/ksi-native-7UQyP9`, 로그 `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/result.log`. Native 2.1.4에서 원본 엔진 결과·수정 후 clean·권한 거부 보존을 확인했습니다. 플러그인·외부 스킬 원문은 변경하지 않았습니다.
 
-**전역 이전은 2026-10-24T11:12:08Z에 완료했습니다.** 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했고, 기존 전역 설정·공통 지침·4개 역할은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. 이전 정본 `437e615` 계통의 백업은 같은 루트의 `previous/`에 남아 있습니다. 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **292/292**로 통과했습니다(근거 `/tmp/opencode/ksi-agent-routing-IaA26u`).
+**전역 이전은 2026-10-24T11:12:08Z에 완료했습니다.** 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했고, 기존 전역 설정·공통 지침·4개 역할은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. 이전 정본 `437e615` 계통의 백업은 같은 루트의 `previous/`에 남아 있습니다. 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **292/292**로 통과했습니다(근거 `/tmp/opencode/ksi-agent-routing-513Usu`).
 
 적용 후 설치본 일치·8개 등록·모델·모드·권한을 확인했습니다. 기존 세션·저장 모델·프로젝트를 강제 수정하거나 공유 서비스를 재시작하지 않았습니다. 현재 turn의 종료 확인은 모든 과거 legacy 세션의 무기한 재개 호환성 보장이 아닙니다.
 

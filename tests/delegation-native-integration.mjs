@@ -985,6 +985,9 @@ async function main() {
   check("source AGENTS.md carries work-unit routing criteria",
     srcAgentsMd.includes("Work-unit routing") && srcAgentsMd.includes("bounded, already-decided slice")
     && srcAgentsMd.includes("Design** owns every UX/interface unit"));
+  check("source keeps General ownership model-independent",
+    srcAgentsMd.includes("model choice does not transfer ownership")
+    && (srcAgents.general?.description ?? "").includes("Model choice does not transfer ownership"));
   check("source retires repo-bundled custom skill and detector plugin",
     !fs.existsSync(path.join(REPO, "skills", "task-first-ux-review"))
     && !fs.existsSync(path.join(REPO, "global", "plugins", "ksi-impeccable-detector")));
