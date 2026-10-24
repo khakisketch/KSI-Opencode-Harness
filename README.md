@@ -54,7 +54,7 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Build** / `build` | 목표·장기 맥락·통합·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
 | **Plan** / `plan` | 영향이 큰 기술 선택 자문 + 큰 전환·복귀 시 방향 점검 | all | `openai/gpt-6.1-sol#xhigh` |
 | **Design Architect** / `design-architect` | 진단·UX/UI 설계·작업자 조율·렌더 개선 | all | `openai/gpt-6.1-sol#high` |
-| **UX Scout** / `ux-scout` | 선택형 관찰·문제 후보·외부 사례·원본 근거 수집 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
+| **UX Scout** / `ux-scout` | 선택형 과업 관찰·패턴 분석·적용 조건/한계·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **UI/UX Critic** / `ui-ux-critic` | 선택형 독립 비평·설계 가설 반증, 수정·제품 인수는 하지 않음 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
@@ -68,7 +68,7 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 
 Architect는 맡은 UI 단위의 구현·검토를 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신, 중요한 결정·충돌·실제 차단과 최종 통합 결과를 반환합니다.
 
-Scout의 검색·탐색 과정은 자신의 세션에 남깁니다. Architect에는 간결한 관찰과 **같은 원본 이미지·URL·화면 상태**를 전달합니다. Architect도 원본을 직접 확인하고 필요한 추가 조사를 할 수 있으며, Scout의 요약이 설계 확정이나 최종 합격을 대신하지 않습니다.
+Scout는 과업 관찰과 패턴 분석을 맡으며, 검색·탐색 과정은 자신의 세션에 남깁니다. Architect에는 **같은 원본 이미지·URL·화면 상태**, 확인한 사실, 영향·원인 가설, 패턴이 해결하는 과업과 적용 조건·한계를 연결해 전달합니다. 해결 방향은 후보이지 채택된 배치나 업무 규칙이 아닙니다. Architect도 원본을 직접 확인하고 필요한 추가 조사를 할 수 있으며, Scout의 요약이 설계 확정이나 최종 합격을 대신하지 않습니다. 새 보고서 양식이나 문제 개수는 요구하지 않습니다.
 
 Critic은 최초 과업·확정 제약·정확한 시안/빌드/상태를 보고 현재 구성이 맞거나 틀렸다고 미리 가정하지 않습니다. 원본 렌더와 관련 조작에서 구조적 문제와 국소 구현 문제를 구분하고, 유지할 장점도 근거로 설명합니다. 문제를 억지로 만들거나 점수·개수를 채우지 않으며, 설계자의 자기평가를 정답으로 받지 않습니다. Architect는 비평을 받아 필요하면 설계 가설부터 교정합니다. 설계 교정에 참여했던 Critic의 후속 평가를 완전히 새로운 독립 인수로 부르지 않으며, Build는 필요할 때 새 Critic 세션으로 최종 UI 비평을 요청합니다. 시안 비평은 실제 제품 검증을 대신하지 않습니다. 역할·세션 분리는 판단력 향상의 보증이 아닙니다.
 
