@@ -36,7 +36,9 @@
 
 - No global `~/.config/opencode/skills` installation (Main coordinates after
   the protected legacy gate).
-- No `task-first-ux-review` removal; parity assessment only.
+- The 2026-10-24 role-contract audit retires the repo-bundled
+  `task-first-ux-review` and custom detector; this change's original staging
+  scope did not install them globally.
 - No new manager/router/memory-state framework or mandatory checklists.
 - No mass rewrite of existing README/global role contracts or old history.
 
@@ -52,7 +54,9 @@
    hashes, and SKILL paths.
 4. **Duplicates rejected with rationale**: `designing-frontend-interfaces`
    (duplicates Impeccable), `reviewing-interface-quality` (duplicates
-   Impeccable audit + task-first task lens). Documented, not installed.
+   Impeccable audit and the task-first lens now consolidated into Design's
+   own task-comparison rule plus external UX skills). Documented, not
+   installed.
 
 ## Risks / Trade-offs
 

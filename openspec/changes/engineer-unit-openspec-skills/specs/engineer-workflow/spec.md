@@ -1,4 +1,4 @@
-# Spec Delta
+# Engineer-Workflow Specification
 
 ## Purpose
 
@@ -29,13 +29,107 @@ product whole.
 
 #### Scenario: Small clear fix arrives
 
-- **WHEN** a small, unambiguous fix is requested
-- **THEN** General or a direct edit is permitted without unit routing.
+- **WHEN** a small, unambiguous technical fix is requested
+- **THEN** General or a direct edit is permitted without unit routing; a small UI fix still belongs to the Design unit and may use General for a settled slice.
 
 #### Scenario: Integration and acceptance question
 
 - **WHEN** integration scope or final acceptance is at stake
 - **THEN** Build decides; no unit claims product-wide acceptance.
+
+### Requirement: Work-unit ownership
+
+Engineer SHALL own multi-step technical units with unresolved
+implementation decisions, cross-file/contract/state changes, or
+test/repair loops. General SHALL execute only bounded, already-decided
+slices and SHALL NOT own a unit or make architecture, product or UX
+decisions. Design SHALL own every UX/interface unit, including small UI
+fixes, and MAY use General for settled UI slices without transferring
+design ownership. One unit SHALL have one owner.
+
+#### Scenario: Multi-step technical unit
+
+- **WHEN** a task needs discovery, technical contract decisions, multiple
+  files, or test/repair iterations
+- **THEN** Engineer owns it; General receives only settled slices.
+
+#### Scenario: Settled slice grows
+
+- **WHEN** an assigned General slice needs discovery, design or multi-round
+  coordination
+- **THEN** the work returns to the owning Engineer or Design unit rather
+  than General inventing scope.
+
+#### Scenario: Small UI change
+
+- **WHEN** a small UX/interface change is requested
+- **THEN** Design owns it; General may execute a settled UI slice under
+  Design without becoming the design owner.
+
+#### Scenario: UI result delivered
+
+- **WHEN** a UI unit's implementation is delivered
+- **THEN** Design verifies the actual rendered result against the original
+  task, research/reference and design intent; an optional independent
+  Critic review adds findings but does not transfer ownership or product
+  acceptance.
+
+#### Scenario: Explore or Research
+
+- **WHEN** the question is bounded retrieval or source extraction
+- **THEN** Explore is sufficient; **WHEN** sources conflict or
+  alternatives, applicability or unknowns must be assessed, **THEN**
+  Research is used.
+
+### Requirement: Loop boundaries
+
+Cross-role calls SHALL require a distinct subdeliverable and SHALL NOT
+bounce the same unit between roles. No role SHALL call itself or send the
+same task back through an ancestor; depth limits bound the tree. Plan
+SHALL remain analysis-only and SHALL NOT authorize implementation through
+descendants.
+
+#### Scenario: Cross-role loop
+
+- **WHEN** a permitted role calls another role on the same unit
+- **THEN** the call has a distinct subdeliverable, ownership stays fixed,
+  no role calls itself or sends the task back through an ancestor, and
+  depth limits bound the tree.
+
+#### Scenario: Plan delegates analysis
+
+- **WHEN** Plan calls Engineer, Design or General for planning evidence
+- **THEN** the call is limited to an analysis subdeliverable and does not
+  authorize implementation.
+
+#### Scenario: Plan consultation
+
+- **WHEN** requirements, priorities or direction are ambiguous, a major
+  transition is due, or local fixes stall
+- **THEN** the owner may consult Plan with original intent and actual
+  evidence; Plan advises but does not authorize implementation.
+
+### Requirement: External skills and detector policy
+
+The workflow SHALL NOT bundle self-developed skills or a custom edit-hook
+plugin. It SHALL use installed external skills from official sources and
+the official Impeccable `detect --json` manual path. Removing a custom
+plugin accepts the loss of automatic post-edit summaries. A skill workflow
+that requires subagents, servers or writes unavailable to Research/Critic
+SHALL be applied only as a scoped lens, with unavailable parts reported.
+
+#### Scenario: Web UI edit
+
+- **WHEN** Design edits web UI
+- **THEN** it runs the installed official Impeccable detector manually and
+  treats a clean source scan as source-only, not rendered UX verification.
+
+#### Scenario: Skill needs unavailable operations
+
+- **WHEN** an installed skill's full workflow needs subagents, a server or
+  writes the role cannot perform
+- **THEN** the role applies the allowed parts and reports the remainder as
+  unavailable rather than bypassing permissions.
 
 ### Requirement: Canonical OpenSpec workflow usage
 
@@ -58,6 +152,27 @@ surface actually differs from this baseline.
   the 1.15.0 baseline recorded here
 - **THEN** the worker records the actual commands and schema in the change
   instead of following obsolete instructions.
+
+### Requirement: OpenSpec artifact ownership
+
+Build SHALL own requirement approval, integration and archive; Engineer
+SHALL own technical artifact content; Design SHALL own UX content; Plan MAY
+analyze and propose but SHALL NOT write approved artifacts. A skill's
+proposal/planning boundary SHALL take precedence over otherwise-continuing
+implementation.
+
+#### Scenario: Artifact update
+
+- **WHEN** an approved OpenSpec artifact needs content changes
+- **THEN** the owning Build/Engineer/Design role updates it; Plan does not
+  write it and implementation evidence does not redefine the requirement.
+
+#### Scenario: Proposal boundary
+
+- **WHEN** an OpenSpec proposal or planning skill reaches its planning
+  boundary
+- **THEN** work stops at that boundary even if implementation was later
+  requested; a new approval is needed to implement.
 
 ### Requirement: Staged-skills compatibility
 

@@ -92,7 +92,7 @@ for (const [id, model, mode] of [
   ['plan', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'all'],
   ['design', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'all'],
   ['engineer', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
-  ['research', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
+  ['research', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],
   ['critic', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
   ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'low' }, 'subagent'],
@@ -413,16 +413,16 @@ async function probeReadonlyRole({ agent, cliPrefix, outputFile, skillsAllow, sk
 const research = await probeReadonlyRole({
   agent: 'research', cliPrefix: 'research-probe', outputFile: '/tmp/opencode/research-output.md',
   skillsAllow: ['playwright-cli', 'mobbin-design', 'opencode', 'journey', 'organize'],
-  skillsDeny: ['task-first-ux-review', 'impeccable', 'vercel-react-best-practices', 'wireframe', 'emilkowalski-motion'],
+  skillsDeny: ['ux-heuristics-audit', 'impeccable', 'vercel-react-best-practices', 'wireframe', 'emilkowalski-motion'],
   mobbinSearchEffect: 'allow',
 });
-// Critic: readonly, no Mobbin; skills playwright-cli, task-first-ux-review,
-// impeccable, journey, organize, vercel-react-best-practices, opencode, plus
+// Critic: readonly, no Mobbin; skills playwright-cli, impeccable, journey,
+// organize, vercel-react-best-practices, opencode, plus
 // reviewing-security, building-accessible-interfaces, ux-heuristics-audit;
 // every other skill denies, including unknown ids. Existing denies preserved.
 const critic = await probeReadonlyRole({
   agent: 'critic', cliPrefix: 'critic-probe', outputFile: '/tmp/opencode/critic-output.md',
-  skillsAllow: ['playwright-cli', 'task-first-ux-review', 'impeccable', 'journey', 'organize', 'vercel-react-best-practices', 'opencode', 'reviewing-security', 'building-accessible-interfaces', 'ux-heuristics-audit'],
+  skillsAllow: ['playwright-cli', 'impeccable', 'journey', 'organize', 'vercel-react-best-practices', 'opencode', 'reviewing-security', 'building-accessible-interfaces', 'ux-heuristics-audit'],
   skillsDeny: ['mobbin-design', 'wireframe', 'emilkowalski-motion', 'no-such-skill-ksi-probe'],
   mobbinSearchEffect: 'deny',
 });

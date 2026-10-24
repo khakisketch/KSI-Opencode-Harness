@@ -37,7 +37,7 @@ Build·Plan·Engineer·Design은 각자의 허용 목록에서 필요한 전문�
 
 병렬 단위는 파일·공유 상태·브라우저의 소유자를 분리하고 조사·원본 증거를 재사용합니다. 하위에 원요구·확정 계약·가설·대상 버전/환경·허용 자원·결과를 전달하며 각 부모가 자식 결과를 검토·통합합니다. 독립 비평은 해당 설계/구현에 참여하지 않은 세션에 맡깁니다. UI 교정용 Critic과 중요한 최종 Critic은 같은 역할의 다른 세션일 수 있으며 둘을 매번 호출하지 않습니다.
 
-스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. Scout의 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
+스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. 역할별 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
 
 ## 적용 파일
 
@@ -45,12 +45,11 @@ Build·Plan·Engineer·Design은 각자의 허용 목록에서 필요한 전문�
 | --- | --- | --- |
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업·완료 지침 |
 | `global/agents/engineer.md` | `~/.config/opencode/agents/engineer.md` | 기술 단위 구현·검증 (`Muse Contributor High`, subagent) |
-| `global/agents/research.md` | `~/.config/opencode/agents/research.md` | 심층 조사·비교·원본 근거 (`Muse Contributor High`, subagent) |
+| `global/agents/research.md` | `~/.config/opencode/agents/research.md` | 심층 조사·비교·원본 근거 (`Muse Contributor Medium`, subagent) |
 | `global/agents/design.md` | `~/.config/opencode/agents/design.md` | UI/UX 설계·구현 조율·렌더 교정 (`Muse Contributor High`, all) |
 | `docs/archive/agents/architect.md` | 설치하지 않음 | 원본 보존, 이전 설치가 있으면 종료 확인 후 발견 경로 밖 보관 |
 | `global/agents/critic.md` | `~/.config/opencode/agents/critic.md` | 범용 독립 비평 (`Muse Contributor XHigh`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |
-| `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 제한된 UI 소스 검사 플러그인 |
 
 ## 기존 역할에서 이전
 
@@ -83,7 +82,6 @@ cmp global/agents/design.md ~/.config/opencode/agents/design.md
 cmp global/agents/critic.md ~/.config/opencode/agents/critic.md
 cmp global/AGENTS.md ~/.config/opencode/AGENTS.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
-diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
 ```
 
 ## 설치 요청 프롬프트
@@ -105,8 +103,8 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    진행 세션은 강제 종료·전환하지 마. 저장소의 docs/archive/agents/architect.md는 전역 agents에 복사하지 마.
    같은 이름의 사용자 정의가 있거나 정본과 다르면 덮어쓰지 말고 충돌을 확인해줘.
    기존 세션 모델은 강제 이전하지 말고 새 작업부터 새 ID를 사용해줘.
-   global/plugins/ksi-impeccable-detector/도 전역 plugins/에 적용해줘.
-    OpenCode V2가 자동 발견하므로 중복 plugins 등록이나 npm 설치는 하지 마.
+   자체 제작 편집 훅 플러그인은 설치하지 말고, UI 편집 후에는 설치된 Impeccable의
+   공식 `detect --json` 수동 검사를 사용해줘.
     프로젝트에 지침을 중복 삽입하지 말고 V2 공식 문서와 실제 설정을 확인해줘.
    experimental.subagent_depth=3(루트0,기본1~2,유용할때만3)과 Build/Plan의 호출 허용 목록,
    커스텀 역할의 재위임 권한을 함께 적용해줘. 고정 파이프라인이나 별도 라우터는 만들지 마.
@@ -116,7 +114,7 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
 3. 기존 Impeccable 설치를 확인하고, 새 설치나 명시적 갱신이 필요할 때만
    공식 npm `latest` 태그를 사용해줘. 명령은 다음과 같아:
    npx --yes impeccable@latest install --providers=opencode --scope=global --no-hooks
-   실제로 해결된 버전과 공식 출처를 기록하고 detect와 Native 연동을 검증해줘.
+   실제로 해결된 버전과 공식 출처를 기록하고 공식 `detect --json` 수동 실행을 검증해줘.
    기존 설치가 확인한 latest와 같으면 재사용해줘. 갱신은 새 설치·명시적 요청에만 하고,
    최신 배포본의 훅 지원은 실제로 확인해줘.
    Intent는 아래 공식 1.7.1 출처의 journey·organize·wireframe과 원본 참고 자료만
@@ -163,7 +161,7 @@ DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.
 
 현재 공식 CLI는 선택한 세 스킬을 `~/.agents/skills/`에 설치하며 OpenCode가 전역 호환 소스로 인식합니다. 공유 스킬 위치와 `~/.agents/.skill-lock.json`의 기존 항목을 보존하고 중복 설치하지 않습니다. 저장소는 Intent 원본을 복제하지 않으며 `wireframe`의 CSS·JS·스타일가이드도 원본과 함께 설치합니다.
 
-하네스 자체 방법론 `task-first-ux-review`는 외부 원본이 아니라 저장소 `skills/`가 정본이며, `~/.agents/skills/`에 복사해 사용합니다. 외부 스킬과 달리 버전 핀이 없으므로 변경 시 저장소 커밋으로 추적합니다.
+이 저장소는 자체 제작 스킬을 번들하지 않습니다. 2026-10-24 이전의 `task-first-ux-review`는 폐기했고, 같은 목적은 설치된 `designing-user-experience`·`ux-heuristics-audit`와 Design의 과업 비교 원칙으로 대체합니다. 기존 전역 설치본에 남은 `~/.agents/skills/task-first-ux-review/`와 `~/.config/opencode/plugins/ksi-impeccable-detector/`는 새 작업에서 사용하지 않으며, 기존 세션·역할이 참조 중일 수 있어 자동 삭제하지 않습니다. 정리는 해당 세션 종료와 사용자 환경 확인 후 별도로 진행합니다.
 
 ## 전역 파일 일치 확인
 
@@ -176,7 +174,6 @@ cmp global/agents/engineer.md ~/.config/opencode/agents/engineer.md
 cmp global/agents/design.md ~/.config/opencode/agents/design.md
 cmp global/agents/critic.md ~/.config/opencode/agents/critic.md
 cmp global/opencode.jsonc ~/.config/opencode/opencode.jsonc
-diff -r global/plugins/ksi-impeccable-detector ~/.config/opencode/plugins/ksi-impeccable-detector
 ```
 
 중첩 허용치 `experimental.subagent_depth=3`(기본값 1)는 전역 설정이 소유합니다. 위 `cmp`로 정본/설치본을 대조하고, 선언·호출 정책은 `node tests/agent-routing-native.mjs`, 격리된 실제 Native 중첩·상한 동작은 `node tests/delegation-native-integration.mjs`로 확인합니다. 전자는 콜드 위치 준비·실제 모델/브라우저 실행의 증거가 아니며 후자도 로컬 모의 모델로서 전문 판단력을 평가하지 않습니다. [현재 실행 근거와 한계](validation.md#동적-8개-역할과-최대-깊이-3-2026-10-24)

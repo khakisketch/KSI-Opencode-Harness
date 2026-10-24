@@ -8,7 +8,7 @@
 
 사용자가 Native **Plan·Build·General·Explore** 유지, Custom **Research·Design·Engineer·Critic** 구성, Plan/Design `all`, 최대 깊이 3의 동적 위임을 확정하고 개선·전역 적용·배포를 요청했습니다. 이는 이름만 바꾸는 작업이 아닙니다. `design-architect`의 UI 단위 완결 책임은 `design`으로, `ux-scout`의 관찰·패턴 분석은 범용 `research`로 이전하고, `ui-ux-critic`과 `product-reviewer`의 독립 검토를 `critic`에 통합합니다. 시스템 기술 단위는 `engineer`가 맡고, 초기 `architect` 파일은 원본 그대로 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. 아래 날짜별 이전 명칭·모델·검사 수는 당시 기록으로 보존합니다.
 
-현행 배정은 운영 역할 전체가 `opencode-go/muse-spark-1.3-contributor`를 사용하고 Plan·Critic=XHigh, Engineer·Design·Research·General=High, Explore=Low입니다. Build는 세션 선택을 따릅니다. 모델 카탈로그에서 활성 ID와 Variant 지원을 확인했으며 성능 비교 결과로 확대하거나 기존 세션 모델을 강제로 바꾸지 않습니다. 이전 Sol·DeepSeek·GLM·MiMo·Luna 배치는 당시 실행 기록으로만 남습니다.
+현행 배정은 운영 역할 전체가 `opencode-go/muse-spark-1.3-contributor`를 사용하고 Plan·Critic=XHigh, Engineer·Design·General=High, Research=Medium(시험 배정), Explore=Low입니다. Build는 세션 선택을 따릅니다. 모델 카탈로그에서 활성 ID와 Variant 지원을 확인했으며 성능 비교 결과로 확대하거나 기존 세션 모델을 강제로 바꾸지 않습니다. 이전 Sol·DeepSeek·GLM·MiMo·Luna 배치는 당시 실행 기록으로만 남습니다.
 
 루트는 깊이 0, 상한은 3이며 일반 작업은 1~2단계를 사용하고 유용한 필요가 있을 때만 3을 사용합니다. 고정 파이프라인·별도 라우터·강제 전원 호출은 없습니다. Build·Plan·Engineer·Design은 허용 전문가를 선택하고, Research는 Explore에 한정된 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상 거부와 깊이 상한을 유지합니다. 각 부모가 자식 결과를 해석·검토·통합하며 원요구·확정 계약·분석/구현 범위·원본 경로·버전·환경을 하위까지 전달합니다. 공유 파일·상태·브라우저는 한 변경 소유자를 두고 중복 조사를 피하며 기존 담당 세션으로 교정합니다.
 
@@ -19,6 +19,21 @@ Build는 제품 실행·다음 개발·통합·최종 인수를, Plan은 요구�
 Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode·Context7의 문서 조회 2종·역할별 설치 스킬과 고유 CLI 탐색/입력/캡처만 허용합니다. Research의 Mobbin 검색 3개 및 그 외 Mobbin 승인 요구는 유지합니다. 제품/보고서 편집·임의 Shell·설치·서버·배포·자격증명·프로필/인증 상태 가져오기·다른 세션/전역 종료는 거부합니다. Browser·execute·CLI는 읽기 전용 샌드박스가 아니며 승인된 환경·계정·상태 전이만 사용합니다. 새 외부 스킬이나 도구를 일괄 설치하거나 기존 원문을 고치지 않습니다.
 
 검증은 (1) 모의 회귀, (2) 실제 설치본·Native 모델/모드/권한, (3) private HOME/XDG와 로컬 scripted model을 사용하는 Native 중첩 실행으로 구분합니다. `tests/delegation-native-integration.mjs`는 새 역할의 실제 정본을 복사하고 모델만 로컬 fixture로 대체해 Plan의 재위임, 서로 다른 경로, 깊이 3의 반환과 상한 동작을 확인합니다. 원요구 전달 표식 확인은 전달 검증이지 모델의 이해·판단력 검증이 아닙니다. 실제 제품의 자발적 문제 발견·디자인 품질·장기 완주·비용 절감은 별도 미검증입니다. 최신 확인 환경은 OpenCode **2.1.4 / Linux arm64**이며 진행 중인 이전 역할 세션의 은퇴는 보호 상태를 확인한 뒤 처리합니다.
+
+## 역할 단위·루프·부품 감사 (2026-10-24)
+
+이 감사는 현재 정본과 실제 전역 설치본을 읽고, 역할별 작업 기준·호출 루프·스킬 책임·OpenSpec 사용·프롬프트 중복을 점검한 결과입니다. 모델 품질 비교나 실제 제품 개발 성과를 입증하지 않습니다.
+
+- **Engineer vs General:** Engineer는 미해결 구현 결정·여러 파일/계약/상태·테스트/수리 반복이 있는 다단계 기술 단위를 소유합니다. General은 대상 파일·수정·검증이 이미 정해진 단일 슬라이스만 실행합니다. 발견·설계·조율이 필요해지면 Engineer/Design 소유 단위로 돌아갑니다. 같은 작업을 두 역할이 동시에 소유하지 않습니다.
+- **Design 우선:** 모든 UX/인터페이스 단위는 크기와 무관하게 Design이 소유합니다. 작은 UI 수정도 General이 Design 소유 아래에서 실행할 수는 있지만 디자인 책임은 Design에 남습니다.
+- **UI/UX 검토 흐름:** Design이 조사·설계 후 General에 구현을 맡기고, 실제 렌더에서 연구·레퍼런스·설계 의도 반영과 원래 과업을 확인합니다. 중요한 단위는 구현 전 가설 또는 구현 후 결과를 Critic이 독립 비평할 수 있으며, 발견은 Design의 판단을 거쳐 같은 General 세션의 교정·재검증으로 이어집니다. Critic은 필수 게이트가 아니고 수정·인수하지 않습니다. 이는 새 역할·필수 단계를 추가한 것이 아니라 기존 허용 루프를 README에 명시한 것입니다.
+- **Explore vs Research:** 경계는 도구가 아니라 질문입니다. Explore는 범위가 정해진 검색·원본 추출, Research는 충돌 자료의 비교·대안·적용 조건·미확인 종합입니다.
+- **루프:** Engineer↔Design·Plan↔Engineer 직접 호출은 별도 하위 산출물이 있을 때만 유지합니다. 깊이 3, 자기 호출 금지, 조상 왕복 금지가 무한 확장을 막지만 소유권·분석 전용 범위는 프롬프트 정책이며 Native 권한만으로 강제되지 않습니다. Plan의 Engineer/Design/General 호출은 분석 하위 산출물에 한정하고, 엄격한 격리는 자식 생성 전에 명시 세션 제한으로 준비해야 합니다.
+- **모델:** Engineer·Design=high, Critic=Plan=xhigh, General=high, Explore=low를 유지하고 Research만 medium으로 시험합니다. xhigh 상시 기본의 품질·비용 우위는 미검증이며, Research medium이 비교 품질을 떨어뜨리면 high로 되돌립니다.
+- **자체 부품 폐기:** 저장소 번들 `task-first-ux-review` 스킬과 `ksi-impeccable-detector` 편집 훅 플러그인을 제거했습니다. Design은 공식 Impeccable `detect --json` 수동 검사를 사용하고, 네이티브는 소스 검사를 건너뜁니다. 이전 검증 기록의 task-first·플러그인 수치는 당시 이력으로만 보존합니다.
+- **프롬프트 밀도:** 네 역할 말미의 동일 depth/handoff footer를 제거해 Engineer 634→562, Design 1,925→1,678, Research 1,588→1,377 words로 줄였습니다. Critic은 스킬 매핑을 추가해 1,409→1,415, 공통 AGENTS는 Build의 단위 배정과 결과 검증 문장을 추가해 1,912→1,920 words입니다. 역할별 중복을 줄이고 공통 파일에는 교차 계약만 남겼으며, Critic의 스킬 prose와 실제 allowlist 불일치를 9개 목록으로 맞췄습니다.
+- **OpenSpec:** 요구 승인·통합·아카이브는 Build, 기술 artifact 내용은 Engineer, UX artifact 내용은 Design이 맡습니다. Plan은 분석·제안만 하며 승인 artifact를 대신 작성하지 않습니다. `openspec-propose`의 계획 경계는 일반적인 "승인 작업 계속"보다 우선합니다.
+- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 실제 Muse 모델의 역할별 품질·비용 비교와 전역 설치 후 `agent-routing-native` 일치는 아직 미검증입니다.
 
 ### 장기 개발 연속성·실패 복구 후속 보완
 
@@ -45,7 +60,7 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 
 ### 단일 Muse 라우팅·Engineer 정본 검증 (2026-10-24)
 
-사용자 결정에 따라 운영 역할 전체를 `opencode-go/muse-spark-1.3-contributor`로 단순화하고 Plan·Critic=`xhigh`, Engineer·Design·Research·General=`high`, Explore=`low`로 조정했습니다. `global/opencode.jsonc`의 OpenRouter GLM provider 설정을 제거하고 `opencode-go` 단일 provider만 남겼습니다. Build는 전역 모델을 고정하지 않습니다.
+사용자 결정에 따라 운영 역할 전체를 `opencode-go/muse-spark-1.3-contributor`로 단순화하고 Plan·Critic=`xhigh`, Engineer·Design·Research·General=`high`, Explore=`low`로 조정했습니다. 이후 역할 단위 감사에서 Research만 `medium` 시험 배정으로 낮췄습니다. `global/opencode.jsonc`의 OpenRouter GLM provider 설정을 제거하고 `opencode-go` 단일 provider만 남겼습니다. Build는 전역 모델을 고정하지 않습니다.
 
 - 회귀 **142/142**, OpenSpec **2/2**, Native scripted 격리 **308/308** 통과. Native 근거는 `/tmp/opencode/ksi-deleg-muse-single/ksi-deleg-I4V3Ws`, 런타임 6개·검사 2개·보존 Architect의 정본 해시 9개는 `next-manifest.json`과 대조했습니다.
 - 검사는 역할별 Variant, 단일 `opencode-go` provider, Build 미고정, 깊이 3·수정 허용/거부·동일 자식 재개·새 근거 복구·세션 제한 상속/비소급·Engineer/Design 구현 경로를 유지합니다. 검사를 약화해 모델 변경을 통과시키지 않았습니다.
@@ -152,7 +167,7 @@ Plan 모델·연속성 점검(2026-10-17): Plan에 모델이 없으면 부모 �
 
 ```sh
 node tests/agent-routing-native.mjs
-node --test tests/core.test.mjs tests/adapter.test.mjs tests/completion-guidance.test.mjs tests/capabilities.test.mjs
+node --test tests/completion-guidance.test.mjs tests/capabilities.test.mjs
 ```
 
 적용 검증: 저장소/전역 두 역할 파일과 Native 본문·모델·모드의 일치를 확인했고, 이전 ID는 등록 목록에서 제거됐습니다. 당시 회귀 검사 82개와 `node tests/agent-routing-native.mjs`의 Native 모델·권한 검사 31개가 통과했습니다. 중첩 위임 허용 후 동 검사는 깊이 선언·호출 정책 행렬을 포함해 54개로, Plan 모델 고정 후 Plan 모델·모드 확인을 더해 55개로 확장됐으며 통과했습니다(로컬 재확인: 단위 82개·라우팅 55개 통과). 후자는 모델 호출 없이 현재 로드된 설치 위치에서 정책을 평가하며 브라우저 실행·샌드박스 검사는 아닙니다. 능력 진단기는 6개 역할의 등록 여부만 확인합니다.
@@ -175,28 +190,25 @@ Intent의 `journey`·`organize`·`wireframe`은 흐름·정보 구조·화면 �
 
 스킬 적용 정책: 설치된 Impeccable 4.5.2 원문의 제한된 검수 패스와 제품 개선 루프를 구분하기 위해, 공통 지침과 Architect에 전체 작업의 우선순위를 명시했습니다. 확정된 제품 제약·사용자의 명시적 범위/예산·하네스의 결과/증거 기준이 전체 작업을 지배합니다. 하네스는 일반적인 스킬 패스 제한을 제품 전체의 자동 완료 조건으로 채택하지 않습니다. 한 스킬 실행이 끝나도 필요한 승인 범위의 작업은 근거에 따라 이어가며, 사용자 제한이나 실제 차단 때문에 진행하지 못하면 미완료로 보고합니다. 횟수나 예산 제한을 피하려고 같은 패스를 재시작하지 않습니다. 외부 스킬 원문은 수정하지 않았고, 이 적용 정책의 실사용 효과는 스킬 실행 테스트로 검증하지 않았습니다.
 
-## UI 소스 검사기
+## Impeccable 소스 검사
 
-전역 Native V2 플러그인 `ksi.impeccable-detector`는 성공한 `write`·`edit`·`patch` 뒤 세션 디렉터리 안의 변경된 UI 파일을 제한적으로 검사하고 기존 도구 결과에 요약을 추가합니다. 자동 수정, 모델 재호출, 검사 결과에 따른 작업 차단은 하지 않습니다.
+이 저장소는 자체 편집 훅 플러그인을 배포하지 않습니다. Design은 웹 UI 편집 후 설치된 Impeccable의 공식 수동 검사를 실행합니다.
 
-- **대상:** CSS, SCSS, SASS, LESS, HTML, HTM, JSX, TSX, Vue, Svelte, Astro. 일반 JS·TS는 제외합니다.
-- **제외:** 삭제 파일, 비 UI 파일, 숨김·의존성·생성 파일. 쉘 명령과 외부 편집기는 이 훅의 범위가 아닙니다.
-- **권한 및 엔진:** 파일 읽기와 엔진 실행 전에 Native 권한을 확인하며 허용 규칙을 추가하거나 거부를 우회하지 않습니다. 이미 설치된 플랫폼 엔진만 사용합니다. 엔진 누락·실패·시간 초과는 검사 불가로 표시하고 다운로드하지 않습니다.
-- **검사 범위:** 허용된 파일의 복사본만 격리 검사합니다. HTML은 연결 CSS를 따라가지 않는 정규식 검사입니다. 프로젝트 설정·디자인 시스템, URL·렌더·전체 프로젝트를 읽거나 검사하지 않습니다.
-- **설정 동작:** `--no-config`로 실행하므로 프로젝트 무시 설정도 적용되지 않습니다. 경고는 맥락에 맞게 판단해야 합니다.
-- **한도:** 파일당 최대 512 KiB, 엔진 실행 1.5초(종료 정리는 별도), 편집당 최대 8개 파일과 총 6초 검사 예산입니다. 결과는 세션·에이전트·내용·엔진이 같을 때 재사용하며 대기열을 쌓지 않습니다. 한도 초과나 동시 검사 중 생략은 결과에 표시합니다.
+```sh
+.opencode/skills/impeccable/scripts/impeccable detect --json <changed-targets>
+```
 
-플러그인은 OpenCode 런타임이 의존성을 제공합니다. 플러그인 폴더에서 `npm install`하지 않습니다. 비활성화할 때는 프로젝트 또는 전역 설정의 `plugins`에 `"-ksi.impeccable-detector"`를 추가합니다. 전역 자동 재로딩을 확인하고, 다른 세션이 실행 중이면 서비스를 임의 재시작하지 않습니다.
+- 기계적 발견은 Design이 수정하고, 남은 발견은 Critic/소유자 검토로 넘깁니다. 네이티브 플랫폼은 소스 검사기를 건너뜁니다.
+- 대상·한도·규칙은 설치된 Impeccable 버전의 공식 문서를 따릅니다. 저장소에 규칙을 복제하지 않습니다.
+- 검사는 소스 전용이며 실제 화면 사용성·시각 품질·상호작용 검증을 대신하지 않습니다.
+- 자동 편집 후 요약과 `ksiImpeccable` 메타데이터는 더 이상 제공되지 않습니다. 이는 자동성이 줄어든 대신 자체 플러그인 유지보수를 제거한 선택입니다.
 
 ## 자동 검사 명령
-
-단위 검사와 Native 훅 통합 검사는 다음과 같습니다.
 
 설치된 역할·모델·권한은 선택적으로 `node tests/agent-routing-native.mjs`로 검사합니다. 기존 인증 CLI로 자신의 임시 세션만 만들며 모델을 호출하거나 제품 파일을 수정하지 않습니다. 선언된 `experimental.subagent_depth==3`와 동적 호출 허용 목록·미확인 거부도 함께 평가합니다. 권한 API 평가는 실제 중첩·브라우저·샌드박스의 증거가 아닙니다. `node tests/delegation-native-integration.mjs`는 별도 private HOME/XDG와 로컬 모의 모델에서 실제 Native 중첩·상한 동작을 확인합니다.
 
 ```sh
-node --test tests/core.test.mjs tests/adapter.test.mjs
-node tests/native-hook-integration.mjs
+node --test tests/completion-guidance.test.mjs tests/capabilities.test.mjs tests/permission-probe.test.mjs tests/delegation-errors.test.mjs tests/compaction-continuity.test.mjs
 ```
 
 Native 통합 검사는 고유한 임시 HOME, 별도 포트, 로컬 모의 모델을 사용해 실제 모델 비용이 들지 않습니다. 임시 증빙은 `/tmp/opencode/ksi-native-*`에 남기며 기존 폴더를 지우거나 공유 서비스를 재시작하지 않습니다.

@@ -29,15 +29,30 @@
   `docs/openspec-and-skills.md`); main integration separately updates
   approved contracts via the source workstream, not this change
 
-## 4. Honest pending (change stays OPEN, no forced archive)
+## 4. Role-contract audit (2026-10-24)
 
-- [ ] 4.1 Model quality verification for role candidates (Engineer/Design/
+- [x] 4A.1 Audit Engineer vs General, Design ownership, Explore vs
+  Research and cross-role loop boundaries; bind the resulting criteria in
+  AGENTS and this capability's spec.
+- [x] 4A.2 Retire the repo-bundled `task-first-ux-review` skill and
+  `ksi-impeccable-detector` plugin; use the official Impeccable
+  `detect --json` path and update role prompts, tests and docs.
+- [x] 4A.3 Set Engineer/Design=high, Critic/Plan=xhigh, General=high,
+  Research=medium trial, Explore=low; record the unverified-model caveat.
+- [x] 4A.4 Reduce prompt duplication: remove four shared depth/handoff
+  footers and align Critic's prose allowlist with its 9 permissions.
+- [x] 4A.5 Re-run regression, OpenSpec and Native scripted verification;
+  record evidence in `docs/validation.md`.
+
+## 5. Honest pending (change stays OPEN, no forced archive)
+
+- [ ] 5.1 Model quality verification for role candidates (Engineer/Design/
   Plan/Research/Critic strings) — advisory only until evidence exists
-- [ ] 4.2 Native render evidence for any adopted UI-affecting skill use
-- [x] 4.3 Project-local 6 installed with original bytes + per-skill MIT
+- [ ] 5.2 Native render evidence for any adopted UI-affecting skill use
+- [x] 5.3 Project-local 6 installed with original bytes + per-skill MIT
   licenses and evidence artifacts (completed outside this change; this
   change records the compatibility rules, not the install)
-- [ ] 4.4 Technical validation remainder (global runtime Muse single-model/
+- [ ] 5.4 Technical validation remainder (global runtime Muse single-model/
   render gaps) — live chain already evidenced on earlier model configs, not
   untested: 31 tests, Build→Engineer→General→Critic repairs, Design worker;
   the current single-Muse configuration still lacks live Engineer/Design/

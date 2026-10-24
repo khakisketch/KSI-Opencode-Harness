@@ -19,7 +19,7 @@
 | Critic | `opencode-go/muse-spark-1.3-contributor#xhigh` | 동일 모델·최고 추론 강도 |
 | Engineer | `opencode-go/muse-spark-1.3-contributor#high` | 동일 모델·high |
 | Design | `opencode-go/muse-spark-1.3-contributor#high` | 동일 모델·high |
-| Research | `opencode-go/muse-spark-1.3-contributor#high` | 동일 모델·high |
+| Research | `opencode-go/muse-spark-1.3-contributor#medium` | 동일 모델·medium (시험 배정) |
 | General | `opencode-go/muse-spark-1.3-contributor#high` | 동일 모델·high |
 | Explore | `opencode-go/muse-spark-1.3-contributor#low` | 동일 모델·low, 20 steps 유지 |
 
@@ -35,6 +35,26 @@ Build 후보 `opencode-go/gemini-4-argon-contributor#high`는 카탈로그의 lo
 - 외부 MCP·브라우저·도구 백엔드의 데이터 정책은 모델 제공자 조건과 별개입니다.
 
 정책 출처: [Go 가격·Privacy](https://opencode.ai/v2/docs/console/go), [Native 모델·Variant](https://opencode.ai/v2/docs/models).
+
+### Variant 배정 판단
+
+- **Engineer·Design = high:** 일반 구현·렌더 반복은 high로 두고, 중요한 미해결 기술·디자인 판단에만 xhigh를 선택합니다. xhigh를 상시 기본으로 둘 근거는 아직 없습니다.
+- **Critic = xhigh:** 독립 검토는 반례·누락·계약 충돌을 찾는 판단 비중이 높아 최고 추론 강도를 유지합니다.
+- **Research = medium (시험):** Explore가 추출을 맡고 Research가 비교·종합하는 분업을 전제로 비용을 낮춰 봅니다. 실제 비교 품질이 부족하면 high로 되돌립니다.
+- **Plan = xhigh:** 방향·우선순위·기술+제품 자문의 판단 비중이 높습니다.
+- 위 배정은 카탈로그 지원과 역할 분업에 따른 가설이며, 역할별 품질·지연·총비용 비교 측정은 아직 없습니다.
+
+## 작업 단위·루프 감사
+
+호출 가능한 역할 목록과 작업 단위의 소유 기준을 분리했습니다. Engineer·Design은 한 단위에서 General·Explore·Research·Plan·Critic을 각각 다른 하위 산출물에 호출할 수 있으며, 고정된 단일 자식 구조가 아닙니다. 소유권과 남은 깊이 한도가 기준입니다.
+
+- **Engineer:** 미해결 구현 결정, 여러 파일·계약·상태, 테스트/수리 반복이 있는 다단계 기술 단위를 소유합니다. General에는 대상 파일·수정·검증이 이미 정해진 슬라이스만 맡깁니다.
+- **General:** 이미 결정된 단일 슬라이스를 실행·검증하고 반환합니다. 설계·아키텍처·UX 결정, 단위 인수, 여러 차례 조율을 맡지 않습니다. 발견·설계·조율이 필요해지면 소유 단위로 돌아갑니다.
+- **Design:** 크기와 무관하게 모든 UX/인터페이스 단위를 소유합니다. General이 결정된 UI 슬라이스를 실행할 수 있지만 디자인 소유권은 이전되지 않습니다.
+- **UI/UX 검토:** Design이 조사·설계 후 General에 구현을 맡기고, 실제 렌더에서 연구·레퍼런스·설계 의도가 결과에 반영됐는지와 원래 과업을 확인합니다. 중요한 단위는 구현 전 가설 또는 구현 후 결과를 Critic이 독립 비평할 수 있으며, 발견은 Design의 판단을 거쳐 같은 General 세션의 교정·재검증으로 이어집니다. Critic은 필수 게이트가 아니고 수정·최종 인수를 하지 않습니다. 새 역할·필수 단계가 아니라 기존 허용 루프를 README에 명시한 것입니다.
+- **Explore vs Research:** 경계는 로컬/웹 도구가 아니라 질문입니다. Explore는 범위가 정해진 검색·원본 추출(보통 로컬 코드), Research는 충돌하는 자료의 비교·대안·적용 조건·미확인 종합입니다.
+- **루프:** Engineer↔Design, Plan↔Engineer 호출은 별도 하위 산출물이 있을 때만 허용하며 같은 단위를 왕복시키지 않습니다. 깊이 3과 자기 호출·조상 왕복 금지가 무한 루프를 막지만, 권한만으로 소유권이나 분석 전용 범위를 강제하지는 않습니다.
+- **Plan:** 분석 전용 범위는 하위에도 유지해야 하며, Plan의 Engineer/Design/General 호출은 분석 하위 산출물에 한정합니다. 엄격한 격리는 자식 생성 전에 명시 세션 제한이나 제한 환경으로 준비하고 실제 효과를 확인해야 합니다.
 
 ## 위임과 권한
 
@@ -55,12 +75,14 @@ Plan의 Native 프롬프트·파일 편집 제한은 유지합니다. 역할 권
 
 [도입 기록](openspec-and-skills.md)과 [승인된 운영 계약](../openspec/specs/engineer-workflow/spec.md)을 참조합니다. 이 Harness 프로젝트만 초기화하며 기존 문서·변경 이력·다른 제품은 일괄 이전하지 않습니다. 제3자 원본 스킬은 저장소에 번들하지 않습니다. 스킬 설치·발견·권한·실제 적용의 증거는 구분합니다.
 
+2026-10-24 감사에서 자체 `task-first-ux-review` 스킬과 `ksi-impeccable-detector` 편집 훅 플러그인을 폐기했습니다. Design은 웹 UI 편집 후 공식 Impeccable `detect --json`을 수동 실행하고, 네이티브 플랫폼은 소스 검사를 건너뜁니다. 외부 스킬만 유지하며, 설치된 스킬의 워크플로가 하위 에이전트·서버·쓰기를 요구하면 Research/Critic은 허용된 범위만 렌즈로 적용하고 나머지는 미제공으로 보고합니다.
+
 ## 검증 결과
 
 ### 회귀·격리 Native
 
-- 모의 회귀 **142/142**, OpenSpec **2/2** 통과. 기존 UI 소스 검사 플러그인·Impeccable·기존 스킬 원본은 수정하지 않았습니다.
-- 최종 정본을 복사한 Native **2.1.4 scripted 통합 308/308** 통과. 근거 `/tmp/opencode/ksi-deleg-muse-single/ksi-deleg-I4V3Ws`의 manifest·메시지·요청 로그입니다. 메인이 런타임 정본 6개·검사 2개·보존 Architect의 해시 **9개**를 대조했습니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다.
+- 2026-10-24 역할 단위·부품 감사 후 모의 회귀 **101/101**, OpenSpec **2/2** 통과. 자체 플러그인 폐기와 함께 core/adapter/native-hook 검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. 기존 Impeccable·외부 스킬 원본은 수정하지 않았습니다.
+- 최종 정본을 복사한 Native **2.1.4 scripted 통합 311/311** 통과(UI/UX 흐름 문서·Critic 스킬 매핑 반영 후 재실행). 근거 `/tmp/opencode/ksi-deleg-pj4pvD`의 manifest·메시지·요청 로그입니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다.
 - 기존 깊이 3·초과 거부·실제 수정 거부·동일 자식 재개·실패 후 새 근거 복구·단일 도구 결과별 실제 바이트 반환·세션 제한의 전체 순서 포함 상속/비소급 검사를 유지했습니다.
 - 새 Engineer 수정 허용, `Build→Engineer→Plan→Explore`, `Build→Engineer→General` 구현·동일 General 재수정, `Design→General` UI 파일 구현을 확인했습니다. 읽기 전용 Research/Critic/Plan의 실제 거부는 별도로 유지했습니다.
 - 병렬 L에서는 **같은 Build turn**의 Engineer·Design이 독립 파일을 실제 write/read했습니다. 각 세션의 세 번 요청 시간창이 교차함을 확인했고, 상대 파일 변경·공유 계약 바이트 변경 없이 부모에 둘 다 반환됐습니다. 이는 분리 소유한 작업의 Native 동시 실행 근거이며, 모든 실모델·공유 데이터에서 충돌이 불가능하다는 보장은 아닙니다.

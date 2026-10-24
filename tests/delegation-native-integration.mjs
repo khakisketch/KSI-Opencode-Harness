@@ -927,7 +927,7 @@ async function main() {
   // the reasoning variant differs by role.
   const WANT_MODELS = {
     "design.md": "opencode-go/muse-spark-1.3-contributor#high",
-    "research.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "research.md": "opencode-go/muse-spark-1.3-contributor#medium",
     "engineer.md": "opencode-go/muse-spark-1.3-contributor#high",
     "critic.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
   };
@@ -968,11 +968,11 @@ async function main() {
   // Skill sets: critic gains exactly the 3 review skills (existing denies
   // preserved via deny-first `*`); research keeps exactly its old 5;
   // engineer/design declare zero skill rules (defaults apply, probed live).
-  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "impeccable", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "task-first-ux-review", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
+  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "impeccable", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
   const WANT_RESEARCH_SKILLS = ["journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
   const gotCriticSkills = skillAllows(parseMdRules(mdSources.critic));
   const gotResearchSkills = skillAllows(parseMdRules(mdSources.research));
-  check("source critic skill allows are exactly the 10 (3 new + 7 old)",
+  check("source critic skill allows are exactly the 9 (3 review + 6 existing)",
     JSON.stringify(gotCriticSkills) === JSON.stringify(WANT_CRITIC_SKILLS), `got=[${gotCriticSkills.join(",")}]`);
   check("source research skill allows unchanged (exactly the old 5)",
     JSON.stringify(gotResearchSkills) === JSON.stringify(WANT_RESEARCH_SKILLS), `got=[${gotResearchSkills.join(",")}]`);
@@ -982,6 +982,15 @@ async function main() {
   check("source AGENTS.md carries the OpenSpec/provider-policy bullet",
     srcAgentsMd.includes("OpenSpec") && srcAgentsMd.includes("not an automatic fallback")
     && srcAgentsMd.includes("Respect each provider's training, retention and region policy"));
+  check("source AGENTS.md carries work-unit routing criteria",
+    srcAgentsMd.includes("Work-unit routing") && srcAgentsMd.includes("bounded, already-decided slice")
+    && srcAgentsMd.includes("Design** owns every UX/interface unit"));
+  check("source retires repo-bundled custom skill and detector plugin",
+    !fs.existsSync(path.join(REPO, "skills", "task-first-ux-review"))
+    && !fs.existsSync(path.join(REPO, "global", "plugins", "ksi-impeccable-detector")));
+  const designSource = mdSources.design ?? "";
+  check("source design uses the official Impeccable detector, not the custom hook",
+    designSource.includes("detect --json") && !designSource.includes("task-first-ux-review"));
 
   // --- 2. Sandbox (private HOME/XDG; copies actual source, sandbox-only transforms) ---
   fs.mkdirSync(WORKSPACE, { recursive: true });

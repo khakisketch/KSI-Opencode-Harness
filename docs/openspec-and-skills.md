@@ -67,12 +67,19 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   공백, 측정 기반 성능 공백, 공격자 경로 보안 리뷰 공백, 심각도 등급
   휴리스틱 감사 렌즈. 각각 Design/Engineer/Critic 트랙에 매핑된다.
 
-## 4. 제외 결정 및 task-first 유지
+## 4. 제외·폐기 결정
 
-- `task-first-ux-review` 유지. `reviewing-interface-quality`로 대체하지
-  않는다: 후자는 스크린샷 + 계산값 근거의 최종 게이트이고, task-first는
-  작은 변경용 저의식 렌즈라 대체 시 저의식 경로가 사라지고 Impeccable과
-  중복된다. 실제 비교 결과 대체 부적합이 확인됐다.
+- **2026-10-24 `task-first-ux-review` 폐기.** 이전에는 작은 변경용
+  저의식 렌즈로 유지했지만, 자체 제작 스킬의 유지보수 부담을 줄이고
+  외부 스킬을 우선한다는 사용자 결정에 따라 제거했다. 같은 목적은
+  설치된 `designing-user-experience`·`ux-heuristics-audit`와 Design의
+  "실제 과업 기준 대안 손익·반증 관찰" 원칙으로 대체한다. 동일한
+  일대일 대체가 아니라 통합이며, 이전 유지 판단은 당시 기록으로만 남긴다.
+- **2026-10-24 `ksi-impeccable-detector` 폐기.** OpenCode용 자체 편집
+  훅 대신 설치된 Impeccable의 공식 `detect --json` 수동 검사를 사용한다.
+  자동 편집 후 요약과 `ksiImpeccable` 메타데이터는 제공되지 않으며,
+  Design이 편집 후 한 번 실행하는 절차로 대체한다. 소스 검사는 실제
+  렌더·상호작용 검증이 아니다.
 - `designing-frontend-interfaces` 제외 (Impeccable 중복).
 - 전체 스위트·메타 스킬 제외. Impeccable, Intent 3종, Mobbin, Playwright,
   Vercel, 모션/취향 스킬 및 히스토리 보존.
@@ -91,9 +98,12 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 - 모델/프로바이더 프라이버시 GLM 본문 필터는 단일 Muse 라우팅 정리에서
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.
-- 기술 검증 현황: 회귀 142/142, OpenSpec 2/2, Native scripted 308/308.
-  실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문은
-  미검증이며, 상세는 `docs/engineer-routing-validation.md`를 따른다.
+- 기술 검증 현황: 회귀 **101/101**, OpenSpec 2/2, Native scripted
+  **311/311**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
+  검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아니다.
+  실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문과
+  Research medium의 비교 품질은 미검증이며, 상세는
+  `docs/engineer-routing-validation.md`를 따른다.
 - 전역 설치는 활성 설정 보호 하에 보류 중. 본 변경은 전역 런타임
   (GLM/렌더/DGX) 공백이 해소될 때까지 OPEN 유지하며 미완료 상태에서
   아카이브하지 않는다.

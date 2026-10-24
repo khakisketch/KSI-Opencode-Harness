@@ -1,7 +1,7 @@
 # KSI OpenCode Harness
 
 **Build가 제품 실행을 총괄하고, 필요한 전문가를 동적으로 위임해 구현·검증·교정까지 이어가는 OpenCode Native 하네스입니다.**
-전역 지침·에이전트·모델/도구 권한과 제한된 UI 소스 검사기를 구성합니다. 별도 실행 프레임워크나 필수 승인 파이프라인은 없습니다.
+전역 지침·에이전트·모델/도구 권한을 구성하고, UI 소스 검사는 설치된 Impeccable의 공식 수동 검사를 사용합니다. 별도 실행 프레임워크나 필수 승인 파이프라인은 없습니다.
 
 [시작하기](#시작하기) · [역할과 위임 구조](#역할과-위임-구조) · [개발 워크플로](#개발-워크플로) · [디자인 및 검증 도구](#디자인-및-검증-도구) · [설치·업데이트](#설정-및-설치-경로) · [검증 범위](#추가-검증)
 
@@ -56,13 +56,27 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
 | **Engineer** / `engineer` | 기술 단위 설계·구현 조율·테스트·복구·반복 개선 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
-| **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
+| **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#medium` |
 | **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
 표는 저장소의 배포 정본이며 현재 전역 설치·실호출 검증과 구분합니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md). Architect는 원본 파일을 변경하지 않고 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. Plan의 자문 성능을 충분히 관찰하기 전에는 최종 폐기하지 않습니다.
 
-- 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·Research·General은 `high`, Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다.
+**작업 단위 기준**은 호출 가능한 역할 목록과 별개입니다.
+
+| 작업 단위 | 소유자 | 경계 |
+| --- | --- | --- |
+| 다단계 기술 단위 — 미해결 구현 결정, 여러 파일·계약·상태, 테스트/수리 반복 | Engineer | General에는 이미 결정된 작은 슬라이스만 |
+| 단일 슬라이스 — 대상 파일·수정·테스트가 이미 정해짐 | General (Engineer/Design 소유 단위 안) | 설계·아키텍처·UX 결정과 단위 인수 없음 |
+| 모든 UX/인터페이스 단위 | Design | 작은 UI 수정 포함; General은 결정된 UI 슬라이스 실행 가능 |
+| 요구·우선순위·순서 | Plan | 구현·구현 승인 없음 |
+| 위치·사실 검색 | Explore | 국소 검색·추출; 대안 합성·디자인 판단 없음 |
+| 근거 비교·적용 조건·미확인 | Research | 제품 코드 작성 없음 |
+| 독립 검토 | Critic | 구현·재설계·최종 인수 없음 |
+
+한 단위의 소유자는 바뀌지 않습니다. 전문 역할 호출은 별도 하위 산출물이 있을 때만 하며, 같은 단위를 Engineer↔Design 또는 Plan↔Engineer 사이에서 왕복시키지 않습니다. 경계 자문은 소유권 이전이 아닙니다.
+
+- 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·General은 `high`, Research는 `medium`(시험 배정), Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다. Variant별 실제 품질·비용 우위는 아직 비교 측정하지 않았으며, 근거가 쌓이면 조정합니다.
 
 - `experimental.subagent_depth=3`은 **루트 0 아래 최대 3단계**입니다. 기본적으로 1~2단계를 사용하고 유용한 필요가 있을 때만 세 번째를 사용합니다. `all`은 메인/하위 실행 가능이라는 뜻이며 권한·위임 깊이와 별개입니다.
 - Build·Plan·Engineer·Design은 허용된 전문가를 선택해 호출합니다. Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·Architect는 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
@@ -74,7 +88,9 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 
 Engineer·Design은 맡은 단위의 구현·검토·수정을 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신 중요한 결정·충돌·실제 차단과 통합 가능한 결과를 반환합니다. General 호출은 강제가 아니며 작은 작업은 직접 구현합니다.
 
-Research는 UX뿐 아니라 기술·제품·도메인 근거도 조사합니다. Explore가 ‘어디에 무엇이 있는가’를 찾는다면 Research는 ‘어떤 설명·대안이 근거에 더 맞고 무엇이 미확인인가’를 비교합니다. 검색 과정은 자신의 세션에 남기고 **원본 이미지·URL·자료·대상 상태**, 관측 사실, 영향/원인 가설, 적용 조건·한계를 부모에게 반환합니다. 해결 방향은 후보이지 채택된 제품 규칙이 아닙니다. 수신자도 원본을 확인하며 새 보고서 양식이나 문제 개수를 요구하지 않습니다.
+Engineer·Design은 한 단위에서 General·Explore·Research·Plan·Critic을 각각 다른 하위 산출물에 동시에 활용할 수 있습니다. 고정된 단일 자식 구조가 아니며, 작업 단위의 소유권과 남은 깊이 한도가 기준입니다.
+
+Explore는 범위가 정해진 검색·원본 추출로 ‘어디에 무엇이 있는가’를 답합니다. Research는 자료가 충돌하거나 대안·적용 조건·미확인을 비교해야 할 때 ‘어떤 설명이 근거에 더 맞는가’를 종합합니다. 경계는 로컬/웹 도구가 아니라 질문의 성격이며, Explore도 허용된 원본을 읽을 수 있지만 비교·종합·디자인 판단은 하지 않습니다. Research는 검색 과정을 자신의 세션에 남기고 **원본 이미지·URL·자료·대상 상태**, 관측 사실, 영향/원인 가설, 적용 조건·한계를 부모에게 반환합니다. 해결 방향은 후보이지 채택된 제품 규칙이 아닙니다. 수신자도 원본을 확인하며 새 보고서 양식이나 문제 개수를 요구하지 않습니다.
 
 Critic은 기존 UI/UX Critic과 Product Reviewer의 검토 기능을 통합합니다. 배정 질문에 맞는 제품·UX·코드·아키텍처 근거와 설치된 적합한 스킬을 사용하며, 매번 모든 분야를 인증하지 않습니다. 원래 요구와 실제 종단 과업, 저장·복귀·실패 복구·기능 간 모순·근거 없는 완료 주장도 검토합니다. UI 비평에는 실제 렌더·조작이 필요하며 구조적 문제와 국소 구현·취향을 구분합니다. 설계자의 자기평가를 정답으로 받거나 문제·점수·개수를 채우지 않습니다. 직접 수정·배포·추가 위임·새 범위 결정·최종 승인은 하지 않습니다. 발견은 기존 담당자의 수정·반증·명시적 미해결로 연결합니다. 중요한 최종 검토는 설계/교정에 참여하지 않은 새 세션에 맡기며, 역할·모델·세션 분리만으로 판단력 향상이 보장되지는 않습니다.
 
@@ -87,7 +103,7 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 | 전문 역할 | 사용자 정의 에이전트 지원 | Engineer·Design·Research·Critic |
 | 완료 판단 | 기본 에이전트 지침 | 승인된 작업의 완료·재승인 기준 명시 |
 | 위임 | General·Explore·하위 세션 지원 | 작업 단위 위임·공유 자원 소유 기준 명시 |
-| UI 편집 검사 | 플러그인으로 확장 가능 | Impeccable 엔진의 편집 후 검사 연동 |
+| UI 편집 검사 | 플러그인으로 확장 가능 | 공식 Impeccable `detect` 수동 실행 |
 | 디자인 방법론 | 별도 설치 | Impeccable·Intent를 선택 사용 |
 | 브라우저 | 데스크톱 Native Browser 제공 | Native Browser·Playwright CLI 선택·세션 기준 |
 | 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Engineer·Design·Research·Critic 모델 지정 |
@@ -96,7 +112,8 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 ## 개발 워크플로
 
-- OpenSpec을 채택한 프로젝트에서는 승인된 요구·기능·변경 계약을 `openspec/`에서 관리합니다. 기존 정본·변경 이력을 일괄 폐기하지 않으며 코드·런타임·검증 기록과 명세를 구분합니다. 작은 버그·스타일 수정에는 새 변경 명세나 고정 단계를 강제하지 않습니다. [도입·외부 스킬](docs/openspec-and-skills.md)
+- OpenSpec을 채택한 프로젝트에서는 승인된 요구·기능·API/데이터·계약 변경을 `openspec/`의 change/spec/design/tasks로 관리합니다. 기존 정본·변경 이력을 일괄 폐기하지 않으며 코드·런타임·검증 기록과 명세를 구분합니다. 작은 버그·스타일·국소 리팩터링에는 새 변경 명세나 고정 단계를 강제하지 않습니다.
+- 변경 소유는 Build(요구 승인·통합·아카이브), Engineer(기술 artifact 내용), Design(UX artifact 내용)으로 나눕니다. Plan은 분석·제안만 하며 승인 artifact를 대신 작성하지 않습니다. `openspec-propose`의 계획 경계는 일반적인 ‘승인 작업 계속’보다 우선하며, 제안 완료를 구현 승인으로 바꾸지 않습니다. [도입·외부 스킬](docs/openspec-and-skills.md)
 
 - Native 세션·계획·이력으로 결정·남은 작업·다음 통합 결과·검증 근거를 이어갑니다. 재개·통합·중요 진척 시에는 필요한 주장에 관련된 코드와 미커밋/미추적 변경, 실제 실행 빌드, 검증 버전·환경을 대조합니다. 정본은 요구 계약의 권위이고 코드·실행은 구현 현실의 근거입니다. 요약·문서 지도·HEAD 하나로 현재 상태를 대신 판단하지 않으며, 유효한 근거는 재사용하고 변경 영향만 다시 확인합니다. 고정 단계·새 정본 양식·필수 추적 파일은 요구하지 않습니다.
 - 위임할 때 핵심 원문·출처·문제·실제 제약을 넘기고, 사용자 확정사항과 Build의 해석·설계 가설을 구분합니다. 미선택을 거절·영구 유지로 간주하지 않으며, 담당자는 목표·제약 안에서 근거로 가설을 조정합니다. 새 자식 세션에는 부모 문맥이 자동 전달되지 않으므로 사용자 제약·원본 증거·작업+상태를 명시적으로 넘기고, 이어 쓰는 자식 세션은 같은 세션을 `sessionID`로 재사용합니다. 공유 파일·브라우저 자원은 한 소유자를 정합니다. 메인은 해당 빌드의 결과로 원래 문제의 해결 여부를 판단합니다.
@@ -121,8 +138,8 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 | 제품 패턴 참고 | 해당 제품 우선, 필요할 때 Mobbin(선택·유료) |
 | 라이브러리 문서 | Context7 |
 | 흐름·정보 구조·화면 대안 | Intent `@journey`·`@organize`·`@wireframe` (선택) |
-| 과업 중심 화면 검토 | `task-first-ux-review` (선택, 하네스 자체 방법론) |
-| 디자인 비평·소스 검사 | Impeccable, 자동 UI 소스 검사 |
+| 과업·UX 검토 | `designing-user-experience`·`ux-heuristics-audit` (설치된 경우) |
+| 디자인 비평·소스 검사 | Impeccable, 공식 `detect --json` 수동 검사 |
 | 실제 화면·상호작용 확인 | 데스크톱은 Native Browser, 헤드리스·반복은 Playwright CLI |
 | 저장·연동·실패 원인 확인 | 프로젝트의 API·로그·테스트 데이터·허용된 데이터 조회 |
 | React/Next.js 구현·성능 | Vercel React Best Practices(설치된 경우) |
@@ -134,79 +151,81 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며 결과는 실제 권한·제품 품질의 증거가 아닙니다. 추적 대상은 위 8개 역할입니다. Research·Critic은 제품/보고서 편집·임의 Shell·서버 기동·설치·배포를 거부하고 각각 `research-*` / `critic-*` 고유 CLI 세션을 사용합니다. Engineer·Design은 승인 단위의 구현 권한을 갖습니다. 필요한 Context7 문서 조회와 역할별 설치 스킬을 허용하고 Research의 Mobbin 검색 3개를 유지합니다. 임의 스킬·MCP 액션은 허용하지 않습니다. 브라우저·CLI·execute는 읽기 전용 샌드박스가 아니므로 승인된 환경·계정·상태 전이를 사용합니다. [현재 구성·검증 범위](docs/engineer-routing-validation.md)
 
-### UI 개선의 두 루프
+### UI/UX 작업 흐름 — 사고·조사·설계·구현·검증
 
-기술적 결함은 구현자가 자체 수정하고, 디자인 개선은 Design이 실제 결과를 보며 이끕니다. 다음은 동작 예시이지 고정 단계·반복 횟수가 아닙니다.
+UI 단위는 코드부터 쓰지 않습니다. 먼저 사용자 과업·대표 데이터·큰 실패 비용을 확인하고, 기존 화면·패턴·근거를 조사한 뒤 구조·상태·상호작용 가설을 세웁니다. 작고 명확한 수정은 이 과정을 줄여 바로 구현할 수 있습니다. 아래는 Build가 메인인 경우의 예시이며 고정 단계·필수 호출이 아닙니다.
 
 ```text
-실제 화면·업무 맥락·근거 수집(필요하면 Research)
-  ↓
-Design — 문제 진단·우선순위·구현 가능한 설계
-  ↓
-General — 구현 → 실행·기술 검사 → 기술적 결함 수정 ↺
-  ↓
-같은 Design — 전후 렌더·조작·회귀·원래 과업 재평가
-  ├─ 필요한 개선이 남음 → 같은 General 세션에 교정 연결
-  └─ 목표와 관련 검증 충족 → Build에 결과·근거·남은 제약 반환
-                                  ↓
-                            제품 통합·최종 인수
+[1] 이해와 근거
+Build — 목표·제약·인수 조건 확인
+  └─(선택) Plan — 요구·우선순위·대안·의존성 자문 (구현·승인 없음)
+Design — 기존 화면·데이터·흐름 직접 확인
+  ├─ 코드 위치·사실 → Explore
+  ├─ 외부 사례·대안·충돌 근거 → Research
+  └─ 필요 시 designing-user-experience·journey·organize·wireframe·Mobbin
+
+[2] 설계 가설
+Design — 문제 정의 → 대안 비교 → 구조·상태·상호작용·시각 가설
+  ├─ 기술 계약·API/데이터/권한 영향 → Engineer와 직접 협의
+  └─(선택) Critic — 구현 전 구조·흐름 가설을 원요구·제약·근거로 비평
+
+[3] 구현
+Design → General — 이미 결정된 구현 슬라이스 (작은 작업은 Design 직접 구현 가능)
+  General — 구현 → 빌드/테스트 → 기술적 결함 수정
+  Engineer — 기술 계약이 걸린 부분은 기술 단위로 소유
+
+[4] 검증과 교정
+Design — 실제 렌더·조작·상태·회귀 확인
+  - 연구·레퍼런스·설계 의도가 결과에 반영됐는가
+  - 원래 과업이 쉬워졌는가, 부작용은 없는가
+  - 웹 UI는 Impeccable `detect --json`으로 기계적 발견 확인
+  └─(선택) Critic — 실제 빌드·상태·상호작용을 독립 비평
+       └─ 발견 → Design이 타당성 판단 → 같은 General 세션에 교정 ↺
+
+[5] 인수
+Design — 단위 결과·증거·미해결 반환
+Build — 제품 통합·교차 일관성·최종 인수
+  └─(선택) 새 Critic 세션 — 중요한 최종 검토
 ```
 
-위 예시는 Build가 메인인 경우입니다. Design이 메인이면 맡은 UI 단위의 통합·완료를 담당하며 제품 전체 인수로 확대하지 않습니다. Critic의 독립 비평은 이 UI 교정 루프나 Build의 최종 책임을 대신하지 않습니다.
+**Critic은 필수 게이트가 아닙니다.** 중요한 UX/IA 변경, 기능 간 연결·제품 계약 영향, 반복되는 사용자 지적, 인수 근거 부족처럼 독립 판단이 필요한 때 호출합니다. 구현 전에는 구조·흐름 가설을, 구현 후에는 실제 빌드·상태·상호작용을 검토합니다. Design의 자체 렌더 검증은 UI 인수에 필요하며, Critic의 발견은 Design이 타당성을 판단해 같은 구현 담당 세션의 수정·재검증으로 연결합니다. Critic은 수정·재설계·최종 인수를 하지 않습니다. Design이 메인이면 맡은 UI 단위의 통합·완료를 담당하며 제품 전체 인수로 확대하지 않습니다.
+
+**Plan은 언제 쓰나.** 매 작업의 필수 단계가 아닙니다. 요구·우선순위가 불명확하거나, 큰 방향 전환·기술+제품 계약 판단이 필요하거나, 국소 수정이 반복 실패할 때 호출합니다. Plan은 Explore/Research로 근거를 확인하고 대안·의존성·권장 순서를 비교하지만 구현·승인·artifact 작성은 하지 않습니다. Plan의 분석 범위는 하위 호출에도 유지되어야 하며, 엄격한 격리는 자식 생성 전에 세션 제한으로 준비해야 합니다.
+
+**Critic은 무엇으로 검토하나.**
+
+| 검토 질문 | 사용하는 스킬·도구 |
+| --- | --- |
+| 휴리스틱 위반·심각도·우선순위 | `ux-heuristics-audit` |
+| 키보드·스크린리더·포커스·대비 | `building-accessible-interfaces` |
+| 여정·정보 구조·발견 가능성 | `journey`, `organize` |
+| 디자인 품질·소스 규칙 | `impeccable` (Design이 실행한 `detect --json` 결과 포함) |
+| 실제 렌더·조작·상태 | Browser, `playwright-cli` |
+| React/Next 구현·성능 | `vercel-react-best-practices` |
+| 보안·공격자 경로 | `reviewing-security` |
+| 하네스·도구 자체 | `opencode` |
+
+Critic의 스킬 허용 목록은 `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit` 9개입니다. 전체 워크플로가 하위 에이전트·서버·쓰기를 요구하면 허용된 부분만 렌즈로 적용하고 나머지는 미제공으로 보고합니다. Design은 같은 외부 방법을 설계·자체 검토에 사용하되, 독립 비평을 자기 승인으로 대체하지 않습니다.
+
+**OpenSpec은 언제 쓰나.** 승인된 요구·API/데이터·계약이 바뀌는 UI 작업은 OpenSpec change에 연결합니다. Design은 UX artifact 내용을, Engineer는 기술 artifact 내용을, Build는 요구 승인·통합·아카이브를 맡습니다. Plan은 분석·제안만 합니다. 작은 버그·스타일·국소 리팩터링에는 새 change를 강제하지 않으며, `openspec-propose`의 계획 경계는 구현 승인으로 넘지 않습니다.
 
 열거되지 않은 문제도 주변 상태·공유 컴포넌트·연결 화면에서 발견하고, 목표 달성에 필요한 개선은 직접 수행합니다. 무관한 발견은 보고하되 새 과제로 확대하지 않습니다.
 
-화면 구성을 바꿀 때에는 과업 중심 검토(`task-first-ux-review`, 선택)로 주 임무·우선순위·접힘 순서·변경 손익을 판단합니다. 세부 기준(기술 정보 정리, 인식 단서 유지, 직접 조작 우선)은 과업·제품·기기에 따라 조건부로 적용합니다.
+화면 구성을 바꿀 때에는 실제 과업 기준으로 대안의 손익과 채택 이유를 비교하고, 어떤 관찰이 그 구성을 반증할지 명시합니다. 밀도·비례·간소화도 실제 화면에서 핵심 과업이 쉬워졌는지로 평가하며, 필요한 근거·복구 경로·안전 정보가 계속 발견 가능한지 확인합니다. 문구나 조작 요소를 무조건 줄이는 것을 개선으로 간주하지 않습니다.
 
 피드백은 그 프로젝트의 판단 이유와 함께 연결 화면에 적용합니다. 목표 관련 문제가 남고 다음 변경의 효과를 설명할 수 있으면 계속하며, 목표와 관련 검증이 충족되면 종료합니다. 시각적 완성도가 목표라면 그것도 인수 조건입니다. 반복 실패는 원인을 재진단하고, 무관한 취향 변경이나 횟수 채우기로 반복하지 않습니다. 증거·접근·필수 결정이 부족하면 완료로 처리하지 않습니다. 유효한 검증은 재사용하며, 별도 보고서·필수 리뷰어·고정 반복 횟수는 없습니다.
 
-밀도·비례·간소화도 실제 화면에서 핵심 과업이 쉬워졌는지로 평가합니다. 필요한 근거·복구 경로·안전 정보가 계속 발견 가능한지 확인하며, 문구나 조작 요소를 무조건 줄이는 것을 개선으로 간주하지 않습니다.
+도구 부재를 단정하기 전에 카탈로그를 검색합니다. 캡처 실패는 원인과 대안을 확인하고, 시각 검증을 코드 리뷰로 조용히 대체하지 않습니다. 캡처·결론은 프로젝트가 정한 위치에 기록합니다. CLI는 작업별 고유 세션만 열고 자신이 만든 세션만 닫으며, 프로젝트 테스트와 기존 증빙은 보존합니다. 브라우저 정책과 검증 이력: [검증 안내](docs/validation.md)
 
-도구 부재를 단정하기 전에 카탈로그를 검색합니다. 캡처 실패는 원인과 대안을 확인하고, 시각 검증을 코드 리뷰로 조용히 대체하지 않습니다. 캡처·결론은 프로젝트가 정한 위치에 기록합니다.
+## Impeccable 소스 검사
 
-CLI는 작업별 고유 세션만 열고 자신이 만든 세션만 닫습니다. 프로젝트 테스트와 기존 증빙은 보존합니다.
-브라우저 정책과 검증 이력: [검증 안내](docs/validation.md)
+공식 Impeccable 스킬은 자동 훅이 없는 환경에서 편집 후 `detect --json`을 한 번 실행하도록 안내합니다. Design은 웹 UI 편집 후 변경 대상에 이 명령을 실행해 기계적 발견을 수정하고, 남은 발견을 검토로 넘깁니다. 네이티브 플랫폼은 소스 검사기를 건너뜁니다. 이 저장소는 자체 편집 훅 플러그인을 배포하지 않습니다.
 
-## UI 소스 검사
-
-`write`·`edit`·`patch`가 성공하면 `ksi-impeccable-detector` 플러그인이 변경된 UI 파일을 설치된 Impeccable 엔진으로 검사하고, 도구 결과에 요약을 덧붙입니다.
-자동 수정·모델 재호출·작업 차단은 하지 않습니다.
-
-동작 흐름:
-
-```text
-편집 성공 (write / edit / patch)
-  ↓
-세션 디렉터리의 UI 파일인지 확인
-  ├─ 아니면 → 건너뜀
-  └─ 맞으면 → 파일 사본을 격리해 검사
-  ↓
-설치된 Impeccable 엔진 실행 (detect, 소스 전용)
-  ↓
-기존 도구 결과에 검사 요약 첨부
+```sh
+.opencode/skills/impeccable/scripts/impeccable detect --json <changed-targets>
 ```
 
-전후 비교 (예시):
-
-```text
-Created file successfully: src/banner.css
-```
-
-```text
-Created file successfully: src/banner.css
-
-[Impeccable source-only; non-blocking, not rendered UX verification]
-src/banner.css: findings — overused-font:1
-```
-
-| 구분 | 내용 |
-| --- | --- |
-| 대상 | CSS·SCSS·SASS·LESS·HTML·JSX·TSX·Vue·Svelte·Astro |
-| 제외 | 삭제·비 UI·숨김·의존성·생성 파일, 일반 JS·TS |
-| 범위 | 소스 전용. 연결 CSS·디자인 시스템·URL·렌더는 검사하지 않음 |
-| 한도 | 파일당 512 KiB, 편집당 8파일·6초 예산, 결과 50개 |
-
-검사 통과는 실제 화면 사용성·시각 품질 검증을 대신하지 않습니다. 상세: [검증 안내](docs/validation.md)
+대상·한도·규칙은 설치된 Impeccable 버전의 공식 문서를 따릅니다. 검사는 소스 전용이며 실제 화면 사용성·시각 품질 검증을 대신하지 않습니다. 상세: [검증 안내](docs/validation.md)
 
 ## 설정 및 설치 경로
 
@@ -219,7 +238,6 @@ src/banner.css: findings — overused-font:1
 | `docs/archive/agents/architect.md` | 원본 보존용, 설치·발견 대상 아님 |
 | `global/agents/critic.md` | `~/.config/opencode/agents/critic.md` |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` |
-| `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` |
 
 - 기존 파일은 백업하고 관련 항목만 병합합니다. 이전 4개 커스텀 ID의 은퇴·병합은 [설치 안내](docs/installation.md#기존-역할에서-이전)를 따릅니다.
 - 적용 후 `cmp`·`diff`로 저장소 정본과 비교할 수 있습니다.
@@ -233,8 +251,6 @@ src/banner.css: findings — overused-font:1
 ## 추가 검증
 
 ```sh
-node --test tests/core.test.mjs tests/adapter.test.mjs
-node tests/native-hook-integration.mjs
 node --test tests/completion-guidance.test.mjs
 node --test tests/capabilities.test.mjs
 node --test tests/permission-probe.test.mjs
@@ -244,7 +260,7 @@ node tests/agent-routing-native.mjs
 node tests/delegation-native-integration.mjs
 ```
 
-- `native-hook-integration.mjs`와 `delegation-native-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용하며 외부 모델을 호출하지 않습니다. 역할 라우팅 검사는 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
+- `delegation-native-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용하며 외부 모델을 호출하지 않습니다. 역할 라우팅 검사는 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
 - 최근 확인 환경: OpenCode 2.1.4 / Playwright CLI 0.1.22 / Linux arm64 (이전 검사의 버전·범위는 검증 기록 참고, 다른 OS는 미확인)
 - `agent-routing-native.mjs`는 적용된 설치본의 깊이·호출 정책·모델·본문, Research/Critic의 CLI·스킬·문서 도구 경계를 검사합니다. 전역 교체 전에는 통과를 기대하지 않습니다. `delegation-native-integration.mjs`는 격리 Native에서 중첩·상한, 수정 허용/거부, 자식 재개·복구·증거 반환, 명시 세션 제한의 상속/비소급과 Engineer/Design 구현 경로를 확인합니다. 모델은 로컬 scripted fixture이며 자율 판단력·실제품 완성도·OS 격리의 증거는 아닙니다. [최신 실행 근거와 한계](docs/engineer-routing-validation.md)
 - 2026-10-17 모의 UI에서는 당시 명칭의 `Build → Design Architect → General` 중첩·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 새 역할의 모든 호출 경로·실제품 품질·장기 완주·비용 절감까지 입증한 것은 아닙니다. [이전 실행 근거](docs/validation.md#역할-구조-변경-2026-10-17)
