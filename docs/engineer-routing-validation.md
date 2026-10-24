@@ -88,7 +88,7 @@ Plan의 Native 프롬프트·파일 편집 제한은 유지합니다. 역할 권
 - 병렬 L에서는 **같은 Build turn**의 Engineer·Design이 독립 파일을 실제 write/read했습니다. 각 세션의 세 번 요청 시간창이 교차함을 확인했고, 상대 파일 변경·공유 계약 바이트 변경 없이 부모에 둘 다 반환됐습니다. 이는 분리 소유한 작업의 Native 동시 실행 근거이며, 모든 실모델·공유 데이터에서 충돌이 불가능하다는 보장은 아닙니다.
 - 역할 카탈로그는 기본 8개이며 Architect의 숨김 phantom도 허용하지 않는 검사로 보강했습니다. 역할별 Muse Variant·단일 `opencode-go` provider·Build 전역 미고정·Critic의 정확한 스킬 허용도 정본과 대조합니다.
 
-최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고, 2026-10-24 11:12Z에 전역에 적용했습니다. 적용 전 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-U2FZ95`), `scripts/capabilities.mjs`에서 8개 역할 등록과 MCP 2개 연결을 확인했습니다. 이는 설치·정책 검증이며 실제 모델의 판단력·제품 완성도 검증이 아닙니다.
+최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고, 2026-10-24 11:12Z에 전역에 적용했습니다. 적용 전 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-1RE3u2`), `scripts/capabilities.mjs`에서 8개 역할 등록과 MCP 2개 연결을 확인했습니다. 이는 설치·정책 검증이며 실제 모델의 판단력·제품 완성도 검증이 아닙니다.
 
 ### 실제 모델: 기술 개발 단위 (이전 모델 구성, 역사적 근거)
 

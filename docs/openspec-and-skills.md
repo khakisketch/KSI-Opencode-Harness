@@ -29,12 +29,15 @@
   아카이브 파일 자체는 본 변경의 소유가 아니다.
 - 모델 후보 문자열은 미검증이므로 스펙에 포함하지 않는다.
 
-## 3. 프로젝트 로컬 스킬 6종 (설치 완료, 전역 변경 없음)
+## 3. 외부 스킬 6종 (프로젝트 로컬 + 전역 설치 완료)
 
-` .opencode/skills/{6ID}/`에 원본 바이트 + 스킬별 MIT 원문과 함께 설치됐다.
-Native 조회에서 기존 OpenSpec 6종과 함께 12종 전부 발견됨이 확인됐다.
-증거: `.opencode/artifacts/engineer-skills-install.json` (전체 해시 +
-라이선스 해시), `.opencode/artifacts/engineer-skill-discovery.json`.
+` .opencode/skills/{6ID}/`에 원본 바이트 + 스킬별 MIT 원문과 함께 설치됐고,
+2026-10-24 전역 적용에서 `~/.agents/skills/{6ID}/`에도 동일 바이트로
+복사했다. Native 조회에서 6종·기존 OpenSpec 6종·기존 전역 스킬이 함께
+발견됐다(고유 ID 25개). 증거: `.opencode/artifacts/engineer-skills-install.json`
+(전체 해시 + 라이선스 해시), `.opencode/artifacts/engineer-skill-discovery.json`,
+`/tmp/opencode/skills-api-final.json`, 전역 설치 기록
+`/tmp/opencode/ksi-depth3-install-qxzxj_rl/global-skills-install-20261024T111808Z.json`.
 리포 번들 방지를 위해 6종은 루트 `.gitignore`에 등록됐다.
 스위트 설치기나 동반 자동설치는 사용하지 않았다.
 
@@ -94,7 +97,7 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   Critic은 `reviewing-security`/`building-accessible-interfaces`/
   `ux-heuristics-audit` 3종을 읽기 전용 출처로 허용받았다.
   Native general·Engineer·Design은 스킬 기본 허용이며, 2026-10-24 전역
-  적용에서 새 역할·권한이 설치됐다.
+  적용에서 새 역할·권한과 6종 전역 사본이 설치됐다.
 - 모델/프로바이더 프라이버시 GLM 본문 필터는 단일 Muse 라우팅 정리에서
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.

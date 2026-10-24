@@ -16,9 +16,10 @@
 - [x] 2.2 Review licenses/scripts/network/shell/autowrite/overlap; record
   findings in `docs/openspec-and-skills.md`
 - [x] 2.3 Stage 6 gap skills byte-identical with provenance (SHAs, hashes)
-- [ ] 2.4 Later global installation stays pending under active-config
-  protection (project-local 6 decided and installed; workers write no
-  global state; no fixed approval phase)
+- [x] 2.4 Global installation completed 2026-10-24 after all six legacy
+  sessions were idle: new 8-role runtime applied, old roles retired to
+  backup, and the 6 external skills installed under `~/.agents/skills/`.
+  No fixed approval phase was added.
 
 ## 3. Verification
 
@@ -49,12 +50,11 @@
 - [ ] 5.1 Model quality verification for role candidates (Engineer/Design/
   Plan/Research/Critic strings) — advisory only until evidence exists
 - [ ] 5.2 Native render evidence for any adopted UI-affecting skill use
-- [x] 5.3 Project-local 6 installed with original bytes + per-skill MIT
-  licenses and evidence artifacts (completed outside this change; this
-  change records the compatibility rules, not the install)
-- [ ] 5.4 Technical validation remainder (global runtime Muse single-model/
-  render gaps) — live chain already evidenced on earlier model configs, not
-  untested: 31 tests, Build→Engineer→General→Critic repairs, Design worker;
-  the current single-Muse configuration still lacks live Engineer/Design/
-  Plan evidence. See `docs/engineer-routing-validation.md` (owned outside
-  this change)
+- [x] 5.3 Six external skills installed project-locally and globally with
+  original bytes + per-skill MIT licenses and evidence artifacts (completed
+  outside this change; this change records the compatibility rules).
+- [ ] 5.4 Technical validation remainder (actual Muse single-model Engineer/
+  Design/Plan and render evidence) — global runtime is applied and
+  `agent-routing-native` passes 292/292; the current single-Muse
+  configuration still lacks live Engineer/Design/Plan quality evidence.
+  See `docs/engineer-routing-validation.md` (owned outside this change).
