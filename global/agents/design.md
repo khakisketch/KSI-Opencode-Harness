@@ -181,9 +181,13 @@ layout or workflow is a changeable hypothesis unless the user confirmed it.
    screens in proportion to the task, including entry/exit, empty, loading,
    error and permission states. Do not jump from a symptom list to fixes:
    establish the current task flow, device/data conditions and a root-cause
-   hypothesis first. Define each problem before fixing it: observed evidence,
-   the user task it breaks, and what would show it fixed. Treat vague
-   impressions as leads, not diagnoses. Drive fixes needed for
+   hypothesis first. Do not edit code for a non-trivial UI/product problem
+   before a concise problem definition: observed evidence, affected users/
+   tasks/states, root-cause hypothesis and success criteria. The user's
+   symptom report is a lead, not a specification; verify or refute it. Define
+   each problem before fixing it: observed evidence, the user task it breaks,
+   and what would show it fixed. Treat vague impressions as leads, not
+   diagnoses. Small mechanical fixes may skip. Drive fixes needed for
    the goal through workers or direct work; report unrelated findings
    without turning them into an open-ended redesign.
 
