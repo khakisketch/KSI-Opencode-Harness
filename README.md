@@ -166,7 +166,7 @@ General은 강제가 아닙니다. Engineer가 직접 구현할 수 있고, Gene
 
 Engineer는 `diagnosing-bugs`, `evolving-apis-and-schemas`, `investigating-performance`, `reviewing-security`, `vercel-react-best-practices`, `building-accessible-interfaces`를 필요한 범위에서 사용합니다. 스킬은 역할이나 필수 단계가 아니라 판단 렌즈입니다.
 
-**버그·성능 회귀 디버깅:** 원인을 모르는 실패는 바로 수정하지 않습니다. `diagnosing-bugs`로 ① 재현 가능한 실패 신호 만들기 → ② 가설·이분·계측으로 원인 좁히기 → ③ 최소 수정 → ④ 회귀 테스트·가드 → ⑤ 실제 런타임 재검증 순서로 갑니다. 단순하고 원인이 명확한 오타·설정·한 줄 수정에는 이 루프를 강제하지 않습니다. 같은 문제를 두 번 이상 고쳤는데도 재발하면 기존 수정을 반복하지 말고 재현 루프와 가설을 다시 세웁니다.
+**버그·성능 회귀 디버깅:** 원인을 모르는 실패는 바로 수정하지 않습니다. `diagnosing-bugs`로 ① 재현 가능한 실패 신호 만들기 → ② 가설·이분·계측으로 원인 좁히기 → ③ 최소 수정 → ④ 회귀 테스트·가드 → ⑤ 실제 런타임 재검증 순서로 갑니다. 단순하고 원인이 명확한 오타·설정·한 줄 수정에는 이 루프를 강제하지 않습니다. 재현 환경이나 실장비가 없어 전체 루프를 만들 수 없으면 진행을 멈추지 말고, 확보 가능한 신호·미확인 범위·필요한 환경을 명시한 뒤 부모와 대안을 정합니다. 같은 문제를 두 번 이상 고쳤는데도 재발하면 기존 수정을 반복하지 말고 재현 루프와 가설을 다시 세웁니다.
 
 ### Critic 호출 지점
 
@@ -265,7 +265,7 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 General은 의도적으로 코딩·검증 스킬만 허용하고, 디자인·전략·아키텍처·보안 리뷰 스킬은 허용하지 않습니다. Explore는 스킬 없이 코드 위치·사실만 찾습니다. Engineer·Design은 필요한 기술·디자인 스킬을 넓게 사용하되, 각자의 소유권 경계는 유지합니다. 권한과 실제 설치·발견은 별개이므로 새 스킬을 추가할 때는 설치 상태와 이 표를 함께 확인합니다.
 
-`diagnosing-bugs`(Engineer)와 `ux-copy`(Design·Critic)는 2026-10-24 trial로 설치했습니다. 2~3개 실제 작업에서 반복 수정·원인 발견·문구 교정이 실제로 줄었는지 확인하고, 효과가 없거나 호출만 늘면 제거합니다.
+`diagnosing-bugs`(Engineer)와 `ux-copy`(Design·Critic)는 2026-10-24 trial로 설치했습니다. 설치 출처는 `mattpocock/skills`의 `diagnosing-bugs`, `anthropics/knowledge-work-plugins`의 `design/skills/ux-copy`로 고정했습니다. 2~3개 실제 작업에서 반복 수정·원인 발견·문구 교정이 실제로 줄었는지 확인하고, 효과가 없거나 호출만 늘면 제거합니다.
 
 스킬은 역할이나 필수 개발 단계를 추가하는 장치가 아닙니다. 필요한 범위만 읽고 적용하며, 원본 보존·참고용 와이어프레임과 실제 제품의 시각 기준을 구분합니다. 이 저장소는 스킬 원본을 번들하지 않으므로 기존 설치를 재사용하거나 [공식 출처별 설치](docs/installation.md#외부-도구-출처)를 별도로 확인해야 합니다. 권한 허용이나 MCP 연결이 스킬 설치를 뜻하지는 않습니다.
 
@@ -332,7 +332,7 @@ Build — 제품 통합·교차 일관성·최종 인수
 
 Critic의 스킬 허용 목록은 `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit`, `evolving-apis-and-schemas`, `investigating-performance`, `ux-copy` 12개입니다. 전체 워크플로가 하위 에이전트·서버·쓰기를 요구하면 허용된 부분만 렌즈로 적용하고 나머지는 미제공으로 보고합니다. Design은 같은 외부 방법을 설계·자체 검토에 사용하되, 독립 비평을 자기 승인으로 대체하지 않습니다.
 
-**문구·에러·빈 상태:** `ux-copy`는 마이크로카피·에러·빈 상태·CTA를 다룰 때 사용합니다. 사용자 상태와 다음 행동을 먼저 정하고, 명확성·일관성·복구 경로를 확인한 뒤 실제 렌더의 관련 상태에서 검토합니다. 원시 사유 코드를 그대로 노출하지 않으며, 문구 수정이 시각·상호작용 검증을 대체하지 않습니다.
+**문구·에러·빈 상태:** `ux-copy`는 마이크로카피·에러·빈 상태·CTA를 다룰 때 사용합니다. 사용자 상태와 다음 행동을 먼저 정하고, 명확성·일관성·복구 경로를 확인한 뒤 실제 렌더의 관련 상태에서 검토합니다. 원시 사유 코드를 그대로 노출하지 않으며, 문구 수정이 시각·상호작용 검증을 대체하지 않습니다. 줄바꿈·과밀·레이아웃은 Design의 구성 판단과 렌더 검증으로 다룹니다. Critic이 `ux-copy`를 쓰더라도 전체 제품·UX·기술 검토 범위를 문구 검토로 축소하지 않습니다. OpenCode에서는 `/ux-copy` 슬래시 명령이 아니라 스킬 본문을 읽는 렌즈로 사용합니다.
 
 **OpenSpec은 언제 쓰나.** 승인된 요구·API/데이터·계약이 바뀌는 UI 작업은 OpenSpec change에 연결합니다. Design은 UX artifact 내용을, Engineer는 기술 artifact 내용을, Build는 요구 승인·통합·아카이브를 맡습니다. Plan은 분석·제안만 합니다. 작은 버그·스타일·국소 리팩터링에는 새 change를 강제하지 않으며, `openspec-propose`의 계획 경계는 구현 승인으로 넘지 않습니다.
 

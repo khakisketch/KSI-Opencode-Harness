@@ -166,15 +166,24 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 | 읽기 전용 역할에 보고서 작성 지시·없는 경로 반복 | 10/22 실사용 감사 | handoff·권한·경로 규칙 | 새 스킬 불필요 |
 | 오래된 디자인 입력을 현행으로 오인 | 10/22 Safety Edge | Design의 권위 확인 | 새 스킬 불필요 |
 | 테스트 엄밀성·회귀 테스트 부족 | Critic 발견, 프로젝트 테스트 | 기존 테스트·TDD 지침 | `tdd`는 예방적, 직접 실패 증거는 아직 부족 |
-| API 계약·마이그레이션 | 구체적 실패 기록 없음 | `evolving-apis-and-schemas`, OpenSpec | `api-and-interface-design`은 예방적 |
-| 운영 로그·메트릭 부재 | 구체적 사고 기록 없음 | 실행·실패 복구 검증 | `observability`는 예방적 |
+| API 계약·마이그레이션 | 구체적 실패 기록 없음 | `evolving-apis-and-schemas`, OpenSpec | `api-and-interface-design`은 신규 소비자 계약에서 별도 가치 — 조건부 |
+| 운영 로그·메트릭 부재 | Safety Edge의 Edge→RC→Core 추적 공백 가능성 | 실행·실패 복구 검증 | `observability`는 제품별 검토 가치 높음 — 전역 강제 아님 |
+| 고객 인터뷰·사용성 조사 데이터 | 아직 실제 조사 데이터·필요성 불명확 | journey/organize는 흐름·IA 분석 | `research-synthesis`는 중복 아님 — 데이터 축적 후 검토 |
 
 ### 조정된 우선순위
 
 - **1차 trial 2종:** `diagnosing-bugs`(Engineer), `ux-copy`(Design, Critic).
 - **조건부 1종:** `playwright-best-practices` — 실제 Playwright E2E 테스트가 있는 프로젝트에서만.
-- **보류:** `tdd`, `code-review-and-quality`, `api-and-interface-design`, `observability-and-instrumentation`, `design-critique`, `handoff`/`context-engineering`, Postgres, React composition.
+- **보류:** `tdd`, `code-review-and-quality`, `design-critique`, `handoff`/`context-engineering`, Postgres, React composition.
+- **조건부 재검토:** `api-and-interface-design`(신규 소비자 계약), `observability-and-instrumentation`(Safety Edge/Edge→RC→Core 추적), `research-synthesis`(실제 고객 조사 데이터).
 - **제외:** `verification-before-completion`은 공통 AGENTS와 중복되고 필수 게이트로 오해될 수 있다. Superpowers/Addy 전체 묶음과 Codex 전용 보안 플러그인도 제외한다.
+
+### 후속 검토 트리거
+
+- Safety Edge에서 하나의 관측 이벤트 ID가 Edge 생성→RC 수신→Core 저장으로 이어지는지 추적하기 어려워지면 `observability-and-instrumentation`을 해당 제품에 한정해 검토한다. 모든 프로젝트에 OpenTelemetry·모니터링 인프라를 강제하지 않는다.
+- 새 API의 소비자 계약·버전·멱등성·오류 계약을 처음 설계하는 작업이 반복되면 `api-and-interface-design`을 Engineer 조건부로 검토한다.
+- 실제 고객 인터뷰·설문·사용성 테스트 데이터가 축적되면 `research-synthesis`를 Research/Design 조건부로 검토한다. journey/organize와 동일한 스킬이 아니다.
+- 프로젝트에 실제 Playwright E2E 테스트가 생기면 `playwright-best-practices`를 조건부로 검토한다.
 
 `diagnosing-bugs`는 “바로 고치지 말고 재현 루프를 먼저” 만들게 해 반복 수정·가설 확정 문제를 직접 줄인다. `ux-copy`는 에러·빈 상태·CTA 문구의 실제 수정 비용을 줄인다. `playwright-best-practices`는 E2E 테스트가 실제로 있는 경우에만 flaky·CI·POM 문제를 다룬다. Native Browser 연결 문제 자체를 해결하는 스킬은 아니므로 그 문제에는 기존 브라우저 경로 지침을 유지한다.
 
@@ -197,3 +206,10 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 - 설치 기록·해시·라이선스: `/tmp/opencode/ksi-depth3-install-qxzxj_rl/trial-skills-install.json`.
 - 사용 흐름: Engineer는 재현 루프→가설→최소 수정→회귀 가드→런타임 재검증, Design/Critic은 사용자 상태→문구→복구 경로→실제 렌더 상태 확인.
 - 2~3개 실제 작업 후 유지/제거를 결정한다. 아직 효과는 미검증이다.
+
+### Trial 범위와 주의
+
+- `diagnosing-bugs`는 원인 불명·반복 실패에만 사용한다. 재현 환경·실장비가 없어 전체 루프를 만들 수 없으면 진행을 멈추지 말고, 확보 가능한 신호·미확인 범위·필요 환경을 반환한다. 원본의 엄격한 “재현 루프 없이는 다음 단계 금지”를 모든 작은 수정에 적용하지 않는다.
+- `ux-copy`는 화면 구성·정보 구조·레이아웃 판단을 대체하지 않는다. 어색한 줄바꿈·텍스트 과밀은 Design의 구성 판단과 실제 렌더 검증으로 다룬다. Critic이 사용하더라도 전체 제품·UX·기술 검토 범위를 문구 검토로 축소하지 않는다.
+- Anthropic 원본 `ux-copy`는 Claude 전용 `/ux-copy` 명령과 커넥터 설명을 포함한다. OpenCode에서는 슬래시 명령이 아니라 스킬 본문을 읽는 렌즈로 사용하고, 연결되지 않은 도구는 미제공으로 보고한다.
+- 출처를 고정한다: `mattpocock/skills`의 `diagnosing-bugs`, `anthropics/knowledge-work-plugins`의 `design/skills/ux-copy`. 같은 이름의 다른 배포와 혼동하지 않는다.

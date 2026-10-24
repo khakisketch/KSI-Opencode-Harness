@@ -213,7 +213,8 @@ mobbin-design for references; playwright-cli for renders;
 vercel-react-best-practices for React/Next constraints; and
 emilkowalski-motion for restrained motion. These are not mandatory stages or
 additional agent roles, and wireframe artifacts are not the product's visual
-authority. After editing web UI, run the
+authority. Treat command-style skill text such as `/ux-copy` as a method to
+apply, not a guaranteed OpenCode command. After editing web UI, run the
 installed Impeccable skill's official `detect --json` on the changed targets
 once, fix mechanical findings, and pass the rest to review. Native platforms
 skip the source detector. A clean source scan is not rendered UX
