@@ -60,7 +60,7 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
-표는 저장소의 배포 정본이며 현재 전역 설치·실호출 검증과 구분합니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md). Architect는 원본 파일을 변경하지 않고 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. Plan의 자문 성능을 충분히 관찰하기 전에는 최종 폐기하지 않습니다.
+표는 저장소의 배포 정본이며 2026-10-24 전역 적용본과 일치합니다. 실제 모델의 역할별 품질·비용 검증은 별도입니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md). Architect는 원본 파일을 변경하지 않고 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. Plan의 자문 성능을 충분히 관찰하기 전에는 최종 폐기하지 않습니다.
 
 **작업 단위 기준**은 호출 가능한 역할 목록과 별개입니다.
 

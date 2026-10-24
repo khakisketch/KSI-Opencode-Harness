@@ -5,8 +5,8 @@
 ## 정본과 전역 설치
 
 - 시작 시 저장소와 `origin/main`은 `adeaa3c`로 일치하고 작업 트리는 깨끗했습니다.
-- 단일 Muse 라우팅·Engineer 정리는 커밋 `24c3154`로 원격 `main`에 배포했습니다. 실제 전역은 여전히 `437e615` 계통의 이전 역할·깊이 2 구성입니다. 이전 백업과 비교해 사용자 변경 여부를 확인하며, 새 정본과 다르다는 이유로 덮어쓰지 않습니다.
-- 기존 `design-architect`와 관련 부모·후손의 실행이 끝나지 않아, 이전 사용자의 **대기 후 재시도** 결정을 유지합니다. 기존 세션·저장 모델·다른 제품·공유 서비스는 강제 변경하지 않습니다.
+- 단일 Muse 라우팅·Engineer 정리는 커밋 `24c3154`로 원격 `main`에 배포했고, 2026-10-24 역할 단위 감사 정본 `3504606`을 실제 전역에 적용했습니다. 전역은 이제 Native 4개 + Engineer·Design·Research·Critic, 깊이 3, Research medium 시험 배정입니다. 이전 `437e615` 계통의 4역할·설정은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다.
+- 보호 중이던 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했습니다. 기존 세션·저장 모델·다른 제품·공유 서비스는 강제 변경하지 않았고, 이전 역할 파일은 발견 경로 밖으로 이동했습니다.
 - 기본 운영 역할은 Native 4개 + Engineer·Design·Research·Critic입니다. Architect는 원본 그대로 `docs/archive/agents/architect.md`에 보존하고 발견 경로·설정 등록에서 제외합니다. 숨김 등록만 남기는 대안은 아홉 번째 등록·직접 선택 가능성을 남기므로 채택하지 않았습니다. Plan의 충분한 실제 기술 자문 검증 전에는 최종 폐기하지 않습니다.
 
 ## 모델: 확인한 ID와 제한
@@ -88,7 +88,7 @@ Plan의 Native 프롬프트·파일 편집 제한은 유지합니다. 역할 권
 - 병렬 L에서는 **같은 Build turn**의 Engineer·Design이 독립 파일을 실제 write/read했습니다. 각 세션의 세 번 요청 시간창이 교차함을 확인했고, 상대 파일 변경·공유 계약 바이트 변경 없이 부모에 둘 다 반환됐습니다. 이는 분리 소유한 작업의 Native 동시 실행 근거이며, 모든 실모델·공유 데이터에서 충돌이 불가능하다는 보장은 아닙니다.
 - 역할 카탈로그는 기본 8개이며 Architect의 숨김 phantom도 허용하지 않는 검사로 보강했습니다. 역할별 Muse Variant·단일 `opencode-go` provider·Build 전역 미고정·Critic의 정확한 스킬 허용도 정본과 대조합니다.
 
-최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고 `next-manifest.json`에 런타임 6개·검사 2개·보존 Architect의 해시 9개를 기록했습니다. 이전 `adeaa3c` 준비본은 같은 루트의 `superseded-adeaa3c-next/`로 보존해 혼동하지 않도록 했습니다. **실제 전역은 교체하지 않았으며 `tests/agent-routing-native.mjs`의 설치본 검사는 아직 미실행**입니다. 격리 통과로 전역 적용 완료를 대신하지 않습니다.
+최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고, 2026-10-24 11:12Z에 전역에 적용했습니다. 적용 전 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-U2FZ95`), `scripts/capabilities.mjs`에서 8개 역할 등록과 MCP 2개 연결을 확인했습니다. 이는 설치·정책 검증이며 실제 모델의 판단력·제품 완성도 검증이 아닙니다.
 
 ### 실제 모델: 기술 개발 단위 (이전 모델 구성, 역사적 근거)
 
@@ -109,4 +109,4 @@ Native export에서 부모 ID·실제 모델·도구 호출·비용을 확인했
 
 ### 남은 실제 실행 검증
 
-현재 Muse 단일 구성에서 Engineer·Design의 **실모델** 동시 쓰기 충돌, Design의 실제 이미지·Browser/렌더 교정, Plan의 충분한 기술 자문 성능은 아직 미검증입니다. 이전 GLM Design·DeepSeek Engineer의 실제 실행은 당시 모델 구성의 역사적 근거로만 남습니다. 전역 등록·설치 권한 검사도 보호 작업 종료 후 남아 있습니다. 이전 구성의 검사 통과를 새 모델 실호출이나 장기 제품 개발 능력으로 재해석하지 않습니다.
+현재 Muse 단일 구성에서 Engineer·Design의 **실모델** 동시 쓰기 충돌, Design의 실제 이미지·Browser/렌더 교정, Plan의 충분한 기술 자문 성능은 아직 미검증입니다. 이전 GLM Design·DeepSeek Engineer의 실제 실행은 당시 모델 구성의 역사적 근거로만 남습니다. 전역 등록·설치 권한 검사는 2026-10-24 완료했습니다(292/292). 이전 구성의 검사 통과를 새 모델 실호출이나 장기 제품 개발 능력으로 재해석하지 않습니다.

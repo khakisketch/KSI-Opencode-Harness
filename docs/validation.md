@@ -18,7 +18,17 @@ Build는 제품 실행·다음 개발·통합·최종 인수를, Plan은 요구�
 
 Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode·Context7의 문서 조회 2종·역할별 설치 스킬과 고유 CLI 탐색/입력/캡처만 허용합니다. Research의 Mobbin 검색 3개 및 그 외 Mobbin 승인 요구는 유지합니다. 제품/보고서 편집·임의 Shell·설치·서버·배포·자격증명·프로필/인증 상태 가져오기·다른 세션/전역 종료는 거부합니다. Browser·execute·CLI는 읽기 전용 샌드박스가 아니며 승인된 환경·계정·상태 전이만 사용합니다. 새 외부 스킬이나 도구를 일괄 설치하거나 기존 원문을 고치지 않습니다.
 
-검증은 (1) 모의 회귀, (2) 실제 설치본·Native 모델/모드/권한, (3) private HOME/XDG와 로컬 scripted model을 사용하는 Native 중첩 실행으로 구분합니다. `tests/delegation-native-integration.mjs`는 새 역할의 실제 정본을 복사하고 모델만 로컬 fixture로 대체해 Plan의 재위임, 서로 다른 경로, 깊이 3의 반환과 상한 동작을 확인합니다. 원요구 전달 표식 확인은 전달 검증이지 모델의 이해·판단력 검증이 아닙니다. 실제 제품의 자발적 문제 발견·디자인 품질·장기 완주·비용 절감은 별도 미검증입니다. 최신 확인 환경은 OpenCode **2.1.4 / Linux arm64**이며 진행 중인 이전 역할 세션의 은퇴는 보호 상태를 확인한 뒤 처리합니다.
+검증은 (1) 모의 회귀, (2) 실제 설치본·Native 모델/모드/권한, (3) private HOME/XDG와 로컬 scripted model을 사용하는 Native 중첩 실행으로 구분합니다. `tests/delegation-native-integration.mjs`는 새 역할의 실제 정본을 복사하고 모델만 로컬 fixture로 대체해 Plan의 재위임, 서로 다른 경로, 깊이 3의 반환과 상한 동작을 확인합니다. 원요구 전달 표식 확인은 전달 검증이지 모델의 이해·판단력 검증이 아닙니다. 실제 제품의 자발적 문제 발견·디자인 품질·장기 완주·비용 절감은 별도 미검증입니다. 최신 확인 환경은 OpenCode **2.1.4 / Linux arm64**입니다.
+
+## 전역 적용 완료 (2026-10-24)
+
+이전 역할 세션 6개가 모두 idle임을 확인한 뒤 준비된 정본을 전역에 적용했습니다. 적용 시각은 **2026-10-24T11:12:08Z**이며, 적용 전 `AGENTS.md`·`opencode.jsonc`·4개 역할 파일과 폐기 부품은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다.
+
+- 전역 등록은 Native 4개 + Engineer·Design·Research·Critic **8개**이며, 깊이 3·Research medium 시험 배정·Critic 9개 스킬 허용을 포함합니다.
+- `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-U2FZ95`).
+- `scripts/capabilities.mjs`에서 8개 역할 등록, Context7·Mobbin 연결, `vercel-react-best-practices`를 포함한 외부 스킬 발견을 확인했습니다.
+- 이전 역할 파일은 `agents/` 발견 경로 밖으로 이동했고, `task-first-ux-review`와 `ksi-impeccable-detector` 전역 사본도 백업 후 제거했습니다.
+- 이는 설치·정책 검증입니다. 실제 Muse 모델의 역할별 판단력·비용, Design 렌더 교정, Research medium 비교 품질은 여전히 미검증입니다.
 
 ## 역할 단위·루프·부품 감사 (2026-10-24)
 
@@ -33,7 +43,7 @@ Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode�
 - **자체 부품 폐기:** 저장소 번들 `task-first-ux-review` 스킬과 `ksi-impeccable-detector` 편집 훅 플러그인을 제거했습니다. Design은 공식 Impeccable `detect --json` 수동 검사를 사용하고, 네이티브는 소스 검사를 건너뜁니다. 이전 검증 기록의 task-first·플러그인 수치는 당시 이력으로만 보존합니다.
 - **프롬프트 밀도:** 네 역할 말미의 동일 depth/handoff footer를 제거해 Engineer 634→562, Design 1,925→1,678, Research 1,588→1,377 words로 줄였습니다. Critic은 스킬 매핑을 추가해 1,409→1,415, 공통 AGENTS는 Build의 단위 배정과 결과 검증 문장을 추가해 1,912→1,920 words입니다. 역할별 중복을 줄이고 공통 파일에는 교차 계약만 남겼으며, Critic의 스킬 prose와 실제 allowlist 불일치를 9개 목록으로 맞췄습니다.
 - **OpenSpec:** 요구 승인·통합·아카이브는 Build, 기술 artifact 내용은 Engineer, UX artifact 내용은 Design이 맡습니다. Plan은 분석·제안만 하며 승인 artifact를 대신 작성하지 않습니다. `openspec-propose`의 계획 경계는 일반적인 "승인 작업 계속"보다 우선합니다.
-- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 실제 Muse 모델의 역할별 품질·비용 비교와 전역 설치 후 `agent-routing-native` 일치는 아직 미검증입니다.
+- **검증:** 회귀 **101/101** 통과. 폐기한 플러그인의 core/adapter/native-hook 검사 41개는 기능과 함께 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. OpenSpec **2/2**, Native scripted **311/311** 통과(근거 `/tmp/opencode/ksi-deleg-pj4pvD`). README에 UI/UX 작업 흐름, Plan 사용 시점, Critic 스킬 매핑, OpenSpec 적용 시점을 문서화하고 같은 경계를 OpenSpec 시나리오에 반영했습니다. 전역 설치 후 `agent-routing-native` 일치는 **292/292**로 확인했으며, 실제 Muse 모델의 역할별 품질·비용 비교는 아직 미검증입니다.
 
 ### 장기 개발 연속성·실패 복구 후속 보완
 
@@ -54,9 +64,9 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 
 독립 검토에서 새 검사 자체의 허위 통과 가능성 2건을 발견해 수정했습니다. 이전 분기의 읽기 결과로 General의 성공을 대신할 수 없도록 실제 자식 세션의 completed read와 각 부모의 **동일한 단일 tool result 안의 결과·원본 바이트**를 대조합니다. 권한은 일부 거부의 존재만 보지 않고 변경 전/후·새 자손의 **전체 순서 포함 배열**을 비교해 추가 allow나 재정렬을 놓치지 않도록 했습니다. 독립 재검토에서 두 발견은 정적 범위에서 해소됐고 강화본도 위 Native 실행을 통과했습니다. 기존 227개 결과는 `/tmp/opencode/ksi-deleg-6pN0Y3`에 보존하며 새 근거와 혼동하지 않습니다.
 
-현재 정본·검사·문서의 모델 참조는 운영 역할 전체 `opencode-go/muse-spark-1.3-contributor`, 역할별 Variant로 일치합니다. 로컬 fixture에서 제공자 모델을 대체했으므로 이 실행을 실제 Muse의 판단력·모델 호출 성공으로 보지 않습니다. 회귀 모의 검사 **142개**와 기존 유효한 UI 소스 훅 **20개**의 증거는 재사용하며, 전역 교체는 아래의 진행 세션 보호 결정과 별도로 완료 여부를 기록합니다.
+현재 정본·검사·문서의 모델 참조는 운영 역할 전체 `opencode-go/muse-spark-1.3-contributor`, 역할별 Variant로 일치합니다. 로컬 fixture에서 제공자 모델을 대체했으므로 이 실행을 실제 Muse의 판단력·모델 호출 성공으로 보지 않습니다. 회귀 모의 검사 **142개**와 기존 유효한 UI 소스 훅 **20개**의 증거는 재사용하며, 전역 교체는 2026-10-24에 완료했습니다.
 
-최종 실행의 정본/검사 해시 9개를 다시 대조했고, 검증된 런타임 파일 6개는 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`와 `next-manifest.json`에 전역 적용 없이 준비했습니다. 후속 메타데이터 재확인에서도 이전 역할 실행이 남아 있어 사용자 결정대로 전역 교체를 보류합니다. 기존 전역 파일 6개는 백업과 정확히 일치하며, 새 역할 등록·실제 모델 참조·설치본 전체 권한 검사는 전역 교체 후 확인해야 합니다.
+최종 실행의 정본/검사 해시 9개를 다시 대조했고, 검증된 런타임 파일 6개는 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`와 `next-manifest.json`에 준비한 뒤 전역에 적용했습니다. 적용 전 파일은 같은 루트의 `pre-apply-20261024T111208Z/`에 보존했고, 새 역할 등록·모델/본문·설치본 전체 권한 검사는 `agent-routing-native` **292/292**로 확인했습니다.
 
 ### 단일 Muse 라우팅·Engineer 정본 검증 (2026-10-24)
 
@@ -66,7 +76,7 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 - 검사는 역할별 Variant, 단일 `opencode-go` provider, Build 미고정, 깊이 3·수정 허용/거부·동일 자식 재개·새 근거 복구·세션 제한 상속/비소급·Engineer/Design 구현 경로를 유지합니다. 검사를 약화해 모델 변경을 통과시키지 않았습니다.
 - fixture 모델 실행은 위임 메커니즘 검증이며 Muse의 판단력·제품 완성도·장기 자율성 근거가 아닙니다. 현재 구성의 Engineer·Design 실모델 동시 쓰기, Design의 실제 이미지/렌더 교정, Plan 기술 자문은 미검증입니다. 이전 DeepSeek·GLM·Luna 실행은 당시 모델 구성의 역사적 근거로만 보존합니다.
 
-### 초기 8개 정본 bf75d9e의 실행 근거와 전역 이전 상태
+### 초기 8개 정본 bf75d9e의 실행 근거와 전역 이전 기록
 
 - 회귀·진단·정리·깊이 오류 분류의 모의 검사는 **142개**입니다. 깊이 오류 분류 7개는 일반 네트워크/권한/세션 오류를 상한 거부로 오인하지 않는 테스트 전용 분류 검사이며 운영 권한 우회 기능이 아닙니다.
 - 격리된 실제 Native 위임 검사 **163/163** 통과: `/tmp/opencode/ksi-deleg-wJDvJA`, 로그 `/tmp/opencode/ksi-depth3-final-runtime-txer_755/result.log`. 8개 역할의 실제 카탈로그 모드·fixture 모델·복사된 본문, `Build→Plan→Design→Research(3)`와 `Build→Plan→Architect→Explore(3)`, Design 메인의 Critic 직할·결과 반환·원요구 전달을 확인했습니다. 소스 설정/공통 지침/4역할/검사·분류 코드 해시와 Native 버전은 `sandbox-manifest.json`에 보존합니다. fixture의 모델 대체를 실제 제공자 모델 호출 검증으로 해석하지 않습니다.
@@ -75,9 +85,9 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 - cold serve는 location-scoped 조회·설정 로드·역할 확인을 거친 뒤 첫 정식 권한 기대값부터 검사합니다. 초기 빈 카탈로그/첫 probe deny를 임의 warmup으로 버리지 않습니다. 그 첫 거부의 정확한 원인은 미확정이며, 최종 실행에서는 재현되지 않았습니다.
 - 기존 UI 소스 검사 훅 **20/20** 통과: `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/ksi-native-7UQyP9`, 로그 `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/result.log`. Native 2.1.4에서 원본 엔진 결과·수정 후 clean·권한 거부 보존을 확인했습니다. 플러그인·외부 스킬 원문은 변경하지 않았습니다.
 
-**전역 이전은 사용자 결정에 따라 대기 중입니다.** 이 기계의 이전 `design-architect` 세션과 부모가 다른 프로젝트에서 실행 중임을 메타데이터로 확인했고, 사용자는 “대기하고 진행하자 끝나면 다시 해보자”라고 결정했습니다. 기존 전역 설정·공통 지침·4개 역할은 바꾸지 않았으며, 같은 출처의 설치본 6개는 이전 정본 `437e615`와 일치합니다. 이전 설치 백업은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/previous/`이고 보호할 실행의 ID/부모/상태 메타데이터는 같은 비공개 임시 디렉터리에만 보존합니다. 임시 hidden 별칭이나 wildcard 호출 허용을 추가하지 않았습니다. 정본·격리 검증·원격 배포와 실제 전역 적용을 구분하며, 현재 전역의 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **미적용/미검증**입니다.
+**전역 이전은 2026-10-24T11:12:08Z에 완료했습니다.** 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했고, 기존 전역 설정·공통 지침·4개 역할은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. 이전 정본 `437e615` 계통의 백업은 같은 루트의 `previous/`에 남아 있습니다. 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **292/292**로 통과했습니다(근거 `/tmp/opencode/ksi-agent-routing-U2FZ95`).
 
-후속 전역 이전에서는 보호 중인 현재 실행과 부모의 종료 상태, 기존 설치본/백업 차이와 새 ID 충돌을 다시 확인한 뒤 새 파일·설정·공통 지침을 함께 적용하고 소유 legacy 파일만 발견 경로 밖에 보관합니다. 기존 세션·저장 모델·프로젝트를 강제 수정하거나 공유 서비스를 재시작하지 않습니다. 현재 turn의 종료 확인은 모든 과거 legacy 세션의 무기한 재개 호환성 보장이 아닙니다. 적용 후 설치본 일치·8개 등록·모델·모드·권한을 확인해야 전역 배포 완료로 볼 수 있습니다.
+적용 후 설치본 일치·8개 등록·모델·모드·권한을 확인했습니다. 기존 세션·저장 모델·프로젝트를 강제 수정하거나 공유 서비스를 재시작하지 않았습니다. 현재 turn의 종료 확인은 모든 과거 legacy 세션의 무기한 재개 호환성 보장이 아닙니다.
 
 ## 능력 연결 진단
 

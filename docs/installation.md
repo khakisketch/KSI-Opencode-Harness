@@ -161,7 +161,7 @@ DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.
 
 현재 공식 CLI는 선택한 세 스킬을 `~/.agents/skills/`에 설치하며 OpenCode가 전역 호환 소스로 인식합니다. 공유 스킬 위치와 `~/.agents/.skill-lock.json`의 기존 항목을 보존하고 중복 설치하지 않습니다. 저장소는 Intent 원본을 복제하지 않으며 `wireframe`의 CSS·JS·스타일가이드도 원본과 함께 설치합니다.
 
-이 저장소는 자체 제작 스킬을 번들하지 않습니다. 2026-10-24 이전의 `task-first-ux-review`는 폐기했고, 같은 목적은 설치된 `designing-user-experience`·`ux-heuristics-audit`와 Design의 과업 비교 원칙으로 대체합니다. 기존 전역 설치본에 남은 `~/.agents/skills/task-first-ux-review/`와 `~/.config/opencode/plugins/ksi-impeccable-detector/`는 새 작업에서 사용하지 않으며, 기존 세션·역할이 참조 중일 수 있어 자동 삭제하지 않습니다. 정리는 해당 세션 종료와 사용자 환경 확인 후 별도로 진행합니다.
+이 저장소는 자체 제작 스킬을 번들하지 않습니다. 2026-10-24 이전의 `task-first-ux-review`는 폐기했고, 같은 목적은 설치된 `designing-user-experience`·`ux-heuristics-audit`와 Design의 과업 비교 원칙으로 대체합니다. 2026-10-24 전역 적용에서 기존 세션이 모두 idle임을 확인한 뒤 `~/.agents/skills/task-first-ux-review/`와 `~/.config/opencode/plugins/ksi-impeccable-detector/`를 백업으로 옮겼습니다. 백업은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/retired/`에 있습니다.
 
 ## 전역 파일 일치 확인
 

@@ -93,8 +93,8 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   경로 기반 리뷰에 사용됐다 (6종 전체 실사용 주장 아님).
   Critic은 `reviewing-security`/`building-accessible-interfaces`/
   `ux-heuristics-audit` 3종을 읽기 전용 출처로 허용받았다.
-  Native general·Engineer·Design은 스킬 기본 허용이며, 기존 전역 역할은
-  변경 없이 설치됐으므로 전역 신규 권한은 보류 중이다.
+  Native general·Engineer·Design은 스킬 기본 허용이며, 2026-10-24 전역
+  적용에서 새 역할·권한이 설치됐다.
 - 모델/프로바이더 프라이버시 GLM 본문 필터는 단일 Muse 라우팅 정리에서
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.
@@ -104,6 +104,6 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문과
   Research medium의 비교 품질은 미검증이며, 상세는
   `docs/engineer-routing-validation.md`를 따른다.
-- 전역 설치는 활성 설정 보호 하에 보류 중. 본 변경은 전역 런타임
-  (GLM/렌더/DGX) 공백이 해소될 때까지 OPEN 유지하며 미완료 상태에서
-  아카이브하지 않는다.
+- 전역 설치는 2026-10-24 완료했다. 본 변경은 실제 Muse 모델의 역할별
+  품질·비용, Design 렌더 교정, Research medium 비교 품질 증거가 남아
+  OPEN 유지하며 미완료 상태에서 아카이브하지 않는다.
