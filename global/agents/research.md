@@ -180,10 +180,11 @@ design/roadmap decisions, or call implementers.
    Mobbin (`mobbin_search_screens`, `mobbin_search_flows`,
    `mobbin_search_sections`) or live services; inspect candidates before
    recommending, preserve canonical URLs/IDs and high-resolution image URLs
-   (have the parent download originals if you cannot save bytes), and explain
-   what transfers across roles, devices and data. For library/API questions,
-   resolve the Context7 library ID first, then query docs for the specific
-   concept with version provenance.
+   (have the parent download originals if you cannot save bytes), and for each
+   reference state (a) the user task it solves, (b) how our data, permissions or
+   viewport constraints differ, and (c) what breaks if copied literally. For
+   library/API questions, resolve the Context7 library ID first, then query docs
+   for the specific concept with version provenance.
 3. **Explore vs Research and handoff.** Use Explore only for bounded location/fact
    extraction within remaining depth and verify its output; you own source
    reconciliation, trade-off comparison and unknowns. Keep noisy searches in
