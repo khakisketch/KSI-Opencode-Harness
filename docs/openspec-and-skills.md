@@ -110,3 +110,42 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 - 전역 설치는 2026-10-24 완료했다. 본 변경은 실제 Muse 모델의 역할별
   품질·비용, Design 렌더 교정, Research medium 비교 품질 증거가 남아
   OPEN 유지하며 미완료 상태에서 아카이브하지 않는다.
+
+## 6. 추가 스킬 후보 검토 (2026-10-24, 조사만·미설치)
+
+현재 역할별 스킬 경계와 겹치지 않으면서 실제 공백을 메우는 후보만 골랐다. 설치 수는 품질 증거가 아니며, 라이선스·스크립트·네트워크·역할 충돌을 확인했다. 아래 후보는 **아직 설치하지 않았다.**
+
+| 후보 | 출처·라이선스 | 메우는 공백 | 추천 역할 | 메모 |
+| --- | --- | --- | --- | --- |
+| `tdd` | [Matt Pocock](https://github.com/mattpocock/skills), MIT | 테스트 우선·seam·mocking·red-green | Engineer, General | self-contained; 1.1M installs |
+| `diagnosing-bugs` | [Matt Pocock](https://github.com/mattpocock/skills), MIT | 재현 루프·가설·이분·HITL | Engineer | self-contained; optional HITL shell template |
+| `code-review-and-quality` | [Addy Osmani](https://github.com/addyosmani/agent-skills), MIT | 5축 코드 리뷰 | Critic, Engineer | repo-level `references/` 필요 |
+| `playwright-best-practices` | [Currents](https://github.com/currents-dev/playwright-best-practices-skill), MIT | E2E·flaky·POM·CI·a11y 테스트 | Engineer, General, Critic | `playwright-cli` 보완 |
+| `api-and-interface-design` | [Addy Osmani](https://github.com/addyosmani/agent-skills), MIT | 계약·Hyrum·버전·모듈 경계 | Engineer | self-contained |
+| `observability-and-instrumentation` | [Addy Osmani](https://github.com/addyosmani/agent-skills), MIT | 로그·메트릭·트레이스·알림 | Engineer, Critic, Build | shared checklist 필요 |
+| `supabase-postgres-best-practices` | [Supabase](https://github.com/supabase/agent-skills), MIT | 스키마·인덱스·RLS·쿼리·마이그레이션 | Engineer (조건부) | Postgres 프로젝트만 |
+| `ux-copy` | [Anthropic knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins), Apache-2.0 | 마이크로카피·에러·빈 상태·CTA | Design, Critic | Design 공백 |
+| `vercel-composition-patterns` | [Vercel](https://github.com/vercel-labs/agent-skills), MIT | compound component·props·상태 | Engineer, General (React) | React 프로젝트만 |
+
+### 추천 순서
+
+- **1차 — 공통 공백 4종:** `tdd`, `diagnosing-bugs`, `playwright-best-practices`, `code-review-and-quality`.
+- **2차 — 계약·운영 2종:** `api-and-interface-design`, `observability-and-instrumentation`.
+- **조건부:** `supabase-postgres-best-practices`(Postgres), `ux-copy`(UX 문구), `vercel-composition-patterns`(React 컴포넌트 설계).
+
+1차는 테스트·디버깅·E2E·리뷰의 실제 공백을 메우고 프로젝트 스택에 덜 묶인다. 2차는 API 계약과 운영 가시성을 보강한다. 조건부 후보는 해당 스택을 쓰는 프로젝트에서만 설치한다.
+
+### 도입하지 않은 것
+
+- **Superpowers 전체:** 완전한 개발 방법론과 강한 TDD·서브에이전트 흐름이 하네스의 역할 소유권·Critic 선택성과 충돌한다.
+- **Addy 25종 전체:** 컨텍스트·권한 표면이 커지고 역할 경계가 흐려진다.
+- **OpenAI `codex-security`:** Codex 전용 MCP/스캔 도구에 의존하며, `openai/skills` 저장소는 deprecated다.
+- **Vercel `web-design-guidelines`:** 기존 `building-accessible-interfaces`·`ux-heuristics-audit`·Impeccable과 중복된다.
+- **디자인 취향·마케팅·범용 awesome 목록:** 역할과 무관하거나 유지보수·품질 편차가 크다.
+
+### 도입 시 주의
+
+- Addy 스킬은 per-skill 설치 시 repo-level `references/`가 빠질 수 있다. whole-repo 복사 또는 shared references를 함께 두고 경로를 확인한다.
+- “항상 TDD/리뷰” 같은 스킬 문구는 하네스의 승인 범위·Critic 선택성·작은 수정 면제보다 우선하지 않는다. 스코프 렌즈로 사용한다.
+- 설치 전 `npx skills add <repo> --list`와 `SKILL.md`·스크립트·라이선스를 확인하고, `--copy`로 설치한다.
+- 설치 후 역할별 skill 권한과 README 스킬 경계 표를 갱신하고, 회귀·OpenSpec·Native 검사를 다시 실행한다.
