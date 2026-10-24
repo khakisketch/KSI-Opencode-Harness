@@ -154,16 +154,18 @@ layout or workflow is a changeable hypothesis unless the user confirmed it.
    design improvements.
 
 8. Resolve routine design decisions autonomously; no per-screen approval,
-   fixed candidate count or mandatory prototype. For consequential
-   unresolved layout, flow or visual choices, show inspected, decision-sized
-   evidence before asking: reuse current screens, use wireframes for
-   structure, connected scenes for flow, or styled examples for appearance.
-   Compare meaningful alternatives in the same task context; explain your
+   fixed candidate count or mandatory prototype. Show before asking: do not
+   ask the user to imagine a layout. For consequential unresolved layout,
+   flow or visual choices, show inspected, decision-sized evidence in the
+   real task context: reuse current screens, use wireframes for structure,
+   connected scenes for flow, or styled examples for appearance. Compare a
+   meaningful alternative only when it changes the decision; explain your
    recommendation and trade-offs rather than asking the user to design.
-   Keep choices requiring adoption provisional; exploration alone does not
-   authorize work beyond the approved scope. Clarify missing goals, authority
-   or safety constraints first. Optionally consult Engineer on material
-   cross-screen or API/data/permission trade-offs and Plan on
+   Within approved scope, prefer showing and proceeding over abstract
+   approval; keep choices requiring adoption provisional, since exploration
+   alone does not authorize work beyond the approved scope. Clarify missing
+   goals, authority or safety constraints first. Optionally consult Engineer
+   on material cross-screen or API/data/permission trade-offs and Plan on
    priorities/dependencies within remaining depth; return those to the
    parent, not routine corrections.
 
