@@ -25,7 +25,7 @@ Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode�
 이전 역할 세션 6개가 모두 idle임을 확인한 뒤 준비된 정본을 전역에 적용했습니다. 적용 시각은 **2026-10-24T11:12:08Z**이며, 적용 전 `AGENTS.md`·`opencode.jsonc`·4개 역할 파일과 폐기 부품은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다.
 
 - 전역 등록은 Native 4개 + Engineer·Design·Research·Critic **8개**이며, 깊이 3·Research medium 시험 배정·Critic 9개 스킬 허용을 포함합니다.
-- `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-1RE3u2`).
+- `tests/agent-routing-native.mjs` 설치본 검사 **292/292** 통과(근거 `/tmp/opencode/ksi-agent-routing-IaA26u`).
 - `scripts/capabilities.mjs`에서 8개 역할 등록, Context7·Mobbin 연결, `vercel-react-best-practices`를 포함한 외부 스킬 발견을 확인했습니다.
 - 선별 외부 스킬 6종을 `~/.agents/skills/`에 동일 바이트로 설치했고, OpenCode `/api/skill` 조회에서 6종·OpenSpec·기존 전역 스킬을 포함한 고유 ID **25개**를 확인했습니다(근거 `/tmp/opencode/skills-api-final.json`).
 - 이전 역할 파일은 `agents/` 발견 경로 밖으로 이동했고, `task-first-ux-review`와 `ksi-impeccable-detector` 전역 사본도 백업 후 제거했습니다.
@@ -86,7 +86,7 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 - cold serve는 location-scoped 조회·설정 로드·역할 확인을 거친 뒤 첫 정식 권한 기대값부터 검사합니다. 초기 빈 카탈로그/첫 probe deny를 임의 warmup으로 버리지 않습니다. 그 첫 거부의 정확한 원인은 미확정이며, 최종 실행에서는 재현되지 않았습니다.
 - 기존 UI 소스 검사 훅 **20/20** 통과: `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/ksi-native-7UQyP9`, 로그 `/tmp/opencode/ksi-depth3-hook-check-r5784xcu/result.log`. Native 2.1.4에서 원본 엔진 결과·수정 후 clean·권한 거부 보존을 확인했습니다. 플러그인·외부 스킬 원문은 변경하지 않았습니다.
 
-**전역 이전은 2026-10-24T11:12:08Z에 완료했습니다.** 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했고, 기존 전역 설정·공통 지침·4개 역할은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. 이전 정본 `437e615` 계통의 백업은 같은 루트의 `previous/`에 남아 있습니다. 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **292/292**로 통과했습니다(근거 `/tmp/opencode/ksi-agent-routing-1RE3u2`).
+**전역 이전은 2026-10-24T11:12:08Z에 완료했습니다.** 이전 `design-architect` 세션 6개가 모두 idle임을 확인한 뒤 적용했고, 기존 전역 설정·공통 지침·4개 역할은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`에 보존했습니다. 이전 정본 `437e615` 계통의 백업은 같은 루트의 `previous/`에 남아 있습니다. 새 8개 등록·실제 모델/본문·전체 설치 권한 검사(`agent-routing-native.mjs`)는 **292/292**로 통과했습니다(근거 `/tmp/opencode/ksi-agent-routing-IaA26u`).
 
 적용 후 설치본 일치·8개 등록·모델·모드·권한을 확인했습니다. 기존 세션·저장 모델·프로젝트를 강제 수정하거나 공유 서비스를 재시작하지 않았습니다. 현재 turn의 종료 확인은 모든 과거 legacy 세션의 무기한 재개 호환성 보장이 아닙니다.
 
