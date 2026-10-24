@@ -52,8 +52,8 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Build** / `build` | 목표·장기 맥락·통합·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
 | **Plan** / `plan` | 영향이 큰 기술 선택 자문 + 큰 전환·복귀 시 방향 점검 | all | `openai/gpt-6.1-sol#xhigh` |
 | **Design Architect** / `design-architect` | 진단·UX/UI 설계·작업자 조율·렌더 개선 | all | `openai/gpt-6.1-sol#high` |
-| **UX Scout** / `ux-scout` | 선택형 관찰·문제 후보·외부 사례·원본 근거 수집 | subagent | `openai/gpt-6-luna-fast#high` |
-| **UI/UX Critic** / `ui-ux-critic` | 선택형 독립 비평·설계 가설 반증, 수정·제품 인수는 하지 않음 | subagent | `openai/gpt-6.1-sol#high` |
+| **UX Scout** / `ux-scout` | 선택형 관찰·문제 후보·외부 사례·원본 근거 수집 | subagent | `opencode-go/mimo-v2.6-flash` |
+| **UI/UX Critic** / `ui-ux-critic` | 선택형 독립 비평·설계 가설 반증, 수정·제품 인수는 하지 않음 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
 

@@ -4,7 +4,7 @@ description: >
    against user tasks and actual renders. Returns evidence-backed findings, not
    product edits, replacement designs or whole-product acceptance.
 mode: subagent
-model: openai/gpt-6.1-sol#high
+model: opencode-go/muse-spark-1.3-contributor#xhigh
 permissions:
   - action: "*"
     resource: "*"

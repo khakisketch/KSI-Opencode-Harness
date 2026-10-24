@@ -187,6 +187,14 @@ Architect의 밀도·비례 평가는 문구·조작 요소를 무조건 줄이�
 
 한계: 이 감사는 대화·문서 기록 기준이며 각 프로젝트의 코드 diff 전체를 재감사한 것은 아닙니다. 반영 효과는 실사용 후 관찰 대상이며, 설정 검사 통과를 효과 증거로 보지 않습니다. 기본 `websearch`의 HTTP 402와 특정 모델의 존재하지 않는 도구 호출(`bash`, `patch`)은 제공자·모델 계약 문제로 남겨 두었고, 도구 목록 확인 후 호출하도록 하는 일반 지침으로 충분히 다룰 수 있어 별도 규칙을 추가하지 않았습니다.
 
+## Critic·Scout 모델 배치 변경 (2026-10-24)
+
+사용자의 명시 요청에 따라 Critic을 `opencode-go/muse-spark-1.3-contributor#xhigh`, UX Scout를 `opencode-go/mimo-v2.6-flash`로 변경했습니다. 모델 카탈로그에서 Contributor의 `xhigh`와 MiMo-V2.6-Flash의 등록을 확인했으며, MiMo에는 선택 가능한 variant가 없어 임의의 접미사를 붙이지 않았습니다. Native 모델 메타데이터는 두 모델 모두 도구 호출과 이미지 입력을 지원한다고 표시합니다. 등록·지원 선언은 실제 실행·비평 능력의 입증이 아닙니다.
+
+두 역할의 모델 한 줄, Native 기대 모델, 현행 문서를 갱신하며 역할 본문·권한·호출 경로·깊이와 다른 모델은 유지합니다. 기존 세션의 저장 모델을 강제 변경하거나 제품 프로젝트를 편집하지 않습니다. 외부 스킬·서비스·인증·공유 설정과 기존 Contributor의 `tool_choice: auto` 설정은 변경하지 않습니다. 모델 비교·스킬 성능 시험 없이 설치 일치와 기존 회귀·Native 설정/권한만 확인합니다. 아래 Critic 최초 도입 기록의 Sol High·Scout 모델 유지 설명은 당시 이력입니다.
+
+적용 확인: 회귀 115개·문서 로컬 링크/앵커 27개 통과. 최종 Native 설정/권한 162개 통과(종료코드 0, `/tmp/opencode/ksi-agent-routing-OcExL7`, 로그 `/tmp/opencode/ksi-model-routing-check-gfnt6ac5/result.log`)에서 두 역할의 새 모델과 설치 본문 일치를 확인했습니다. 이전 프로필은 `/tmp/opencode/ksi-critic-scout-models-3k1pfne5/`에 보존했습니다. 실제 모델 추론·시각 이해·비평 성능·브라우저 실행을 시험한 결과는 아닙니다.
+
 ## 선택형 UI/UX Critic 전역 추가 (2026-10-24)
 
 사용자는 특정 프로젝트 파일럿 대신 전체 프로젝트에 적용되는 하네스 개선을 요청했습니다. `ui-ux-critic`을 독립 비평 전용 하위 역할로 추가하고, Build와 Architect의 호출 허용 및 등록·권한 진단을 연결합니다. 초기 배포 모델은 Architect와 같은 `openai/gpt-6.1-sol#high`입니다. 같은 모델의 별도 세션이 비평 능력이나 편향 해소를 보장한다는 주장은 하지 않습니다.
