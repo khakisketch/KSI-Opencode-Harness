@@ -149,3 +149,42 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 - “항상 TDD/리뷰” 같은 스킬 문구는 하네스의 승인 범위·Critic 선택성·작은 수정 면제보다 우선하지 않는다. 스코프 렌즈로 사용한다.
 - 설치 전 `npx skills add <repo> --list`와 `SKILL.md`·스크립트·라이선스를 확인하고, `--copy`로 설치한다.
 - 설치 후 역할별 skill 권한과 README 스킬 경계 표를 갱신하고, 회귀·OpenSpec·Native 검사를 다시 실행한다.
+
+## 7. 실제 문제 기반 재평가 (2026-10-24)
+
+6의 추천은 일반 공백과 채택 신호 중심이었다. 아래 실제 문제 기준 우선순위가 6의 1차 4종 추천을 대체한다. 실제 개발 기록의 문제를 기준으로 다시 평가하면, 새 스킬이 **직접** 해결하는 문제는 많지 않다. 이미 하네스 지침·역할·기존 스킬로 해결된 문제와 새 스킬이 직접 돕는 문제를 구분한다.
+
+| 실제 문제 | 근거 | 기존 대응 | 새 스킬 판단 |
+| --- | --- | --- | --- |
+| 반복 수정·원인 추정으로 국소 수정 반복 | 공통 지침의 정체 시 재진단, 10/22 API 오류 가설 사례 | Engineer의 재진단·Critic | **`diagnosing-bugs` — 직접 도움** |
+| 완료 주장에 대한 최신 검증 증거 부족 | 공통 지침, Critic의 완료 주장 검토 | 공통 evidence 규칙·테스트 | `verification-before-completion`은 중복 가능 |
+| UI 단순화가 인식 단서를 지우고 주 조작을 오노출 | 10/22 실사용 감사 | Design의 과업·인식 단서 기준, `ux-heuristics-audit`, Impeccable | `design-critique`는 기존과 중복 |
+| 텍스트만으로 구조를 조기 확정 | 10/23 EDGE 사례 | Design의 시각 근거·wireframe·journey | 새 스킬 불필요 |
+| 원시 사유 코드·어색한 줄바꿈·에러/빈 상태 문구 | 10/23 감사 정정 | Design의 문구 판단, 부분적 | **`ux-copy` — 직접 도움** |
+| 브라우저 캡처 실패·자식 `browser.disconnected` | 10/21 Scout, 브라우저 경로 | Native/Playwright 경로·권한 지침 | `playwright-best-practices`는 E2E 테스트 설계에만 부분 도움 |
+| 하위 컨텍스트 손실·장기 세션 | 10/24 복구·Compact 검증 | handoff 규칙·세션 재사용·Compaction | `handoff`/`context-engineering`은 부분 중복 |
+| 읽기 전용 역할에 보고서 작성 지시·없는 경로 반복 | 10/22 실사용 감사 | handoff·권한·경로 규칙 | 새 스킬 불필요 |
+| 오래된 디자인 입력을 현행으로 오인 | 10/22 Safety Edge | Design의 권위 확인 | 새 스킬 불필요 |
+| 테스트 엄밀성·회귀 테스트 부족 | Critic 발견, 프로젝트 테스트 | 기존 테스트·TDD 지침 | `tdd`는 예방적, 직접 실패 증거는 아직 부족 |
+| API 계약·마이그레이션 | 구체적 실패 기록 없음 | `evolving-apis-and-schemas`, OpenSpec | `api-and-interface-design`은 예방적 |
+| 운영 로그·메트릭 부재 | 구체적 사고 기록 없음 | 실행·실패 복구 검증 | `observability`는 예방적 |
+
+### 조정된 우선순위
+
+- **1차 trial 2종:** `diagnosing-bugs`(Engineer), `ux-copy`(Design, Critic).
+- **조건부 1종:** `playwright-best-practices` — 실제 Playwright E2E 테스트가 있는 프로젝트에서만.
+- **보류:** `tdd`, `code-review-and-quality`, `api-and-interface-design`, `observability-and-instrumentation`, `design-critique`, `handoff`/`context-engineering`, Postgres, React composition.
+- **제외:** `verification-before-completion`은 공통 AGENTS와 중복되고 필수 게이트로 오해될 수 있다. Superpowers/Addy 전체 묶음과 Codex 전용 보안 플러그인도 제외한다.
+
+`diagnosing-bugs`는 “바로 고치지 말고 재현 루프를 먼저” 만들게 해 반복 수정·가설 확정 문제를 직접 줄인다. `ux-copy`는 에러·빈 상태·CTA 문구의 실제 수정 비용을 줄인다. `playwright-best-practices`는 E2E 테스트가 실제로 있는 경우에만 flaky·CI·POM 문제를 다룬다. Native Browser 연결 문제 자체를 해결하는 스킬은 아니므로 그 문제에는 기존 브라우저 경로 지침을 유지한다.
+
+### 효과 확인 방법
+
+설치 후 2~3개의 실제 작업에서 다음을 비교한다.
+
+- 같은 문제를 몇 번 반복 수정했는가, 원인 발견까지 걸린 시간이 줄었는가
+- 에러·빈 상태·CTA 문구에 대한 사용자 교정이 줄었는가
+- E2E 테스트의 flaky·캡처 실패·CI 재실행이 줄었는가
+- 스킬 호출이 실제 작업을 늘리지 않고 판단을 줄였는가
+
+효과가 없거나 호출만 늘면 제거한다. 설치 수·평가 점수는 효과 증거로 사용하지 않는다. 현재는 **아직 설치하지 않았고**, 위 2종을 trial할지 결정하기 전 단계다.
