@@ -187,6 +187,12 @@ Architect의 밀도·비례 평가는 문구·조작 요소를 무조건 줄이�
 
 한계: 이 감사는 대화·문서 기록 기준이며 각 프로젝트의 코드 diff 전체를 재감사한 것은 아닙니다. 반영 효과는 실사용 후 관찰 대상이며, 설정 검사 통과를 효과 증거로 보지 않습니다. 기본 `websearch`의 HTTP 402와 특정 모델의 존재하지 않는 도구 호출(`bash`, `patch`)은 제공자·모델 계약 문제로 남겨 두었고, 도구 목록 확인 후 호출하도록 하는 일반 지침으로 충분히 다룰 수 있어 별도 규칙을 추가하지 않았습니다.
 
+## UX Scout의 Muse Contributor High 배치 (2026-10-24)
+
+사용자가 UX Scout도 Muse Spark 1.3 Contributor로 변경하고 medium/high 선택을 위임했습니다. 카탈로그에서 두 variant를 모두 확인했으며, 단순 조회뿐 아니라 이미지·과업·사용 흐름의 맥락을 판단하는 역할이라는 점을 고려해 `opencode-go/muse-spark-1.3-contributor#high`를 권고·적용합니다. medium보다 우수하다는 실측 결과를 주장하지 않으며 별도 비교 실험은 하지 않습니다. Critic의 `xhigh`와 다른 역할·권한·본문·도구·설정은 유지하고, 기존 세션의 저장 모델은 강제 변경하지 않습니다.
+
+적용 확인: 회귀 115개·문서 로컬 링크/앵커 27개 통과. Native 설정/권한 162개 통과(종료코드 0, `/tmp/opencode/ksi-agent-routing-GQEuBx`)에서 Scout의 새 모델과 설치 본문 일치를 확인했습니다. 이전 설치본은 `/tmp/opencode/ksi-scout-muse-high-6yk_afou/ux-scout.md`에 보존했습니다. 모델 추론·관찰 정확도·디자인 품질 효과의 검증은 아닙니다.
+
 ## Critic·Scout 모델 배치 변경 (2026-10-24)
 
 사용자의 명시 요청에 따라 Critic을 `opencode-go/muse-spark-1.3-contributor#xhigh`, UX Scout를 `opencode-go/mimo-v2.6-flash`로 변경했습니다. 모델 카탈로그에서 Contributor의 `xhigh`와 MiMo-V2.6-Flash의 등록을 확인했으며, MiMo에는 선택 가능한 variant가 없어 임의의 접미사를 붙이지 않았습니다. Native 모델 메타데이터는 두 모델 모두 도구 호출과 이미지 입력을 지원한다고 표시합니다. 등록·지원 선언은 실제 실행·비평 능력의 입증이 아닙니다.

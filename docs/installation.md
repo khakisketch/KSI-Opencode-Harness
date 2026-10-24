@@ -28,7 +28,7 @@ Build — 제품 목표·통합·최종 인수
 4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
-배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Critic=`opencode-go/muse-spark-1.3-contributor#xhigh`, Scout=`opencode-go/mimo-v2.6-flash`, Plan=`openai/gpt-6.1-sol#xhigh`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. 모델 미지정 하위 역할은 부모 모델을 상속하므로, 자문·비평 역할에는 배포 선호 모델을 명시합니다. MiMo-V2.6-Flash는 등록된 variant가 없어 접미사를 붙이지 않습니다. 역할·모델 분리가 더 좋은 비평을 보장하지는 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
+배포 기본 모델은 Architect=`openai/gpt-6.1-sol#high`, Critic=`opencode-go/muse-spark-1.3-contributor#xhigh`, Scout=`opencode-go/muse-spark-1.3-contributor#high`, Plan=`openai/gpt-6.1-sol#xhigh`, General=Muse Contributor High, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. 모델 미지정 하위 역할은 부모 모델을 상속하므로, 자문·비평 역할에는 배포 선호 모델을 명시합니다. Scout는 이미지·사용 흐름의 맥락 판단을 고려해 `high`를 기본으로 권고하며, Critic의 `xhigh`는 유지합니다. 이는 medium/high의 실측 비교 결과가 아닙니다. 역할·모델 분리가 더 좋은 비평을 보장하지는 않습니다. 모델을 임의 대체하지 말고 사용 가능한 제공 경로를 확인하세요. 자세한 책임·모드·호출 범위는 [README](../README.md#역할과-위임-구조)에 있습니다.
 
 스킬 원본은 이 저장소의 배포 파일에 포함되지 않습니다. 기존 스킬을 재사용하고, 필요한 외부 스킬은 아래 공식 출처와 실제 설치 경로를 확인합니다. 특히 Mobbin MCP 연결과 `mobbin-design` 스킬, Playwright 실행 파일과 `playwright-cli` 스킬은 각각 별개입니다. Scout의 스킬 허용 목록은 설치기가 아니므로, 누락된 스킬은 미설치로 보고하고 임의로 새 스킬을 만들거나 추가 패밀리 전체를 설치하지 않습니다. Vercel React Best Practices·Motion 등 선택 스킬도 설치돼 있는 경우에 사용합니다.
 
@@ -38,14 +38,14 @@ Build — 제품 목표·통합·최종 인수
 | --- | --- | --- |
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업·완료 지침 |
 | `global/agents/design-architect.md` | `~/.config/opencode/agents/design-architect.md` | Design Architect 역할·권한 (`openai/gpt-6.1-sol#high`, `mode: all`) |
-| `global/agents/ux-scout.md` | `~/.config/opencode/agents/ux-scout.md` | UX Scout 선택형 하위 조사 (`opencode-go/mimo-v2.6-flash`, subagent) |
+| `global/agents/ux-scout.md` | `~/.config/opencode/agents/ux-scout.md` | UX Scout 선택형 하위 조사 (`opencode-go/muse-spark-1.3-contributor#high`, subagent) |
 | `global/agents/ui-ux-critic.md` | `~/.config/opencode/agents/ui-ux-critic.md` | 선택형 UI/UX 비평 (`opencode-go/muse-spark-1.3-contributor#xhigh`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 제한된 UI 소스 검사 플러그인 |
 
 ## 에이전트 이름 변경 (design-specialist → design-architect)
 
-`design-architect`(`openai/gpt-6.1-sol#high`, `mode: all`)가 기존 `design-specialist` 자리를 대체하고, `ux-scout`(`opencode-go/mimo-v2.6-flash`, subagent, 선택형)를 함께 적용합니다. Scout는 넓은 관찰·문제 후보·Mobbin/외부 참고와 원본 근거를 넘기며 설계 승인·제품 코드 작성·완료 인수는 하지 않습니다. 제품 편집·추가 위임·임의 Shell은 거부하고, 필요한 읽기·웹·Browser·Code Mode·명명된 Playwright 검사 명령과 Mobbin 검색 3개만 허용합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니며, 테스트 환경·계정과 지정 산출물 위치가 필요합니다. [실제 권한·실행 검증 범위](validation.md#역할-구조-변경-2026-10-17)
+`design-architect`(`openai/gpt-6.1-sol#high`, `mode: all`)가 기존 `design-specialist` 자리를 대체하고, `ux-scout`(`opencode-go/muse-spark-1.3-contributor#high`, subagent, 선택형)를 함께 적용합니다. Scout는 넓은 관찰·문제 후보·Mobbin/외부 참고와 원본 근거를 넘기며 설계 승인·제품 코드 작성·완료 인수는 하지 않습니다. 제품 편집·추가 위임·임의 Shell은 거부하고, 필요한 읽기·웹·Browser·Code Mode·명명된 Playwright 검사 명령과 Mobbin 검색 3개만 허용합니다. 브라우저·CLI는 읽기 전용 샌드박스가 아니며, 테스트 환경·계정과 지정 산출물 위치가 필요합니다. [실제 권한·실행 검증 범위](validation.md#역할-구조-변경-2026-10-17)
 
 Scout CLI는 `ux-scout-*` 임시 세션에서 `open <url>` 또는 `open` → `goto <url>`, 입력·선택·체크·히스토리 이동을 허용합니다. 다른 세션 연결·인증 상태 가져오기·영구/사용자 프로필·임의 스크립트·전역 종료는 허용하지 않습니다. 기존 Playwright CLI를 재사용하며 `agent-browser` 추가 설치는 필요하지 않습니다. 권한과 Native Browser의 실제 세션 연결은 별개입니다.
 

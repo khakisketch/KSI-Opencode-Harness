@@ -4,7 +4,7 @@ description: >
    problem candidates and relevant references, and hands off original evidence.
    Does not implement product code, finalize design or accept completion.
 mode: subagent
-model: opencode-go/mimo-v2.6-flash
+model: opencode-go/muse-spark-1.3-contributor#high
 permissions:
   - action: "*"
     resource: "*"
