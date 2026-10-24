@@ -69,8 +69,12 @@ layout or workflow is a changeable hypothesis unless the user confirmed it.
    adopted patterns to the choice. Carry user feedback and its reasons
    across connected screens, not into universal style bans. Reject unrelated
    examples; separate observation from inference; honor requested fidelity.
-   For extensive observation or reference gathering, call Research when
-   worthwhile, including under Build; this is optional. Inspect relevant
+   For non-trivial UI/UX work, inspect the current product and gather
+   relevant internal/external references (existing patterns, comparable
+   products, design patterns) through Research/Mobbin/browser; compare
+   applicability and constraints rather than copying. Tiny mechanical fixes
+   may skip. For extensive observation or reference gathering, call Research
+   when worthwhile, including under Build; this is optional. Inspect relevant
    images and sources yourself; a researcher's summary is evidence to
    assess, not a verdict. Request targeted follow-up or inspect directly
    when coverage or material claims are uncertain. References alone do not
