@@ -29,6 +29,32 @@
 //   E  plan edit=deny vs design(child) edit=allow via policy probes (NOT a proof of
 //      hard transitive readonly), plus handoff-scope marker transmission through A,
 //      zero product writes, results returned to Main.
+//   F  real child write/edit denial: forced scripted write+edit attempts by
+//      research/architect/critic/plan children on the private fixture file end in
+//      Native error (deny- or removed-tool-shaped), with byte-level file integrity.
+//      Design/General are NOT covered here: their own permissions are broad, so a
+//      plan edit-deny does not transitively inherit to them (stated limit).
+//   G  session continuity: root turn1/turn2 reuses the owned child via its Native
+//      subagent sessionID; same childID, past messages kept, original requirement
+//      plus new scope delivered, new result returned. Mechanics only.
+//   H  failure -> new evidence -> resume & recover: a missing-file read fails with
+//      a real Native error, the child returns its limit, then the SAME child
+//      sessionID is resumed with an approved new reference and a different
+//      question; the same failing call is never repeated. The script selects the
+//      recovery path; this proves mechanics/scope/evidence plumbing, NOT model
+//      initiative or judgment. Markers verify transmission, never understanding.
+//   I  explicit session-scoped restrictions inherit to later-created children (no
+//      plugin/router/alias): a NEW owned analysis root keeps one retained deny,
+//      gains edit+shell denies via PATCH (replace semantics: existing rules are
+//      re-sent, never dropped), then delegates Build0->Plan1->Design2->General3.
+//      Children created BEFORE the patch keep the old snapshot (non-retroactive);
+//      children created AFTER carry the full snapshot, so even broad Design and
+//      General children refuse real write/edit attempts while reads succeed.
+//      A fake webfetch target is verified by policy probe only (no external net).
+//      Reads are verified on each session's OWN Native tool part (completed +
+//      output bytes); each hop up is verified on that level's OWN tool inputs.
+//      The stub embeds only evidence sliced from the actual tool result it got
+//      (EVID:… or an honest NO-EVIDENCE-IN-RESULT flag) — never hardcoded bytes.
 // Scope honesty: the runtime policy matrix covers every contract allow plus
 // self/build/unknown denies per caller and targeted cross-denies; it is NOT an
 // exhaustive 8x8 (72-pair) all-pairs claim. Modes/models/prompts come from the
@@ -47,6 +73,7 @@ import fs from "node:fs";
 import http from "node:http";
 import net from "node:net";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
 import { setTimeout as sleep } from "node:timers/promises";
 import { isDelegationCeilingError } from "../scripts/delegation-errors.mjs";
@@ -64,7 +91,7 @@ const OPENCODE_BIN = process.env.OPENCODE_BIN ?? "opencode";
 
 const PRIV = path.join(ROOT, "priv-home");
 const WORKSPACE = path.join(ROOT, "workspace");
-const PASSWORD = "ksi-deleg-test-pw";
+const PASSWORD = crypto.randomBytes(24).toString("hex");
 const AUTH = "Basic " + Buffer.from(`opencode:${PASSWORD}`).toString("base64");
 const FIXTURE_MODEL = "fixture/fixture";
 const UNKNOWN = "no-such-agent-ksi-probe";
@@ -89,6 +116,14 @@ const CONTRACT = {
 const HANDOFF = "HANDOFF-SCOPE-ANALYSIS-ONLY-KSI-DELEG";
 const ORIGIN = "ORIG-CONTRACT-KSI-DELEG-V1";
 const SCOPE_SENTENCE = "Scope is analysis-only handoff; do not write product files.";
+// F/G/H markers. Transmission only: their presence in tool I/O proves a handoff
+// traveled, never that any model understood, judged, or chose anything.
+const ORIGREQ = "ORIG-REQUIREMENT-KSI-DELEG-G";
+const NEWSCOPE = "NEW-SCOPE-KSI-DELEG-G";
+const MISSING_EVIDENCE = "missing-evidence-H.txt";
+const DENIED_WRITE = "denied-note.txt";
+const SCOPE_FILE = "scope-note.txt";
+const SCOPE_LINE = "SCOPE-NOTE-CONTENT analysis handoff probe";
 
 const results = [];
 function check(name, ok, detail = "") {
@@ -194,13 +229,40 @@ function userTextOf(body) {
 function toolMsgsOf(body) {
   return (body.messages ?? []).filter((m) => m.role === "tool").map((m) => JSON.stringify(m.content ?? m));
 }
+// Owned-child session IDs as Native reports them in subagent tool results
+// (<subagent sessionID="ses_...">). Last match wins (newest result first).
+function parseSubagentSessionIDs(text) {
+  return [...(String(text ?? "").matchAll(/\bses_[A-Za-z0-9]+\b/g))].map((m) => m[0]);
+}
+function lastSessionId(texts) {
+  const ids = parseSubagentSessionIDs((Array.isArray(texts) ? texts : [texts]).join("\n"));
+  return ids.length ? ids[ids.length - 1] : null;
+}
+// Short evidence excerpt sliced from an ACTUAL Native tool-result payload (never
+// synthesized: null when the payload carries no evidence bytes, which then fails
+// the per-level bytes assertions honestly). The locator below finds the evidence
+// line inside the real result; the bytes themselves always come from the payload.
+function extractEvidenceSnippet(toolMsgs) {
+  const joined = (Array.isArray(toolMsgs) ? toolMsgs : [toolMsgs]).join("\n");
+  const m = joined.match(/SCOPE-NOTE-CONTENT[^\n"\\]{0,48}/);
+  return m ? m[0] : null;
+}
+function evidenceSuffix(toolMsgs) {
+  return `EVID:${extractEvidenceSnippet(toolMsgs) ?? "NO-EVIDENCE-IN-RESULT"}`;
+}
 // Step counters advance ONLY on tool-carrying requests, so title/summary/text-only
 // calls that echo transcript markers never consume a script step.
 const steps = new Map();
 function chainMarker(text) {
+  // Most-specific first: KSI-DELEG-H2R contains KSI-DELEG-H2 as a substring, and
+  // resumed sessions carry both the old and the new prompt in user history.
   for (const mk of ["KSI-DELEG-A4X", "KSI-DELEG-A3", "KSI-DELEG-A2", "KSI-DELEG-A1", "KSI-DELEG-A0",
     "KSI-DELEG-B3", "KSI-DELEG-B2", "KSI-DELEG-B1", "KSI-DELEG-B0",
-    "KSI-DELEG-D1", "KSI-DELEG-D0"]) {
+    "KSI-DELEG-D1", "KSI-DELEG-D0",
+    "KSI-DELEG-H2R", "KSI-DELEG-H2", "KSI-DELEG-H1", "KSI-DELEG-H0",
+    "KSI-DELEG-G3", "KSI-DELEG-G2", "KSI-DELEG-G1", "KSI-DELEG-G0",
+    "KSI-DELEG-W4", "KSI-DELEG-W3", "KSI-DELEG-W2", "KSI-DELEG-W1", "KSI-DELEG-W0",
+    "KSI-DELEG-I0B", "KSI-DELEG-I1B", "KSI-DELEG-I0A", "KSI-DELEG-I1A", "KSI-DELEG-I2", "KSI-DELEG-I3"]) {
     if (text.includes(mk)) return mk;
   }
   return null;
@@ -217,8 +279,17 @@ const NEXT = {
 function subPrompt(next) {
   return `${next} ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Return findings as text; findings travel back to Main.`;
 }
-function scriptFor(marker, advertised) {
+// F sequence under one build root: each step delegates a different read-only
+// role that is scripted to attempt a real file mutation once.
+const WSEQ = [
+  { agent: "research", next: "KSI-DELEG-W1" },
+  { agent: "architect", next: "KSI-DELEG-W2" },
+  { agent: "critic", next: "KSI-DELEG-W3" },
+  { agent: "plan", next: "KSI-DELEG-W4" },
+];
+function scriptFor(marker, advertised, ctx = {}) {
   const has = (n) => Array.isArray(advertised) && advertised.includes(n);
+  const allUser = ctx.allUser ?? "", toolMsgs = ctx.toolMsgs ?? [];
   if (marker === null) return { kind: "text", text: "ok" };
   if (marker === "KSI-DELEG-A4X") return { kind: "text", text: "CHAIN-A-DEPTH4-UNEXPECTED" };
   const step = steps.get(marker) ?? 0;
@@ -257,6 +328,172 @@ function scriptFor(marker, advertised) {
     }
     return { kind: "text", text: `${leaf} ${HANDOFF} ${ORIGIN}` };
   }
+  // F: W0 root fans out to four read-only roles; each W-child attempts one real
+  // write then one real edit. Both are expected to fail natively (deny- or
+  // removed-tool-shaped); file integrity is asserted from evidence afterwards.
+  if (marker === "KSI-DELEG-W0") {
+    if (step < WSEQ.length) {
+      const spec = WSEQ[step];
+      return {
+        kind: "tools",
+        calls: [{
+          name: "subagent",
+          args: {
+            agent: spec.agent,
+            description: `deleg ${marker}`,
+            prompt: `${spec.next} ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Attempt the requested file operation exactly once, then report the exact tool outcome as text; findings travel back to Main.`,
+          },
+        }],
+      };
+    }
+    return { kind: "text", text: `W-ROOT-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-W1" || marker === "KSI-DELEG-W2" || marker === "KSI-DELEG-W3" || marker === "KSI-DELEG-W4") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: DENIED_WRITE, content: "mutation attempt, must be denied\n" } }] };
+    }
+    if (step === 1) {
+      return { kind: "tools", calls: [{ name: "edit", args: { path: SCOPE_FILE, oldString: SCOPE_LINE, newString: `${SCOPE_LINE}-MUTATION-ATTEMPT` } }] };
+    }
+    return { kind: "text", text: `FW-LEAF-OK-${marker} ${HANDOFF} ${ORIGIN}` };
+  }
+  // G: continuity via the owned child sessionID. G0 roots turn 1; G2 roots turn 2
+  // and resumes the child ID carried in its own prompt (parsed from user text).
+  if (marker === "KSI-DELEG-G0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "research", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-G1") + ` Requirement ${ORIGREQ}: keep the original question, decision and evidence.` } }],
+      };
+    }
+    return { kind: "text", text: `G0-ROOT-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-G1" || marker === "KSI-DELEG-G3") {
+    const leaf = marker === "KSI-DELEG-G1" ? "G1-RESULT-OK" : "G3-RESULT-OK";
+    if (step === 0) {
+      if (!has("read")) return { kind: "text", text: `${leaf} ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
+    }
+    return { kind: "text", text: `${leaf} ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-G2") {
+    if (step === 0) {
+      const resumeId = lastSessionId(allUser);
+      if (!resumeId) return { kind: "text", text: "G2-NO-CHILD-ID" };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "research", description: `resume ${marker}`, sessionID: resumeId, prompt: `KSI-DELEG-G3 ${HANDOFF} ${ORIGIN} ${NEWSCOPE} Requirement ${ORIGREQ}: keep the original question, decision and evidence; add one new observation read and return updated findings as text.` } }],
+      };
+    }
+    return { kind: "text", text: `G2-ROOT-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  // H: failure -> resume with new evidence -> recover. H2 reads a file that does
+  // not exist (real Native error, returned as the child limit); H1 then resumes
+  // the SAME research child with an approved new reference and a new question.
+  if (marker === "KSI-DELEG-H0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "architect", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-H1") } }],
+      };
+    }
+    return { kind: "text", text: `H-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-H1") {
+    if (step === 0) {
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "research", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-H2") + " Read the H-evidence file once and report what the read returned." } }],
+      };
+    }
+    if (step === 1) {
+      const resumeId = lastSessionId(toolMsgs);
+      if (!resumeId) return { kind: "text", text: "H1-NO-CHILD-ID" };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "research", description: `resume ${marker}`, sessionID: resumeId, prompt: `KSI-DELEG-H2R ${HANDOFF} ${ORIGIN} New approved reference: read ${SCOPE_FILE} once with this different question: what evidence line does the approved reference carry? Return findings as text.` } }],
+      };
+    }
+    return { kind: "text", text: `H1-ARCH-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-H2") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "read", args: { path: MISSING_EVIDENCE } }] };
+    }
+    return { kind: "text", text: `H2-LIMITED-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-H2R") {
+    if (step === 0) {
+      if (!has("read")) return { kind: "text", text: `H2-RECOVERED-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
+    }
+    return { kind: "text", text: `H2-RECOVERED-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  // I: session-scoped restriction flow. I0A roots the pre-patch turn (Plan child
+  // snapshots webfetch-only rules); I0B roots the post-patch turn with the full
+  // Build0->Plan1->Design2->General3 chain under the inherited snapshot.
+  if (marker === "KSI-DELEG-I0A") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "plan", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I1A") } }],
+      };
+    }
+    return { kind: "text", text: `I0A-ROOT-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-I0B") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "plan", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I1B") } }],
+      };
+    }
+    return { kind: "text", text: `I-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-I1A") {
+    if (step === 0) {
+      if (!has("read")) return { kind: "text", text: `I1A-RESULT-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
+    }
+    return { kind: "text", text: `I1A-RESULT-OK ${HANDOFF} ${ORIGIN}` };
+  }
+  if (marker === "KSI-DELEG-I1B") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "design", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I2") } }],
+      };
+    }
+    return { kind: "text", text: `I1B-PLAN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-I2") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "general", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-I3") } }],
+      };
+    }
+    return { kind: "text", text: `I2-DESIGN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-I3") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: DENIED_WRITE, content: "mutation attempt, must be denied\n" } }] };
+    }
+    if (step === 1) {
+      return { kind: "tools", calls: [{ name: "edit", args: { path: SCOPE_FILE, oldString: SCOPE_LINE, newString: `${SCOPE_LINE}-MUTATION-ATTEMPT` } }] };
+    }
+    if (step === 2) {
+      if (!has("read")) return { kind: "text", text: `I3-GENERAL-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
+    }
+    return { kind: "text", text: `I3-GENERAL-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
   return { kind: "text", text: "ok" };
 }
 function chunk(id, model, delta, finish) {
@@ -287,7 +524,7 @@ function startFakeModel(port) {
           if (!hasTools) {
             script = { kind: "text", text: "ok" };
           } else {
-            script = scriptFor(marker, advertised);
+            script = scriptFor(marker, advertised, { allUser, toolMsgs: tools });
             if (script.kind !== "text" && marker !== null) steps.set(marker, (steps.get(marker) ?? 0) + 1);
             else if (script.kind === "text" && marker !== null && !hasTools) { /* no consume */ }
             else if (script.kind === "text" && marker !== null) {
@@ -608,10 +845,10 @@ async function main() {
   // Bounded runtime: a stuck await must fail closed instead of idling forever.
   // Firing exits the process (which runs onExit above to SIGTERM own children).
   const watchdog = setTimeout(() => {
-    try { fs.appendFileSync(path.join(ROOT, "WATCHDOG-TIMEOUT"), `fired after 12min\n`); } catch {}
+    try { fs.appendFileSync(path.join(ROOT, "WATCHDOG-TIMEOUT"), `fired after 15min\n`); } catch {}
     console.error("WATCHDOG-TIMEOUT: bounded runtime exceeded, failing closed");
     process.exit(1);
-  }, 12 * 60 * 1000);
+  }, 15 * 60 * 1000);
   if (typeof watchdog.unref === "function") watchdog.unref();
   const fake = await startFakeModel(MODEL_PORT);
   const serveLog = path.join(ROOT, "serve.stdout.log");
@@ -629,13 +866,19 @@ async function main() {
     }
     check("isolated serve healthy (private HOME, no external creds)", healthy, `127.0.0.1:${SERVE_PORT}`);
     if (!healthy) throw new Error("Private server did not become healthy");
-    const nativeVersion = (await api("GET", "/api/info")).json?.version ?? null;
+    const nativeInfo = await mustApi("GET", "/api/info", undefined, "private server identity");
+    const ownsServer = Number.isInteger(nativeInfo?.pid) && nativeInfo.pid === serve.pid
+      && serve.exitCode === null && serve.signalCode === null;
+    check("server PID matches the owned child before any mutating API call", ownsServer);
+    if (!ownsServer) throw new Error("Private server identity mismatch; refusing to reload or mutate a foreign instance");
+    const nativeVersion = nativeInfo.version ?? null;
     fs.writeFileSync(path.join(ROOT, "sandbox-manifest.json"), JSON.stringify({
       source: { jsonc: SRC_JSONC, agents: SRC_AGENTS, agentsMd: SRC_AGENTS_MD, depth: srcCfg.experimental.subagent_depth, sha256: srcHashes },
       sandbox: { config: path.join(cfgDir, "opencode.json"), agents: agentsDir },
       sandboxConfigSha256: sha256(fs.readFileSync(path.join(cfgDir, "opencode.json"), "utf8")),
-      native: { version: nativeVersion, bin: OPENCODE_BIN },
+      native: { version: nativeVersion, bin: OPENCODE_BIN, pid: nativeInfo.pid },
       modelOverrides: overrideIds, ports: { model: MODEL_PORT, serve: SERVE_PORT },
+      coverage: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
     }, null, 1));
 
     // --- 3. Scope-aware location readiness + actual role registry.
@@ -707,6 +950,28 @@ async function main() {
       return d.effect;
     }
 
+    // Policy probe against an EXISTING owned session (inherited session rules +
+    // agent rules in effect there). Unlike probe(), this creates no session, so it
+    // measures the target session's own effective policy. Ask outcomes settle via
+    // the shared helper; no retries, no external calls.
+    async function probeOn(sessionID, agent, action, resource) {
+      const r = await api("POST", `/api/session/${sessionID}/permission`, { action, resources: [resource], agent });
+      const d = r.status === 200 ? (r.json?.data ?? {}) : {};
+      if (typeof d.effect !== "string") {
+        check(`probe shape ${agent}/${action} @${String(sessionID).slice(-6)}`, false, `HTTP ${r.status}, no effect string`);
+        return null;
+      }
+      if (d.effect === "ask") {
+        try {
+          const res = await settleSourceFreeAskProbe({ sessionID, probe: d, api: restProbeApi, notice: `own-session cleanup ${agent}/${action}` });
+          note(`ask settled ${agent}/${action}`, res.settled);
+        } catch (e) {
+          check(`ask cleanup ${agent}/${action} needs investigation`, false, String(e?.message ?? e).slice(0, 160));
+        }
+      }
+      return d.effect;
+    }
+
     // --- 4. Runtime policy matrix (no model calls; own sessions only) ---
     // Scope: every contract allow plus self/build/unknown denies per caller, plus
     // targeted cross-denies. This is NOT an exhaustive 8x8 (72-pair) all-pairs
@@ -769,6 +1034,34 @@ async function main() {
       if (!Array.isArray(messages)) throw new Error(`messages ${label}: canonical {data:[]} shape never observed`);
       fs.writeFileSync(path.join(ROOT, `messages-${label}.json`), JSON.stringify(messages, null, 1));
       return { id, messages };
+    }
+    // Follow-up turn on an existing owned session (continuity/recovery). Same
+    // settle contract as runChain; the session (and its owned children) persist.
+    async function promptTurn(sessionID, text, doneToken, label, settleSecs = 150) {
+      await mustApi("POST", `/api/session/${sessionID}/prompt`, { text }, `prompt turn ${label}`);
+      let messages = null;
+      for (let i = 0; i < settleSecs; i++) {
+        const m = await api("GET", `/api/session/${sessionID}/message?limit=100&order=asc`);
+        const msgs = m.status === 200 ? (m.json?.data ?? null) : null;
+        if (Array.isArray(msgs)) {
+          messages = msgs;
+          if (assistantTexts(messages).includes(doneToken)) break;
+        }
+        await sleep(1000);
+      }
+      if (!Array.isArray(messages)) throw new Error(`messages ${label}: canonical {data:[]} shape never observed`);
+      fs.writeFileSync(path.join(ROOT, `messages-${label}.json`), JSON.stringify(messages, null, 1));
+      return messages;
+    }
+    // Owned-child ID straight from a Native subagent tool result delivered to the
+    // parent (own API read of own session). Null when Native never reported one.
+    function childIdFromParentMessages(messages) {
+      for (const t of toolEntries(messages)) {
+        if (t.name !== "subagent") continue;
+        const id = lastSessionId(JSON.stringify(t.state?.content ?? ""));
+        if (id) return id;
+      }
+      return null;
     }
     async function childrenOf(parentID) {
       const json = await mustApi("GET", `/api/session?parentID=${encodeURIComponent(parentID)}&limit=100`, undefined, `children of ${parentID}`);
@@ -915,6 +1208,321 @@ async function main() {
     check("E/no product writes: zero write/edit calls in any chain", !allCalls.includes("write") && !allCalls.includes("edit"), `calls=[${[...new Set(allCalls)].join(",")}]`);
     const wsFiles = fs.readdirSync(WORKSPACE).sort();
     check("E workspace holds only the scope probe (analysis-only kept)", JSON.stringify(wsFiles) === JSON.stringify(["scope-note.txt"]), wsFiles.join(","));
+
+    // --- 6. F: real child write/edit attempts are denied natively. ---
+    // One build root fans out to research/architect/critic/plan; each child makes
+    // one forced write and one forced edit against the private fixture file.
+    // Stated limit: Design/General are excluded (broad own permissions; a plan
+    // deny does not transitively inherit to them). No product writes are made to
+    // succeed here; byte integrity is asserted, not assumed.
+    const scopeHashBeforeF = sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8"));
+    const f = await runChain("build",
+      `KSI-DELEG-W0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate the file-operation probe to each allowed read-only role in turn and return their exact outcomes to Main.`,
+      "W-ROOT-OK", "chain-f");
+    check("F root returns to Main (W-ROOT-OK)", assistantTexts(f.messages).includes("W-ROOT-OK"));
+    const fKids = await childrenOf(f.id);
+    check("F one owned child per probed role (no more, no less)",
+      fKids.length === 4 && JSON.stringify(fKids.map((k) => k.agent).sort()) === JSON.stringify(["architect", "critic", "plan", "research"]),
+      fKids.map((k) => k.agent).join(","));
+    const logF = reqLog();
+    // Write/edit denial classifier (mirrors the shared delegation-errors module's
+    // exact-match philosophy). Accepted Native enforcement forms only:
+    //  - explicit permission denial,
+    //  - catalog-removed rejection naming the exact tool, or
+    //  - Native Plan confinement jailing mutations to the Plan directory.
+    // Anything else (including success) fails. Exact messages stay in evidence.
+    function isWriteEditDenial(tool, message) {
+      if (typeof message !== "string" || !message) return false;
+      if (/permission denied|not permitted|not allowed|access denied/i.test(message)) return true;
+      if (message.startsWith(`No tool named "${tool}" is currently available.`)) return true;
+      if (message.startsWith(`Cannot use ${tool} to modify files outside the Plan directory`)) return true;
+      return false;
+    }
+    for (const [mk, role] of [["KSI-DELEG-W1", "research"], ["KSI-DELEG-W2", "architect"], ["KSI-DELEG-W3", "critic"], ["KSI-DELEG-W4", "plan"]]) {
+      const kid = fKids.find((k) => k.agent === role);
+      const kmsgs = kid ? requireDataArray(
+        await mustApi("GET", `/api/session/${kid.id}/message?limit=100&order=asc`, undefined, `${role} probe child messages`),
+        `${role} probe child messages`,
+      ) : [];
+      const writes = toolEntries(kmsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(DENIED_WRITE));
+      const edits = toolEntries(kmsgs).filter((t) => t.name === "edit" && JSON.stringify(t.state?.input ?? {}).includes(SCOPE_FILE));
+      const wErr = writes.length === 1 ? (writes[0].state?.error?.message ?? "") : "";
+      const eErr = edits.length === 1 ? (edits[0].state?.error?.message ?? "") : "";
+      check(`F ${role} forced write denied natively (exactly once)`,
+        writes.length === 1 && writes[0].state?.status === "error" && isWriteEditDenial("write", wErr), `status=${writes[0]?.state?.status ?? "none"} err=${wErr.slice(0, 120)}`);
+      check(`F ${role} forced edit denied natively (exactly once)`,
+        edits.length === 1 && edits[0].state?.status === "error" && isWriteEditDenial("edit", eErr), `status=${edits[0]?.state?.status ?? "none"} err=${eErr.slice(0, 120)}`);
+      const adv = (logF.find((r) => r.marker === mk)?.advertised ?? []).slice(0, 12).join(",");
+      note(`F ${role} advertised catalog at attempt`, `[${adv}]`);
+    }
+    const blobsW0 = logF.filter((r) => r.marker === "KSI-DELEG-W0").flatMap((r) => r.toolMsgs ?? []).join("\n");
+    for (const mk of ["KSI-DELEG-W1", "KSI-DELEG-W2", "KSI-DELEG-W3", "KSI-DELEG-W4"]) {
+      check(`F leaf outcome returned up (FW-LEAF-OK-${mk})`, blobsW0.includes(`FW-LEAF-OK-${mk}`));
+    }
+    check("F denied file never created", !fs.existsSync(path.join(WORKSPACE, DENIED_WRITE)));
+    check("F fixture bytes unchanged (sha256 before/after)", sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8")) === scopeHashBeforeF);
+
+    // --- 7. G: continuity across parent turns via the owned child sessionID. ---
+    // Mechanics only: the same Native child keeps both turns; markers prove what
+    // traveled, never that any model judged or remembered anything by itself.
+    const g1 = await runChain("build",
+      `KSI-DELEG-G0 ${HANDOFF} ${ORIGIN} ${ORIGREQ} ${SCOPE_SENTENCE} Research the approved reference once and return the finding; a follow-up turn will resume your worker.`,
+      "G0-ROOT-OK", "chain-g1");
+    const gChildId = childIdFromParentMessages(g1.messages);
+    check("G turn1 reports the owned childID in its Native tool result", typeof gChildId === "string" && gChildId.length > 0, gChildId ?? "none");
+    const gKids1 = await childrenOf(g1.id);
+    check("G turn1 owns exactly one research child", gKids1.length === 1 && gKids1[0].agent === "research" && gKids1[0].id === gChildId, gKids1.map((k) => `${k.agent}:${k.id}`).join(","));
+    const g2msgs = await promptTurn(g1.id,
+      `KSI-DELEG-G2 resume owned child ${gChildId} ${HANDOFF} ${ORIGIN} ${ORIGREQ} ${NEWSCOPE} ${SCOPE_SENTENCE} Give the worker one new observation read and return updated findings.`,
+      "G2-ROOT-OK", "chain-g2");
+    const logG = reqLog();
+    const g2reqs = logG.filter((r) => r.marker === "KSI-DELEG-G2");
+    check("G turn2 resumed the owned childID (not a new session)",
+      g2reqs.some((r) => (r.scriptArgs ?? []).join(" ").includes(gChildId ?? "###")),
+      `resumeCalls=${g2reqs.filter((r) => (r.scriptCalls ?? []).includes("subagent")).length}`);
+    const gKids2 = await childrenOf(g1.id);
+    check("G still exactly one owned child after turn2 (no duplicate)", gKids2.length === 1 && gKids2[0].id === gChildId, gKids2.map((k) => k.id).join(","));
+    const gChildMsgs = gChildId ? requireDataArray(
+      await mustApi("GET", `/api/session/${gChildId}/message?limit=100&order=asc`, undefined, "G owned child messages"),
+      "G owned child messages",
+    ) : [];
+    const gChildBlob = JSON.stringify(gChildMsgs);
+    check("G owned child keeps turn1 prompt and result", gChildBlob.includes("KSI-DELEG-G1") && gChildBlob.includes("G1-RESULT-OK"));
+    check("G owned child carries turn2 prompt and new result", gChildBlob.includes("KSI-DELEG-G3") && gChildBlob.includes("G3-RESULT-OK"));
+    check("G new scope delivered at turn2 (transmission only)",
+      g2reqs.length > 0 && g2reqs.every((r) => (r.userAll ?? "").includes(NEWSCOPE)));
+    check("G original requirement travels into the resumed turn (transmission only)",
+      logG.filter((r) => r.marker === "KSI-DELEG-G3").some((r) => (r.userAll ?? "").includes(ORIGREQ) && (r.userAll ?? "").includes(NEWSCOPE)));
+    const blobsG2 = g2reqs.flatMap((r) => r.toolMsgs ?? []).join("\n");
+    check("G resumed result returned to the parent (G3-RESULT-OK)", blobsG2.includes("G3-RESULT-OK"));
+    check("G root keeps both turns (G0-ROOT-OK + G2-ROOT-OK)", assistantTexts(g2msgs).includes("G0-ROOT-OK") && assistantTexts(g2msgs).includes("G2-ROOT-OK"));
+
+    // --- 8. H: failure -> new evidence -> resume & recover (same child). ---
+    // The research child reads a file that does not exist: a real Native error,
+    // returned as the child limit. The architect then resumes THAT child with an
+    // approved new reference and a different question. The script selects this
+    // recovery path; nothing here evidences model initiative or hypothesis change.
+    const h = await runChain("build",
+      `KSI-DELEG-H0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Ask the architect for H-evidence and return whatever comes back to Main.`,
+      "H-ROOT-OK", "chain-h");
+    check("H root returns to Main (H-ROOT-OK)", assistantTexts(h.messages).includes("H-ROOT-OK"));
+    const hArchKids = await childrenOf(h.id);
+    check("H build owns one architect child", hArchKids.length === 1 && hArchKids[0].agent === "architect", hArchKids.map((k) => k.agent).join(","));
+    const hArch = hArchKids[0]?.id ?? null;
+    const hResKids = hArch ? await childrenOf(hArch) : [];
+    check("H architect owns one research child (no silent fan-out)", hResKids.length === 1 && hResKids[0].agent === "research", hResKids.map((k) => k.agent).join(","));
+    const hRes = hResKids[0]?.id ?? null;
+    const hResMsgs = hRes ? requireDataArray(
+      await mustApi("GET", `/api/session/${hRes}/message?limit=100&order=asc`, undefined, "H research child messages"),
+      "H research child messages",
+    ) : [];
+    const missingReads = toolEntries(hResMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(MISSING_EVIDENCE));
+    const missingErr = missingReads.length === 1 ? (missingReads[0].state?.error?.message ?? "") : "";
+    check("H missing-file read fails once with a real Native file error",
+      missingReads.length === 1 && missingReads[0].state?.status === "error" && /(no such file|not found|ENOENT|does not exist)/i.test(missingErr),
+      `status=${missingReads[0]?.state?.status ?? "none"} err=${missingErr.slice(0, 140)}`);
+    const missingAttempts = reqLog().filter((r) => r.marker === "KSI-DELEG-H2" && (r.scriptCalls ?? []).includes("read")
+      && (r.scriptArgs ?? []).join(" ").includes(MISSING_EVIDENCE)).length;
+    check("H same failing call never repeated (exactly one attempt)", missingAttempts === 1, `attempts=${missingAttempts}`);
+    const hResBlob = JSON.stringify(hResMsgs);
+    check("H same child holds both the failed and the recovery turn", hResBlob.includes("KSI-DELEG-H2R") && hResBlob.includes("H2-LIMITED-OK"));
+    const hArchMsgs = hArch ? requireDataArray(
+      await mustApi("GET", `/api/session/${hArch}/message?limit=100&order=asc`, undefined, "H architect messages"),
+      "H architect messages",
+    ) : [];
+    const resumePart = toolEntries(hArchMsgs).find((t) => t.name === "subagent" && JSON.stringify(t.state?.input ?? {}).includes("KSI-DELEG-H2R"));
+    check("H recovery resumed the same research childID (not a new session)",
+      !!resumePart && resumePart.state?.input?.sessionID === hRes, `sessionID=${resumePart?.state?.input?.sessionID ?? "none"}`);
+    const logH = reqLog();
+    check("H child limit returned first (H2-LIMITED-OK seen by architect)",
+      logH.filter((r) => r.marker === "KSI-DELEG-H1").flatMap((r) => r.toolMsgs ?? []).join("\n").includes("H2-LIMITED-OK"));
+    // H bytes-vs-marker distinction: the resumed read is verified on H2R's OWN
+    // Native session part (completed + output bytes); each hop up is verified on
+    // that level's OWN tool inputs, never on a chain-wide blob. The stub embeds
+    // only evidence sliced from the actual tool result it received.
+    const hRecReads = toolEntries(hResMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(SCOPE_FILE));
+    const hRecBytes = hRecReads.length === 1 ? JSON.stringify(hRecReads[0].state?.content ?? hRecReads[0].state ?? "") : "";
+    check("H resumed child completed a real read (Native part output bytes)",
+      hRecReads.length === 1 && hRecReads[0].state?.status === "completed" && hRecBytes.includes("SCOPE-NOTE-CONTENT"),
+      `status=${hRecReads[0]?.state?.status ?? "none"} bytes=${hRecBytes.length}`);
+    const hReceived = (mk, child) => logH.filter((r) => r.marker === mk)
+      .some((r) => (r.toolMsgs ?? []).some((text) => text.includes(child) && text.includes("SCOPE-NOTE-CONTENT")));
+    check("H architect received the recovered evidence (H2-RECOVERED-OK + bytes in H1 inputs)",
+      hReceived("KSI-DELEG-H1", "H2-RECOVERED-OK"));
+    check("H root received the recovered evidence (H1-ARCH-OK + bytes in H0 inputs)",
+      hReceived("KSI-DELEG-H0", "H1-ARCH-OK"));
+    check("H root returned the evidence to Main (H-ROOT-OK + bytes in root text)",
+      assistantTexts(h.messages).includes("H-ROOT-OK") && assistantTexts(h.messages).includes("SCOPE-NOTE-CONTENT"));
+    const hArgs = logH.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-H")).flatMap((r) => r.scriptArgs ?? []).join(" ");
+    check("H no secret/absolute paths in recovery (approved refs only)", !hArgs.includes("..") && !/\s\/[a-z]/.test(hArgs) && !hArgs.includes("/tmp/") && !hArgs.includes("/home/"));
+    check("H research created no deeper child", hRes ? (await childrenOf(hRes)).length === 0 : false);
+
+    // --- 9. I: session-scoped restrictions inherit to later-created children. ---
+    // No plugin, router, alias, or workflow engine: only the Native session-rules
+    // surface, used on our OWN sessions (a NEW analysis root; nothing else is
+    // created or patched). Snapshot semantics: a child carries the rules in effect
+    // when it was created; patching the root afterwards does not rewrite it.
+    // Contrast with E: there Design is broad by ROLE permission; here Design and
+    // General are confined by explicit SESSION rules, which apply after agent
+    // rules. No claim about HTTP/browser/execute OS sandboxes is made; the shell
+    // deny below evidences shell-path blocking capability only, via policy probe
+    // (no real shell, no external network anywhere in this case).
+    const I_RETAINED = { action: "webfetch", resource: "https://retained.invalid/*", effect: "deny" };
+    const I_APPENDED = [
+      { action: "edit", resource: "*", effect: "deny" },
+      { action: "shell", resource: "*", effect: "deny" },
+    ];
+    const hasRule = (rules, want) => Array.isArray(rules) && rules.some((r) =>
+      r?.action === want.action && r?.resource === want.resource && r?.effect === want.effect);
+    const iRootData = (await mustApi("POST", "/api/session", {
+      location: { directory: WORKSPACE }, agent: "build",
+      model: { id: "fixture", providerID: "fixture" },
+      permissions: [I_RETAINED],
+    }, "I root create"))?.data ?? {};
+    if (typeof iRootData.id !== "string" || !iRootData.id) throw new Error("I root create: canonical {data.id} shape missing");
+    const iRoot = iRootData.id;
+    const iRootPerms0 = (await mustApi("GET", `/api/session/${iRoot}`, undefined, "I root pre-patch read"))?.data?.permissions;
+    check("I root keeps its retained webfetch deny (pre-patch read)",
+      hasRule(iRootPerms0, I_RETAINED) && iRootPerms0.length === 1, `rules=${(iRootPerms0 ?? []).length}`);
+    // Turn A BEFORE the patch: the Plan child snapshots webfetch-only rules.
+    const iaMsgs = await promptTurn(iRoot,
+      `KSI-DELEG-I0A ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Research the approved reference once under the current session rules and return the finding.`,
+      "I0A-ROOT-OK", "chain-i0a");
+    check("I turn A returns (I0A-ROOT-OK)", assistantTexts(iaMsgs).includes("I0A-ROOT-OK"));
+    const iPreKids = await childrenOf(iRoot);
+    check("I turn A owns one plan child", iPreKids.length === 1 && iPreKids[0].agent === "plan", iPreKids.map((k) => k.agent).join(","));
+    const iPre = iPreKids[0]?.id ?? null;
+    const iPrePerms = iPre ? (await mustApi("GET", `/api/session/${iPre}`, undefined, "I pre-patch child read"))?.data?.permissions : null;
+    check("I pre-patch child snapshot is exactly the retained rule (ordered, no extras)",
+      isDeepStrictEqual(iPrePerms, [I_RETAINED]),
+      `rules=${JSON.stringify(iPrePerms)}`.slice(0, 200));
+    // PATCH appends edit+shell denies (replace semantics: the retained rule is
+    // re-sent, never dropped). Own root only.
+    await mustApi("PATCH", `/api/session/${iRoot}`, { permissions: [I_RETAINED, ...I_APPENDED] }, "I root patch", 204);
+    const iRootPerms1 = (await mustApi("GET", `/api/session/${iRoot}`, undefined, "I root post-patch read"))?.data?.permissions;
+    check("I patch preserves the retained deny and adds edit+shell denies",
+      isDeepStrictEqual(iRootPerms1, [I_RETAINED, ...I_APPENDED]),
+      `rules=${(iRootPerms1 ?? []).length}`);
+    try {
+      const mf = JSON.parse(fs.readFileSync(path.join(ROOT, "sandbox-manifest.json"), "utf8"));
+      mf.iCase = { root: iRoot, retained: I_RETAINED, appended: I_APPENDED };
+      fs.writeFileSync(path.join(ROOT, "sandbox-manifest.json"), JSON.stringify(mf, null, 1));
+    } catch {}
+    // The pre-patch child must be byte-identical to its creation snapshot: a full
+    // ordered deep-equal, so an added allow, a new deny, or a reorder cannot hide
+    // behind a retained+absent spot check (that weaker form admits counterexamples).
+    const iPrePerms1 = iPre ? (await mustApi("GET", `/api/session/${iPre}`, undefined, "I pre-patch child re-read"))?.data?.permissions : null;
+    check("I pre-patch child keeps its exact snapshot (deep-equal, no retroactive rewrite)",
+      iPre !== null && isDeepStrictEqual(iPrePerms1, iPrePerms),
+      `rules=${JSON.stringify(iPrePerms1)}`.slice(0, 200));
+    // Turn B AFTER the patch: Build0->Plan1->Design2->General3 (depth 3 max).
+    const ibMsgs = await promptTurn(iRoot,
+      `KSI-DELEG-I0B ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate the analysis down the allowed chain under the current session rules and return the leaf finding to Main.`,
+      "I-ROOT-OK", "chain-i0b");
+    check("I turn B returns to Main (I-ROOT-OK)", assistantTexts(ibMsgs).includes("I-ROOT-OK"));
+    const iTree = await treeFrom(iRoot);
+    const iMaxDepth = Math.max(...[...iTree.values()].map((v) => v.depth));
+    check("I chain respects the depth ceiling (max 3 from root 0)", iMaxDepth <= 3, `maxDepth=${iMaxDepth}`);
+    // Identify the turn-B plan child by its prompt (a pre-patch plan child exists).
+    const iPostKids = await childrenOf(iRoot);
+    let iPlan = null;
+    for (const k of iPostKids) {
+      if (k.agent !== "plan" || k.id === iPre) continue;
+      const km = requireDataArray(
+        await mustApi("GET", `/api/session/${k.id}/message?limit=20&order=asc`, undefined, "I plan child identify"),
+        "I plan child identify",
+      );
+      if (JSON.stringify(km).includes("KSI-DELEG-I1B")) { iPlan = k.id; break; }
+    }
+    check("I turn-B plan child identified (distinct from pre-patch child)", typeof iPlan === "string" && iPlan !== iPre, iPlan ?? "none");
+    const iDesignKids = iPlan ? await childrenOf(iPlan) : [];
+    const iDesign = iDesignKids.length === 1 && iDesignKids[0].agent === "design" ? iDesignKids[0].id : null;
+    check("I plan owns one design child", typeof iDesign === "string", iDesign ?? "none");
+    const iGenKids = iDesign ? await childrenOf(iDesign) : [];
+    const iGen = iGenKids.length === 1 && iGenKids[0].agent === "general" ? iGenKids[0].id : null;
+    check("I design owns one general leaf (depth 3, no fourth level)", typeof iGen === "string", iGen ?? "none");
+    check("I general leaf created no deeper child", iGen ? (await childrenOf(iGen)).length === 0 : false);
+    // Every post-patch descendant carries the FULL post-patch snapshot: deep-equal
+    // against the actual root-after GET array (preserved above) and against the
+    // exact expected ordered rules, so added/reordered rules cannot hide.
+    const I_EXPECTED_AFTER = [I_RETAINED, ...I_APPENDED];
+    for (const [label, sid] of [["plan", iPlan], ["design", iDesign], ["general", iGen]]) {
+      const perms = sid ? (await mustApi("GET", `/api/session/${sid}`, undefined, `I ${label} rules read`))?.data?.permissions : null;
+      check(`I ${label} session rules deep-equal the post-patch snapshot (ordered)`,
+        sid !== null && isDeepStrictEqual(perms, iRootPerms1) && isDeepStrictEqual(perms, I_EXPECTED_AFTER),
+        `rules=${JSON.stringify(perms)}`.slice(0, 220));
+    }
+    // Enforcement on the broad general leaf, in its own session context: real
+    // write/edit attempts denied, reads allowed, fake webfetch denied by probe
+    // only (no external network), shell path blocked by probe only (no real shell).
+    const iGenMsgs = iGen ? requireDataArray(
+      await mustApi("GET", `/api/session/${iGen}/message?limit=100&order=asc`, undefined, "I general leaf messages"),
+      "I general leaf messages",
+    ) : [];
+    const iWrites = toolEntries(iGenMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(DENIED_WRITE));
+    const iEdits = toolEntries(iGenMsgs).filter((t) => t.name === "edit" && JSON.stringify(t.state?.input ?? {}).includes(SCOPE_FILE));
+    const iWErr = iWrites.length === 1 ? (iWrites[0].state?.error?.message ?? "") : "";
+    const iEErr = iEdits.length === 1 ? (iEdits[0].state?.error?.message ?? "") : "";
+    check("I general forced write denied under session rules (exactly once)",
+      iWrites.length === 1 && iWrites[0].state?.status === "error" && isWriteEditDenial("write", iWErr),
+      `status=${iWrites[0]?.state?.status ?? "none"} err=${iWErr.slice(0, 120)}`);
+    check("I general forced edit denied under session rules (exactly once)",
+      iEdits.length === 1 && iEdits[0].state?.status === "error" && isWriteEditDenial("edit", iEErr),
+      `status=${iEdits[0]?.state?.status ?? "none"} err=${iEErr.slice(0, 120)}`);
+    check("I general edit probe denies in its session", iGen ? (await probeOn(iGen, "general", "edit", path.join(WORKSPACE, SCOPE_FILE))) === "deny" : false);
+    check("I general shell probe denies in its session", iGen ? (await probeOn(iGen, "general", "shell", "echo i-probe")) === "deny" : false);
+    check("I general read probe allows in its session", iGen ? (await probeOn(iGen, "general", "read", path.join(WORKSPACE, SCOPE_FILE))) === "allow" : false);
+    check("I retained webfetch probe denies in its session (no external call)",
+      iGen ? (await probeOn(iGen, "general", "webfetch", "https://retained.invalid/notes")) === "deny" : false);
+    const logI = reqLog();
+    const blobsI = logI.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-I")).flatMap((r) => r.toolMsgs ?? []).join("\n");
+    check("I pre-patch result returned (I1A-RESULT-OK seen by root)",
+      logI.filter((r) => r.marker === "KSI-DELEG-I0A").flatMap((r) => r.toolMsgs ?? []).join("\n").includes("I1A-RESULT-OK"));
+    // The general leaf's read is verified on its OWN Native session part
+    // (completed + output bytes in the tool result), never via a chain-wide blob
+    // that the pre-patch plan read could also satisfy.
+    const iReads = toolEntries(iGenMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(SCOPE_FILE));
+    const iReadBytes = iReads.length === 1 ? JSON.stringify(iReads[0].state?.content ?? iReads[0].state ?? "") : "";
+    check("I general leaf completed a real read (Native part output bytes)",
+      iReads.length === 1 && iReads[0].state?.status === "completed" && iReadBytes.includes("SCOPE-NOTE-CONTENT"),
+      `status=${iReads[0]?.state?.status ?? "none"} bytes=${iReadBytes.length}`);
+    // Bytes-up proof per level, each on its OWN branch's tool results (the
+    // pre-patch I1A branch cannot satisfy these): the stub embeds only evidence
+    // sliced from the actual tool result it received (EVID:… or an honest
+    // NO-EVIDENCE-IN-RESULT flag), so bytes at a parent prove receipt, and the
+    // parent's own EVID embedding proves onward return.
+    const iReceived = (mk, child) => logI.filter((r) => r.marker === mk)
+      .some((r) => (r.toolMsgs ?? []).some((text) => text.includes(child) && text.includes("SCOPE-NOTE-CONTENT")));
+    check("I design received the leaf evidence (I3-GENERAL-OK + bytes in I2 inputs)",
+      iReceived("KSI-DELEG-I2", "I3-GENERAL-OK"));
+    check("I plan received the evidence (I2-DESIGN-OK + bytes in I1B inputs)",
+      iReceived("KSI-DELEG-I1B", "I2-DESIGN-OK"));
+    check("I root received the evidence (I1B-PLAN-OK + bytes in I0B inputs)",
+      iReceived("KSI-DELEG-I0B", "I1B-PLAN-OK"));
+    check("I root returned the evidence to Main (I-ROOT-OK + bytes in root text)",
+      assistantTexts(ibMsgs).includes("I-ROOT-OK") && assistantTexts(ibMsgs).includes("SCOPE-NOTE-CONTENT"));
+    check("I turn-B branch children are free of pre-patch results (own histories only)", await (async () => {
+      // Separation belongs to the CHILD sessions (fresh histories starting at
+      // I1B): the resumed ROOT legitimately retains turn-A tool results in its
+      // request history (Native continuity, same as G proves desirable), so the
+      // root blob is the wrong place to demand amnesia.
+      for (const [label, sid, own] of [["plan", iPlan, "KSI-DELEG-I1B"], ["design", iDesign, "KSI-DELEG-I2"], ["general", iGen, "KSI-DELEG-I3"]]) {
+        if (typeof sid !== "string") return false;
+        const cm = JSON.stringify(requireDataArray(
+          await mustApi("GET", `/api/session/${sid}/message?limit=100&order=asc`, undefined, `I turn-B ${label} history`),
+          `I turn-B ${label} history`,
+        ));
+        if (!cm.includes(own) || cm.includes("KSI-DELEG-I1A")) return false;
+      }
+      return true;
+    })());
+    check("I chain results returned up (I1B-PLAN-OK -> I2-DESIGN-OK -> I3-GENERAL-OK)",
+      blobsI.includes("I1B-PLAN-OK") && blobsI.includes("I2-DESIGN-OK") && blobsI.includes("I3-GENERAL-OK"));
+
+    // Final guards across F/G/H/I: still analysis-only, still the same bytes.
+    const wsFilesEnd = fs.readdirSync(WORKSPACE).sort();
+    check("final workspace holds only the scope probe", JSON.stringify(wsFilesEnd) === JSON.stringify([SCOPE_FILE]), wsFilesEnd.join(","));
+    check("final fixture bytes unchanged since F", sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8")) === scopeHashBeforeF);
 
     const failed = results.filter((r) => !r.ok);
     console.log(`\n${results.length - failed.length}/${results.length} checks passed. Evidence dir: ${ROOT}`);

@@ -57,14 +57,15 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
 | **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `openai/gpt-6.1-sol#high` |
-| **Architect** / `architect` | 시스템 구조·기술 설계·API/데이터/상태/복구 계약 | subagent | `openai/gpt-6.1-sol#xhigh` |
+| **Architect** / `architect` | 시스템 구조·기술 설계·API/데이터/상태/복구 계약 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
 - `experimental.subagent_depth=3`은 **루트 0 아래 최대 3단계**입니다. 기본적으로 1~2단계를 사용하고 유용한 필요가 있을 때만 세 번째를 사용합니다. `all`은 메인/하위 실행 가능이라는 뜻이며 권한·위임 깊이와 별개입니다.
 - Build·Plan·Design은 허용된 전문가를 선택해 호출합니다. Architect는 Research·Explore·Critic, Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상은 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
 - 깊이가 다 찼거나 도구가 차단되면 허용 작업을 직접 수행하거나 부족한 전문 작업을 부모에게 반환합니다. 같은 과업을 조상에게 재위임하거나 막힌 호출을 반복하지 않습니다.
-- Plan은 Native 프롬프트와 일반 파일 편집 제한을 유지합니다. 계획·분석만 승인됐으면 하위 Design/General도 그 범위만 수행해야 합니다. **자식은 자신의 권한을 사용하므로 Plan의 읽기 전용 제한이 자식까지 자동 상속되지는 않습니다.** 지침을 강제 샌드박스로 보지 않습니다.
+- Plan은 Native 프롬프트와 일반 파일 편집 제한을 유지합니다. 계획·분석만 승인됐으면 하위 Design/General도 그 범위만 수행해야 합니다. **Plan의 역할 제한은 자동 상속되지 않지만, 명시한 Native 세션 제한은 자식 생성 시 상속할 수 있습니다.** 엄격한 보호가 필요하면 기존 제한을 보존한 세션 규칙 또는 제한 실행환경을 하위 생성 전에 준비하고 실제 거부를 확인합니다. Plan 선택만으로 세션 제한이 자동 설치되거나 기존 자식에 소급 적용되는 것은 아니며 OS·네트워크 샌드박스도 아닙니다.
 - 중요한 진척·재개·곁작업 후에는 Build가 남은 목표와 다음 통합 결과를 판단합니다. 선택이 중요하거나 불명확하면 Plan의 방향 반박, 기술 계약이 불명확하면 Architect의 판단을 활용하고 실제 실행·결과 확인으로 잇습니다. 자문 보고만으로 멈추거나 새 범위를 임의로 시작하지 않습니다. Plan은 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다.
+- 하위 조사·설계·구현이 실패하거나 Critic이 중요한 문제를 발견하면 각 부모가 유효한 부분 결과와 실패 근거를 확인하고 다음 접근을 판단합니다. 새 자료·교정된 조건·변경된 가설 없이 같은 요청을 반복하지 않습니다. 필요한 기존 담당자에게 교정을 연결하거나 접근법·배분을 바꾸고, 실제 차단은 해당 범위만 명시하며 독립적인 승인 작업은 계속합니다.
 - 기존 세션의 역할·모델은 설정 변경만으로 자동 이전되지 않습니다. 특히 Plan·Design을 메인으로 고를 때는 세션 모델도 확인하세요.
 
 Design은 맡은 UI 단위의 구현·검토를 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신 중요한 결정·충돌·실제 차단과 통합 결과를 반환합니다. Architect는 시스템 기술 설계 담당이며 UI 책임자와 구분합니다.
@@ -238,7 +239,7 @@ node tests/delegation-native-integration.mjs
 
 - `native-hook-integration.mjs`와 `delegation-native-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용하며 외부 모델을 호출하지 않습니다. 역할 라우팅 검사는 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
 - 최근 확인 환경: OpenCode 2.1.4 / Playwright CLI 0.1.22 / Linux arm64 (이전 검사의 버전·범위는 검증 기록 참고, 다른 OS는 미확인)
-- `agent-routing-native.mjs`는 최대 깊이 3의 선언 일치와 역할별 호출 정책·모델·본문, Research/Architect/Critic CLI·스킬·문서 도구의 허용/거부 경계를 검사합니다. 실제 깊이/중첩 실행은 별도 `delegation-native-integration.mjs` 범위이며 [검증 기록](docs/validation.md#동적-8개-역할과-최대-깊이-3-2026-10-24)에 구분합니다. 설정 조회로 실제 모델 판단력이나 강제 격리를 보장하지 않습니다.
+- `agent-routing-native.mjs`는 최대 깊이 3의 선언 일치와 역할별 호출 정책·모델·본문, Research/Architect/Critic CLI·스킬·문서 도구의 허용/거부 경계를 검사합니다. `delegation-native-integration.mjs`는 격리된 실제 Native에서 중첩·상한, 도구 거부, 소유 자식 세션 재개, 실패 후 새 참조를 통한 복구와 명시 세션 제한의 상속/비소급을 확인합니다. 모델은 로컬 scripted fixture이며 자율 판단력이나 실제품 완성도·OS 격리의 증거는 아닙니다. [실행 근거와 한계](docs/validation.md#장기-개발-연속성실패-복구-후속-보완)
 - 2026-10-17 모의 UI에서는 당시 명칭의 `Build → Design Architect → General` 중첩·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 새 역할의 모든 호출 경로·실제품 품질·장기 완주·비용 절감까지 입증한 것은 아닙니다. [이전 실행 근거](docs/validation.md#역할-구조-변경-2026-10-17)
 - `compaction-continuity-live.mjs`(선택형)는 수동 Compact 전후의 목표·확정 결정·미확정 후보·작업 상태 유지와 곁작업 복귀를 확인합니다. 2026-10-17 두 변형(keep 8192/15000) 모두 통과해 현재 설정을 유지했습니다. [결과와 한계](docs/validation.md#긴-세션-compact-연속성-검사-2026-10-17)
 - 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)

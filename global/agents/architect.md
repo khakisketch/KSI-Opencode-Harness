@@ -4,7 +4,7 @@ description: >
   migration, compatibility, deployment and failure recovery. Advises within
   an assigned question; writes no code, roadmap or acceptance.
 mode: subagent
-model: openai/gpt-6.1-sol#xhigh
+model: opencode-go/muse-spark-1.3-contributor#xhigh
 permissions:
   - action: "*"
     resource: "*"

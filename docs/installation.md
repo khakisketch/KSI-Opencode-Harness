@@ -26,13 +26,13 @@ Build — depth 0 · 제품 실행 총괄·통합·인수
 4. **기존 도구 재사용:** 브라우저·선택 스킬·소스 검사 플러그인. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
-배포 기본 모델은 Plan·Architect=`openai/gpt-6.1-sol#xhigh`, Design=동일 모델 `#high`, Research·General=`opencode-go/muse-spark-1.3-contributor#high`, Critic=동일 모델 `#xhigh`, Explore=동일 모델 `#low`입니다. Build는 세션 선택을 따르며 전역 모델을 고정하지 않습니다. 새 기술 Architect의 Sol XHigh는 복합 기술 판단을 위한 기본 배정이며 실측 우열의 증거가 아닙니다. 나머지는 기존 역할 모델을 계승합니다. Plan·Design은 `all`, Build는 `primary`, 나머지는 `subagent`입니다. 기존 세션의 역할·모델은 강제로 바꾸지 않습니다. [책임·모드·호출 범위](../README.md#역할과-위임-구조)
+배포 기본 모델은 Plan=`openai/gpt-6.1-sol#xhigh`, Design=동일 모델 `#high`, Research·General=`opencode-go/muse-spark-1.3-contributor#high`, Architect·Critic=동일 모델 `#xhigh`, Explore=동일 모델 `#low`입니다. Build는 세션 선택을 따르며 전역 모델을 고정하지 않습니다. Architect의 Muse Contributor XHigh는 사용자 지정이며 모델의 실측 우열을 주장하지 않습니다. Plan·Design은 `all`, Build는 `primary`, 나머지는 `subagent`입니다. 기존 세션의 역할·모델은 강제로 바꾸지 않습니다. [책임·모드·호출 범위](../README.md#역할과-위임-구조)
 
 ### 동적 호출과 승인 범위
 
 Build·Plan·Design은 각자의 허용 목록에서 필요한 전문가를 선택합니다. Architect는 Research·Explore·Critic, Research는 Explore를 호출할 수 있고 General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·하위 Build 호출은 허용하지 않습니다. 재위임은 남은 깊이 안에서만 가능하며 깊이 3에서는 허용 작업을 직접 수행하거나 부족한 전문 작업을 부모에게 반환합니다. 역할은 특정 깊이에 고정되지 않습니다.
 
-**계획·분석만 승인됐다면 하위도 계획·분석만 수행해야 합니다.** 자식은 자신의 권한을 사용하므로 Plan의 편집 거부가 하위 Design/General에 자동 상속되지 않습니다. 하네스 지침은 전이적 읽기 전용 샌드박스를 구현하지 않습니다. 실제 강제 격리가 필요한 자원은 별도의 제한 환경·계정을 제공하고, 위임으로 변경 승인을 우회하지 않습니다.
+**계획·분석만 승인됐다면 하위도 계획·분석만 수행해야 합니다.** Plan의 역할별 편집 거부는 하위 Design/General에 자동 상속되지 않습니다. 별개로 Native의 **세션별 제한 규칙**은 자식 생성 시 상속되므로 엄격한 분석 범위는 소유한 작업의 제한 세션이나 제한 실행환경에서 준비할 수 있습니다. Native session update는 규칙 배열을 교체하므로 기존 제한을 읽어 보존하고, 필요한 거부만 추가한 뒤 실제 도구·정책으로 효과를 확인합니다. 기존 자식에 소급 적용된다고 가정하거나 다른 작업의 세션 규칙을 바꾸지 않습니다. Plan 선택만으로 이 세션 제한을 자동 설치하는 플러그인은 추가하지 않습니다. 쉘·Browser·HTTP의 모든 효과를 막는 OS 샌드박스는 아니며 필요한 자원에는 별도 제한 환경·계정을 제공하고 위임으로 승인을 우회하지 않습니다. [Native 세션 규칙](https://opencode.ai/v2/docs/build/plugins#permissions)
 
 병렬 단위는 파일·공유 상태·브라우저의 소유자를 분리하고 조사·원본 증거를 재사용합니다. 하위에 원요구·확정 계약·가설·대상 버전/환경·허용 자원·결과를 전달하며 각 부모가 자식 결과를 검토·통합합니다. 독립 비평은 해당 설계/구현에 참여하지 않은 세션에 맡깁니다. UI 교정용 Critic과 중요한 최종 Critic은 같은 역할의 다른 세션일 수 있으며 둘을 매번 호출하지 않습니다.
 
@@ -45,7 +45,7 @@ Build·Plan·Design은 각자의 허용 목록에서 필요한 전문가를 선�
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업·완료 지침 |
 | `global/agents/research.md` | `~/.config/opencode/agents/research.md` | 심층 조사·비교·원본 근거 (`Muse Contributor High`, subagent) |
 | `global/agents/design.md` | `~/.config/opencode/agents/design.md` | UI/UX 설계·구현 조율·렌더 교정 (`Sol High`, all) |
-| `global/agents/architect.md` | `~/.config/opencode/agents/architect.md` | 시스템 기술 설계·계약 (`Sol XHigh`, subagent) |
+| `global/agents/architect.md` | `~/.config/opencode/agents/architect.md` | 시스템 기술 설계·계약 (`Muse Contributor XHigh`, subagent) |
 | `global/agents/critic.md` | `~/.config/opencode/agents/critic.md` | 범용 독립 비평 (`Muse Contributor XHigh`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` | 제한된 UI 소스 검사 플러그인 |
@@ -130,7 +130,9 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    OAuth는 사용자가 /mcps에서 진행하게 해줘.
 6. 실제 8개 역할·모델·MCP·기존 스킬 인식과 정본/설치본 일치를 확인해줘.
    agent-routing-native.mjs로 권한을, delegation-native-integration.mjs의 격리 로컬 모의 모델로
-   Plan의 재위임·깊이3·상한 차단을 확인해줘. 임시 fixture에서 기존 UI 소스 검사 훅도 검증해줘.
+   Plan의 재위임·깊이3·상한 차단·실제 도구 거부·소유 세션 재개·새 근거로의 복구와
+   명시 세션 제한의 상속/비소급을 확인해줘. 사용자 기존 세션의 규칙은 수정하지 마.
+   임시 fixture에서 기존 UI 소스 검사 훅도 검증해줘.
    실제 모델 품질·브라우저 연결·장기 완주와 설정/모의 검사를 구분하고,
    적용 완료·인증 대기·실패·설치 커밋·도구 버전·환경별 차이를 보고해줘.
 ```
