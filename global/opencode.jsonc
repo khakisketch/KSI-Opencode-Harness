@@ -5,11 +5,11 @@
   "share": "disabled",
   "update": "notify",
   "experimental": {
-    // Build -> Architect -> implementation/research/critique; a ceiling, not a required chain.
-    "subagent_depth": 2
+    // Root = 0. Usually use 1-2 levels; a useful third level is allowed, never required.
+    "subagent_depth": 3
   },
   "mcp": {
-    // Design Architect owns design outcomes; UX Scout optionally gathers evidence.
+    // Design owns UI delivery; Research gathers task-specific evidence when useful.
     // Mobbin is an optional paid service: this operator enables it, but the harness works without it.
     "mobbin": {
       "type": "remote",
@@ -30,22 +30,29 @@
   "agents": {
     // Native Markdown owns custom-role prompts and permissions; these are user routing preferences.
     "build": {
+      "description": "Default product execution lead. Owns implementation coordination, integration, testing, final acceptance and the next approved development outcome.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
-        { "action": "subagent", "resource": "design-architect", "effect": "allow" },
+        { "action": "subagent", "resource": "design", "effect": "allow" },
         { "action": "subagent", "resource": "general", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" },
-        { "action": "subagent", "resource": "ux-scout", "effect": "allow" },
-        { "action": "subagent", "resource": "ui-ux-critic", "effect": "allow" },
-        { "action": "subagent", "resource": "product-reviewer", "effect": "allow" }
+        { "action": "subagent", "resource": "research", "effect": "allow" },
+        { "action": "subagent", "resource": "architect", "effect": "allow" },
+        { "action": "subagent", "resource": "critic", "effect": "allow" }
       ]
     },
     "plan": {
+      "description": "Requirements and planning advisor. Compares priorities, alternatives and dependencies; coordinates scoped planning research without authorizing implementation.",
       "mode": "all",
       "model": "openai/gpt-6.1-sol#xhigh",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "design", "effect": "allow" },
+        { "action": "subagent", "resource": "architect", "effect": "allow" },
+        { "action": "subagent", "resource": "research", "effect": "allow" },
+        { "action": "subagent", "resource": "critic", "effect": "allow" },
+        { "action": "subagent", "resource": "general", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" }
       ]
     },

@@ -34,44 +34,66 @@ const realSkills = [
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
 describe('tracked role inventory', () => {
-  it('tracks 8 visible roles including architect, scout, critic, and product-reviewer', () => {
-    assert.deepEqual(TRACKED_AGENTS, ['build', 'general', 'explore', 'plan', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']);
+  it('tracks 8 roles in exact order build,plan,general,explore,research,design,architect,critic', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'general', 'explore', 'research', 'design', 'architect', 'critic']);
   });
-  it('exposes critic registration; unregistered critic is false absence, not unknown', () => {
-    const withCritic = projectAgents([
+  it('exposes research registration; unregistered research is false absence, not unknown', () => {
+    const withResearch = projectAgents([
       { id: 'build', name: 'Build', mode: 'primary' },
-      { id: 'ui-ux-critic', name: 'UI UX Critic', mode: 'subagent', extra: SECRET },
+      { id: 'research', name: 'Research', mode: 'subagent', extra: SECRET },
     ]);
-    assert.equal(withCritic.find((a) => a.name === 'ui-ux-critic').registered, true);
-    assert.equal(withCritic.find((a) => a.name === 'ui-ux-critic').mode, 'subagent');
-    assert.equal(withCritic.find((a) => a.name === 'ux-scout').registered, false);
-    assert.ok(!JSON.stringify(withCritic).includes(SECRET));
-    const withoutCritic = projectAgents([]);
-    assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').registered, false);
-    assert.equal(withoutCritic.find((a) => a.name === 'ui-ux-critic').mode, 'unknown');
-    assert.ok(!JSON.stringify(withoutCritic).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+    assert.equal(withResearch.find((a) => a.name === 'research').registered, true);
+    assert.equal(withResearch.find((a) => a.name === 'research').mode, 'subagent');
+    assert.equal(withResearch.find((a) => a.name === 'architect').registered, false);
+    assert.ok(!JSON.stringify(withResearch).includes(SECRET));
+    const withoutResearch = projectAgents([]);
+    assert.equal(withoutResearch.find((a) => a.name === 'research').registered, false);
+    assert.equal(withoutResearch.find((a) => a.name === 'research').mode, 'unknown');
+    assert.ok(!JSON.stringify(withoutResearch).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
-  it('exposes product-reviewer registration; unregistered reviewer is false absence, not unknown', () => {
-    const withReviewer = projectAgents([
+  it('exposes design/architect/critic registration; unregistered roles are false absence, not unknown', () => {
+    const withNew = projectAgents([
       { id: 'build', name: 'Build', mode: 'primary' },
-      { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent', apiKey: SECRET },
+      { id: 'design', name: 'Design', mode: 'all', apiKey: SECRET },
+      { id: 'architect', name: 'Architect', mode: 'subagent' },
+      { id: 'critic', name: 'Critic', mode: 'subagent', headers: { auth: SECRET } },
     ]);
-    assert.equal(withReviewer.find((a) => a.name === 'product-reviewer').registered, true);
-    assert.equal(withReviewer.find((a) => a.name === 'product-reviewer').mode, 'subagent');
-    assert.equal(withReviewer.find((a) => a.name === 'ui-ux-critic').registered, false);
-    assert.ok(!JSON.stringify(withReviewer).includes(SECRET));
-    const withoutReviewer = projectAgents([]);
-    assert.equal(withoutReviewer.find((a) => a.name === 'product-reviewer').registered, false);
-    assert.equal(withoutReviewer.find((a) => a.name === 'product-reviewer').mode, 'unknown');
-    assert.ok(!JSON.stringify(withoutReviewer).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+    assert.equal(withNew.find((a) => a.name === 'design').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'design').mode, 'all');
+    assert.equal(withNew.find((a) => a.name === 'architect').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'architect').mode, 'subagent');
+    assert.equal(withNew.find((a) => a.name === 'critic').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'critic').mode, 'subagent');
+    assert.equal(withNew.find((a) => a.name === 'research').registered, false);
+    assert.ok(!JSON.stringify(withNew).includes(SECRET));
+    const withoutNew = projectAgents([]);
+    for (const n of ['design', 'architect', 'critic']) {
+      assert.equal(withoutNew.find((a) => a.name === n).registered, false);
+      assert.equal(withoutNew.find((a) => a.name === n).mode, 'unknown');
+    }
+    assert.ok(!JSON.stringify(withoutNew).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+  });
+  it('retired native ids are not tracked and never project as registered', () => {
+    for (const retired of ['design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
+      assert.ok(!TRACKED_AGENTS.includes(retired), `${retired} must not be tracked`);
+    }
+    const mocked = projectAgents([
+      { id: 'ux-scout', name: 'UX Scout', mode: 'subagent' },
+      { id: 'ui-ux-critic', name: 'UI UX Critic', mode: 'subagent' },
+      { id: 'design-architect', name: 'Design Architect', mode: 'all' },
+      { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent' },
+      { id: 'design-specialist', name: 'Design Specialist', mode: 'all' },
+    ]);
+    assert.ok(mocked.every((a) => a.registered === false));
+    assert.ok(!mocked.some((a) => ['ux-scout', 'ui-ux-critic', 'design-architect', 'product-reviewer', 'design-specialist'].includes(a.name)));
   });
   it('tracks 8 roles in projections and mocks without secret exposure', () => {
     assert.equal(projectAgents([]).length, 8);
-    assert.equal(projectAgents([]).find((a) => a.name === 'product-reviewer').registered, false);
+    assert.equal(projectAgents([]).find((a) => a.name === 'critic').registered, false);
     const mocked = projectAgents([
-      { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent', headers: { auth: SECRET } },
+      { id: 'critic', name: 'Critic', mode: 'subagent', headers: { auth: SECRET } },
     ]);
-    assert.equal(mocked.find((a) => a.name === 'product-reviewer').registered, true);
+    assert.equal(mocked.find((a) => a.name === 'critic').registered, true);
     assert.ok(!JSON.stringify(mocked).includes(SECRET));
   });
 });
