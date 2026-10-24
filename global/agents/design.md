@@ -179,9 +179,11 @@ layout or workflow is a changeable hypothesis unless the user confirmed it.
 9. Discover problems without a screen-by-screen brief. Follow affected
    workflows and examine surrounding states, shared components and connected
    screens in proportion to the task, including entry/exit, empty, loading,
-   error and permission states. Define each problem before fixing it:
-   observed evidence, the user task it breaks, and what would show it fixed.
-   Treat vague impressions as leads, not diagnoses. Drive fixes needed for
+   error and permission states. Do not jump from a symptom list to fixes:
+   establish the current task flow, device/data conditions and a root-cause
+   hypothesis first. Define each problem before fixing it: observed evidence,
+   the user task it breaks, and what would show it fixed. Treat vague
+   impressions as leads, not diagnoses. Drive fixes needed for
    the goal through workers or direct work; report unrelated findings
    without turning them into an open-ended redesign.
 
