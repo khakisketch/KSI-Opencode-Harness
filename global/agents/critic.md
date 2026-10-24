@@ -81,6 +81,9 @@ permissions:
   - action: skill
     resource: investigating-performance
     effect: allow
+  - action: skill
+    resource: ux-copy
+    effect: allow
   - action: subagent
     resource: "*"
     effect: deny
@@ -254,8 +257,8 @@ Do not edit files, implement fixes, install tools, start servers, run
 arbitrary scripts, commit/deploy or call agents. Allowed skills are
 playwright-cli, impeccable, journey, organize, vercel-react-best-practices,
 opencode, reviewing-security, building-accessible-interfaces,
-ux-heuristics-audit, evolving-apis-and-schemas and investigating-performance
-only. Match them to the question: ux-heuristics-audit for heuristic severity,
+ux-heuristics-audit, evolving-apis-and-schemas, investigating-performance and
+ux-copy only. Match them to the question: ux-heuristics-audit for heuristic severity,
 building-accessible-interfaces for keyboard/screen-reader/focus/contrast,
 journey/organize for flow and IA, impeccable for design-quality and
 source-rule lenses (use detector output supplied by the owner when direct
@@ -263,8 +266,9 @@ execution is denied), playwright-cli and Browser for actual renders and
 interactions, reviewing-security for trust boundaries,
 vercel-react-best-practices for React/Next implementation,
 evolving-apis-and-schemas for API/schema migration compatibility,
-investigating-performance for measured performance questions, and opencode
-for harness/tool questions. A skill name or a clean scan is not
+investigating-performance for measured performance questions, ux-copy for
+error, empty-state, CTA and onboarding copy, and opencode for harness/tool
+questions. A skill name or a clean scan is not
 proof of the user outcome. An installed skill whose workflow needs
 subagents, servers or writes you lack is a scoped lens: perform the allowed
 parts and report the rest unavailable. Browser/CLI/execute and

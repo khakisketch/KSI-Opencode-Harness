@@ -969,12 +969,12 @@ async function main() {
   // carries evidence-gathering lenses including accessibility; General is
   // executor-only; Explore has no skill surface. Engineer/Design keep their
   // broad default-allow premise, probed live.
-  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "impeccable", "investigating-performance", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
+  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "impeccable", "investigating-performance", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-copy", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
   const WANT_RESEARCH_SKILLS = ["building-accessible-interfaces", "journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
   const WANT_GENERAL_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "opencode", "playwright-cli", "vercel-react-best-practices"].sort();
   const gotCriticSkills = skillAllows(parseMdRules(mdSources.critic));
   const gotResearchSkills = skillAllows(parseMdRules(mdSources.research));
-  check("source critic skill allows are exactly the 11 (review + technical lenses)",
+  check("source critic skill allows are exactly the 12 (review + technical + copy lenses)",
     JSON.stringify(gotCriticSkills) === JSON.stringify(WANT_CRITIC_SKILLS), `got=[${gotCriticSkills.join(",")}]`);
   check("source research skill allows are exactly the 6 evidence lenses",
     JSON.stringify(gotResearchSkills) === JSON.stringify(WANT_RESEARCH_SKILLS), `got=[${gotResearchSkills.join(",")}]`);
@@ -1001,6 +1001,8 @@ async function main() {
   const designSource = mdSources.design ?? "";
   check("source design uses the official Impeccable detector, not the custom hook",
     designSource.includes("detect --json") && !designSource.includes("task-first-ux-review"));
+  check("source trial skills are wired to Engineer and Design",
+    (mdSources.engineer ?? "").includes("diagnosing-bugs") && designSource.includes("ux-copy"));
 
   // --- 2. Sandbox (private HOME/XDG; copies actual source, sandbox-only transforms) ---
   fs.mkdirSync(WORKSPACE, { recursive: true });

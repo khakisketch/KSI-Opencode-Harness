@@ -94,7 +94,7 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   자체 증거를 인용한다.
 - `reviewing-security`는 세션에서 로드되어 라우팅 데이터·도구 경계의
   경로 기반 리뷰에 사용됐다 (6종 전체 실사용 주장 아님).
-  Critic은 위 3종을 포함해 검토·기술 렌즈 11종을 읽기 전용 출처로
+  Critic은 위 3종을 포함해 검토·기술 렌즈 12종을 읽기 전용 출처로
   허용받았다. General은 코딩·검증 5종만 허용하고, Explore는 스킬 표면
   없이 동작한다. Engineer·Design은 스킬 기본 허용이며, 2026-10-24 전역
   적용에서 새 역할·권한과 6종 전역 사본이 설치됐다.
@@ -102,7 +102,7 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.
 - 기술 검증 현황: 회귀 **101/101**, OpenSpec 2/2, Native scripted
-  **314/314**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
+  **315/315**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
   검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아니다.
   실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문과
   Research medium의 비교 품질은 미검증이며, 상세는
@@ -113,7 +113,7 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 
 ## 6. 추가 스킬 후보 검토 (2026-10-24, 조사만·미설치)
 
-현재 역할별 스킬 경계와 겹치지 않으면서 실제 공백을 메우는 후보만 골랐다. 설치 수는 품질 증거가 아니며, 라이선스·스크립트·네트워크·역할 충돌을 확인했다. 아래 후보는 **아직 설치하지 않았다.**
+현재 역할별 스킬 경계와 겹치지 않으면서 실제 공백을 메우는 후보만 골랐다. 설치 수는 품질 증거가 아니며, 라이선스·스크립트·네트워크·역할 충돌을 확인했다. 이 표는 **2026-10-24 조사 시점의 후보 목록**이며, 실제 trial 설치 상태는 7을 따른다.
 
 | 후보 | 출처·라이선스 | 메우는 공백 | 추천 역할 | 메모 |
 | --- | --- | --- | --- | --- |
@@ -187,4 +187,13 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
 - E2E 테스트의 flaky·캡처 실패·CI 재실행이 줄었는가
 - 스킬 호출이 실제 작업을 늘리지 않고 판단을 줄였는가
 
-효과가 없거나 호출만 늘면 제거한다. 설치 수·평가 점수는 효과 증거로 사용하지 않는다. 현재는 **아직 설치하지 않았고**, 위 2종을 trial할지 결정하기 전 단계다.
+효과가 없거나 호출만 늘면 제거한다. 설치 수·평가 점수는 효과 증거로 사용하지 않는다.
+
+### 2026-10-24 trial 설치
+
+- `diagnosing-bugs` — Matt Pocock, MIT, `~/.agents/skills/diagnosing-bugs`. Engineer가 원인 불명·반복 실패에 사용한다. 선택적 HITL shell template 포함, 설치 훅 없음.
+- `ux-copy` — Anthropic knowledge-work-plugins, Apache-2.0, `~/.agents/skills/ux-copy`. Design·Critic이 에러·빈 상태·CTA·온보딩 문구에 사용한다. 공유 `~/.agents/CONNECTORS.md`를 함께 배치했다.
+- Critic 허용 목록은 12종으로 늘렸고, Engineer/Design 지침에 사용 조건을 추가했다. General·Explore·Research는 기존 경계대로 이 두 스킬을 허용하지 않는다.
+- 설치 기록·해시·라이선스: `/tmp/opencode/ksi-depth3-install-qxzxj_rl/trial-skills-install.json`.
+- 사용 흐름: Engineer는 재현 루프→가설→최소 수정→회귀 가드→런타임 재검증, Design/Critic은 사용자 상태→문구→복구 경로→실제 렌더 상태 확인.
+- 2~3개 실제 작업 후 유지/제거를 결정한다. 아직 효과는 미검증이다.

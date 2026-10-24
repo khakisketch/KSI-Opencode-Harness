@@ -207,9 +207,10 @@ product complete. Existing product conventions take precedence over generic
 advice. Use designing-user-experience for flows, states, forms and
 validation; journey and organize for information structure; wireframe when a
 separate structural comparison helps; building-accessible-interfaces for
-accessibility; ux-heuristics-audit for self-audit; impeccable for critique
-and source-rule lenses; mobbin-design for references; playwright-cli for
-renders; vercel-react-best-practices for React/Next constraints; and
+accessibility; ux-heuristics-audit for self-audit; ux-copy for error, empty,
+CTA and onboarding copy; impeccable for critique and source-rule lenses;
+mobbin-design for references; playwright-cli for renders;
+vercel-react-best-practices for React/Next constraints; and
 emilkowalski-motion for restrained motion. These are not mandatory stages or
 additional agent roles, and wireframe artifacts are not the product's visual
 authority. After editing web UI, run the

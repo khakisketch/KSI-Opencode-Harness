@@ -41,9 +41,12 @@
 - [x] 4A.3 Set Engineer/Design=high, Critic/Plan=xhigh, General=high,
   Research=medium trial, Explore=low; record the unverified-model caveat.
 - [x] 4A.4 Reduce prompt duplication: remove four shared depth/handoff
-  footers and align Critic's prose allowlist with its 9 permissions.
+  footers and align Critic's prose allowlist with its 12 permissions.
 - [x] 4A.5 Re-run regression, OpenSpec and Native scripted verification;
   record evidence in `docs/validation.md`.
+- [x] 4A.6 Trial-install `diagnosing-bugs` (Engineer) and `ux-copy`
+  (Design/Critic); record provenance, role permissions and usage flows.
+  Effect measurement remains pending.
 
 ## 5. Honest pending (change stays OPEN, no forced archive)
 
@@ -55,6 +58,9 @@
   outside this change; this change records the compatibility rules).
 - [ ] 5.4 Technical validation remainder (actual Muse single-model Engineer/
   Design/Plan and render evidence) — global runtime is applied and
-  `agent-routing-native` passes 292/292; the current single-Muse
+  `agent-routing-native` passes 327/327; the current single-Muse
   configuration still lacks live Engineer/Design/Plan quality evidence.
   See `docs/engineer-routing-validation.md` (owned outside this change).
+- [ ] 5.5 Measure the `diagnosing-bugs` and `ux-copy` trial over 2-3 real
+  tasks; remove either if it adds calls without reducing rework or copy
+  corrections.
