@@ -412,7 +412,7 @@ async function probeReadonlyRole({ agent, cliPrefix, outputFile, skillsAllow, sk
 // skill denies.
 const research = await probeReadonlyRole({
   agent: 'research', cliPrefix: 'research-probe', outputFile: '/tmp/opencode/research-output.md',
-  skillsAllow: ['playwright-cli', 'mobbin-design', 'opencode', 'journey', 'organize'],
+  skillsAllow: ['playwright-cli', 'mobbin-design', 'opencode', 'journey', 'organize', 'building-accessible-interfaces'],
   skillsDeny: ['ux-heuristics-audit', 'impeccable', 'vercel-react-best-practices', 'wireframe', 'emilkowalski-motion'],
   mobbinSearchEffect: 'allow',
 });
@@ -422,7 +422,7 @@ const research = await probeReadonlyRole({
 // every other skill denies, including unknown ids. Existing denies preserved.
 const critic = await probeReadonlyRole({
   agent: 'critic', cliPrefix: 'critic-probe', outputFile: '/tmp/opencode/critic-output.md',
-  skillsAllow: ['playwright-cli', 'impeccable', 'journey', 'organize', 'vercel-react-best-practices', 'opencode', 'reviewing-security', 'building-accessible-interfaces', 'ux-heuristics-audit'],
+  skillsAllow: ['playwright-cli', 'impeccable', 'journey', 'organize', 'vercel-react-best-practices', 'opencode', 'reviewing-security', 'building-accessible-interfaces', 'ux-heuristics-audit', 'evolving-apis-and-schemas', 'investigating-performance'],
   skillsDeny: ['mobbin-design', 'wireframe', 'emilkowalski-motion', 'no-such-skill-ksi-probe'],
   mobbinSearchEffect: 'deny',
 });
@@ -442,6 +442,30 @@ async function probeDefaultAllowSkills({ agent, skills }) {
 const NEW_SKILLS_6 = ['reviewing-security', 'building-accessible-interfaces', 'ux-heuristics-audit', 'playwright-cli', 'opencode', 'journey'];
 await probeDefaultAllowSkills({ agent: 'engineer', skills: NEW_SKILLS_6 });
 await probeDefaultAllowSkills({ agent: 'design', skills: NEW_SKILLS_6 });
+// General is an executor, not a design/architecture owner. It gets coding and
+// verification lenses only; design/strategy/review skills deny. Explore is a
+// locator with no skill surface at all.
+async function probeSkillSet({ agent, allow, deny }) {
+  const session = await api('session.create', [], { location: { directory: repo }, agent });
+  assert.ok(session.id);
+  for (const [expected, skills] of [['allow', allow], ['deny', deny]]) {
+    for (const sk of skills) {
+      const r = await api('session.permission.create', [`sessionID=${session.id}`], { action: 'skill', resources: [sk], agent });
+      await rejectIfPending(session.id, r);
+      check(`${agent} skill ${sk}: ${expected}`, () => assert.equal(r.effect, expected, `${agent} skill ${sk}`));
+    }
+  }
+}
+await probeSkillSet({
+  agent: 'general',
+  allow: ['vercel-react-best-practices', 'evolving-apis-and-schemas', 'building-accessible-interfaces', 'playwright-cli', 'opencode'],
+  deny: ['designing-user-experience', 'journey', 'organize', 'wireframe', 'impeccable', 'mobbin-design', 'ux-heuristics-audit', 'investigating-performance', 'reviewing-security', 'emilkowalski-motion', 'design-taste-frontend', 'gpt-taste', 'no-such-skill-ksi-probe'],
+});
+await probeSkillSet({
+  agent: 'explore',
+  allow: [],
+  deny: ['opencode', 'playwright-cli', 'vercel-react-best-practices', 'no-such-skill-ksi-probe'],
+});
 // Browser deny removes its catalog; operations do not issue individual prompts
 // (https://opencode.ai/v2/docs/tools#browser). A query can return a trailing
 // deny despite declared allows; the cause is unverified. Assert the source

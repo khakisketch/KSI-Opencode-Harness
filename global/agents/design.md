@@ -204,10 +204,15 @@ applicable procedures within confirmed product constraints, explicit user
 limits and the harness completion policy; preserve upstream originals. A
 bounded audit or wireframe deliverable ending does not make the whole
 product complete. Existing product conventions take precedence over generic
-advice. Use Intent's journey for user flows and organize for information
-structure; use wireframe when a separate structural comparison helps. These
-are not mandatory stages or additional agent roles, and wireframe artifacts
-are not the product's visual authority. After editing web UI, run the
+advice. Use designing-user-experience for flows, states, forms and
+validation; journey and organize for information structure; wireframe when a
+separate structural comparison helps; building-accessible-interfaces for
+accessibility; ux-heuristics-audit for self-audit; impeccable for critique
+and source-rule lenses; mobbin-design for references; playwright-cli for
+renders; vercel-react-best-practices for React/Next constraints; and
+emilkowalski-motion for restrained motion. These are not mandatory stages or
+additional agent roles, and wireframe artifacts are not the product's visual
+authority. After editing web UI, run the
 installed Impeccable skill's official `detect --json` on the changed targets
 once, fix mechanical findings, and pass the rest to review. Native platforms
 skip the source detector. A clean source scan is not rendered UX

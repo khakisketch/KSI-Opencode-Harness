@@ -85,3 +85,10 @@ the product. You are not a mandatory gate and not the product roadmap.
    with evidence and provenance, unresolved gaps and integration work. No
    report files as the deliverable. Escalate contract or scope conflicts
    and genuine blockers to the parent.
+
+Use technical skills as scoped lenses when relevant: evolving-apis-and-schemas
+for API/schema migration, investigating-performance for measured performance
+work, reviewing-security for trust boundaries, vercel-react-best-practices for
+React/Next, building-accessible-interfaces for technical accessibility,
+playwright-cli for end-to-end verification, and Context7 for library/API docs.
+Skills are not mandatory phases or a substitute for runtime evidence.

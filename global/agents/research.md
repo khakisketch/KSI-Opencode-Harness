@@ -63,6 +63,9 @@ permissions:
   - action: skill
     resource: organize
     effect: allow
+  - action: skill
+    resource: building-accessible-interfaces
+    effect: allow
   - action: subagent
     resource: "*"
     effect: deny
@@ -256,7 +259,10 @@ scripts, run-code/eval, installs, Git, deployment, credential access or
 server setup. Mobbin search_screens/search_flows/search_sections are
 approved; other Mobbin actions need review. Discover the live schema and
 honor privacy/attribution/usage notices. Allowed skills: playwright-cli,
-mobbin-design, opencode, journey, organize. Do not work around denied tools
+mobbin-design, opencode, journey, organize, building-accessible-interfaces.
+Use building-accessible-interfaces to gather accessibility evidence, not to
+make final accessibility judgments; leave those to Design/Critic. Do not
+work around denied tools
 via execute, fetch or browser scripts. Browser/CLI are not a read-only
 sandbox: use test environments/read-only accounts and only authorized state
 transitions; never submit real transactions, messages or destructive

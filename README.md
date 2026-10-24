@@ -248,6 +248,21 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 | React/Next.js 구현·성능 | Vercel React Best Practices(설치된 경우) |
 | 기존 UI의 절제된 모션 개선 | Emil Kowalski Motion(선택) |
 
+### 역할별 스킬 경계
+
+| 역할 | 주로 쓰는 스킬·도구 | 의도적으로 맡기지 않는 것 |
+| --- | --- | --- |
+| Build | OpenSpec, `opencode`, 통합·검증 도구 | 특정 디자인·기술 방법의 대행 |
+| Plan | `opencode`, 분석 보조 | 구현·디자인 실행 |
+| Engineer | `evolving-apis-and-schemas`, `investigating-performance`, `reviewing-security`, `vercel-react-best-practices`, `building-accessible-interfaces`, `playwright-cli`, Context7 | 디자인 방향·최종 UX 결정 |
+| Design | `designing-user-experience`, `journey`, `organize`, `wireframe`, `building-accessible-interfaces`, `ux-heuristics-audit`, `impeccable`, `mobbin-design`, `playwright-cli`, `vercel-react-best-practices`, `emilkowalski-motion` | API/마이그레이션·보안 리뷰의 소유 |
+| General | `vercel-react-best-practices`, `evolving-apis-and-schemas`, `building-accessible-interfaces`, `playwright-cli`, `opencode` | 디자인·전략·아키텍처·보안 리뷰 |
+| Explore | 없음 — 읽기·검색 도구만 | 디자인·리서치·구현 |
+| Research | `playwright-cli`, `mobbin-design`, `journey`, `organize`, `building-accessible-interfaces`, `opencode` | 구현·최종 디자인·승인 |
+| Critic | `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit`, `evolving-apis-and-schemas`, `investigating-performance` | 구현·재설계·최종 인수 |
+
+General은 의도적으로 코딩·검증 스킬만 허용하고, 디자인·전략·아키텍처·보안 리뷰 스킬은 허용하지 않습니다. Explore는 스킬 없이 코드 위치·사실만 찾습니다. Engineer·Design은 필요한 기술·디자인 스킬을 넓게 사용하되, 각자의 소유권 경계는 유지합니다. 권한과 실제 설치·발견은 별개이므로 새 스킬을 추가할 때는 설치 상태와 이 표를 함께 확인합니다.
+
 스킬은 역할이나 필수 개발 단계를 추가하는 장치가 아닙니다. 필요한 범위만 읽고 적용하며, 원본 보존·참고용 와이어프레임과 실제 제품의 시각 기준을 구분합니다. 이 저장소는 스킬 원본을 번들하지 않으므로 기존 설치를 재사용하거나 [공식 출처별 설치](docs/installation.md#외부-도구-출처)를 별도로 확인해야 합니다. 권한 허용이나 MCP 연결이 스킬 설치를 뜻하지는 않습니다.
 
 외부 스킬의 제한된 실행과 제품 전체의 인수를 구분하는 적용 정책은 [스킬 연결 검토](docs/validation.md#스킬-연결-검토-2026-10-17)에 기록했습니다. 사용자 범위·예산은 지키며, 스킬 종료를 미충족 제품의 완료로 간주하지 않습니다. 등록이나 본문 검토를 실제 활용 성능 검증으로 간주하지 않습니다.
@@ -305,10 +320,12 @@ Build — 제품 통합·교차 일관성·최종 인수
 | 디자인 품질·소스 규칙 | `impeccable` (Design이 실행한 `detect --json` 결과 포함) |
 | 실제 렌더·조작·상태 | Browser, `playwright-cli` |
 | React/Next 구현·성능 | `vercel-react-best-practices` |
+| API·스키마·마이그레이션 호환성 | `evolving-apis-and-schemas` |
+| 측정 기반 성능·병목 | `investigating-performance` |
 | 보안·공격자 경로 | `reviewing-security` |
 | 하네스·도구 자체 | `opencode` |
 
-Critic의 스킬 허용 목록은 `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit` 9개입니다. 전체 워크플로가 하위 에이전트·서버·쓰기를 요구하면 허용된 부분만 렌즈로 적용하고 나머지는 미제공으로 보고합니다. Design은 같은 외부 방법을 설계·자체 검토에 사용하되, 독립 비평을 자기 승인으로 대체하지 않습니다.
+Critic의 스킬 허용 목록은 `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit`, `evolving-apis-and-schemas`, `investigating-performance` 11개입니다. 전체 워크플로가 하위 에이전트·서버·쓰기를 요구하면 허용된 부분만 렌즈로 적용하고 나머지는 미제공으로 보고합니다. Design은 같은 외부 방법을 설계·자체 검토에 사용하되, 독립 비평을 자기 승인으로 대체하지 않습니다.
 
 **OpenSpec은 언제 쓰나.** 승인된 요구·API/데이터·계약이 바뀌는 UI 작업은 OpenSpec change에 연결합니다. Design은 UX artifact 내용을, Engineer는 기술 artifact 내용을, Build는 요구 승인·통합·아카이브를 맡습니다. Plan은 분석·제안만 합니다. 작은 버그·스타일·국소 리팩터링에는 새 change를 강제하지 않으며, `openspec-propose`의 계획 경계는 구현 승인으로 넘지 않습니다.
 

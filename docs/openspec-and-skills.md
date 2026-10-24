@@ -94,15 +94,15 @@ osmontero `install.sh`는 파괴적이므로(리포 외 스킬 삭제, 전역 �
   자체 증거를 인용한다.
 - `reviewing-security`는 세션에서 로드되어 라우팅 데이터·도구 경계의
   경로 기반 리뷰에 사용됐다 (6종 전체 실사용 주장 아님).
-  Critic은 `reviewing-security`/`building-accessible-interfaces`/
-  `ux-heuristics-audit` 3종을 읽기 전용 출처로 허용받았다.
-  Native general·Engineer·Design은 스킬 기본 허용이며, 2026-10-24 전역
+  Critic은 위 3종을 포함해 검토·기술 렌즈 11종을 읽기 전용 출처로
+  허용받았다. General은 코딩·검증 5종만 허용하고, Explore는 스킬 표면
+  없이 동작한다. Engineer·Design은 스킬 기본 허용이며, 2026-10-24 전역
   적용에서 새 역할·권한과 6종 전역 사본이 설치됐다.
 - 모델/프로바이더 프라이버시 GLM 본문 필터는 단일 Muse 라우팅 정리에서
   제거됐다. 이는 데이터 노출을 바꾸는 스펙 요구사항이 아니며, 현재 구성은
   `opencode-go` 단일 provider와 Contributor 학습 사용 조건을 명시한다.
 - 기술 검증 현황: 회귀 **101/101**, OpenSpec 2/2, Native scripted
-  **312/312**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
+  **314/314**. 2026-10-24 자체 플러그인 폐기와 함께 core/adapter/native-hook
   검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아니다.
   실제 Muse 단일 구성의 Engineer·Design 동시 쓰기·렌더·Plan 자문과
   Research medium의 비교 품질은 미검증이며, 상세는

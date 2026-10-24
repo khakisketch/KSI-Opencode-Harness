@@ -965,17 +965,24 @@ async function main() {
     return false;
   };
   check("source config declares no automatic fallback", !hasFallbackKey(srcCfg));
-  // Skill sets: critic gains exactly the 3 review skills (existing denies
-  // preserved via deny-first `*`); research keeps exactly its old 5;
-  // engineer/design declare zero skill rules (defaults apply, probed live).
-  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "impeccable", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
-  const WANT_RESEARCH_SKILLS = ["journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
+  // Skill sets: critic carries review + API/performance lenses; research
+  // carries evidence-gathering lenses including accessibility; General is
+  // executor-only; Explore has no skill surface. Engineer/Design keep their
+  // broad default-allow premise, probed live.
+  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "impeccable", "investigating-performance", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
+  const WANT_RESEARCH_SKILLS = ["building-accessible-interfaces", "journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
+  const WANT_GENERAL_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "opencode", "playwright-cli", "vercel-react-best-practices"].sort();
   const gotCriticSkills = skillAllows(parseMdRules(mdSources.critic));
   const gotResearchSkills = skillAllows(parseMdRules(mdSources.research));
-  check("source critic skill allows are exactly the 9 (3 review + 6 existing)",
+  check("source critic skill allows are exactly the 11 (review + technical lenses)",
     JSON.stringify(gotCriticSkills) === JSON.stringify(WANT_CRITIC_SKILLS), `got=[${gotCriticSkills.join(",")}]`);
-  check("source research skill allows unchanged (exactly the old 5)",
+  check("source research skill allows are exactly the 6 evidence lenses",
     JSON.stringify(gotResearchSkills) === JSON.stringify(WANT_RESEARCH_SKILLS), `got=[${gotResearchSkills.join(",")}]`);
+  check("source General has executor-only skill allowlist",
+    JSON.stringify(skillAllows(srcAgents.general?.permissions ?? [])) === JSON.stringify(WANT_GENERAL_SKILLS),
+    `got=[${skillAllows(srcAgents.general?.permissions ?? []).join(",")}]`);
+  check("source Explore has no skill surface",
+    skillAllows(srcAgents.explore?.permissions ?? []).length === 0);
   check("source engineer/design declare zero skill rules (default-allow premise)",
     skillAllows(parseMdRules(mdSources.engineer)).length === 0 && skillAllows(parseMdRules(mdSources.design)).length === 0);
   // Shared instructions carry the OpenSpec + provider-data-policy contract.
