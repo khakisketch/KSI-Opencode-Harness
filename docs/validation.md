@@ -1,20 +1,22 @@
 # 검증 및 적용 범위
 
+> **최신 구성:** Engineer 도입 이후 모델·권한·배포 상태는 [Engineer 구성 검증](engineer-routing-validation.md)을 참조합니다. 아래 Architect 중심 구성과 검사 수는 `adeaa3c`까지의 이력이며 새 구성의 완료 근거가 아닙니다.
+
 기존 브라우저·소스 검사 검증 기록은 2026-10-15 기준 OpenCode **2.0.29 / Linux arm64**에서 확인한 내용입니다. 능력 연결 진단은 2026-10-16에 추가했습니다. 다른 운영체제는 확인하지 않았습니다.
 
 ## 동적 8개 역할과 최대 깊이 3 (2026-10-24)
 
-사용자가 Native **Plan·Build·General·Explore** 유지, Custom **Research·Design·Architect·Critic** 구성, Plan/Design `all`, 최대 깊이 3의 동적 위임을 확정하고 개선·전역 적용·배포를 요청했습니다. 이는 이름만 바꾸는 작업이 아닙니다. `design-architect`의 UI 단위 완결 책임은 `design`으로, `ux-scout`의 관찰·패턴 분석은 범용 `research`로 이전하고, `ui-ux-critic`과 `product-reviewer`의 독립 검토를 `critic`에 통합합니다. 별도의 `architect`는 시스템 기술 설계를 맡습니다. 아래 날짜별 이전 명칭·모델·검사 수는 당시 기록으로 보존합니다.
+사용자가 Native **Plan·Build·General·Explore** 유지, Custom **Research·Design·Engineer·Critic** 구성, Plan/Design `all`, 최대 깊이 3의 동적 위임을 확정하고 개선·전역 적용·배포를 요청했습니다. 이는 이름만 바꾸는 작업이 아닙니다. `design-architect`의 UI 단위 완결 책임은 `design`으로, `ux-scout`의 관찰·패턴 분석은 범용 `research`로 이전하고, `ui-ux-critic`과 `product-reviewer`의 독립 검토를 `critic`에 통합합니다. 시스템 기술 단위는 `engineer`가 맡고, 초기 `architect` 파일은 원본 그대로 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. 아래 날짜별 이전 명칭·모델·검사 수는 당시 기록으로 보존합니다.
 
-현행 배정은 Plan=Sol XHigh, Design=Sol High, Research·General=Muse Contributor High, Architect·Critic=Muse Contributor XHigh, Explore=Muse Contributor Low입니다. Build는 세션 선택을 따릅니다. Architect는 초기 정본 `bf75d9e`의 Sol XHigh에서 사용자의 후속 명시 요청에 따라 Muse Contributor XHigh로 변경합니다. 모델 카탈로그에서 활성 ID `opencode-go/muse-spark-1.3-contributor`와 `xhigh` 지원을 확인했으며 성능 비교 결과로 확대하거나 기존 세션 모델을 강제로 바꾸지 않습니다.
+현행 배정은 운영 역할 전체가 `opencode-go/muse-spark-1.3-contributor`를 사용하고 Plan·Critic=XHigh, Engineer·Design·Research·General=High, Explore=Low입니다. Build는 세션 선택을 따릅니다. 모델 카탈로그에서 활성 ID와 Variant 지원을 확인했으며 성능 비교 결과로 확대하거나 기존 세션 모델을 강제로 바꾸지 않습니다. 이전 Sol·DeepSeek·GLM·MiMo·Luna 배치는 당시 실행 기록으로만 남습니다.
 
-루트는 깊이 0, 상한은 3이며 일반 작업은 1~2단계를 사용하고 유용한 필요가 있을 때만 3을 사용합니다. 고정 파이프라인·별도 라우터·강제 전원 호출은 없습니다. Build·Plan·Design은 허용 전문가를 선택하고, Architect는 Research/Explore/Critic, Research는 Explore에 한정된 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상 거부와 깊이 상한을 유지합니다. 각 부모가 자식 결과를 해석·검토·통합하며 원요구·확정 계약·분석/구현 범위·원본 경로·버전·환경을 하위까지 전달합니다. 공유 파일·상태·브라우저는 한 변경 소유자를 두고 중복 조사를 피하며 기존 담당 세션으로 교정합니다.
+루트는 깊이 0, 상한은 3이며 일반 작업은 1~2단계를 사용하고 유용한 필요가 있을 때만 3을 사용합니다. 고정 파이프라인·별도 라우터·강제 전원 호출은 없습니다. Build·Plan·Engineer·Design은 허용 전문가를 선택하고, Research는 Explore에 한정된 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상 거부와 깊이 상한을 유지합니다. 각 부모가 자식 결과를 해석·검토·통합하며 원요구·확정 계약·분석/구현 범위·원본 경로·버전·환경을 하위까지 전달합니다. 공유 파일·상태·브라우저는 한 변경 소유자를 두고 중복 조사를 피하며 기존 담당 세션으로 교정합니다.
 
-Build는 제품 실행·다음 개발·통합·최종 인수를, Plan은 요구·우선순위·계획과 계획 조사를, Design은 UI 단위의 진단·설계·구현 조율·렌더 교정을 책임집니다. Architect는 API/데이터/상태/권한·호환성·마이그레이션·실패 복구의 기술 설계 담당이며 두 번째 제품 총괄이 아닙니다. Critic은 배정된 제품·UX·코드·아키텍처 질문에 맞는 근거·설치 스킬로 비평하고, 제품 과업의 저장·복귀·실패 복구·누락·성급한 완료 주장 검토를 보존합니다. 최종 인수나 구현을 맡지 않으며 중요한 독립 검토는 해당 설계/구현에 참여하지 않은 새 세션에 맡깁니다.
+Build는 제품 실행·다음 개발·통합·최종 인수를, Plan은 요구·우선순위·계획과 계획 조사를, Engineer는 기술 단위의 설계·구현·테스트·복구·반복 개선을, Design은 UI 단위의 진단·설계·구현 조율·렌더 교정을 책임집니다. Engineer와 Design은 필요할 때 직접 협업하되 같은 과업을 조상에게 되돌리지 않습니다. Critic은 배정된 제품·UX·코드·아키텍처 질문에 맞는 근거·설치 스킬로 비평하고, 제품 과업의 저장·복귀·실패 복구·누락·성급한 완료 주장 검토를 보존합니다. 최종 인수나 구현을 맡지 않으며 중요한 독립 검토는 해당 설계/구현에 참여하지 않은 새 세션에 맡깁니다.
 
 **Plan의 Native 프롬프트·역할별 편집 거부는 보존하지만, 이 역할 규칙이 하위에 자동 상속되지는 않습니다.** 별개의 Native 세션별 제한은 생성 시 자식에게 상속할 수 있습니다. 계획·분석만 승인됐으면 하위도 그 범위를 지키고, 엄격한 보호가 필요하면 기존 거부를 보존한 제한 세션 또는 제한 환경을 하위 생성 전에 준비해 실제 효과를 확인합니다. Plan 선택만으로 이를 자동 적용하거나 기존 자식에 소급 적용하는 기능을 추가하지 않았습니다. 지침·역할 이름·모의 검사로 모든 OS/네트워크 경로의 샌드박스를 보장하지 않습니다.
 
-Research·Architect·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode·Context7의 문서 조회 2종·역할별 설치 스킬과 고유 CLI 탐색/입력/캡처만 허용합니다. Research의 Mobbin 검색 3개 및 그 외 Mobbin 승인 요구는 유지합니다. 제품/보고서 편집·임의 Shell·설치·서버·배포·자격증명·프로필/인증 상태 가져오기·다른 세션/전역 종료는 거부합니다. Browser·execute·CLI는 읽기 전용 샌드박스가 아니며 승인된 환경·계정·상태 전이만 사용합니다. 새 외부 스킬이나 도구를 일괄 설치하거나 기존 원문을 고치지 않습니다.
+Research·Critic은 기본 거부 후 필요한 읽기·웹·Browser·Code Mode·Context7의 문서 조회 2종·역할별 설치 스킬과 고유 CLI 탐색/입력/캡처만 허용합니다. Research의 Mobbin 검색 3개 및 그 외 Mobbin 승인 요구는 유지합니다. 제품/보고서 편집·임의 Shell·설치·서버·배포·자격증명·프로필/인증 상태 가져오기·다른 세션/전역 종료는 거부합니다. Browser·execute·CLI는 읽기 전용 샌드박스가 아니며 승인된 환경·계정·상태 전이만 사용합니다. 새 외부 스킬이나 도구를 일괄 설치하거나 기존 원문을 고치지 않습니다.
 
 검증은 (1) 모의 회귀, (2) 실제 설치본·Native 모델/모드/권한, (3) private HOME/XDG와 로컬 scripted model을 사용하는 Native 중첩 실행으로 구분합니다. `tests/delegation-native-integration.mjs`는 새 역할의 실제 정본을 복사하고 모델만 로컬 fixture로 대체해 Plan의 재위임, 서로 다른 경로, 깊이 3의 반환과 상한 동작을 확인합니다. 원요구 전달 표식 확인은 전달 검증이지 모델의 이해·판단력 검증이 아닙니다. 실제 제품의 자발적 문제 발견·디자인 품질·장기 완주·비용 절감은 별도 미검증입니다. 최신 확인 환경은 OpenCode **2.1.4 / Linux arm64**이며 진행 중인 이전 역할 세션의 은퇴는 보호 상태를 확인한 뒤 처리합니다.
 
@@ -37,9 +39,17 @@ Safety·Site의 실제품에서 여러 세션에 걸친 기능 완성을 관찰�
 
 독립 검토에서 새 검사 자체의 허위 통과 가능성 2건을 발견해 수정했습니다. 이전 분기의 읽기 결과로 General의 성공을 대신할 수 없도록 실제 자식 세션의 completed read와 각 부모의 **동일한 단일 tool result 안의 결과·원본 바이트**를 대조합니다. 권한은 일부 거부의 존재만 보지 않고 변경 전/후·새 자손의 **전체 순서 포함 배열**을 비교해 추가 allow나 재정렬을 놓치지 않도록 했습니다. 독립 재검토에서 두 발견은 정적 범위에서 해소됐고 강화본도 위 Native 실행을 통과했습니다. 기존 227개 결과는 `/tmp/opencode/ksi-deleg-6pN0Y3`에 보존하며 새 근거와 혼동하지 않습니다.
 
-현재 정본·검사·문서의 모델 참조는 사용자 지정 Architect=Muse Contributor XHigh로 일치합니다. 로컬 fixture에서 제공자 모델을 대체했으므로 이 실행을 실제 Muse/Sol의 판단력·모델 호출 성공으로 보지 않습니다. 회귀 모의 검사 **142개**와 기존 유효한 UI 소스 훅 **20개**의 증거는 재사용하며, 전역 교체는 아래의 진행 세션 보호 결정과 별도로 완료 여부를 기록합니다.
+현재 정본·검사·문서의 모델 참조는 운영 역할 전체 `opencode-go/muse-spark-1.3-contributor`, 역할별 Variant로 일치합니다. 로컬 fixture에서 제공자 모델을 대체했으므로 이 실행을 실제 Muse의 판단력·모델 호출 성공으로 보지 않습니다. 회귀 모의 검사 **142개**와 기존 유효한 UI 소스 훅 **20개**의 증거는 재사용하며, 전역 교체는 아래의 진행 세션 보호 결정과 별도로 완료 여부를 기록합니다.
 
-최종 실행의 정본/검사 해시 8개를 다시 대조했고, 검증된 런타임 파일 6개는 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`와 `next-manifest.json`에 전역 적용 없이 준비했습니다. 후속 메타데이터 재확인에서도 이전 역할 실행 1개가 남아 있어 사용자 결정대로 전역 교체를 보류합니다. 기존 전역 파일 6개는 백업과 정확히 일치하며, 새 역할 등록·실제 모델 참조·설치본 전체 권한 검사는 전역 교체 후 확인해야 합니다.
+최종 실행의 정본/검사 해시 9개를 다시 대조했고, 검증된 런타임 파일 6개는 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`와 `next-manifest.json`에 전역 적용 없이 준비했습니다. 후속 메타데이터 재확인에서도 이전 역할 실행이 남아 있어 사용자 결정대로 전역 교체를 보류합니다. 기존 전역 파일 6개는 백업과 정확히 일치하며, 새 역할 등록·실제 모델 참조·설치본 전체 권한 검사는 전역 교체 후 확인해야 합니다.
+
+### 단일 Muse 라우팅·Engineer 정본 검증 (2026-10-24)
+
+사용자 결정에 따라 운영 역할 전체를 `opencode-go/muse-spark-1.3-contributor`로 단순화하고 Plan·Critic=`xhigh`, Engineer·Design·Research·General=`high`, Explore=`low`로 조정했습니다. `global/opencode.jsonc`의 OpenRouter GLM provider 설정을 제거하고 `opencode-go` 단일 provider만 남겼습니다. Build는 전역 모델을 고정하지 않습니다.
+
+- 회귀 **142/142**, OpenSpec **2/2**, Native scripted 격리 **308/308** 통과. Native 근거는 `/tmp/opencode/ksi-deleg-muse-single/ksi-deleg-I4V3Ws`, 런타임 6개·검사 2개·보존 Architect의 정본 해시 9개는 `next-manifest.json`과 대조했습니다.
+- 검사는 역할별 Variant, 단일 `opencode-go` provider, Build 미고정, 깊이 3·수정 허용/거부·동일 자식 재개·새 근거 복구·세션 제한 상속/비소급·Engineer/Design 구현 경로를 유지합니다. 검사를 약화해 모델 변경을 통과시키지 않았습니다.
+- fixture 모델 실행은 위임 메커니즘 검증이며 Muse의 판단력·제품 완성도·장기 자율성 근거가 아닙니다. 현재 구성의 Engineer·Design 실모델 동시 쓰기, Design의 실제 이미지/렌더 교정, Plan 기술 자문은 미검증입니다. 이전 DeepSeek·GLM·Luna 실행은 당시 모델 구성의 역사적 근거로만 보존합니다.
 
 ### 초기 8개 정본 bf75d9e의 실행 근거와 전역 이전 상태
 
@@ -65,7 +75,7 @@ node scripts/capabilities.mjs /path/to/project
 
 기존 인증을 사용하는 `opencode api get`으로 Native의 에이전트·개발 스킬 등록과 Context7·Mobbin 연결 상태를 조회하고, 로컬 CLI의 PATH 존재 여부를 확인합니다. 설치·설정 변경·인증·모델 호출·자동 재시도는 하지 않습니다. OpenCode CLI 자체가 필요시 관리 서비스를 시작할 수는 있습니다. 큰 CLI 응답의 파이프 잘림을 피하기 위해 전용 임시 파일로 받아 읽고 정리하며, 응답 원문·오류 원문·설정·토큰은 출력하지 않습니다.
 
-등록은 에이전트별 권한·스킬 자동 노출·실제 실행 성공을 보장하지 않습니다. PATH 존재는 CLI 동작 검증이 아닙니다. 선택 도구의 부재는 실패로 간주하지 않으며 API 조회 실패는 미확인으로 구분합니다. 브라우저 연결·제품 데이터 접근·렌더·모델 품질은 이 명령으로 검사하지 않습니다. 현행 추적 대상은 build·plan·general·explore·research·design·architect·critic 8개 역할입니다.
+등록은 에이전트별 권한·스킬 자동 노출·실제 실행 성공을 보장하지 않습니다. PATH 존재는 CLI 동작 검증이 아닙니다. 선택 도구의 부재는 실패로 간주하지 않으며 API 조회 실패는 미확인으로 구분합니다. 브라우저 연결·제품 데이터 접근·렌더·모델 품질은 이 명령으로 검사하지 않습니다. 현행 추적 대상은 build·plan·general·explore·research·design·engineer·critic 8개 역할입니다.
 
 진단기의 응답 처리·출력 제한 회귀 검사는 `node --test tests/capabilities.test.mjs`로 실행합니다. 이 검사는 모의 응답을 사용하며 실제 연결을 입증하지 않습니다.
 
@@ -100,7 +110,7 @@ node scripts/capabilities.mjs /path/to/project
 
 ## 디자인 판단의 적용 범위
 
-현행 구조는 위 [동적 8개 역할](#동적-8개-역할과-최대-깊이-3-2026-10-24)입니다. Design은 UI 단위의 설계·구현 조율·렌더 교정, Architect는 시스템 기술 설계, Research는 UX/기술/제품 조사, Critic은 배정된 질문의 독립 비평을 맡습니다. 아래 날짜가 있는 이전 실행 기록의 역할 수와 호출 행렬은 당시 기준으로 보존합니다.
+현행 구조는 위 [동적 8개 역할](#동적-8개-역할과-최대-깊이-3-2026-10-24)입니다. Design은 UI 단위의 설계·구현 조율·렌더 교정, Engineer는 시스템 기술 단위의 구현·검증, Research는 UX/기술/제품 조사, Critic은 배정된 질문의 독립 비평을 맡습니다. Architect 파일은 발견 경로 밖에 원본 보존하며 운영 역할이 아닙니다. 아래 날짜가 있는 이전 실행 기록의 역할 수와 호출 행렬은 당시 기준으로 보존합니다.
 
 제품 개발은 기본 Build가 제품 목표·실행 조율·통합·최종 인수를 소유합니다. 중요한 UI는 Design이 관찰·우선순위·설계·렌더 재평가를 주도하고 General이 구현·실행·기술 결함 수정을 맡습니다. Research는 필요한 근거를 조사하며 설계 확정·제품 코드 작성·인수를 하지 않습니다. 깊이 3은 최대 허용치이지 필수 트리가 아닙니다. Design은 직접 작업자 세션을 호출·재사용하고 구현·렌더·검토를 이으며 매 반복을 Build에 중계하지 않습니다. Build는 중요한 결정·충돌·차단·통합 결과를 받고 일상적인 설계 승인은 요구하지 않습니다. Plan은 요구·계획 조사에 여러 전문가를 활용할 수 있지만 두 번째 구현 총괄·승인 관문·기억 저장소가 아닙니다. [공식 Subagent 도구](https://opencode.ai/v2/docs/tools#subagent)
 

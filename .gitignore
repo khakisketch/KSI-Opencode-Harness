@@ -4,3 +4,10 @@ node_modules/
 .playwright-cli/
 design-previews/
 .worktrees/
+# Reviewed third-party skills are installed locally, not bundled in this repository.
+.opencode/skills/designing-user-experience/
+.opencode/skills/building-accessible-interfaces/
+.opencode/skills/evolving-apis-and-schemas/
+.opencode/skills/investigating-performance/
+.opencode/skills/reviewing-security/
+.opencode/skills/ux-heuristics-audit/

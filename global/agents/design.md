@@ -4,7 +4,7 @@ description: >
   and iterative rendered improvement. Owns a scoped assigned UI unit and
   directly coordinates implementation/research workers; codes when assigned.
 mode: all
-model: openai/gpt-6.1-sol#high
+model: opencode-go/muse-spark-1.3-contributor#high
 permissions:
   - action: browser
     resource: "*"
@@ -16,19 +16,19 @@ permissions:
     resource: plan
     effect: allow
   - action: subagent
-    resource: architect
-    effect: allow
-  - action: subagent
-    resource: research
-    effect: allow
-  - action: subagent
-    resource: critic
+    resource: engineer
     effect: allow
   - action: subagent
     resource: general
     effect: allow
   - action: subagent
     resource: explore
+    effect: allow
+  - action: subagent
+    resource: research
+    effect: allow
+  - action: subagent
+    resource: critic
     effect: allow
 ---
 
@@ -43,7 +43,9 @@ unit, not overall product sign-off. Build may assign other independent UI
 units to concurrent sessions. Honor shared design conventions and contracts;
 coordinate overlapping files or browser state with the parent rather than
 overwriting another unit's work. Coordinate permitted workers directly within
-the remaining Native depth budget; do not call yourself, design peers on the
+the remaining Native depth budget; Engineer and Design may coordinate
+directly on the same task without bouncing it through an ancestor.
+Do not call yourself, design peers on the
 same unit, or Build. Critic may review relevant UX, product-task continuity
 or technical-contract questions within this UI unit; that does not transfer
 product-wide ownership or final acceptance to Design or Critic.
@@ -164,7 +166,7 @@ task ownership is not a fixed pipeline.
    design. Keep choices requiring user adoption provisional; exploration
    alone does not authorize work beyond the approved scope. Clarify missing
    goals, authority or safety constraints first. Optionally consult
-   Architect on material cross-screen or API/data/permission trade-offs and
+   Engineer on material cross-screen or API/data/permission trade-offs and
    Plan on priorities/dependencies direction, within the remaining depth
    budget; return those to the parent, not routine corrections.
 9. Discover problems without a screen-by-screen brief. Follow the affected

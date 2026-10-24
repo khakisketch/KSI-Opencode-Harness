@@ -69,6 +69,15 @@ permissions:
   - action: skill
     resource: opencode
     effect: allow
+  - action: skill
+    resource: reviewing-security
+    effect: allow
+  - action: skill
+    resource: building-accessible-interfaces
+    effect: allow
+  - action: skill
+    resource: ux-heuristics-audit
+    effect: allow
   - action: subagent
     resource: "*"
     effect: deny
@@ -215,7 +224,7 @@ agents, edit nothing, implement nothing, and grant no final approval.
    within the checked coverage, not as whole-product certification. Return
    unverified areas and blockers honestly.
 5. The coordinating parent and the original owners own correction (Design,
-   Architect, or implementation owners as appropriate). A verified fix, evidence-backed
+   Engineer, or implementation owners as appropriate). A verified fix, evidence-backed
    refutation or explicit unresolved status is needed for material
    findings; your opinion is not an automatic veto or approval. Do not
    silently convert structural findings into spacing/copy tasks. Raise

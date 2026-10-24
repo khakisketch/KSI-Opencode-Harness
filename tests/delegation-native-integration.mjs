@@ -18,7 +18,16 @@
 // runtime chains (script markers in Native tool I/O only verify delegation mechanics;
 // they say nothing about model quality):
 //   A  build(0) -> plan(1) -> design(2) -> research(3, forced depth-4 attempt blocked)
-//   B  build(0) -> plan(1) -> architect(2) -> explore(3)   (alternate valid path)
+//   B  build(0) -> engineer(1) -> plan(2) -> explore(3)   (required Engineer path)
+//   J  build(0) -> engineer(1) -> general(2, write+read dev-unit, then SAME child
+//      resumed for repair)   (required Engineer dev-unit mechanics: actual files,
+//      real write/test/follow-up repair via one owned General child)
+//   K  design(0, as Main) -> general(1, small-UI write+read)   (Design UI delivery
+//      dynamics on its own fixture; rendered real-UI evidence stays Main-owned)
+//   N  build(0) -> engineer(1, real write+edit ALLOWED proof with byte checks)
+//   L  build(0) -> engineer(1) + design(1) in ONE response (parallel
+//      non-interference: separate task-local files, shared scope read-only;
+//      wall-clock request overlap required, serialization fails as NOT PROVEN)
 //   D  design(0, as Main) -> critic(1)                     (direct selectable call)
 //   C  depth cap at 3, embedded in A: the depth-3 research child still has a policy
 //      ALLOW for research->explore (so a leaf-deny is not the guard), yet no depth-4
@@ -30,9 +39,10 @@
 //      hard transitive readonly), plus handoff-scope marker transmission through A,
 //      zero product writes, results returned to Main.
 //   F  real child write/edit denial: forced scripted write+edit attempts by
-//      research/architect/critic/plan children on the private fixture file end in
+//      research/critic/plan children on the private fixture file end in
 //      Native error (deny- or removed-tool-shaped), with byte-level file integrity.
-//      Design/General are NOT covered here: their own permissions are broad, so a
+//      Design/General/Engineer are NOT covered here: their own permissions are
+//      broad (engineer execution is proven ALLOWED by chain N instead), so a
 //      plan edit-deny does not transitively inherit to them (stated limit).
 //   G  session continuity: root turn1/turn2 reuses the owned child via its Native
 //      subagent sessionID; same childID, past messages kept, original requirement
@@ -43,6 +53,8 @@
 //      question; the same failing call is never repeated. The script selects the
 //      recovery path; this proves mechanics/scope/evidence plumbing, NOT model
 //      initiative or judgment. Markers verify transmission, never understanding.
+//      Ownership path: build -> engineer -> research (engineer replaces the retired
+//      architect context; research still owns the missing-file limit).
 //   I  explicit session-scoped restrictions inherit to later-created children (no
 //      plugin/router/alias): a NEW owned analysis root keeps one retained deny,
 //      gains edit+shell denies via PATCH (replace semantics: existing rules are
@@ -56,8 +68,13 @@
 //      The stub embeds only evidence sliced from the actual tool result it got
 //      (EVID:… or an honest NO-EVIDENCE-IN-RESULT flag) — never hardcoded bytes.
 // Scope honesty: the runtime policy matrix covers every contract allow plus
-// self/build/unknown denies per caller and targeted cross-denies; it is NOT an
-// exhaustive 8x8 (72-pair) all-pairs claim. Modes/models/prompts come from the
+// self/build/archived/unknown denies per caller and targeted
+// cross-denies; it is NOT an exhaustive 8x8 (72-pair) all-pairs claim.
+// J/K/N share one task-local workspace with SEPARATE files plus the shared
+// read-only scope contract; no user projects/services are touched. This bound
+// integration proves delegation mechanics only, not a workflow engine, real
+// model quality, rendered-UI acceptance (Main-owned browser evidence), or
+// concurrency beyond the stated chains. Modes/models/prompts come from the
 // location-scoped /api/agent catalog, not from session.create echoes.
 //
 // Run:  node tests/delegation-native-integration.mjs
@@ -97,18 +114,22 @@ const FIXTURE_MODEL = "fixture/fixture";
 const UNKNOWN = "no-such-agent-ksi-probe";
 
 // Contract under test (depth 3, root = 0; a max allowance, not a mandatory tree).
+// Operational 8: build (primary), plan/design (all), engineer/research/critic/
+// general/explore (subagent). Architect is physically archived at
+// docs/archive/agents/architect.md (out of discovery) and appears in NO edge
+// list; every caller must deny it, and no phantom registration may exist.
 const CONTRACT = {
   depth: 3,
   modes: {
     plan: "all", design: "all",
     general: "subagent", explore: "subagent",
-    research: "subagent", architect: "subagent", critic: "subagent",
+    engineer: "subagent", research: "subagent", critic: "subagent",
   },
   edges: {
-    build: ["plan", "design", "general", "explore", "research", "architect", "critic"],
-    plan: ["design", "architect", "research", "critic", "general", "explore"],
-    design: ["plan", "architect", "research", "critic", "general", "explore"],
-    architect: ["research", "explore", "critic"],
+    build: ["plan", "engineer", "design", "general", "explore", "research", "critic"],
+    plan: ["engineer", "design", "research", "critic", "general", "explore"],
+    engineer: ["plan", "design", "general", "explore", "research", "critic"],
+    design: ["plan", "engineer", "research", "critic", "general", "explore"],
     research: ["explore"],
     critic: [], general: [], explore: [],
   },
@@ -124,6 +145,27 @@ const MISSING_EVIDENCE = "missing-evidence-H.txt";
 const DENIED_WRITE = "denied-note.txt";
 const SCOPE_FILE = "scope-note.txt";
 const SCOPE_LINE = "SCOPE-NOTE-CONTENT analysis handoff probe";
+// J/K/N task-local fixtures: SEPARATE files per unit in the same workspace,
+// sharing only the read-only scope contract above. No user projects/services.
+// J: engineer dev-unit via one owned general child (write+read, then resumed repair).
+const DEV_FILE = "dev-unit.txt";
+const DEV_LINE = "DEV-UNIT-CONTENT initial implementation";
+const DEV_FIXED = "DEV-UNIT-CONTENT repaired implementation";
+// K: design-led small-UI unit via one owned general child (write+read dynamics;
+// rendered real-UI acceptance stays Main-owned browser evidence, not asserted here).
+const UI_FILE = "ui-snippet.css";
+const UI_LINE = ".ksi-snippet { color: navy; }";
+// N: engineer execution proof (write+edit ALLOWED, byte-verified).
+const ENG_FILE = "eng-probe.txt";
+const ENG_LINE = "ENG-PROBE-CONTENT initial";
+const ENG_FIXED = "ENG-PROBE-CONTENT revised";
+// L: parallel non-interference. One build root fans out to engineer + design in
+// a SINGLE assistant response; each writes ONLY its own task-local file.
+// The shared scope file stays read-only (hash-guarded); off-scope touches fail.
+const L_API_FILE = "parallel-api.txt";
+const L_API_LINE = "PARALLEL-API-CONTENT engineer unit";
+const L_UI_FILE = "parallel-ui.css";
+const L_UI_LINE = ".parallel-ui { color: teal; }";
 
 const results = [];
 function check(name, ok, detail = "") {
@@ -186,6 +228,18 @@ function subagentAllows(rules) {
   }
   return out.sort();
 }
+// Effective skill allows under canonical deny-first ordering (* deny clears,
+// later allows accumulate). Exact-set pins below fail on any widening.
+function skillAllows(rules) {
+  const out = [];
+  for (const r of rules) {
+    if (r.action !== "skill") continue;
+    if (r.resource === "*") { if (r.effect === "deny") out.length = 0; continue; }
+    if (r.effect === "allow") { if (!out.includes(r.resource)) out.push(r.resource); }
+    else if (r.effect === "deny") { const k = out.indexOf(r.resource); if (k >= 0) out.splice(k, 1); }
+  }
+  return out.sort();
+}
 function mdFrontField(source, field) {
   const header = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!header) return null;
@@ -240,12 +294,16 @@ function lastSessionId(texts) {
 }
 // Short evidence excerpt sliced from an ACTUAL Native tool-result payload (never
 // synthesized: null when the payload carries no evidence bytes, which then fails
-// the per-level bytes assertions honestly). The locator below finds the evidence
-// line inside the real result; the bytes themselves always come from the payload.
+// the per-level bytes assertions honestly). The locator below finds evidence
+// lines inside the real result; the bytes themselves always come from the payload.
+// The fixture content family covers the shared scope probe plus the J/K/N/L
+// task-local files; each alternative still only matches bytes Native delivered.
+// LAST match wins so a resumed session surfaces its latest evidence (earlier
+// history, e.g. pre-repair bytes, must not shadow the newest read).
 function extractEvidenceSnippet(toolMsgs) {
   const joined = (Array.isArray(toolMsgs) ? toolMsgs : [toolMsgs]).join("\n");
-  const m = joined.match(/SCOPE-NOTE-CONTENT[^\n"\\]{0,48}/);
-  return m ? m[0] : null;
+  const all = [...joined.matchAll(/SCOPE-NOTE-CONTENT[^\n"\\]{0,48}|DEV-UNIT-CONTENT[^\n"\\]{0,48}|ENG-PROBE-CONTENT[^\n"\\]{0,48}|\.ksi-snippet[^\n"\\]{0,48}|PARALLEL-API-CONTENT[^\n"\\]{0,48}|\.parallel-ui[^\n"\\]{0,48}/g)];
+  return all.length ? all[all.length - 1][0] : null;
 }
 function evidenceSuffix(toolMsgs) {
   return `EVID:${extractEvidenceSnippet(toolMsgs) ?? "NO-EVIDENCE-IN-RESULT"}`;
@@ -261,7 +319,11 @@ function chainMarker(text) {
     "KSI-DELEG-D1", "KSI-DELEG-D0",
     "KSI-DELEG-H2R", "KSI-DELEG-H2", "KSI-DELEG-H1", "KSI-DELEG-H0",
     "KSI-DELEG-G3", "KSI-DELEG-G2", "KSI-DELEG-G1", "KSI-DELEG-G0",
-    "KSI-DELEG-W4", "KSI-DELEG-W3", "KSI-DELEG-W2", "KSI-DELEG-W1", "KSI-DELEG-W0",
+    "KSI-DELEG-J3", "KSI-DELEG-J2", "KSI-DELEG-J1", "KSI-DELEG-J0",
+    "KSI-DELEG-K1", "KSI-DELEG-K0",
+    "KSI-DELEG-N1", "KSI-DELEG-N0",
+    "KSI-DELEG-L2", "KSI-DELEG-L1", "KSI-DELEG-L0",
+    "KSI-DELEG-W3", "KSI-DELEG-W2", "KSI-DELEG-W1", "KSI-DELEG-W0",
     "KSI-DELEG-I0B", "KSI-DELEG-I1B", "KSI-DELEG-I0A", "KSI-DELEG-I1A", "KSI-DELEG-I2", "KSI-DELEG-I3"]) {
     if (text.includes(mk)) return mk;
   }
@@ -271,21 +333,21 @@ const NEXT = {
   "KSI-DELEG-A0": { agent: "plan", next: "KSI-DELEG-A1", done: "CHAIN-A-ROOT-OK" },
   "KSI-DELEG-A1": { agent: "design", next: "KSI-DELEG-A2", done: "CHAIN-A-PLAN-OK" },
   "KSI-DELEG-A2": { agent: "research", next: "KSI-DELEG-A3", done: "CHAIN-A-DESIGN-OK" },
-  "KSI-DELEG-B0": { agent: "plan", next: "KSI-DELEG-B1", done: "CHAIN-B-ROOT-OK" },
-  "KSI-DELEG-B1": { agent: "architect", next: "KSI-DELEG-B2", done: "CHAIN-B-PLAN-OK" },
-  "KSI-DELEG-B2": { agent: "explore", next: "KSI-DELEG-B3", done: "CHAIN-B-ARCH-OK" },
+  "KSI-DELEG-B0": { agent: "engineer", next: "KSI-DELEG-B1", done: "CHAIN-B-ROOT-OK" },
+  "KSI-DELEG-B1": { agent: "plan", next: "KSI-DELEG-B2", done: "CHAIN-B-ENGINEER-OK" },
+  "KSI-DELEG-B2": { agent: "explore", next: "KSI-DELEG-B3", done: "CHAIN-B-PLAN-OK" },
   "KSI-DELEG-D0": { agent: "critic", next: "KSI-DELEG-D1", done: "CHAIN-D-DESIGN-OK" },
 };
 function subPrompt(next) {
   return `${next} ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Return findings as text; findings travel back to Main.`;
 }
 // F sequence under one build root: each step delegates a different read-only
-// role that is scripted to attempt a real file mutation once.
+// role that is scripted to attempt a real file mutation once. Engineer is
+// EXCLUDED here (execution role; its allow-proof is chain N below).
 const WSEQ = [
   { agent: "research", next: "KSI-DELEG-W1" },
-  { agent: "architect", next: "KSI-DELEG-W2" },
-  { agent: "critic", next: "KSI-DELEG-W3" },
-  { agent: "plan", next: "KSI-DELEG-W4" },
+  { agent: "critic", next: "KSI-DELEG-W2" },
+  { agent: "plan", next: "KSI-DELEG-W3" },
 ];
 function scriptFor(marker, advertised, ctx = {}) {
   const has = (n) => Array.isArray(advertised) && advertised.includes(n);
@@ -348,7 +410,7 @@ function scriptFor(marker, advertised, ctx = {}) {
     }
     return { kind: "text", text: `W-ROOT-OK ${HANDOFF} ${ORIGIN}` };
   }
-  if (marker === "KSI-DELEG-W1" || marker === "KSI-DELEG-W2" || marker === "KSI-DELEG-W3" || marker === "KSI-DELEG-W4") {
+  if (marker === "KSI-DELEG-W1" || marker === "KSI-DELEG-W2" || marker === "KSI-DELEG-W3") {
     if (step === 0) {
       return { kind: "tools", calls: [{ name: "write", args: { path: DENIED_WRITE, content: "mutation attempt, must be denied\n" } }] };
     }
@@ -396,7 +458,7 @@ function scriptFor(marker, advertised, ctx = {}) {
       if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
       return {
         kind: "tools",
-        calls: [{ name: "subagent", args: { agent: "architect", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-H1") } }],
+        calls: [{ name: "subagent", args: { agent: "engineer", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-H1") } }],
       };
     }
     return { kind: "text", text: `H-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
@@ -416,7 +478,7 @@ function scriptFor(marker, advertised, ctx = {}) {
         calls: [{ name: "subagent", args: { agent: "research", description: `resume ${marker}`, sessionID: resumeId, prompt: `KSI-DELEG-H2R ${HANDOFF} ${ORIGIN} New approved reference: read ${SCOPE_FILE} once with this different question: what evidence line does the approved reference carry? Return findings as text.` } }],
       };
     }
-    return { kind: "text", text: `H1-ARCH-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+    return { kind: "text", text: `H1-ENGINEER-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
   if (marker === "KSI-DELEG-H2") {
     if (step === 0) {
@@ -430,6 +492,137 @@ function scriptFor(marker, advertised, ctx = {}) {
       return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
     }
     return { kind: "text", text: `H2-RECOVERED-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  // J: engineer dev-unit mechanics. J0 (build) -> J1 (engineer) -> J2 (general:
+  // real write+read of the dev-unit file); J1 then resumes the SAME general
+  // child for a repair follow-up (J3: real edit+read). All files are task-local
+  // (DEV_FILE only); the shared scope contract stays read-only.
+  if (marker === "KSI-DELEG-J0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "engineer", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-J1") + " Implement the dev-unit task via one owned general worker and return its findings." } }],
+      };
+    }
+    return { kind: "text", text: `J0-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-J1") {
+    if (step === 0) {
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "general", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-J2") + " Write the dev-unit file once, read it back, and report the exact read outcome as text." } }],
+      };
+    }
+    if (step === 1) {
+      const resumeId = lastSessionId(toolMsgs);
+      if (!resumeId) return { kind: "text", text: "J1-NO-CHILD-ID" };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "general", description: `resume ${marker}`, sessionID: resumeId, prompt: `KSI-DELEG-J3 ${HANDOFF} ${ORIGIN} Follow-up repair on the same dev-unit file: apply the requested edit once, read it back, and return updated findings as text.` } }],
+      };
+    }
+    return { kind: "text", text: `J1-ENGINEER-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-J2") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: DEV_FILE, content: `${DEV_LINE}\n` } }] };
+    }
+    if (step === 1) {
+      if (!has("read")) return { kind: "text", text: `J2-GENERAL-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: DEV_FILE } }] };
+    }
+    return { kind: "text", text: `J2-GENERAL-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-J3") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "edit", args: { path: DEV_FILE, oldString: DEV_LINE, newString: DEV_FIXED } }] };
+    }
+    if (step === 1) {
+      if (!has("read")) return { kind: "text", text: `J3-REPAIRED-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: DEV_FILE } }] };
+    }
+    return { kind: "text", text: `J3-REPAIRED-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  // K: design-led small-UI unit. K0 (design as Main) -> K1 (general: real
+  // write+read of its own UI fixture file). Rendered real-UI acceptance is NOT
+  // asserted here; that evidence stays Main-owned browser verification.
+  if (marker === "KSI-DELEG-K0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "general", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-K1") + " Write the UI snippet file once, read it back, and report the exact read outcome as text." } }],
+      };
+    }
+    return { kind: "text", text: `K0-DESIGN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-K1") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: UI_FILE, content: `${UI_LINE}\n` } }] };
+    }
+    if (step === 1) {
+      if (!has("read")) return { kind: "text", text: `K1-GENERAL-UI-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: UI_FILE } }] };
+    }
+    return { kind: "text", text: `K1-GENERAL-UI-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  // N: engineer execution proof. N0 (build) -> N1 (engineer: real write+edit
+  // ALLOWED, byte-verified). Counterpart to the F deny proofs for read-only roles.
+  if (marker === "KSI-DELEG-N0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [{ name: "subagent", args: { agent: "engineer", description: `deleg ${marker}`, prompt: subPrompt("KSI-DELEG-N1") + " Perform the requested file operations exactly once each, then report the exact tool outcomes as text." } }],
+      };
+    }
+    return { kind: "text", text: `N0-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-N1") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: ENG_FILE, content: `${ENG_LINE}\n` } }] };
+    }
+    if (step === 1) {
+      return { kind: "tools", calls: [{ name: "edit", args: { path: ENG_FILE, oldString: ENG_LINE, newString: ENG_FIXED } }] };
+    }
+    return { kind: "text", text: `N1-ENGINEER-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  // L: parallel fan-out. L0 (build) emits BOTH subagent calls in ONE assistant
+  // response so Native — never the script — schedules them; L1 (engineer) and
+  // L2 (design) each write+read ONLY their own file. Mechanics only.
+  if (marker === "KSI-DELEG-L0") {
+    if (step === 0) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
+      return {
+        kind: "tools",
+        calls: [
+          { name: "subagent", args: { agent: "engineer", description: `deleg ${marker} eng`, prompt: subPrompt("KSI-DELEG-L1") + " Write the parallel API file once, read it back, and report the exact read outcome as text." } },
+          { name: "subagent", args: { agent: "design", description: `deleg ${marker} des`, prompt: subPrompt("KSI-DELEG-L2") + " Write the parallel UI file once, read it back, and report the exact read outcome as text." } },
+        ],
+      };
+    }
+    return { kind: "text", text: `L0-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-L1") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: L_API_FILE, content: `${L_API_LINE}\n` } }] };
+    }
+    if (step === 1) {
+      if (!has("read")) return { kind: "text", text: `L1-ENGINEER-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: L_API_FILE } }] };
+    }
+    return { kind: "text", text: `L1-ENGINEER-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-L2") {
+    if (step === 0) {
+      return { kind: "tools", calls: [{ name: "write", args: { path: L_UI_FILE, content: `${L_UI_LINE}\n` } }] };
+    }
+    if (step === 1) {
+      if (!has("read")) return { kind: "text", text: `L2-DESIGN-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: L_UI_FILE } }] };
+    }
+    return { kind: "text", text: `L2-DESIGN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
   // I: session-scoped restriction flow. I0A roots the pre-patch turn (Plan child
   // snapshots webfetch-only rules); I0B roots the post-patch turn with the full
@@ -535,6 +728,9 @@ function startFakeModel(port) {
           }
           try {
             fs.appendFileSync(path.join(ROOT, "fake-model-requests.jsonl"), JSON.stringify({
+              // t is wall-clock receipt time (ms): the ONLY timing signal, used
+              // by case L to test real call overlap. No other timing framework.
+              t: Date.now(),
               marker, hasTools, advertised: advertised ?? [],
               userTail: text.slice(-300), userAll: allUser.slice(-2000),
               toolMsgs: tools.map((t) => t.slice(0, 1500)),
@@ -644,7 +840,7 @@ async function main() {
       return void finish();
     }
   }
-  const mdIds = ["design", "research", "architect", "critic"];
+  const mdIds = ["design", "research", "engineer", "critic"];
   const mdSources = {};
   for (const id of mdIds) {
     const p = path.join(SRC_AGENTS, `${id}.md`);
@@ -654,7 +850,31 @@ async function main() {
     }
     mdSources[id] = fs.readFileSync(p, "utf8");
   }
-  check("source role files present (design/research/architect/critic)", true);
+  check("source role files present (design/research/engineer/critic)", true);
+  // Physical archive out of discovery (Main + independent Plan decision):
+  // architect.md lives byte-identical at docs/archive/agents/architect.md, the
+  // operational path global/agents/architect.md is gone, and no hidden JSON
+  // stub remains. This test never deletes/rewrites the archive, only records
+  // its bytes and enforces absence from every operational surface.
+  const SRC_ARCH = path.join(REPO, "docs", "archive", "agents", "architect.md");
+  const OLD_ARCH_OPS = path.join(SRC_AGENTS, "architect.md");
+  check("archived source present at docs/archive/agents/architect.md", fs.existsSync(SRC_ARCH));
+  check("old operational role path absent (no global/agents/architect.md)", !fs.existsSync(OLD_ARCH_OPS));
+  check("source agents declare no hidden architect stub (operational 4 only)",
+    !Object.hasOwn(srcCfg.agents ?? {}, "architect"),
+    `keys=${Object.keys(srcCfg.agents ?? {}).sort().join(",")}`);
+  const archPresent = fs.existsSync(SRC_ARCH);
+  const archHash = archPresent ? sha256(fs.readFileSync(SRC_ARCH, "utf8")) : null;
+  if (!archPresent) { failClosed("CONTRACT-NOT-READY: archive file missing", SRC_ARCH); return void finish(); }
+  // Full-file proof: the archive carries a model frontmatter line, a parseable
+  // canonical permission list, and a non-empty body — a stub pointer fails here.
+  let archFull = false;
+  try {
+    const archSrc = fs.readFileSync(SRC_ARCH, "utf8");
+    archFull = /^model:\s*\S+/m.test(archSrc.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? "")
+      && parseMdRules(archSrc).length > 0 && mdBody(archSrc).trim().length > 0;
+  } catch { archFull = false; }
+  check("archive holds the full role file (model frontmatter + rules + body)", archFull);
   if (!fs.existsSync(SRC_AGENTS_MD)) {
     failClosed("CONTRACT-NOT-READY: shared instruction file missing in source", "global/AGENTS.md");
     return void finish();
@@ -665,9 +885,11 @@ async function main() {
     jsonc: sha256(fs.readFileSync(SRC_JSONC, "utf8")),
     agentsMd: sha256(srcAgentsMd),
     roles: Object.fromEntries(mdIds.map((id) => [id, sha256(mdSources[id])])),
+    archivedArchitect: archPresent ? { path: SRC_ARCH, sha256: archHash } : { moved: true },
     testFile: sha256(fs.readFileSync(fileURLToPath(import.meta.url), "utf8")),
     depthErrorHelper: sha256(fs.readFileSync(path.join(REPO, "scripts", "delegation-errors.mjs"), "utf8")),
   };
+  note("archived architect.md recorded (no autodelete, no rewrite)", `docs/archive/agents/architect.md sha256=${(archHash ?? "").slice(0, 16)}`);
   // Exact edge contract from source (JSON agents + Markdown frontmatter).
   let edgesOk = true;
   const edgeDetail = [];
@@ -700,6 +922,67 @@ async function main() {
   }
   check("source role modes match contract (plan/design all; rest subagent)", true);
 
+  // --- 1b. Source freeze: exact models, single-provider routing, skill sets.
+  // Every operational role uses the contracted Muse Contributor model; only
+  // the reasoning variant differs by role.
+  const WANT_MODELS = {
+    "design.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "research.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "engineer.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "critic.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
+  };
+  let modelsOk = true;
+  for (const [file, want] of Object.entries(WANT_MODELS)) {
+    const got = mdFrontField(mdSources[file.replace(/\.md$/, "")], "model");
+    if (got !== want) { modelsOk = false; note(`model drift ${file}`, `got=${got} want=${want}`); }
+  }
+  const WANT_JSON_MODELS = {
+    plan: "opencode-go/muse-spark-1.3-contributor#xhigh",
+    general: "opencode-go/muse-spark-1.3-contributor#high",
+    explore: "opencode-go/muse-spark-1.3-contributor#low",
+  };
+  for (const [id, want] of Object.entries(WANT_JSON_MODELS)) {
+    if (srcAgents[id]?.model !== want) { modelsOk = false; note(`model drift agents.${id}`, `got=${srcAgents[id]?.model} want=${want}`); }
+  }
+  check("source models match the frozen catalog references (Muse Contributor, role variants)", modelsOk);
+  if (!modelsOk) { failClosed("CONTRACT-MISMATCH: source model drift", "see model drift notes"); return void finish(); }
+  // Build root carries no forced model: caller/session selection applies.
+  check("source forces no model on build root (no top-level or build model)",
+    srcCfg.model === undefined && srcAgents.build?.model === undefined,
+    `top=${srcCfg.model} build=${srcAgents.build?.model}`);
+  // Single fixed provider: Muse Contributor only, no router and no per-model
+  // OpenRouter data-policy filter left behind after the routing simplification.
+  const museBody = srcCfg?.providers?.["opencode-go"]?.models?.["muse-spark-1.3-contributor"]?.body;
+  check("source Muse routing exact (auto tool choice)",
+    isDeepStrictEqual(museBody, { tool_choice: "auto" }),
+    `got=${JSON.stringify(museBody)}`.slice(0, 160));
+  check("source providers are exactly opencode-go (no auto router)",
+    JSON.stringify(Object.keys(srcCfg.providers ?? {}).sort()) === JSON.stringify(["opencode-go"]),
+    `got=${Object.keys(srcCfg.providers ?? {}).sort().join(",")}`);
+  const hasFallbackKey = (o) => {
+    if (Array.isArray(o)) return o.some(hasFallbackKey);
+    if (o && typeof o === "object") return Object.keys(o).some((k) => k === "fallback" || hasFallbackKey(o[k]));
+    return false;
+  };
+  check("source config declares no automatic fallback", !hasFallbackKey(srcCfg));
+  // Skill sets: critic gains exactly the 3 review skills (existing denies
+  // preserved via deny-first `*`); research keeps exactly its old 5;
+  // engineer/design declare zero skill rules (defaults apply, probed live).
+  const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "impeccable", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "task-first-ux-review", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
+  const WANT_RESEARCH_SKILLS = ["journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
+  const gotCriticSkills = skillAllows(parseMdRules(mdSources.critic));
+  const gotResearchSkills = skillAllows(parseMdRules(mdSources.research));
+  check("source critic skill allows are exactly the 10 (3 new + 7 old)",
+    JSON.stringify(gotCriticSkills) === JSON.stringify(WANT_CRITIC_SKILLS), `got=[${gotCriticSkills.join(",")}]`);
+  check("source research skill allows unchanged (exactly the old 5)",
+    JSON.stringify(gotResearchSkills) === JSON.stringify(WANT_RESEARCH_SKILLS), `got=[${gotResearchSkills.join(",")}]`);
+  check("source engineer/design declare zero skill rules (default-allow premise)",
+    skillAllows(parseMdRules(mdSources.engineer)).length === 0 && skillAllows(parseMdRules(mdSources.design)).length === 0);
+  // Shared instructions carry the OpenSpec + provider-data-policy contract.
+  check("source AGENTS.md carries the OpenSpec/provider-policy bullet",
+    srcAgentsMd.includes("OpenSpec") && srcAgentsMd.includes("not an automatic fallback")
+    && srcAgentsMd.includes("Respect each provider's training, retention and region policy"));
+
   // --- 2. Sandbox (private HOME/XDG; copies actual source, sandbox-only transforms) ---
   fs.mkdirSync(WORKSPACE, { recursive: true });
   fs.writeFileSync(path.join(WORKSPACE, "scope-note.txt"), "SCOPE-NOTE-CONTENT analysis handoff probe\n");
@@ -726,6 +1009,7 @@ async function main() {
     check(`sandbox ${id}.md differs from source ONLY in model line`, clean && onlyModel, diffs.slice(0, 2).join("|").slice(0, 120));
   }
   check("sandbox creates no plan.md builtin override", !fs.existsSync(path.join(agentsDir, "plan.md")));
+  check("sandbox carries no architect.md from any path (archive out of discovery)", !fs.existsSync(path.join(agentsDir, "architect.md")));
   // Shared deployment-wide instructions travel into the sandbox global dir with
   // identical bytes, so the running server grounds on the same common text.
   fs.writeFileSync(path.join(cfgDir, "AGENTS.md"), srcAgentsMd);
@@ -878,7 +1162,7 @@ async function main() {
       sandboxConfigSha256: sha256(fs.readFileSync(path.join(cfgDir, "opencode.json"), "utf8")),
       native: { version: nativeVersion, bin: OPENCODE_BIN, pid: nativeInfo.pid },
       modelOverrides: overrideIds, ports: { model: MODEL_PORT, serve: SERVE_PORT },
-      coverage: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+      coverage: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "N", "L"],
     }, null, 1));
 
     // --- 3. Scope-aware location readiness + actual role registry.
@@ -915,6 +1199,12 @@ async function main() {
     for (const id of ["build", "plan", "general", "explore", ...mdIds]) {
       check(`sandbox catalog registers ${id}`, byId.has(id));
     }
+    const archEntry = byId.get("architect") ?? null;
+    try { fs.writeFileSync(path.join(ROOT, "catalog-architect-entry.json"), JSON.stringify(archEntry)); } catch {}
+    // Physical archive decision: default 8 registered, no 9th phantom. Any
+    // catalog architect entry — hidden or not — is a phantom and fails.
+    // Target-deny for every caller is additionally proven by the matrix below.
+    check("sandbox catalog registers no architect id (phantom rejected)", archEntry === null);
     const wantModes = { ...CONTRACT.modes, build: "primary" };
     for (const [id, mode] of Object.entries(wantModes)) {
       check(`sandbox ${id} mode == ${mode} (catalog, not echo)`, byId.get(id)?.mode === mode, `got=${byId.get(id)?.mode}`);
@@ -973,14 +1263,15 @@ async function main() {
     }
 
     // --- 4. Runtime policy matrix (no model calls; own sessions only) ---
-    // Scope: every contract allow plus self/build/unknown denies per caller, plus
-    // targeted cross-denies. This is NOT an exhaustive 8x8 (72-pair) all-pairs
-    // claim; the chains and the ceiling carry the depth proof.
+    // Scope: every contract allow plus self/build/archived/unknown
+    // denies per caller, plus targeted cross-denies. This is NOT an exhaustive
+    // 8x8 (72-pair) all-pairs claim; the chains and the ceiling carry the depth
+    // proof.
     // No warmup, no retries: after scope-aware location readiness above, the FIRST
     // formal probe is build->design expected allow (design ordered first for
     // build). A deny there is a genuine blocker FAIL, recorded as-is (cause
     // unverified rather than skipped).
-    const DENY_SELF_BUILD_UNKNOWN = ["build", UNKNOWN];
+    const DENY_SELF_BUILD_UNKNOWN = ["architect", "build", UNKNOWN];
     for (const [caller, allows] of Object.entries(CONTRACT.edges)) {
       const ordered = caller === "build" ? ["design", ...allows.filter((t) => t !== "design")] : allows;
       const targets = [...new Set([...ordered, caller, ...DENY_SELF_BUILD_UNKNOWN])];
@@ -990,11 +1281,13 @@ async function main() {
         check(`policy subagent ${caller} -> ${t}: ${want}`, got === want, `got=${got}`);
       }
     }
-    // Cross-denies that pin the exact contract (spot checks beyond self/unknown).
-    for (const [caller, target] of [["plan", "plan"], ["design", "design"], ["architect", "plan"], ["architect", "design"],
-      ["architect", "general"], ["architect", "build"], ["research", "research"], ["research", "critic"],
-      ["research", "plan"], ["research", "design"], ["research", "architect"], ["research", "general"],
-      ["research", "build"], ["general", "explore"], ["explore", "general"], ["critic", "explore"]]) {
+    // Cross-denies that pin the exact contract (spot checks beyond self/archived/unknown).
+    for (const [caller, target] of [["plan", "plan"], ["design", "design"], ["design", "build"],
+      ["engineer", "engineer"], ["engineer", "build"],
+      ["research", "research"], ["research", "critic"],
+      ["research", "plan"], ["research", "design"], ["research", "engineer"], ["research", "architect"], ["research", "general"],
+      ["research", "build"], ["general", "engineer"], ["general", "explore"], ["explore", "engineer"], ["explore", "general"],
+      ["critic", "engineer"], ["critic", "explore"], ["critic", "architect"]]) {
       const got = await probe(caller, "subagent", target);
       check(`policy subagent ${caller} -> ${target}: deny`, got === "deny", `got=${got}`);
     }
@@ -1003,13 +1296,15 @@ async function main() {
     const scopeAbs = path.join(WORKSPACE, "scope-note.txt");
     check("policy plan edit scope-note: deny (native builtin)", (await probe("plan", "edit", scopeAbs)) === "deny");
     check("policy design edit scope-note: allow (own perms, not inherited)", (await probe("design", "edit", scopeAbs)) === "allow");
+    check("policy engineer edit scope-note: allow (execution role)", (await probe("engineer", "edit", scopeAbs)) === "allow");
     check("policy plan read scope-note: allow", (await probe("plan", "read", scopeAbs)) === "allow");
     check("policy design read scope-note: allow", (await probe("design", "read", scopeAbs)) === "allow");
 
     // Selector overrides must deny before AND after the verb, even if a broad
     // session-name wildcard otherwise absorbs the extra option. Policy-only:
     // no real browser sessions are opened, changed or closed by these probes.
-    for (const caller of ["research", "architect", "critic"]) {
+    // Engineer CLI allowlists stay owned by its source role file (not asserted).
+    for (const caller of ["research", "critic"]) {
       const prefix = `playwright-cli -s=${caller}-probe`;
       check(`policy ${caller} own-session close: allow`, (await probe(caller, "shell", `${prefix} close`)) === "allow");
       for (const tail of ["-s=other close", "-s other close", "close -s=other", "close -s other", "--session=other close", "close --session other"]) {
@@ -1168,10 +1463,10 @@ async function main() {
     // Research->explore policy allow holds at depth 3 (guard is depth, not leaf-deny).
     check("C research->explore policy is allow (depth is the guard)", (await probe("research", "subagent", "explore")) === "allow");
 
-    // Chain B: alternate valid path (not a fixed pipeline).
+    // Chain B: required Engineer path build->engineer->plan->explore (depth 3).
     steps.clear();
     const b = await runChain("build",
-      `KSI-DELEG-B0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate via architect to explore and return the finding to Main.`,
+      `KSI-DELEG-B0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate via the engineer down to explore and return the finding to Main.`,
       "CHAIN-B-ROOT-OK", "chain-b");
     check("B root returns to Main (CHAIN-B-ROOT-OK)", assistantTexts(b.messages).includes("CHAIN-B-ROOT-OK"));
     {
@@ -1182,7 +1477,7 @@ async function main() {
         cur = kids[0].id ?? kids[0].sessionID;
         agents.push(kids[0].agent ?? null);
       }
-      check("B native chain is plan->architect->explore (alternate path)", JSON.stringify(agents.slice(0, 3)) === JSON.stringify(["plan", "architect", "explore"]), agents.join(">"));
+      check("B native chain is engineer->plan->explore (required path)", JSON.stringify(agents.slice(0, 3)) === JSON.stringify(["engineer", "plan", "explore"]), agents.join(">"));
     }
     const logB = reqLog();
     const blobsB = logB.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-B")).flatMap((r) => r.toolMsgs ?? []).join("\n");
@@ -1203,17 +1498,18 @@ async function main() {
     const blobsD = logD.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-D")).flatMap((r) => r.toolMsgs ?? []).join("\n");
     check("D critic findings return to design (CHAIN-D-CRITIC-LEAF-OK)", blobsD.includes("CHAIN-D-CRITIC-LEAF-OK"));
 
-    // E (runtime half) + global guards: no product writes anywhere.
+    // E (runtime half) + global guards: no product writes anywhere in A/B/D.
     const allCalls = reqLog().flatMap((r) => r.scriptCalls ?? []);
-    check("E/no product writes: zero write/edit calls in any chain", !allCalls.includes("write") && !allCalls.includes("edit"), `calls=[${[...new Set(allCalls)].join(",")}]`);
+    check("E/no product writes: zero write/edit calls in chains A/B/D", !allCalls.includes("write") && !allCalls.includes("edit"), `calls=[${[...new Set(allCalls)].join(",")}]`);
     const wsFiles = fs.readdirSync(WORKSPACE).sort();
     check("E workspace holds only the scope probe (analysis-only kept)", JSON.stringify(wsFiles) === JSON.stringify(["scope-note.txt"]), wsFiles.join(","));
 
     // --- 6. F: real child write/edit attempts are denied natively. ---
-    // One build root fans out to research/architect/critic/plan; each child makes
+    // One build root fans out to research/critic/plan; each child makes
     // one forced write and one forced edit against the private fixture file.
-    // Stated limit: Design/General are excluded (broad own permissions; a plan
-    // deny does not transitively inherit to them). No product writes are made to
+    // Stated limit: Design/General/Engineer are excluded (broad own permissions;
+    // engineer execution is proven ALLOWED by chain N, so a plan deny does not
+    // transitively inherit to them). No product writes are made to
     // succeed here; byte integrity is asserted, not assumed.
     const scopeHashBeforeF = sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8"));
     const f = await runChain("build",
@@ -1222,7 +1518,7 @@ async function main() {
     check("F root returns to Main (W-ROOT-OK)", assistantTexts(f.messages).includes("W-ROOT-OK"));
     const fKids = await childrenOf(f.id);
     check("F one owned child per probed role (no more, no less)",
-      fKids.length === 4 && JSON.stringify(fKids.map((k) => k.agent).sort()) === JSON.stringify(["architect", "critic", "plan", "research"]),
+      fKids.length === 3 && JSON.stringify(fKids.map((k) => k.agent).sort()) === JSON.stringify(["critic", "plan", "research"]),
       fKids.map((k) => k.agent).join(","));
     const logF = reqLog();
     // Write/edit denial classifier (mirrors the shared delegation-errors module's
@@ -1238,7 +1534,7 @@ async function main() {
       if (message.startsWith(`Cannot use ${tool} to modify files outside the Plan directory`)) return true;
       return false;
     }
-    for (const [mk, role] of [["KSI-DELEG-W1", "research"], ["KSI-DELEG-W2", "architect"], ["KSI-DELEG-W3", "critic"], ["KSI-DELEG-W4", "plan"]]) {
+    for (const [mk, role] of [["KSI-DELEG-W1", "research"], ["KSI-DELEG-W2", "critic"], ["KSI-DELEG-W3", "plan"]]) {
       const kid = fKids.find((k) => k.agent === role);
       const kmsgs = kid ? requireDataArray(
         await mustApi("GET", `/api/session/${kid.id}/message?limit=100&order=asc`, undefined, `${role} probe child messages`),
@@ -1256,7 +1552,7 @@ async function main() {
       note(`F ${role} advertised catalog at attempt`, `[${adv}]`);
     }
     const blobsW0 = logF.filter((r) => r.marker === "KSI-DELEG-W0").flatMap((r) => r.toolMsgs ?? []).join("\n");
-    for (const mk of ["KSI-DELEG-W1", "KSI-DELEG-W2", "KSI-DELEG-W3", "KSI-DELEG-W4"]) {
+    for (const mk of ["KSI-DELEG-W1", "KSI-DELEG-W2", "KSI-DELEG-W3"]) {
       check(`F leaf outcome returned up (FW-LEAF-OK-${mk})`, blobsW0.includes(`FW-LEAF-OK-${mk}`));
     }
     check("F denied file never created", !fs.existsSync(path.join(WORKSPACE, DENIED_WRITE)));
@@ -1299,18 +1595,18 @@ async function main() {
 
     // --- 8. H: failure -> new evidence -> resume & recover (same child). ---
     // The research child reads a file that does not exist: a real Native error,
-    // returned as the child limit. The architect then resumes THAT child with an
+    // returned as the child limit. The engineer then resumes THAT child with an
     // approved new reference and a different question. The script selects this
     // recovery path; nothing here evidences model initiative or hypothesis change.
     const h = await runChain("build",
-      `KSI-DELEG-H0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Ask the architect for H-evidence and return whatever comes back to Main.`,
+      `KSI-DELEG-H0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Ask the engineer for H-evidence and return whatever comes back to Main.`,
       "H-ROOT-OK", "chain-h");
     check("H root returns to Main (H-ROOT-OK)", assistantTexts(h.messages).includes("H-ROOT-OK"));
-    const hArchKids = await childrenOf(h.id);
-    check("H build owns one architect child", hArchKids.length === 1 && hArchKids[0].agent === "architect", hArchKids.map((k) => k.agent).join(","));
-    const hArch = hArchKids[0]?.id ?? null;
-    const hResKids = hArch ? await childrenOf(hArch) : [];
-    check("H architect owns one research child (no silent fan-out)", hResKids.length === 1 && hResKids[0].agent === "research", hResKids.map((k) => k.agent).join(","));
+    const hEngKids = await childrenOf(h.id);
+    check("H build owns one engineer child", hEngKids.length === 1 && hEngKids[0].agent === "engineer", hEngKids.map((k) => k.agent).join(","));
+    const hEng = hEngKids[0]?.id ?? null;
+    const hResKids = hEng ? await childrenOf(hEng) : [];
+    check("H engineer owns one research child (no silent fan-out)", hResKids.length === 1 && hResKids[0].agent === "research", hResKids.map((k) => k.agent).join(","));
     const hRes = hResKids[0]?.id ?? null;
     const hResMsgs = hRes ? requireDataArray(
       await mustApi("GET", `/api/session/${hRes}/message?limit=100&order=asc`, undefined, "H research child messages"),
@@ -1326,15 +1622,15 @@ async function main() {
     check("H same failing call never repeated (exactly one attempt)", missingAttempts === 1, `attempts=${missingAttempts}`);
     const hResBlob = JSON.stringify(hResMsgs);
     check("H same child holds both the failed and the recovery turn", hResBlob.includes("KSI-DELEG-H2R") && hResBlob.includes("H2-LIMITED-OK"));
-    const hArchMsgs = hArch ? requireDataArray(
-      await mustApi("GET", `/api/session/${hArch}/message?limit=100&order=asc`, undefined, "H architect messages"),
-      "H architect messages",
+    const hEngMsgs = hEng ? requireDataArray(
+      await mustApi("GET", `/api/session/${hEng}/message?limit=100&order=asc`, undefined, "H engineer messages"),
+      "H engineer messages",
     ) : [];
-    const resumePart = toolEntries(hArchMsgs).find((t) => t.name === "subagent" && JSON.stringify(t.state?.input ?? {}).includes("KSI-DELEG-H2R"));
+    const resumePart = toolEntries(hEngMsgs).find((t) => t.name === "subagent" && JSON.stringify(t.state?.input ?? {}).includes("KSI-DELEG-H2R"));
     check("H recovery resumed the same research childID (not a new session)",
       !!resumePart && resumePart.state?.input?.sessionID === hRes, `sessionID=${resumePart?.state?.input?.sessionID ?? "none"}`);
     const logH = reqLog();
-    check("H child limit returned first (H2-LIMITED-OK seen by architect)",
+    check("H child limit returned first (H2-LIMITED-OK seen by engineer)",
       logH.filter((r) => r.marker === "KSI-DELEG-H1").flatMap((r) => r.toolMsgs ?? []).join("\n").includes("H2-LIMITED-OK"));
     // H bytes-vs-marker distinction: the resumed read is verified on H2R's OWN
     // Native session part (completed + output bytes); each hop up is verified on
@@ -1347,15 +1643,211 @@ async function main() {
       `status=${hRecReads[0]?.state?.status ?? "none"} bytes=${hRecBytes.length}`);
     const hReceived = (mk, child) => logH.filter((r) => r.marker === mk)
       .some((r) => (r.toolMsgs ?? []).some((text) => text.includes(child) && text.includes("SCOPE-NOTE-CONTENT")));
-    check("H architect received the recovered evidence (H2-RECOVERED-OK + bytes in H1 inputs)",
+    check("H engineer received the recovered evidence (H2-RECOVERED-OK + bytes in H1 inputs)",
       hReceived("KSI-DELEG-H1", "H2-RECOVERED-OK"));
-    check("H root received the recovered evidence (H1-ARCH-OK + bytes in H0 inputs)",
-      hReceived("KSI-DELEG-H0", "H1-ARCH-OK"));
+    check("H root received the recovered evidence (H1-ENGINEER-OK + bytes in H0 inputs)",
+      hReceived("KSI-DELEG-H0", "H1-ENGINEER-OK"));
     check("H root returned the evidence to Main (H-ROOT-OK + bytes in root text)",
       assistantTexts(h.messages).includes("H-ROOT-OK") && assistantTexts(h.messages).includes("SCOPE-NOTE-CONTENT"));
     const hArgs = logH.filter((r) => (r.marker ?? "").startsWith("KSI-DELEG-H")).flatMap((r) => r.scriptArgs ?? []).join(" ");
     check("H no secret/absolute paths in recovery (approved refs only)", !hArgs.includes("..") && !/\s\/[a-z]/.test(hArgs) && !hArgs.includes("/tmp/") && !hArgs.includes("/home/"));
     check("H research created no deeper child", hRes ? (await childrenOf(hRes)).length === 0 : false);
+
+    // --- 8b. J: engineer dev-unit mechanics via ONE owned general child. ---
+    // Build0 -> Engineer1 -> General2 (real write+read of DEV_FILE); the
+    // engineer then resumes the SAME general child for a repair follow-up
+    // (J3: real edit+read). Task-local file only; the shared scope contract
+    // stays read-only. Mechanics only, not model quality.
+    steps.clear();
+    const j = await runChain("build",
+      `KSI-DELEG-J0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Have the engineer implement the dev-unit task through one owned general worker and return its findings to Main.`,
+      "J0-ROOT-OK", "chain-j");
+    check("J root returns to Main (J0-ROOT-OK)", assistantTexts(j.messages).includes("J0-ROOT-OK"));
+    const jEngKids = await childrenOf(j.id);
+    check("J build owns one engineer child", jEngKids.length === 1 && jEngKids[0].agent === "engineer", jEngKids.map((k) => k.agent).join(","));
+    const jEng = jEngKids[0]?.id ?? null;
+    const jGenKids = jEng ? await childrenOf(jEng) : [];
+    check("J engineer owns exactly one general child (no silent fan-out)",
+      jGenKids.length === 1 && jGenKids[0].agent === "general", jGenKids.map((k) => k.agent).join(","));
+    const jGen = jGenKids[0]?.id ?? null;
+    const logJ = reqLog();
+    const j1reqs = logJ.filter((r) => r.marker === "KSI-DELEG-J1");
+    check("J engineer resumed the owned general childID (not a new session)",
+      j1reqs.some((r) => (r.scriptArgs ?? []).join(" ").includes(jGen ?? "###")),
+      `resumeCalls=${j1reqs.filter((r) => (r.scriptCalls ?? []).includes("subagent")).length}`);
+    const jKidsAfter = jEng ? await childrenOf(jEng) : [];
+    check("J still exactly one owned general child after repair (no duplicate)",
+      jKidsAfter.length === 1 && jKidsAfter[0].id === jGen, jKidsAfter.map((k) => k.id).join(","));
+    const jGenMsgs = jGen ? requireDataArray(
+      await mustApi("GET", `/api/session/${jGen}/message?limit=100&order=asc`, undefined, "J owned general messages"),
+      "J owned general messages",
+    ) : [];
+    const jWrites = toolEntries(jGenMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(DEV_FILE));
+    const jEdits = toolEntries(jGenMsgs).filter((t) => t.name === "edit" && JSON.stringify(t.state?.input ?? {}).includes(DEV_FILE));
+    const jReads = toolEntries(jGenMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(DEV_FILE));
+    const jReadBytes = jReads.map((t) => JSON.stringify(t.state?.content ?? t.state ?? ""));
+    check("J general completed the initial write (Native part, exactly once)",
+      jWrites.length === 1 && jWrites[0].state?.status === "completed", `status=${jWrites[0]?.state?.status ?? "none"}`);
+    check("J general completed the repair edit (Native part, exactly once)",
+      jEdits.length === 1 && jEdits[0].state?.status === "completed", `status=${jEdits[0]?.state?.status ?? "none"} err=${(jEdits[0]?.state?.error?.message ?? "").slice(0, 120)}`);
+    check("J general completed write-side and repair-side reads (Native parts)",
+      jReads.length === 2 && jReads.every((t) => t.state?.status === "completed"),
+      `reads=${jReads.length}`);
+    // Own-part byte proof: the first read carries the initial bytes, the repair
+    // read carries the repaired bytes. Order follows message order (J2 then J3).
+    check("J write-side read returned the initial bytes (own Native part)",
+      jReadBytes.length === 2 && jReadBytes[0].includes(DEV_LINE), `bytes=${jReadBytes[0]?.length ?? 0}`);
+    check("J repair-side read returned the repaired bytes (own Native part)",
+      jReadBytes.length === 2 && jReadBytes[1].includes(DEV_FIXED), `bytes=${jReadBytes[1]?.length ?? 0}`);
+    check("J dev-unit file holds the repaired bytes", fs.readFileSync(path.join(WORKSPACE, DEV_FILE), "utf8") === `${DEV_FIXED}\n`);
+    const jReceived = (mk, child) => logJ.filter((r) => r.marker === mk)
+      .some((r) => (r.toolMsgs ?? []).some((text) => text.includes(child)));
+    check("J engineer received the worker evidence (J2-GENERAL-OK in J1 inputs)",
+      jReceived("KSI-DELEG-J1", "J2-GENERAL-OK"));
+    check("J engineer received the repair evidence (J3-REPAIRED-OK in J1 inputs)",
+      jReceived("KSI-DELEG-J1", "J3-REPAIRED-OK"));
+    check("J engineer received the repaired bytes (in J1 inputs via J3 result)",
+      logJ.filter((r) => r.marker === "KSI-DELEG-J1").flatMap((r) => r.toolMsgs ?? []).join("\n").includes(DEV_FIXED));
+    check("J root received the dev-unit evidence (J1-ENGINEER-OK in J0 inputs)",
+      jReceived("KSI-DELEG-J0", "J1-ENGINEER-OK"));
+    // Root text carries the latest evidence slice (repaired bytes) plus the root
+    // token; each hop's own tool inputs carry that level's receipt.
+    // Markers verify transmission, never model understanding.
+    check("J root returned the evidence to Main (J0-ROOT-OK + repaired bytes in root text)",
+      assistantTexts(j.messages).includes("J0-ROOT-OK") && assistantTexts(j.messages).includes(DEV_FIXED));
+    check("J repaired bytes reached the root inputs (DEV_FIXED in J0 inputs)",
+      jReceived("KSI-DELEG-J0", DEV_FIXED));
+    check("J general created no deeper child", jGen ? (await childrenOf(jGen)).length === 0 : false);
+
+    // --- 8c. K: design-led small-UI unit via one owned general child. ---
+    // Design0 (as Main) -> General1 (real write+read of its own UI fixture).
+    // Build/read/write dynamics only; rendered real-UI acceptance stays
+    // Main-owned browser evidence and is NOT asserted here.
+    steps.clear();
+    const k = await runChain("design",
+      `KSI-DELEG-K0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Have one owned general worker create the UI snippet file and return its exact read outcome to Main.`,
+      "K0-DESIGN-OK", "chain-k");
+    check("K design-as-Main returns (K0-DESIGN-OK)", assistantTexts(k.messages).includes("K0-DESIGN-OK"));
+    const kKids = await childrenOf(k.id);
+    check("K design owns one general child", kKids.length === 1 && kKids[0].agent === "general", kKids.map((x) => x.agent).join(","));
+    const kGen = kKids[0]?.id ?? null;
+    const kGenMsgs = kGen ? requireDataArray(
+      await mustApi("GET", `/api/session/${kGen}/message?limit=100&order=asc`, undefined, "K owned general messages"),
+      "K owned general messages",
+    ) : [];
+    const kWrites = toolEntries(kGenMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(UI_FILE));
+    const kReads = toolEntries(kGenMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(UI_FILE));
+    const kReadBytes = kReads.length === 1 ? JSON.stringify(kReads[0].state?.content ?? kReads[0].state ?? "") : "";
+    check("K general completed the UI write (Native part, exactly once)",
+      kWrites.length === 1 && kWrites[0].state?.status === "completed", `status=${kWrites[0]?.state?.status ?? "none"}`);
+    check("K general completed the UI read with output bytes (Native part)",
+      kReads.length === 1 && kReads[0].state?.status === "completed" && kReadBytes.includes(UI_LINE),
+      `status=${kReads[0]?.state?.status ?? "none"} bytes=${kReadBytes.length}`);
+    check("K UI file holds the written bytes", fs.readFileSync(path.join(WORKSPACE, UI_FILE), "utf8") === `${UI_LINE}\n`);
+    const logK = reqLog();
+    check("K design received the UI evidence (K1-GENERAL-UI-OK + bytes in K0 inputs)",
+      logK.filter((r) => r.marker === "KSI-DELEG-K0")
+        .some((r) => (r.toolMsgs ?? []).some((text) => text.includes("K1-GENERAL-UI-OK") && text.includes(UI_LINE))));
+    check("K general created no deeper child", kGen ? (await childrenOf(kGen)).length === 0 : false);
+
+    // --- 8d. N: engineer execution proof (write+edit ALLOWED, byte-verified). ---
+    // Counterpart to the F deny proofs for read-only roles: build -> engineer
+    // performs one real write and one real edit, both completing natively.
+    steps.clear();
+    const n = await runChain("build",
+      `KSI-DELEG-N0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Have the engineer perform the requested file operations once each and return the exact outcomes to Main.`,
+      "N0-ROOT-OK", "chain-n");
+    check("N root returns to Main (N0-ROOT-OK)", assistantTexts(n.messages).includes("N0-ROOT-OK"));
+    const nKids = await childrenOf(n.id);
+    check("N build owns one engineer child", nKids.length === 1 && nKids[0].agent === "engineer", nKids.map((x) => x.agent).join(","));
+    const nEng = nKids[0]?.id ?? null;
+    const nEngMsgs = nEng ? requireDataArray(
+      await mustApi("GET", `/api/session/${nEng}/message?limit=100&order=asc`, undefined, "N engineer messages"),
+      "N engineer messages",
+    ) : [];
+    const nWrites = toolEntries(nEngMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(ENG_FILE));
+    const nEdits = toolEntries(nEngMsgs).filter((t) => t.name === "edit" && JSON.stringify(t.state?.input ?? {}).includes(ENG_FILE));
+    check("N engineer completed the write (Native part, exactly once)",
+      nWrites.length === 1 && nWrites[0].state?.status === "completed", `status=${nWrites[0]?.state?.status ?? "none"} err=${(nWrites[0]?.state?.error?.message ?? "").slice(0, 120)}`);
+    check("N engineer completed the edit (Native part, exactly once)",
+      nEdits.length === 1 && nEdits[0].state?.status === "completed", `status=${nEdits[0]?.state?.status ?? "none"} err=${(nEdits[0]?.state?.error?.message ?? "").slice(0, 120)}`);
+    check("N engineer file holds the revised bytes", fs.readFileSync(path.join(WORKSPACE, ENG_FILE), "utf8") === `${ENG_FIXED}\n`);
+    const logN = reqLog();
+    check("N engineer outcome returned up (N1-ENGINEER-OK in N0 inputs)",
+      logN.filter((r) => r.marker === "KSI-DELEG-N0").flatMap((r) => r.toolMsgs ?? []).join("\n").includes("N1-ENGINEER-OK"));
+    check("N engineer created no deeper child", nEng ? (await childrenOf(nEng)).length === 0 : false);
+
+    // --- 8e. L: parallel non-interference (one Build root, two concurrent children). ---
+    // The root emits engineer + design subagent calls in ONE assistant response;
+    // Native schedules both children — the script never fakes concurrency with
+    // marker echoes or a bare Promise.all assertion. Each child writes+reads
+    // ONLY its own file (depth 1, direct work). The shared scope file must keep
+    // identical bytes; off-scope touches fail. Goal is mechanic
+    // non-interference evidence, not a benchmark. If Native serializes instead,
+    // the overlap check below fails honestly as NOT PROVEN (a concrete
+    // blocker, never a new layer).
+    steps.clear();
+    const scopeHashBeforeL = sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8"));
+    const l = await runChain("build",
+      `KSI-DELEG-L0 ${HANDOFF} ${ORIGIN} ${SCOPE_SENTENCE} Delegate the two independent units concurrently — one to the engineer, one to design — and return both findings to Main.`,
+      "L0-ROOT-OK", "chain-l");
+    check("L root returns to Main (L0-ROOT-OK)", assistantTexts(l.messages).includes("L0-ROOT-OK"));
+    const lKids = await childrenOf(l.id);
+    check("L root owns exactly two children: engineer + design (single fan-out)",
+      lKids.length === 2 && JSON.stringify(lKids.map((k) => k.agent).sort()) === JSON.stringify(["design", "engineer"]),
+      lKids.map((k) => k.agent).join(","));
+    const lEng = lKids.find((k) => k.agent === "engineer")?.id ?? null;
+    const lDes = lKids.find((k) => k.agent === "design")?.id ?? null;
+    const lEngMsgs = lEng ? requireDataArray(
+      await mustApi("GET", `/api/session/${lEng}/message?limit=100&order=asc`, undefined, "L engineer messages"),
+      "L engineer messages",
+    ) : [];
+    const lDesMsgs = lDes ? requireDataArray(
+      await mustApi("GET", `/api/session/${lDes}/message?limit=100&order=asc`, undefined, "L design messages"),
+      "L design messages",
+    ) : [];
+    const lEngWrites = toolEntries(lEngMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(L_API_FILE));
+    const lEngReads = toolEntries(lEngMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(L_API_FILE));
+    const lDesWrites = toolEntries(lDesMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(L_UI_FILE));
+    const lDesReads = toolEntries(lDesMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(L_UI_FILE));
+    // Ownership isolation: neither child touches the other's file or the scope file.
+    const lEngOff = toolEntries(lEngMsgs).filter((t) => ["write", "edit"].includes(t.name) && !JSON.stringify(t.state?.input ?? {}).includes(L_API_FILE));
+    const lDesOff = toolEntries(lDesMsgs).filter((t) => ["write", "edit"].includes(t.name) && !JSON.stringify(t.state?.input ?? {}).includes(L_UI_FILE));
+    check("L engineer completed write+read on its own file (own Native parts)",
+      lEngWrites.length === 1 && lEngWrites[0].state?.status === "completed"
+      && lEngReads.length === 1 && lEngReads[0].state?.status === "completed",
+      `w=${lEngWrites[0]?.state?.status ?? "none"} r=${lEngReads[0]?.state?.status ?? "none"}`);
+    check("L design completed write+read on its own file (own Native parts)",
+      lDesWrites.length === 1 && lDesWrites[0].state?.status === "completed"
+      && lDesReads.length === 1 && lDesReads[0].state?.status === "completed",
+      `w=${lDesWrites[0]?.state?.status ?? "none"} r=${lDesReads[0]?.state?.status ?? "none"}`);
+    const lEngReadBytes = lEngReads.length === 1 ? JSON.stringify(lEngReads[0].state?.content ?? lEngReads[0].state ?? "") : "";
+    const lDesReadBytes = lDesReads.length === 1 ? JSON.stringify(lDesReads[0].state?.content ?? lDesReads[0].state ?? "") : "";
+    check("L engineer read returned its own bytes (own Native part)",
+      lEngReadBytes.includes(L_API_LINE), `bytes=${lEngReadBytes.length}`);
+    check("L design read returned its own bytes (own Native part)",
+      lDesReadBytes.includes(L_UI_LINE), `bytes=${lDesReadBytes.length}`);
+    check("L engineer made no off-scope mutation", lEngOff.length === 0, `off=${lEngOff.length}`);
+    check("L design made no off-scope mutation", lDesOff.length === 0, `off=${lDesOff.length}`);
+    check("L engineer file holds the written bytes", fs.readFileSync(path.join(WORKSPACE, L_API_FILE), "utf8") === `${L_API_LINE}\n`);
+    check("L design file holds the written bytes", fs.readFileSync(path.join(WORKSPACE, L_UI_FILE), "utf8") === `${L_UI_LINE}\n`);
+    check("L shared scope bytes unchanged (read-only conflict guard)",
+      sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8")) === scopeHashBeforeL);
+    // Both findings returned into the SAME parent turn (single-response fan-out,
+    // not two sequential delegations).
+    const logL = reqLog();
+    const l0inputs = logL.filter((r) => r.marker === "KSI-DELEG-L0").flatMap((r) => r.toolMsgs ?? []).join("\n");
+    check("L both child outcomes returned to the parent turn (L1 + L2 markers in L0 inputs)",
+      l0inputs.includes("L1-ENGINEER-OK") && l0inputs.includes("L2-DESIGN-OK"));
+    // Real overlap: wall-clock windows of the two branches' model requests
+    // must intersect strictly. Serialized execution fails here honestly.
+    const win = (mk) => logL.filter((r) => r.marker === mk && r.hasTools && typeof r.t === "number").map((r) => r.t).sort((a, b) => a - b);
+    const wEng = win("KSI-DELEG-L1"), wDes = win("KSI-DELEG-L2");
+    const overlap = wEng.length >= 2 && wDes.length >= 2 && wEng[0] < wDes[wDes.length - 1] && wDes[0] < wEng[wEng.length - 1];
+    check("L engineer/design model-request windows overlap (real concurrency, not Promise.all only)",
+      overlap, `eng=[${wEng.join(",")}] des=[${wDes.join(",")}]`);
+    check("L children created no deeper level", lEng ? (await childrenOf(lEng)).length === 0 : false);
+    check("L design created no deeper level", lDes ? (await childrenOf(lDes)).length === 0 : false);
 
     // --- 9. I: session-scoped restrictions inherit to later-created children. ---
     // No plugin, router, alias, or workflow engine: only the Native session-rules
@@ -1519,10 +2011,19 @@ async function main() {
     check("I chain results returned up (I1B-PLAN-OK -> I2-DESIGN-OK -> I3-GENERAL-OK)",
       blobsI.includes("I1B-PLAN-OK") && blobsI.includes("I2-DESIGN-OK") && blobsI.includes("I3-GENERAL-OK"));
 
-    // Final guards across F/G/H/I: still analysis-only, still the same bytes.
+    // Final guards across F/G/H/I/J/K/N/L: still analysis-only, still the same bytes.
+    // J/K/N/L own exactly their separate task-local files; the shared scope
+    // contract file is read-only everywhere (F proves the deny side, L the
+    // parallel non-interference side).
     const wsFilesEnd = fs.readdirSync(WORKSPACE).sort();
-    check("final workspace holds only the scope probe", JSON.stringify(wsFilesEnd) === JSON.stringify([SCOPE_FILE]), wsFilesEnd.join(","));
+    check("final workspace holds only the scope probe plus J/K/N/L task-local files",
+      JSON.stringify(wsFilesEnd) === JSON.stringify([DEV_FILE, ENG_FILE, L_API_FILE, L_UI_FILE, SCOPE_FILE, UI_FILE]), wsFilesEnd.join(","));
     check("final fixture bytes unchanged since F", sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8")) === scopeHashBeforeF);
+    check("final dev-unit bytes are the repaired version", fs.readFileSync(path.join(WORKSPACE, DEV_FILE), "utf8") === `${DEV_FIXED}\n`);
+    check("final UI bytes are the written snippet", fs.readFileSync(path.join(WORKSPACE, UI_FILE), "utf8") === `${UI_LINE}\n`);
+    check("final engineer bytes are the revised probe", fs.readFileSync(path.join(WORKSPACE, ENG_FILE), "utf8") === `${ENG_FIXED}\n`);
+    check("final parallel API bytes are the engineer unit", fs.readFileSync(path.join(WORKSPACE, L_API_FILE), "utf8") === `${L_API_LINE}\n`);
+    check("final parallel UI bytes are the design unit", fs.readFileSync(path.join(WORKSPACE, L_UI_FILE), "utf8") === `${L_UI_LINE}\n`);
 
     const failed = results.filter((r) => !r.ok);
     console.log(`\n${results.length - failed.length}/${results.length} checks passed. Evidence dir: ${ROOT}`);

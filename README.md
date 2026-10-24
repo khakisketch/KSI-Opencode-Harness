@@ -19,32 +19,32 @@
 
 ## 역할과 위임 구조
 
-Native 이름 **Plan·Build·General·Explore**는 유지하고, 전문 역할은 **Research·Design·Architect·Critic**으로 구성합니다. 다음은 **가능한 동적 트리의 한 예시**이며 관계·호출 순서·호출 개수는 고정하지 않습니다.
+Native 이름 **Plan·Build·General·Explore**는 유지하고, 기본 전문 역할은 **Engineer·Design·Research·Critic**으로 구성합니다. Architect 파일은 보존하되 기본 호출에서 제외합니다. 다음은 **가능한 동적 트리의 한 예시**이며 관계·호출 순서·호출 개수는 고정하지 않습니다.
 
 ```text
 Build — depth 0 · 제품 실행 총괄·통합·최종 인수
- ├─ Plan — depth 1 · 요구·우선순위·계획
- │    ├─ Design — depth 2 · 계획 범위의 경험 설계
- │    │    └─ Research — depth 3 · 필요한 UX 근거 조사
- │    └─ Architect — depth 2 · 기술 계약·구현 전략
+ ├─ Engineer — depth 1 · 독립 기술 개발 단위 완결
+ │    ├─ General — depth 2 · 구현·테스트·수정
+ │    └─ Plan — depth 2 · 중요한 방향·기술 계약 자문
  │         └─ Explore — depth 3 · 관련 코드 탐색
- ├─ General — depth 1 · 독립적인 구현·검증
+ ├─ Design — depth 1 · UX 단위 설계·구현 조율·렌더 교정
+ │    └─ General — depth 2 · UI 구현·기술적 결함 수정
  └─ Critic — depth 1 · 필요한 제품/UX/기술 독립 비평
 ```
 
 조사·설계와 최종 인수의 Build는 **같은 제품 실행 책임자**입니다. Research의 결과는 호출한 Design/Plan 등이 해석하고, 각 부모는 맡은 단위의 결과를 검토·통합해 반환합니다. 중간 역할은 단순 전달자가 아닙니다. 모든 요청에 깊이 3을 사용하거나 모든 역할을 호출하지 않습니다.
 
-**대표 사용 흐름:** Build가 목표·현재 상태에서 다음 통합 결과를 고르고 필요한 전문가에게 맡깁니다. Plan은 무엇을 왜 먼저 할지, Architect는 어떤 기술 계약으로 구현할지, Design은 사용자가 어떻게 이해하고 행동할지 다룹니다. Design은 구현자와 실제 화면 교정을 연결합니다. Critic은 배정된 제품·UX·코드·기술 질문을 독립 검토하고, 발견 사항은 기존 담당자의 수정·재검증으로 연결합니다. Build가 결과를 통합하고 승인된 목표가 남으면 다음 개발을 잇습니다. 중요한 미결 UI 선택은 시각 근거·추천·손익을 보여준 뒤 묻고, 일상적인 판단은 자율 진행합니다.
+**대표 사용 흐름:** Build가 목표·현재 상태에서 다음 통합 결과를 고르고 복잡한 기술 단위는 Engineer, UX 단위는 Design에 맡깁니다. 각 소유자는 조사·설계·구현·테스트·수정까지 완결하고 중요한 방향·공유 계약만 Plan에 자문합니다. Critic의 근거 있는 발견은 같은 담당 세션의 수정·재검증으로 연결합니다. Build는 공통 계약·충돌·통합·종단 사용자 과업과 최종 인수에 집중하고 남은 승인 목표를 잇습니다. 중요한 미결 UI 선택은 시각 근거·추천·손익을 보여준 뒤 묻고, 일상적인 판단은 자율 진행합니다.
 
-Build는 UI 외의 구현을 General에 직접 맡기거나 Research·Explore를 직접 사용할 수도 있습니다. Design을 메인으로 시작하면 Research·Architect·Critic 등을 직접 호출할 수 있습니다. 작고 명확한 작업은 직접 처리합니다.
+Build는 명확한 작은 구현을 General에 직접 맡기거나 직접 처리하며 Research·Explore를 사용할 수도 있습니다. Design을 메인으로 시작하면 Engineer·Research·Critic 등을 직접 호출할 수 있습니다. Engineer와 Design은 남은 깊이 안에서 서로 필요한 독립 단위를 맡길 수 있지만 같은 과업을 조상에게 되돌리지 않습니다.
 
 독립적인 작업 단위는 다음처럼 병렬로 진행할 수 있습니다. Design A·B는 같은 `design`의 별도 세션이며 각자 맡은 단위의 진단·설계·구현 조율·렌더 검증까지 책임집니다.
 
 ```text
 Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
- ├─ Design A — 예약 흐름 개선 → General A
- ├─ Design B — 관리자 대시보드 개선 → General B
- └─ General C   — 독립적인 백엔드 수정
+ ├─ Engineer A — 데이터 API 개선 → General A
+ ├─ Engineer B — 분석 워커 개선 → General B
+ └─ Design C   — 자료 비교 경험 개선 → General C
 ```
 
 분할 기준은 화면 수가 아니라 작업의 완결성과 의존성입니다. 시간 이득이 조율·모델 비용에 비해 유효하고 사용자 예산 안에 있을 때 병렬로 맡기며, 같은 파일·브라우저 상태는 한 소유자가 변경하도록 조율합니다. 공통 디자인·컴포넌트·API 계약은 공유하고 Build가 통합 결과의 일관성을 확인합니다. 각 단위의 후속 수정은 기존 담당 세션을 재사용하고, 의존성이 크거나 작은 작업은 직접·직렬 처리합니다. 충분한 조사·근거는 재사용하며 중복 수집을 피합니다.
@@ -52,23 +52,27 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | 역할 / Native ID | 책임 | 모드 | 배포 기본 모델 |
 | --- | --- | --- | --- |
 | **Build** / `build` | 제품 실행 총괄·다음 작업 연결·통합·테스트·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
-| **Plan** / `plan` | 요구·우선순위·계획·대안·의존성 검토와 계획 조사 조율 | all | `openai/gpt-6.1-sol#xhigh` |
+| **Plan** / `plan` | 제품·기술 방향, 요구·우선순위·대안·의존성 독립 자문 | all | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
+| **Engineer** / `engineer` | 기술 단위 설계·구현 조율·테스트·복구·반복 개선 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
-| **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `openai/gpt-6.1-sol#high` |
-| **Architect** / `architect` | 시스템 구조·기술 설계·API/데이터/상태/복구 계약 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
+| **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#high` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
+표는 저장소의 배포 정본이며 현재 전역 설치·실호출 검증과 구분합니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md). Architect는 원본 파일을 변경하지 않고 `docs/archive/agents/architect.md`에 보존해 발견·호출 대상에서 제외합니다. Plan의 자문 성능을 충분히 관찰하기 전에는 최종 폐기하지 않습니다.
+
+- 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·Research·General은 `high`, Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다.
+
 - `experimental.subagent_depth=3`은 **루트 0 아래 최대 3단계**입니다. 기본적으로 1~2단계를 사용하고 유용한 필요가 있을 때만 세 번째를 사용합니다. `all`은 메인/하위 실행 가능이라는 뜻이며 권한·위임 깊이와 별개입니다.
-- Build·Plan·Design은 허용된 전문가를 선택해 호출합니다. Architect는 Research·Explore·Critic, Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상은 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
+- Build·Plan·Engineer·Design은 허용된 전문가를 선택해 호출합니다. Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·Architect는 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
 - 깊이가 다 찼거나 도구가 차단되면 허용 작업을 직접 수행하거나 부족한 전문 작업을 부모에게 반환합니다. 같은 과업을 조상에게 재위임하거나 막힌 호출을 반복하지 않습니다.
 - Plan은 Native 프롬프트와 일반 파일 편집 제한을 유지합니다. 계획·분석만 승인됐으면 하위 Design/General도 그 범위만 수행해야 합니다. **Plan의 역할 제한은 자동 상속되지 않지만, 명시한 Native 세션 제한은 자식 생성 시 상속할 수 있습니다.** 엄격한 보호가 필요하면 기존 제한을 보존한 세션 규칙 또는 제한 실행환경을 하위 생성 전에 준비하고 실제 거부를 확인합니다. Plan 선택만으로 세션 제한이 자동 설치되거나 기존 자식에 소급 적용되는 것은 아니며 OS·네트워크 샌드박스도 아닙니다.
-- 중요한 진척·재개·곁작업 후에는 Build가 남은 목표와 다음 통합 결과를 판단합니다. 선택이 중요하거나 불명확하면 Plan의 방향 반박, 기술 계약이 불명확하면 Architect의 판단을 활용하고 실제 실행·결과 확인으로 잇습니다. 자문 보고만으로 멈추거나 새 범위를 임의로 시작하지 않습니다. Plan은 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다.
+- 중요한 진척·재개·곁작업 후에는 Build가 남은 목표와 다음 통합 결과를 판단합니다. 선택·기술 계약이 중요하거나 불명확하면 Plan의 방향 반박을 활용하고 실제 실행·결과 확인으로 잇습니다. 일상적 설계·수정은 Engineer·Design이 해결합니다. 자문 보고만으로 멈추거나 새 범위를 임의로 시작하지 않습니다. Plan은 필수 승인자·기억 저장소·두 번째 구현 총괄이 아닙니다.
 - 하위 조사·설계·구현이 실패하거나 Critic이 중요한 문제를 발견하면 각 부모가 유효한 부분 결과와 실패 근거를 확인하고 다음 접근을 판단합니다. 새 자료·교정된 조건·변경된 가설 없이 같은 요청을 반복하지 않습니다. 필요한 기존 담당자에게 교정을 연결하거나 접근법·배분을 바꾸고, 실제 차단은 해당 범위만 명시하며 독립적인 승인 작업은 계속합니다.
 - 기존 세션의 역할·모델은 설정 변경만으로 자동 이전되지 않습니다. 특히 Plan·Design을 메인으로 고를 때는 세션 모델도 확인하세요.
 
-Design은 맡은 UI 단위의 구현·검토를 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신 중요한 결정·충돌·실제 차단과 통합 결과를 반환합니다. Architect는 시스템 기술 설계 담당이며 UI 책임자와 구분합니다.
+Engineer·Design은 맡은 단위의 구현·검토·수정을 직접 연결합니다. Build에는 매번 수정 목록을 승인받으러 돌아오는 대신 중요한 결정·충돌·실제 차단과 통합 가능한 결과를 반환합니다. General 호출은 강제가 아니며 작은 작업은 직접 구현합니다.
 
 Research는 UX뿐 아니라 기술·제품·도메인 근거도 조사합니다. Explore가 ‘어디에 무엇이 있는가’를 찾는다면 Research는 ‘어떤 설명·대안이 근거에 더 맞고 무엇이 미확인인가’를 비교합니다. 검색 과정은 자신의 세션에 남기고 **원본 이미지·URL·자료·대상 상태**, 관측 사실, 영향/원인 가설, 적용 조건·한계를 부모에게 반환합니다. 해결 방향은 후보이지 채택된 제품 규칙이 아닙니다. 수신자도 원본을 확인하며 새 보고서 양식이나 문제 개수를 요구하지 않습니다.
 
@@ -80,17 +84,19 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 | 항목 | 기본 OpenCode | KSI Harness |
 | --- | --- | --- |
-| 전문 역할 | 사용자 정의 에이전트 지원 | Research·Design·Architect·Critic |
+| 전문 역할 | 사용자 정의 에이전트 지원 | Engineer·Design·Research·Critic |
 | 완료 판단 | 기본 에이전트 지침 | 승인된 작업의 완료·재승인 기준 명시 |
 | 위임 | General·Explore·하위 세션 지원 | 작업 단위 위임·공유 자원 소유 기준 명시 |
 | UI 편집 검사 | 플러그인으로 확장 가능 | Impeccable 엔진의 편집 후 검사 연동 |
 | 디자인 방법론 | 별도 설치 | Impeccable·Intent를 선택 사용 |
 | 브라우저 | 데스크톱 Native Browser 제공 | Native Browser·Playwright CLI 선택·세션 기준 |
-| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Research·Design·Architect·Critic 모델 지정 |
+| 모델 라우팅 | 에이전트별 모델 설정 지원 | General·Explore·Plan·Engineer·Design·Research·Critic 모델 지정 |
 
 구조와 과정을 정리한 것이며, 디자인 품질 향상을 A/B로 입증한 것은 아닙니다.
 
 ## 개발 워크플로
+
+- OpenSpec을 채택한 프로젝트에서는 승인된 요구·기능·변경 계약을 `openspec/`에서 관리합니다. 기존 정본·변경 이력을 일괄 폐기하지 않으며 코드·런타임·검증 기록과 명세를 구분합니다. 작은 버그·스타일 수정에는 새 변경 명세나 고정 단계를 강제하지 않습니다. [도입·외부 스킬](docs/openspec-and-skills.md)
 
 - Native 세션·계획·이력으로 결정·남은 작업·다음 통합 결과·검증 근거를 이어갑니다. 재개·통합·중요 진척 시에는 필요한 주장에 관련된 코드와 미커밋/미추적 변경, 실제 실행 빌드, 검증 버전·환경을 대조합니다. 정본은 요구 계약의 권위이고 코드·실행은 구현 현실의 근거입니다. 요약·문서 지도·HEAD 하나로 현재 상태를 대신 판단하지 않으며, 유효한 근거는 재사용하고 변경 영향만 다시 확인합니다. 고정 단계·새 정본 양식·필수 추적 파일은 요구하지 않습니다.
 - 위임할 때 핵심 원문·출처·문제·실제 제약을 넘기고, 사용자 확정사항과 Build의 해석·설계 가설을 구분합니다. 미선택을 거절·영구 유지로 간주하지 않으며, 담당자는 목표·제약 안에서 근거로 가설을 조정합니다. 새 자식 세션에는 부모 문맥이 자동 전달되지 않으므로 사용자 제약·원본 증거·작업+상태를 명시적으로 넘기고, 이어 쓰는 자식 세션은 같은 세션을 `sessionID`로 재사용합니다. 공유 파일·브라우저 자원은 한 소유자를 정합니다. 메인은 해당 빌드의 결과로 원래 문제의 해결 여부를 판단합니다.
@@ -126,7 +132,7 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 
 외부 스킬의 제한된 실행과 제품 전체의 인수를 구분하는 적용 정책은 [스킬 연결 검토](docs/validation.md#스킬-연결-검토-2026-10-17)에 기록했습니다. 사용자 범위·예산은 지키며, 스킬 종료를 미충족 제품의 완료로 간주하지 않습니다. 등록이나 본문 검토를 실제 활용 성능 검증으로 간주하지 않습니다.
 
-등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며 결과는 실제 권한·제품 품질의 증거가 아닙니다. 추적 대상은 위 8개 역할입니다. Research·Architect·Critic은 제품/보고서 편집·임의 Shell·서버 기동·설치·배포를 거부하고 각각 `research-*` / `architect-*` / `critic-*` 고유 CLI 세션을 사용합니다. 필요한 Context7 문서 조회와 역할별 설치 스킬을 허용하고 Research의 Mobbin 검색 3개를 유지합니다. 임의 스킬·MCP 액션은 허용하지 않습니다. 브라우저·CLI·execute는 읽기 전용 샌드박스가 아니므로 승인된 환경·계정·상태 전이를 사용합니다. [현재 구성·검증 범위](docs/validation.md#동적-8개-역할과-최대-깊이-3-2026-10-24)
+등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며 결과는 실제 권한·제품 품질의 증거가 아닙니다. 추적 대상은 위 8개 역할입니다. Research·Critic은 제품/보고서 편집·임의 Shell·서버 기동·설치·배포를 거부하고 각각 `research-*` / `critic-*` 고유 CLI 세션을 사용합니다. Engineer·Design은 승인 단위의 구현 권한을 갖습니다. 필요한 Context7 문서 조회와 역할별 설치 스킬을 허용하고 Research의 Mobbin 검색 3개를 유지합니다. 임의 스킬·MCP 액션은 허용하지 않습니다. 브라우저·CLI·execute는 읽기 전용 샌드박스가 아니므로 승인된 환경·계정·상태 전이를 사용합니다. [현재 구성·검증 범위](docs/engineer-routing-validation.md)
 
 ### UI 개선의 두 루프
 
@@ -209,7 +215,8 @@ src/banner.css: findings — overused-font:1
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` |
 | `global/agents/design.md` | `~/.config/opencode/agents/design.md` |
 | `global/agents/research.md` | `~/.config/opencode/agents/research.md` |
-| `global/agents/architect.md` | `~/.config/opencode/agents/architect.md` |
+| `global/agents/engineer.md` | `~/.config/opencode/agents/engineer.md` |
+| `docs/archive/agents/architect.md` | 원본 보존용, 설치·발견 대상 아님 |
 | `global/agents/critic.md` | `~/.config/opencode/agents/critic.md` |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` |
 | `global/plugins/ksi-impeccable-detector/` | `~/.config/opencode/plugins/ksi-impeccable-detector/` |
@@ -221,7 +228,7 @@ src/banner.css: findings — overused-font:1
 
 네 역할 파일만 복사하면 충분하지 않습니다. 최대 깊이 3·Build/Plan 호출 권한을 담은 설정, 커스텀 역할의 재위임 권한과 공통 지침을 함께 적용해야 위 구조로 동작합니다. 사용자 인증·개인 설정은 배포 사본에 포함하지 않습니다.
 
-제품 요구사항과 회귀 검사는 각 프로젝트의 문서·테스트·CI에서 관리합니다.
+제품 요구·변경 계약은 채택한 프로젝트의 OpenSpec과 기존 정본에서, 구현 상태는 코드·런타임·테스트·CI에서 확인합니다.
 
 ## 추가 검증
 
@@ -239,7 +246,7 @@ node tests/delegation-native-integration.mjs
 
 - `native-hook-integration.mjs`와 `delegation-native-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용하며 외부 모델을 호출하지 않습니다. 역할 라우팅 검사는 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.
 - 최근 확인 환경: OpenCode 2.1.4 / Playwright CLI 0.1.22 / Linux arm64 (이전 검사의 버전·범위는 검증 기록 참고, 다른 OS는 미확인)
-- `agent-routing-native.mjs`는 최대 깊이 3의 선언 일치와 역할별 호출 정책·모델·본문, Research/Architect/Critic CLI·스킬·문서 도구의 허용/거부 경계를 검사합니다. `delegation-native-integration.mjs`는 격리된 실제 Native에서 중첩·상한, 도구 거부, 소유 자식 세션 재개, 실패 후 새 참조를 통한 복구와 명시 세션 제한의 상속/비소급을 확인합니다. 모델은 로컬 scripted fixture이며 자율 판단력이나 실제품 완성도·OS 격리의 증거는 아닙니다. [실행 근거와 한계](docs/validation.md#장기-개발-연속성실패-복구-후속-보완)
+- `agent-routing-native.mjs`는 적용된 설치본의 깊이·호출 정책·모델·본문, Research/Critic의 CLI·스킬·문서 도구 경계를 검사합니다. 전역 교체 전에는 통과를 기대하지 않습니다. `delegation-native-integration.mjs`는 격리 Native에서 중첩·상한, 수정 허용/거부, 자식 재개·복구·증거 반환, 명시 세션 제한의 상속/비소급과 Engineer/Design 구현 경로를 확인합니다. 모델은 로컬 scripted fixture이며 자율 판단력·실제품 완성도·OS 격리의 증거는 아닙니다. [최신 실행 근거와 한계](docs/engineer-routing-validation.md)
 - 2026-10-17 모의 UI에서는 당시 명칭의 `Build → Design Architect → General` 중첩·같은 자식 세션 교정·원본 렌더 재평가를 확인했습니다. 새 역할의 모든 호출 경로·실제품 품질·장기 완주·비용 절감까지 입증한 것은 아닙니다. [이전 실행 근거](docs/validation.md#역할-구조-변경-2026-10-17)
 - `compaction-continuity-live.mjs`(선택형)는 수동 Compact 전후의 목표·확정 결정·미확정 후보·작업 상태 유지와 곁작업 복귀를 확인합니다. 2026-10-17 두 변형(keep 8192/15000) 모두 통과해 현재 설정을 유지했습니다. [결과와 한계](docs/validation.md#긴-세션-compact-연속성-검사-2026-10-17)
 - 선택형 실모델 검사와 결과 해석: [검증 안내](docs/validation.md)
