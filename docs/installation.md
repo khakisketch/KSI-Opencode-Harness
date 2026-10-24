@@ -127,7 +127,7 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    Playwright CLI를 사용할 수 있게 확인해줘. 기존 CLI·Chrome·원본 playwright-cli 스킬을 재사용하고,
    CLI가 없을 때만 공식 @playwright/cli@0.1.22 설치를 검토해줘. 프로젝트 init이나 테스트 의존성
    교체는 하지 말고 Playwright MCP·agent-browser를 기본 도구로 추가하지 마.
-5. OpenCode Go·OpenAI 모델 접근과 Context7 인증을 확인해줘.
+5. OpenCode Go 모델 접근과 Context7 인증을 확인해줘.
    Mobbin은 유료 선택 사항이라 필수가 아니야. 사용자가 쓰길 원할 때만 인증하고,
    아니면 비활성(`"enabled": false`)으로 두거나 건너뛰어도 돼. 필요한 구독·인증만 안내하고,
    비밀값을 채팅·저장소에 기록하거나 비용이 다른 모델로 임의 대체하지 마.
