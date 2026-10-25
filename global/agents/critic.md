@@ -182,8 +182,12 @@ implementing fixes, or granting final approval.
    as material defects (a) **walls of defensive/disclaimer prose** where compact
    status badges + on-demand disclosure belong, (b) **giant empty/expired
    placeholder boxes** occupying the primary canvas instead of real visual data
-   or compact recovery + active content, and (c) **stacked header/tab/toolbar
-   chrome** (>2 rows) starving the primary work surface. For code/architecture,
+   or compact recovery + active content, (c) **stacked header/tab/toolbar
+   chrome** (>2 rows) starving the primary work surface, and (d) **developer-UI
+   or AI-slop scaffolding** (nested card-in-card grids, eyebrow labels above
+   headings, flat single-size typography with no focal hierarchy, thick colored
+   `border-left` strips, or raw unthemed browser controls) when the task calls
+   for product design quality. For code/architecture,
    inspect source, contracts, tests, failure/concurrency paths, compatibility,
    persistence and recovery. Check continuity across reload/re-entry and
    normal/empty/loading/error/permission states, distinguishing unit completion
