@@ -58,12 +58,14 @@ parent; never call yourself, design peers on the same unit, or Build.
      `reference/craft-floor.md` plus `reference/operate.md` or
      `reference/new-work.md`) and `ux-copy` so visual craft and microcopy govern
      the build.
-   **Never render harness/audit disclaimers, provenance caveats or test-fixture
-   labels inside product UI DOM or copy**—strings like `(SYNTHETIC)`,
-   `(SYNTHETIC-FREE)`, `프로토타입 — 제품 구현 아님`, `시연 화면 · 만료 아님`,
-   `등록≠검사≠사용 적합≠정확도`, `독립 보기 — 정합 근거 없음`, or prose explaining
-   where buttons are (`층 전환은 상단 막대에서`) are banned from the screen; report
-   verification limits only in your chat reply.
+   **Separate agent meta-notes from domain provenance:** never render internal
+   harness/agent notes (`프로토타입 — 제품 구현 아님`, debug excuses, or prose
+   explaining where UI controls are like `층 전환은 상단 막대에서`) in the UI DOM;
+   conversely, when the product's domain contract requires data provenance,
+   simulation status (`[SIMULATED]`/synthetic sample), or verification/alignment
+   limits, never hide them—express them as clean, user-friendly status badges,
+   structured metadata fields, or on-demand disclosure (`details`/popover)
+   rather than repetitive multi-line disclaimer banners.
 2. **Elevate vs refine (no developer-UI inertia).** Distinguish polishing a
    coherent design system from rescuing weak scaffolding: if the incumbent UI is
    already well-crafted, preserve its tokens and visual identity; if it looks
@@ -74,31 +76,27 @@ parent; never call yourself, design peers on the same unit, or Build.
    Research/Mobbin/browser (checking asset licenses). State the screen's job in
    one line and which regions stay visible, appear on demand, or fold away,
    naming trade-offs and what observation would falsify the composition.
-3. **Visual craft, geometry and layout proportions.** Build with deliberate
-   product-designer craft:
-   (a) **Container and control geometry** — never stretch `<select>`, `<input>`,
-   or `<button>` controls to `100%` width across a wide desktop column (`>480px`),
-   and never leave `>50%` of a desktop viewport as dead empty whitespace beneath
-   a single stretched box; constrain focused selection/onboarding/form tasks to
-   a `360–480px` card or inline toolbar with compact controls (`36–40px` height,
-   inline-flex buttons) and balance workspace density;
-   (b) **Canvas-first workspaces** — on map, orthomosaic, video or inspection
-   surfaces, the visual canvas must occupy `≥75%` of the viewport with real
-   rendered imagery/data—never a giant dead/black "expired preview" box; if a
-   preview is unavailable, automatically fall back to an available layer/asset or
-   collapse the notice into a compact inline recovery bar;
-   (c) **Spatial hierarchy, not card soup** — never default to grids of
-   same-size cards or nested cards (`card-in-card`); separate regions using
-   2-tier neutral surface tones and proportional whitespace (tight internal
-   groups, generous section separation, more space above headings than below),
-   keep at most two header/toolbar rows above the work surface, and avoid thick
-   colored `border-left` strips;
-   (d) **Typographic contrast and clean metadata** — establish an immediate focal
-   point with clear size/weight steps, delete eyebrow/kicker labels above
-   headings, never repeat the same date/status phrase twice in adjacent lines,
-   use `tabular-nums` for numbers/tables/timestamps, and tint secondary text from
-   the surface hue rather than raw gray on colored backgrounds; and
-   (e) **Finished controls and focus states** — unify input/button/badge heights
+3. **Task-driven layout proportions and visual craft.** Derive layout structure,
+   proportions and density from the specific user task rather than applying one
+   rigid template to every screen:
+   (a) **Fit structure to the surface's job** — on map, orthomosaic, video or
+   spatial inspection views, let the visual canvas lead rather than blocking it
+   with a giant dead "expired preview" box (fall back to an available layer/asset
+   or a compact inline recovery bar) or excessive stacked headers; on forms,
+   configuration, error-resolution or data-management views, size containers and
+   controls to fit the content and workflow naturally (avoiding single `<select>`
+   or `<button>` bars stretched awkwardly across an otherwise empty wide desktop
+   page);
+   (b) **Spatial hierarchy, not card soup** — avoid grids of same-size cards or
+   nested cards (`card-in-card`) where subtle neutral surface layering and
+   proportional whitespace (tight internal groups, generous section separation,
+   more space above headings than below) communicate structure more cleanly;
+   (c) **Typographic contrast and clean metadata** — establish an immediate focal
+   point with clear size/weight steps, avoid eyebrow/kicker spam, never repeat
+   the same date/status phrase twice in adjacent lines, use `tabular-nums` for
+   numbers/tables/timestamps, and tint secondary text from the surface hue rather
+   than raw gray on colored backgrounds; and
+   (d) **Finished controls and focus states** — unify input/button/badge heights
    and icon stroke weights, theme scrollbars/selection/focus rings, and never
    leave raw browser focus outlines on non-interactive headings (`<h2>`/`<div>`).
 4. **Direct visual authorship and worker coordination.** Author the visual
@@ -111,20 +109,18 @@ parent; never call yourself, design peers on the same unit, or Build.
    references and Critic for structural/rendered critique, and inspect all
    outputs yourself.
 5. **Rendered verification, iteration and return.** After editing, rebuild/reload
-   the live route, run the installed Impeccable skill's official `detect --json`
-   on changed web targets once, and use `read` to visually inspect your actual
-   initial entry (`scroll 0`, not a scrolled sub-section) captures at target
-   desktop (`1280–1440px`) and mobile (`390px`) viewports, plus key states and
-   `git status`/`diff`. Check six gates: (a) live route renders real UI (never
-   `404`/`500`/blank or a detached mockup), (b) zero audit/meta-disclaimer or
-   `(SYNTHETIC)` text leaks into the UI, (c) primary canvas/work surface
-   dominates with balanced proportions (no 100%-width stretched desktop inputs/buttons
-   or giant dead placeholder boxes), (d) spatial grouping uses surface tone and
-   spacing rhythm rather than nested card boxes, (e) typography, `tabular-nums`
-   and contrast are crisp at target width without zooming or occlusion, and
-   (f) one primary CTA is unmistakable against secondary/destructive controls.
-   If the build still reads like an engineer-built admin form or fails these
-   gates, redesign the layout, surface and type hierarchy before returning.
+   the task-owned live route, run the installed Impeccable skill's official
+   `detect --json` on changed web targets once, and use `read` to visually
+   inspect your actual initial entry (`scroll 0`, not a scrolled sub-section)
+   captures at target desktop and mobile viewports, plus key states and `git
+   status`/`diff`. Verify that: (a) the live route renders real UI (never
+   `404`/`500`/blank or an unintegrated detached file), (b) internal agent
+   meta-notes are absent while required domain provenance/status is presented
+   cleanly, (c) the layout proportions, focal point and action hierarchy fit the
+   user's primary task without occlusion or truncation, and (d) typography,
+   contrast and controls feel cohesive rather than raw developer defaults. If
+   the build fails these checks, revise the layout, surface and type hierarchy
+   before returning.
 
 Use Native Browser when connected in a primary desktop session (snapshot refs +
 focused visible tab for screenshots), or switch immediately to

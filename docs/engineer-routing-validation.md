@@ -84,14 +84,14 @@ Plan의 Native 프롬프트·파일 편집 제한은 유지합니다. 역할 권
 
 ### 회귀·격리 Native
 
-- 2026-10-25 역할 단위·부품 감사 및 `scripts/session-audit.mjs` 도입 후 모의 회귀 **106/106**, OpenSpec **2/2** 통과. 자체 플러그인 폐기와 함께 core/adapter/native-hook 검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. 기존 Impeccable·외부 스킬 원본은 수정하지 않았습니다.
-- 최종 정본을 복사한 Native **2.1.4 scripted 통합 312/312** 통과(5대 핸드오프·풀스택 공유 계약·서브에이전트 CLI Fast-path·4대 제품 인수 조건·프롬프트 중복 제거 반영 후 재실행, 이후 161개 세션 감사 및 실제 캡처 대조 기반 전체 제품 이해 선행·Variant 상향·General 스킬 확장·UI 메타 오염 금지·Design 2단계 스킬 로드·Critic 독립 평가 축 분리 후 `/tmp/opencode/ksi-deleg-30Spbx`에서 **312/312** 재확인). 근거 `/tmp/opencode/ksi-deleg-FN1rMd` 및 `/tmp/opencode/ksi-deleg-30Spbx`의 manifest·메시지·요청 로그입니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다.
+- 2026-10-25 역할 단위·부품 감사 및 `scripts/session-audit.mjs` 도입·고도화 후 모의 회귀 **107/107**, OpenSpec **2/2** 통과. 자체 플러그인 폐기와 함께 core/adapter/native-hook 검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. 기존 Impeccable·외부 스킬 원본은 수정하지 않았습니다.
+- 최종 정본을 복사한 Native **2.1.4 scripted 통합 312/312** 통과(5대 핸드오프·풀스택 공유 계약·서브에이전트 CLI Fast-path·4대 제품 인수 조건·프롬프트 중복 제거 반영 후 재실행, 이후 161개 세션 감사 및 실제 캡처 대조 기반 전체 제품 이해 선행·Variant 상향·General 스킬 확장·도메인 출처/상태 표현과 에이전트 내부 메모 분리·과업 기반 레이아웃 비례·로컬/격리 환경 재빌드 경계·Design 2단계 스킬 로드·Critic 독립 평가 축 분리 후 `/tmp/opencode/ksi-deleg-RvcbsM`에서 **312/312** 재확인). 근거 `/tmp/opencode/ksi-deleg-FN1rMd` 및 `/tmp/opencode/ksi-deleg-RvcbsM`의 manifest·메시지·요청 로그입니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다.
 - 기존 깊이 3·초과 거부·실제 수정 거부·동일 자식 재개·실패 후 새 근거 복구·단일 도구 결과별 실제 바이트 반환·세션 제한의 전체 순서 포함 상속/비소급 검사를 유지했습니다.
 - 새 Engineer 수정 허용, `Build→Engineer→Plan→Explore`, `Build→Engineer→General` 구현·동일 General 재수정, `Design→General` UI 파일 구현을 확인했습니다. 읽기 전용 Research/Critic/Plan의 실제 거부는 별도로 유지했습니다.
 - 병렬 L에서는 **같은 Build turn**의 Engineer·Design이 독립 파일을 실제 write/read했습니다. 각 세션의 세 번 요청 시간창이 교차함을 확인했고, 상대 파일 변경·공유 계약 바이트 변경 없이 부모에 둘 다 반환됐습니다. 이는 분리 소유한 작업의 Native 동시 실행 근거이며, 모든 실모델·공유 데이터에서 충돌이 불가능하다는 보장은 아닙니다.
 - 역할 카탈로그는 기본 8개이며 Architect의 숨김 phantom도 허용하지 않는 검사로 보강했습니다. 역할별 Muse Variant·단일 `opencode-go` provider·Build 전역 미고정·Critic의 정확한 스킬 허용도 정본과 대조합니다.
 
-최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고, 전역에 적용했습니다. 적용 전 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`, `/tmp/opencode/ksi-harness-backup-20261024T140346Z/`, `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-judgment-gates-20261024T231206Z/`에 보존했습니다. `tests/agent-routing-native.mjs` 설치본 검사 **327/327** 통과(근거 `/tmp/opencode/ksi-agent-routing-zb9gqM`, 최신 `/tmp/opencode/ksi-agent-routing-36Wgw0`), `scripts/capabilities.mjs`에서 8개 역할, 17개 스킬 등록과 MCP 2개 연결을 확인했습니다. 이는 설치·정책 검증이며 실제 모델의 판단력·제품 완성도 검증이 아닙니다.
+최신 전역 적용용 6개 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/next/`에 최신 정본 바이트로 갱신했고, 전역에 적용했습니다. 적용 전 파일은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/`, `/tmp/opencode/ksi-harness-backup-20261024T140346Z/`, `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-judgment-gates-20261024T231206Z/`에 보존했습니다. `tests/agent-routing-native.mjs` 설치본 검사 **327/327** 통과(근거 `/tmp/opencode/ksi-agent-routing-zb9gqM`, 최신 `/tmp/opencode/ksi-agent-routing-JKRcD0`), `scripts/capabilities.mjs`에서 8개 역할, 17개 스킬 등록과 MCP 2개 연결을 확인했습니다. 이는 설치·정책 검증이며 실제 모델의 판단력·제품 완성도 검증이 아닙니다.
 
 ### 실제 모델: 기술 개발 단위 (이전 모델 구성, 역사적 근거)
 

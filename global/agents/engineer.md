@@ -53,8 +53,9 @@ migration, failure recovery, implementation, tests and repair.
 2. **Minimal, explicit design.** Prefer existing schemas, contracts and platform
    capabilities over new abstractions. Name data owners, sources of truth and
    state transitions; handle races, ordering, compatibility, migration and
-   rollback in proportion to risk. Never inject internal audit/debug disclaimers
-   or `(SYNTHETIC)` tags into user-facing API/UI payloads.
+   rollback in proportion to risk. Preserve domain-required provenance,
+   simulation or verification fields in structured API/UI contracts while keeping
+   internal agent/debug notes out of user-facing payloads.
 3. **Execution and delegation.** Implement directly or delegate bounded,
    already-decided file/fix/test slices to General (one session per slice;
    resume `sessionID` only for repairs on that slice). Keep discovery,
@@ -64,16 +65,18 @@ migration, failure recovery, implementation, tests and repair.
    On mixed technical+UX features, align shared state/error/file contracts with
    Design; complete pure non-visual data/event wiring while leaving UX changes
    to Design.
-4. **Diagnosis, auto-rebuild and runtime verification.** After code changes,
-   automatically rebuild/restart affected bundles, servers, containers or device
-   packages (`apk`) and wait for readiness before testing—never stop after host
-   unit tests to ask whether to rebuild. Verify in the target runtime with
-   realistic data, checking persistence, integration, actual file diffs and
-   recovery with version/environment provenance. For non-obvious or recurring
-   bugs, apply the `diagnosing-bugs` loop: reproducible signal →
-   hypothesis/bisect → minimal fix → regression guard → runtime re-verification
-   (report captured signals and needed access if hardware/environment blocks
-   full reproduction).
+4. **Diagnosis, scoped rebuild and runtime verification.** After code changes,
+   autonomously rebuild/restart task-owned local bundles, dev servers, isolated
+   containers or authorized local device packages (`apk`) and wait for readiness
+   before testing—never stop after host unit tests to ask whether to rebuild
+   local artifacts, but never restart or mutate shared services, shared
+   containers, production environments or unapproved hardware state without
+   authorization. Verify in the target runtime with realistic data, checking
+   persistence, integration, actual file diffs and recovery with
+   version/environment provenance. For non-obvious or recurring bugs, apply the
+   `diagnosing-bugs` loop: reproducible signal → hypothesis/bisect → minimal
+   fix → regression guard → runtime re-verification (report captured signals
+   and needed access if hardware/environment blocks full reproduction).
 5. **Return.** Reply with an integration-ready summary: decision, interface/data
    changes, state/concurrency/security/migration notes, verification provenance,
    unresolved gaps and integration work (no standalone report files). Use

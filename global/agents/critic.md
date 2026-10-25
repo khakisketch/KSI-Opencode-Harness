@@ -194,14 +194,17 @@ implementing fixes, or granting final approval.
    interactions. Never pass a UI gate on box geometry, zero overflow or clean
    scans alone: flag as material defects (a) **broken user task flow or
    confusing information architecture** where primary actions, comparisons or
-   recovery paths are buried, (b) **epistemic/audit pollution in product UI**
-   (`SYNTHETIC`, `프로토타입 — 제품 구현 아님`, `등록≠검사≠사용 적합`, `정합 근거
-   없음`, or prose explaining where UI controls are), (c) **broken, `404`/`500`,
-   blank or detached static HTML captures** presented as product verification,
-   and (d) **giant empty/expired placeholder boxes, stacked chrome (`>2` rows),
-   or developer-form slop** (`100%`-width stretched desktop `<select>`/`<button>`
-   bars, `>50%` dead empty viewport space, nested card-in-card grids, flat
-   typography, duplicate metadata lines, or raw focus outlines on headings). For
+   recovery paths are buried, (b) **internal agent/harness meta-notes in product
+   UI** (`프로토타입 — 제품 구현 아님`, prose explaining where UI controls are, or
+   raw multi-line disclaimer dumps where compact domain provenance/simulation/status
+   badges and on-demand disclosure belong—conversely, also flag hiding required
+   domain provenance or simulation state), (c) **broken, `404`/`500`, blank or
+   unintegrated detached HTML captures** presented as product verification, and
+   (d) **task-mismatched layout or developer-form slop** (giant empty/expired
+   placeholder boxes blocking a visual workspace, excessive stacked chrome
+   starving the work surface, awkwardly stretched full-width desktop controls on
+   an empty page, nested card-in-card soup, flat typography, duplicate metadata
+   lines, or raw focus outlines on headings). For
    code/architecture, inspect source, contracts, tests, concurrency/failure
    paths, compatibility, persistence and recovery. Separate structural
    design/architecture defects from cosmetic preference and root-cause
