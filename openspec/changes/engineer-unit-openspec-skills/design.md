@@ -2,9 +2,9 @@
 
 ## Context
 
-- Repo HEAD `adeaa3c`. `global/` agent/config/runtime files are owned by
-  another workstream with uncommitted changes present; this change must not
-  touch them. Reference contract (read-only): complex technical → Engineer,
+- Original staging baseline: repo HEAD `adeaa3c`. `global/` agent/config/runtime files were owned by
+  another workstream with uncommitted changes present; the original staging did
+  not touch them. Reference contract: complex technical → Engineer,
   UX/interface → Design, small fixes → General/direct, Build owns roadmap +
   integration/final acceptance; `architect.md` moved byte-identical
   (sha256 e29693ea…, 9014 bytes) to `docs/archive/agents/architect.md`;
@@ -34,13 +34,32 @@
 
 **Non-Goals:**
 
-- No global `~/.config/opencode/skills` installation (Main coordinates after
-  the protected legacy gate).
+- No additional global skill installation; the historical staging gate and
+  later installation are recorded in tasks §2/§5.
 - The 2026-10-24 role-contract audit retires the repo-bundled
   `task-first-ux-review` and custom detector; this change's original staging
   scope did not install them globally.
 - No new manager/router/memory-state framework or mandatory checklists.
 - No mass rewrite of existing README/global role contracts or old history.
+
+## Approved correction decisions (2026-10-25, baseline `58e75b6`)
+
+- Replace overbroad prohibitions rather than adding stages: preserve useful help,
+  visible managed focus, required provenance and honest prototype/simulation
+  disclosure. Missing media must not silently substitute another selected asset.
+- Existing handoffs separate authoritative constraints from revisable layouts;
+  important reviews use original intent, not just the author's checklist. Link
+  applicable reference principles to rendered choices without a new report form.
+- The offline audit counts explicitly completed observed calls; image paths and
+  command matches are candidates, not task relevance or test success. Report
+  incomplete status and file/identity coverage rather than an independent-session
+  census. No new evaluator or dependencies.
+- OpenSpec owns testable requirements; `global/` owns concise executable prompts.
+  Keep both coherent, without copying whole prompts into specs. Backup and compare
+  installed bytes before/after applying only approved prompt files. No service or
+  session restart, model/permission change, third-party skill edit or product edit.
+- Static/regression/Native fixture checks verify mechanics only. Retain all four
+  empirical gaps in tasks §5; no archive or product-quality claim from these checks.
 
 ## Decisions
 

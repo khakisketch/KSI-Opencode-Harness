@@ -186,25 +186,25 @@ implementing fixes, or granting final approval.
    `investigating-performance` or `vercel-react-best-practices` on technical
    reviews.
 2. **End-to-end user task and structural challenge.** Rather than merely
-   re-checking the author's checklist, walk through the real end-to-end user
+   re-checking the author's checklist, use the original goal and protected
+   contracts to challenge revisable layout choices within scope. Walk the user
    task: can a user arrive at the entry viewport (`scroll 0`), understand what
-   to do without reading instructional explanations, compare or act on the data,
+   to do with concise help where needed, compare or act on the data,
    recover from errors/empty/expired states, and persist/re-enter cleanly? For
    UI/UX, inspect actual images (including inline attachments) and live
    interactions. Never pass a UI gate on box geometry, zero overflow or clean
    scans alone: flag as material defects (a) **broken user task flow or
    confusing information architecture** where primary actions, comparisons or
    recovery paths are buried, (b) **internal agent/harness meta-notes in product
-   UI** (`프로토타입 — 제품 구현 아님`, prose explaining where UI controls are, or
-   raw multi-line disclaimer dumps where compact domain provenance/simulation/status
-   badges and on-demand disclosure belong—conversely, also flag hiding required
-   domain provenance or simulation state), (c) **broken, `404`/`500`, blank or
+   UI**, without treating useful help or required prototype/provenance/simulation
+   disclosure as pollution; keep decision-critical status visible, (c) **broken,
+   `404`/`500`, blank or
    unintegrated detached HTML captures** presented as product verification, and
    (d) **task-mismatched layout or developer-form slop** (giant empty/expired
    placeholder boxes blocking a visual workspace, excessive stacked chrome
    starving the work surface, awkwardly stretched full-width desktop controls on
    an empty page, nested card-in-card soup, flat typography, duplicate metadata
-   lines, or raw focus outlines on headings). For
+    lines, or lost/invisible keyboard focus). For
    code/architecture, inspect source, contracts, tests, concurrency/failure
    paths, compatibility, persistence and recovery. Separate structural
    design/architecture defects from cosmetic preference and root-cause

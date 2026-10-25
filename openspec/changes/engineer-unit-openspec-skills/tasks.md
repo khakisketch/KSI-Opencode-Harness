@@ -68,3 +68,15 @@
 - [ ] 5.5 Measure the `diagnosing-bugs` and `ux-copy` trial over 2-3 real
   tasks; remove either if it adds calls without reducing rework or copy
   corrections.
+
+## 6. User-approved minimal correction (2026-10-25)
+
+- [x] 6.1 Replace harmful prompt constraints and distinguish binding contracts
+  from revisable UI choices; align main/delta specs and concise guidance without
+  new roles, stages, model/permission changes or third-party skill edits.
+- [x] 6.2 Make session-audit completed-call and coverage reporting conservative;
+  test synthetic failure/incomplete/output/file-identity cases without claiming
+  product quality or reading/mutating actual product sessions.
+- [x] 6.3 Run regression/spec/isolated Native checks, obtain scoped independent
+  review, apply backed-up global prompts without restarting services/sessions,
+  and correct validation provenance while leaving tasks §5 unchecked.

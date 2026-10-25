@@ -21,7 +21,9 @@ so a worker cannot verify compatibility without re-reading history.
 - Records the staged-skills set (6 skills, review-only in `/tmp`, no global
   install) and the duplicate/replacement decisions, so Main can coordinate
   the protected legacy gate.
-- No code, runtime, session, API, credential, or shared-service changes.
+- The original staging scope made no code, runtime, session, API, credential,
+  or shared-service changes. The approved follow-up below supersedes that limit
+  only for the named harness files and backed-up global prompt installation.
 
 ## Capabilities
 
@@ -41,5 +43,17 @@ so a worker cannot verify compatibility without re-reading history.
 - Generated files from official CLI (`openspec init --tools opencode`):
   `openspec/config.yaml`, `.opencode/commands/opsx-*.md`,
   `.opencode/skills/openspec-*`. No hand-written adapter.
-- Existing `AGENTS.md`, `global/`, `README.md`, installation/validation docs,
-  tests, scripts, and archived history are untouched.
+- Original staging left existing `AGENTS.md`, `global/`, README, tests and scripts
+  untouched; subsequent approved role-contract work is recorded in tasks §4.
+
+## Approved minimal correction (2026-10-25)
+
+The user approved removing harmful constraints, not adding another workflow.
+Correct global prompts so help/focus and required disclosures remain usable,
+fallback preserves selected data identity, and handoffs distinguish binding
+contracts from revisable layout assumptions. Keep review anchored to the original
+task rather than only the author's edit list. Correct offline audit observations
+and overstated historical evidence in scripts/tests/docs. Align the capability
+spec and apply backed-up prompts globally; do not change roles, models,
+permissions, third-party skills, other products, or shared services. Real-product
+design quality and autonomous completion remain unproven; tasks §5 stay open.

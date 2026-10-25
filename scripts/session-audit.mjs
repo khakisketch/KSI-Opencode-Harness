@@ -1,9 +1,10 @@
-// session-audit.mjs — opt-in read-only heuristic anomaly detector for agent
-// execution traces (tool status, temporal ordering of authority reads before
-// edits/delegation, UX/IA vs visual-craft skill loads, post-edit visual capture
-// reads, and post-edit verification runs).
-// Node stdlib only; never mutates sessions, config, or project files, and does
-// not certify product or design quality.
+// session-audit.mjs — opt-in read-only observer of visible agent tool traces
+// (explicit completed tool status, input-array order of authority reads before
+// edits/delegation, UX/IA vs visual-craft skill loads, observed image-path
+// reads, and shell command-pattern candidates).
+// Describes traces only; never proves understanding, design success, test
+// success, session independence, or model quality. Node stdlib only; never
+// mutates sessions, config, or project files.
 import { promises as fsp } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -15,6 +16,30 @@ const DETECT_RE = /\bimpeccable\b[^\n]*\bdetect\b|\bdetect\s+--json\b/i;
 const OPENSPEC_CMD_RE = /\bopenspec\s+(?:validate|status|list|show|init|new|archive)\b/i;
 const VERIFY_CMD_RE = /\b(?:node\s+--test|pytest|vitest|jest|mocha|gradle\w*|cargo\s+(?:test|check|build)|(?:npm|pnpm|yarn|bun)\s+(?:test|run\s+(?:test|build|check|lint|typecheck|verify))|tsc\b|mypy\b|ruff\b|eslint\b|python3?\s+[^\n]*check[^\n]*\.py|bash\s+scripts\/(?:run_all_tests|android_host_tests|run_local_verification)\b|playwright\s+test)\b/i;
 
+const COMPLETED_RE = /^completed$/i;
+const NONZERO_EXIT_RE = /\bexit(?:ed)?(?:\s+code)?\s*[:=]?\s*[1-9]\d*\b|exitcode\s*[:=]\s*[1-9]/i;
+const ECHO_LEAD_RE = /^\s*echo(?:\s|$)/i;
+const SHELL_CHAIN_RE = /[;&|]|\$\(/;
+
+const LIMITATIONS = [
+  'trace-observation-only: a missing skill/read is not proof it never happened (other channels, redaction, or trace gaps).',
+  'status-basis: only an explicit `completed` status counts as completed; pending/running/missing/unknown counts as incomplete, never as done.',
+  'verification-basis: shell matches are command-pattern candidates only (echo-only excluded); obvious nonzero-exit output is counted separately and is not a passing run.',
+  'visual-basis: image-extension reads are observed path reads only; not proof of task relevance, rendering, or inspection.',
+  'order-basis: sequence is input-array order as observed only; not timestamp or concurrency proof.',
+  'identity-basis: file basenames are labels, not session identity; exact repeated message windows are grouped, not a complete census.',
+  'design-skill-gap: requires at least one of UX/IA skill, craft/copy skill, or craft-doc read; never every UI skill.',
+  'no-quality-attribution: no version, prompt, or model quality claims; not a product or design certifier.',
+];
+
+const COVERAGE = {
+  statusBasis: 'explicit `completed` status only; failed vs incomplete counted separately',
+  verificationBasis: 'command-pattern candidate only: verificationRuns counts candidates, not passed tests; nonzero-exit hints separated; not exit-success proof',
+  visualBasis: 'observed image-path reads only; not task-relevance proof',
+  orderBasis: 'input-array order only; not timestamp/concurrency proof',
+  identityBasis: 'explicit in-payload session id only; basename labels stay anonymous:<file>; exact message-window duplicates grouped',
+  qualityScope: 'visible tool traces only; no version/prompt/model quality attribution',
+};
 const UX_IA_SKILLS = new Set([
   'designing-user-experience',
   'journey',
@@ -39,11 +64,51 @@ function extractMessages(payload) {
   return null;
 }
 
+function toolStatus(part) {
+  return part?.state?.status ?? part?.status ?? null;
+}
+
 function isFailedTool(part) {
-  const status = part?.state?.status ?? part?.status ?? null;
+  const status = toolStatus(part);
   if (status === 'error' || status === 'failed') return true;
   if (part?.state?.error || part?.error) return true;
   return false;
+}
+
+// Strict Native status: only a literal `completed` counts as completed.
+// Anything else (pending, running, missing, unknown, or any other alias)
+// is incomplete (not failed, not done).
+function isCompletedTool(part) {
+  const status = toolStatus(part);
+  return typeof status === 'string' && COMPLETED_RE.test(status.trim());
+}
+
+function shellOutputBlob(part) {
+  const vals = [part?.state?.output, part?.state?.result, part?.output, part?.result, part?.state?.text, part?.text];
+  const err = part?.state?.error?.message ?? part?.error?.message ?? part?.error;
+  if (typeof err === 'string') vals.push(err);
+  return vals.filter((v) => typeof v === 'string').join('\n');
+}
+
+// Obvious nonzero-exit hints in visible tool output text (e.g. "exit 1").
+// Narrow on purpose: not a log classifier, just avoids counting a visibly
+// failed run as a verification candidate.
+function hasNonzeroExitHint(part) {
+  return NONZERO_EXIT_RE.test(shellOutputBlob(part));
+}
+
+// `echo "npm test"` merely prints the words; without chaining it runs nothing.
+function isEchoOnlyCommand(cmd) {
+  return ECHO_LEAD_RE.test(cmd) && !SHELL_CHAIN_RE.test(cmd);
+}
+
+function explicitSessionIdOf(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const cands = [raw.sessionId, raw.sessionID, raw.session_id, raw?.metadata?.sessionId, raw?.metadata?.sessionID, raw?.session?.id];
+  for (const c of cands) {
+    if (typeof c === 'string' && c.trim()) return c.trim();
+  }
+  return null;
 }
 
 export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
@@ -57,6 +122,7 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
         turns: 0,
         tools: {},
         failedTools: {},
+        incompleteTools: {},
         skillsLoaded: [],
         uxSkillsLoaded: [],
         craftSkillsLoaded: [],
@@ -71,6 +137,7 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
         detectorRuns: 0,
         openspecCommands: 0,
         verificationRuns: 0,
+        verificationNonzeroHints: 0,
         postEditVerificationRuns: 0,
         edits: 0,
         reads: 0,
@@ -98,6 +165,12 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
         stat.failedTools[toolName] = (stat.failedTools[toolName] ?? 0) + 1;
         continue;
       }
+      // Pending/running/missing status: observed but not completed. Never
+      // counted as a completed tool call (authority read, skill, verify, ...).
+      if (!isCompletedTool(part)) {
+        stat.incompleteTools[toolName] = (stat.incompleteTools[toolName] ?? 0) + 1;
+        continue;
+      }
 
       stat.tools[toolName] = (stat.tools[toolName] ?? 0) + 1;
       const inp = part.state?.input ?? part.input ?? part.args ?? {};
@@ -115,6 +188,7 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
         stat.reads += 1;
         const rawPath = String(inp.path ?? inp.filePath ?? '');
         const shortPath = rawPath.split('/').slice(-2).join('/');
+        // Observed image-path reads only; not proof of task relevance or inspection.
         if (IMAGE_RE.test(rawPath)) {
           pushUnique(stat.visualReads, shortPath);
           if (stat.edits > 0) pushUnique(stat.postEditVisualReads, shortPath);
@@ -134,11 +208,20 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
       } else if (toolName === 'shell') {
         stat.shells += 1;
         const cmd = String(inp.command ?? '');
-        if (DETECT_RE.test(cmd)) stat.detectorRuns += 1;
-        if (OPENSPEC_CMD_RE.test(cmd)) stat.openspecCommands += 1;
-        if (VERIFY_CMD_RE.test(cmd) || DETECT_RE.test(cmd)) {
-          stat.verificationRuns += 1;
-          if (stat.edits > 0) stat.postEditVerificationRuns += 1;
+        // Command-pattern candidates only: a regex match is not proof the
+        // check ran or passed (echo-only commands excluded outright).
+        const echoOnly = isEchoOnlyCommand(cmd);
+        if (!echoOnly && DETECT_RE.test(cmd)) stat.detectorRuns += 1;
+        if (!echoOnly && OPENSPEC_CMD_RE.test(cmd)) stat.openspecCommands += 1;
+        if (!echoOnly && (VERIFY_CMD_RE.test(cmd) || DETECT_RE.test(cmd))) {
+          // Completed transport with visibly nonzero exit text is a failure
+          // hint, not a passing verification run.
+          if (hasNonzeroExitHint(part)) {
+            stat.verificationNonzeroHints += 1;
+          } else {
+            stat.verificationRuns += 1;
+            if (stat.edits > 0) stat.postEditVerificationRuns += 1;
+          }
         }
       }
     }
@@ -170,9 +253,9 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
     }
     if (role === 'engineer' && s.edits > 0) {
       if (s.verificationRuns === 0) {
-        gaps.push('engineer-edited-without-verification-run');
+        gaps.push('engineer-no-observed-verification-candidate');
       } else if (s.postEditVerificationRuns === 0) {
-        gaps.push('engineer-no-post-edit-verification-run');
+        gaps.push('engineer-no-post-edit-verification-candidate');
       }
     }
     if (role === 'critic' && s.turns > 0) {
@@ -204,6 +287,9 @@ export function summarizeAudits(audits) {
           reads: 0,
           shells: 0,
           verificationRuns: 0,
+          verificationNonzeroHints: 0,
+          failedTools: {},
+          incompleteTools: {},
           visualReadSessions: 0,
           postEditVisualReadSessions: 0,
           skillLoadedSessions: 0,
@@ -220,7 +306,10 @@ export function summarizeAudits(audits) {
       rt.reads += s.reads;
       rt.shells += s.shells;
       rt.verificationRuns += s.verificationRuns;
+      rt.verificationNonzeroHints += s.verificationNonzeroHints ?? 0;
       rt.detectorRuns += s.detectorRuns;
+      for (const [t, n] of Object.entries(s.failedTools ?? {})) rt.failedTools[t] = (rt.failedTools[t] ?? 0) + n;
+      for (const [t, n] of Object.entries(s.incompleteTools ?? {})) rt.incompleteTools[t] = (rt.incompleteTools[t] ?? 0) + n;
       if (s.visualReads.length > 0) rt.visualReadSessions += 1;
       if (s.postEditVisualReads.length > 0) rt.postEditVisualReadSessions += 1;
       if (s.skillsLoaded.length > 0) rt.skillLoadedSessions += 1;
@@ -234,36 +323,94 @@ export function summarizeAudits(audits) {
 
   return {
     validSessions,
+    auditedSnapshots: validSessions,
+    countBasis: 'audited file snapshots in input-array order; not a count of independent sessions',
+    gapBasis: 'gaps flag missing observations only; not quality or compliance verdicts',
     roleTotals,
     gapCounts,
-    notice: 'Heuristic execution anomaly detector (tool sequence and status only); not a product or design quality certifier.',
+    limitations: [...LIMITATIONS],
+    coverage: { ...COVERAGE },
+    notice: 'Heuristic execution anomaly detector (visible tool traces and input-array order only); not a product or design quality certifier.',
   };
 }
 
 export async function auditPath(targetPath) {
   const resolved = path.resolve(String(targetPath));
   const stat = await fsp.stat(resolved);
-  if (stat.isFile()) {
-    const raw = JSON.parse(await fsp.readFile(resolved, 'utf8'));
+  const excludedFiles = [];
+  const errorFiles = [];
+  const sessions = [];
+  const seenWindows = new Map(); // exact message-window JSON -> [file labels]
+  const explicitIds = new Map(); // explicit in-payload session id -> [file labels]
+  let anonymousSnapshots = 0;
+  let scanned = 0;
+
+  const ingest = (raw, label) => {
     const msgs = extractMessages(raw);
-    const single = auditMessages(msgs, { sessionId: path.basename(resolved, '.json') });
-    return { summary: summarizeAudits([single]), sessions: [single] };
-  }
-  if (stat.isDirectory()) {
-    const entries = (await fsp.readdir(resolved)).filter((f) => f.endsWith('.json')).sort();
-    const sessions = [];
+    if (!msgs) {
+      excludedFiles.push({ file: label, reason: 'no-message-array' });
+      return;
+    }
+    // Basename is a label only; identity comes from explicit in-payload ids.
+    const explicitId = explicitSessionIdOf(raw);
+    const audit = auditMessages(msgs, { sessionId: explicitId ?? `anonymous:${label}` });
+    audit.label = label;
+    audit.anonymous = explicitId ? false : true;
+    audit.explicitSessionId = explicitId;
+    sessions.push(audit);
+    if (explicitId) {
+      if (!explicitIds.has(explicitId)) explicitIds.set(explicitId, []);
+      explicitIds.get(explicitId).push(label);
+    } else {
+      anonymousSnapshots += 1;
+    }
+    const key = JSON.stringify(msgs);
+    if (!seenWindows.has(key)) seenWindows.set(key, []);
+    seenWindows.get(key).push(label);
+  };
+
+  if (stat.isFile()) {
+    scanned = 1;
+    const label = path.basename(resolved);
+    try {
+      ingest(JSON.parse(await fsp.readFile(resolved, 'utf8')), label);
+    } catch {
+      errorFiles.push({ file: label, reason: 'unparseable-json' });
+    }
+  } else if (stat.isDirectory()) {
+    const entries = (await fsp.readdir(resolved)).sort();
+    scanned = entries.length;
     for (const f of entries) {
+      if (!f.endsWith('.json')) {
+        excludedFiles.push({ file: f, reason: 'non-json-file' });
+        continue;
+      }
       try {
-        const raw = JSON.parse(await fsp.readFile(path.join(resolved, f), 'utf8'));
-        const msgs = extractMessages(raw);
-        if (msgs) sessions.push(auditMessages(msgs, { sessionId: path.basename(f, '.json') }));
+        ingest(JSON.parse(await fsp.readFile(path.join(resolved, f), 'utf8')), f);
       } catch {
-        // skip non-session or unreadable files
+        errorFiles.push({ file: f, reason: 'unparseable-json' });
       }
     }
-    return { summary: summarizeAudits(sessions), sessions };
+  } else {
+    throw new Error('Unsupported target path');
   }
-  throw new Error('Unsupported target path');
+
+  const duplicateWindows = [...seenWindows.values()].filter((g) => g.length > 1);
+  const inventory = {
+    target: resolved,
+    scanned,
+    sessionLike: sessions.length,
+    excluded: excludedFiles.length,
+    errors: errorFiles.length,
+    excludedFiles,
+    errorFiles,
+    uniqueExplicitSessionIds: [...explicitIds.keys()],
+    repeatedExplicitSessionIds: [...explicitIds.entries()].filter(([, v]) => v.length > 1).map(([id, files]) => ({ id, files })),
+    anonymousSnapshots,
+    duplicateWindows,
+    note: 'Counts are audited file snapshots, not a census of independent sessions; basenames are labels, not identity.',
+  };
+  return { summary: summarizeAudits(sessions), sessions, inventory };
 }
 
 async function main() {
@@ -274,9 +421,11 @@ async function main() {
   }
   try {
     const report = await auditPath(target);
-    process.stdout.write(`${JSON.stringify(report.summary, null, 2)}\n`);
+    // Summary fields plus inventory; the full per-file sessions payload is
+    // intentionally omitted to keep CLI output small.
+    process.stdout.write(`${JSON.stringify({ ...report.summary, inventory: report.inventory }, null, 2)}\n`);
   } catch {
-    process.stdout.write('{"validSessions":0,"error":"targetUnavailable"}\n');
+    process.stdout.write('{"validSessions":0,"auditedSnapshots":0,"error":"targetUnavailable"}\n');
     process.exit(1);
   }
 }

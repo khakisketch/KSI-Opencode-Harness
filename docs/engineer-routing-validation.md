@@ -2,6 +2,24 @@
 
 2026-10-24. 이전 8개 구성의 근거는 [기존 검증 기록](validation.md)에 보존합니다. 이 문서는 Engineer 도입 이후의 상태만 다룹니다. 설정 선언, 정책 조회, scripted Native 실행, 실제 모델 실행, 실제 제품 인수는 서로 다른 증거입니다.
 
+## 최신 최소 교정 (2026-10-25, 기준선 `58e75b6`)
+
+- 공통/Design/Critic 본문만 전역 적용했습니다. 모델·권한·역할·외부 스킬은 불변이며
+  기존 세션·공유 서비스·제품·장치는 변경/재시작하지 않았습니다. 배포 정본 6개와
+  설치본 바이트를 대조했고 적용 전 6개 파일을 백업했습니다.
+- 수정 내용: 유용한 도움말·필수 고지·정당한 포커스 보존, 선택 자료의 조용한 대체 금지,
+  확정 계약/가변 배치 구분과 원과업 기반 검토. 지침 5개 파일의 공백 분리 단어 수는
+  4,575→4,362로 줄었지만 토큰 비용·디자인 품질 개선의 증거는 아닙니다.
+- 회귀 **120/120**(소스 계약 6개·감사 12개 포함), OpenSpec **2/2**,
+  설치본 라우팅 **327/327**(`/tmp/opencode/ksi-agent-routing-DpRA1v`),
+  격리 Native fixture **312/312**(`/tmp/opencode/ksi-deleg-UEzjzB`) 통과.
+- 독립 소스 검토 후 감사의 “검증 실행 없음”을 “관찰된 검증 명령 후보 없음”으로
+  한정하고 선택 진단의 비게이트 성격을 명확히 했습니다. 실패 출력을 통과로
+  판정하는 기능은 없으며, 후보 수는 성공 수가 아닙니다.
+- 백업/적용 해시·명령·종료값·로그: `/tmp/opencode/ksi-harness-minimal-7mjteqj8/`.
+  실제 제품 과업·실모델 비교·렌더를 이번에 수행하지 않았습니다. OpenSpec §5의
+  실증 4건은 미완료이며 변경은 아카이브하지 않습니다. 아래 검증 수치는 이전 이력입니다.
+
 ## 정본과 전역 설치
 
 - 시작 시 저장소와 `origin/main`은 `adeaa3c`로 일치하고 작업 트리는 깨끗했습니다.
@@ -36,11 +54,11 @@ Build 후보 `opencode-go/gemini-4-argon-contributor#high`는 카탈로그의 lo
 
 정책 출처: [Go 가격·Privacy](https://opencode.ai/v2/docs/console/go), [Native 모델·Variant](https://opencode.ai/v2/docs/models).
 
-### Variant 배정 판단 (2026-10-25 154개 세션 감사 반영)
+### Variant 운영 선택과 근거 한계 (2026-10-25)
 
-- **Engineer·Design = xhigh:** 154개 실세션 감사에서 Design·Engineer가 복잡한 구조·조형·통합 판단을 수행할 때 `high`의 조기 중단·국소 수정을 줄이기 위해 Plan·Critic과 동일한 `xhigh`로 상향했습니다.
+- **Engineer·Design = xhigh:** 과거 세션의 조기 중단·국소 수정 사례를 계기로 상향한 운영 선택입니다. 높은 추론 강도가 이를 줄였다는 효과나 모델별 우위는 아직 입증되지 않았습니다.
 - **Critic·Plan = xhigh:** 독립 비평과 방향·우선순위 자문은 최고 추론 강도를 유지합니다.
-- **Research = high, Explore = medium:** `Explore#low`가 기존 구현(`ring` 등)을 놓친 사례와 `Research#medium`의 시각·비교 종합 한계를 반영해 각각 `medium`, `high`로 상향했습니다.
+- **Research = high, Explore = medium:** 과거 누락·조사 한계를 계기로 상향했습니다. 도구 접근 제한과 역할/모델 전환이 섞인 사례이므로 Variant별 능력 비교로 해석하지 않습니다.
 - **역할별 스킬 보강:** General이 UI·버그 슬라이스를 실행할 때 조형 바닥선과 디버깅 루프를 잃지 않도록 `impeccable`, `ux-copy`, `diagnosing-bugs`를 허용해 8종(`vercel-react-best-practices`, `evolving-apis-and-schemas`, `building-accessible-interfaces`, `playwright-cli`, `opencode`, `impeccable`, `ux-copy`, `diagnosing-bugs`)으로 확장했습니다.
 
 ## 작업 단위·루프 감사
@@ -85,7 +103,7 @@ Plan의 Native 프롬프트·파일 편집 제한은 유지합니다. 역할 권
 ### 회귀·격리 Native
 
 - 2026-10-25 역할 단위·부품 감사 및 `scripts/session-audit.mjs` 도입·고도화 후 모의 회귀 **107/107**, OpenSpec **2/2** 통과. 자체 플러그인 폐기와 함께 core/adapter/native-hook 검사 41개를 제거했으며, 남은 검사를 약화해 통과시킨 것이 아닙니다. 기존 Impeccable·외부 스킬 원본은 수정하지 않았습니다.
-- 최종 정본을 복사한 Native **2.1.4 scripted 통합 312/312** 통과(5대 핸드오프·풀스택 공유 계약·서브에이전트 CLI Fast-path·4대 제품 인수 조건·프롬프트 중복 제거 반영 후 재실행, 이후 161개 세션 감사 및 실제 캡처 대조 기반 전체 제품 이해 선행·Variant 상향·General 스킬 확장·도메인 출처/상태 표현과 에이전트 내부 메모 분리·과업 기반 레이아웃 비례·로컬/격리 환경 재빌드 경계·Design 2단계 스킬 로드·Critic 독립 평가 축 분리 후 `/tmp/opencode/ksi-deleg-RvcbsM`에서 **312/312** 재확인). 근거 `/tmp/opencode/ksi-deleg-FN1rMd` 및 `/tmp/opencode/ksi-deleg-RvcbsM`의 manifest·메시지·요청 로그입니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다.
+- 당시 정본의 Native **2.1.4 scripted 통합 312/312** 통과. 근거 `/tmp/opencode/ksi-deleg-FN1rMd` 및 후속 `/tmp/opencode/ksi-deleg-RvcbsM`의 manifest·메시지·요청 로그입니다. 모델을 fixture로 대체했으므로 실제 제공자의 추론·품질 검사가 아닙니다. 당시 “161개 세션 감사”의 분모·호출 비율 해석은 [검증 기록의 정정](validation.md#역할-단위루프부품-감사-2026-10-24)을 따르며 새 구성의 품질 근거로 쓰지 않습니다.
 - 기존 깊이 3·초과 거부·실제 수정 거부·동일 자식 재개·실패 후 새 근거 복구·단일 도구 결과별 실제 바이트 반환·세션 제한의 전체 순서 포함 상속/비소급 검사를 유지했습니다.
 - 새 Engineer 수정 허용, `Build→Engineer→Plan→Explore`, `Build→Engineer→General` 구현·동일 General 재수정, `Design→General` UI 파일 구현을 확인했습니다. 읽기 전용 Research/Critic/Plan의 실제 거부는 별도로 유지했습니다.
 - 병렬 L에서는 **같은 Build turn**의 Engineer·Design이 독립 파일을 실제 write/read했습니다. 각 세션의 세 번 요청 시간창이 교차함을 확인했고, 상대 파일 변경·공유 계약 바이트 변경 없이 부모에 둘 다 반환됐습니다. 이는 분리 소유한 작업의 Native 동시 실행 근거이며, 모든 실모델·공유 데이터에서 충돌이 불가능하다는 보장은 아닙니다.
@@ -113,3 +131,11 @@ Native export에서 부모 ID·실제 모델·도구 호출·비용을 확인했
 ### 남은 실제 실행 검증
 
 현재 Muse 단일 구성에서 Engineer·Design의 **실모델** 동시 쓰기 충돌, Design의 실제 이미지·Browser/렌더 교정, Plan의 충분한 기술 자문 성능은 아직 미검증입니다. 이전 GLM Design·DeepSeek Engineer의 실제 실행은 당시 모델 구성의 역사적 근거로만 남습니다. 전역 등록·설치 권한 검사는 2026-10-24 완료했습니다(327/327). 이전 구성의 검사 통과를 새 모델 실호출이나 장기 제품 개발 능력으로 재해석하지 않습니다.
+
+다음 승인된 제품 과업에서는 기존 브리프·diff·실행 증거로 관찰합니다. 별도 양식이나
+반려 횟수 목표는 만들지 않습니다. 기준선 코드/런타임/실제 역할·모델과 대상 상태를
+구분하고, 사용자가 처방하기 전 발견한 문제, 레퍼런스 원리가 바꾼 실제 결정,
+반려 또는 수용의 이유와 후속 결과, 선택·저장·재진입 연속성을 대조합니다.
+정상/실패/동작 전후의 live·합성·모의 범위를 분리하며 미관찰은 통과도 실패도 아닙니다.
+한 과업의 성공은 그 과업의 증거일 뿐 무개입 제품 완주·상용화·모델 일반 우위를
+입증하지 않습니다. 다른 제품의 기존 담당·승인·공유 자원 경계는 바꾸지 않습니다.

@@ -91,6 +91,42 @@ design ownership. One unit SHALL have one owner.
   alternatives, applicability or unknowns must be assessed, **THEN**
   Research is used.
 
+### Requirement: Task-fit decisions and evidence boundaries
+
+Owners SHALL establish product purpose, user environment, journey role and
+domain invariants from project authority and connected code before decomposing
+non-trivial work. Handoffs SHALL separate binding contracts from revisable
+layout assumptions; author briefs SHALL NOT silently become product authority.
+
+#### Scenario: Important UI assignment or review
+
+- **WHEN** an important UI task is assigned or independently reviewed
+- **THEN** original user goals and protected contracts govern the review, not
+  only the author's edit list; applicable reference principles are checked
+  against rendered decisions without a new mandatory report or score target.
+
+#### Scenario: Accessible guidance and honest disclosure
+
+- **WHEN** UI guidance, focus or provenance is refined
+- **THEN** useful help, visible managed focus (including headings), and required
+  prototype/simulation or decision-critical limits remain available; internal
+  agent chatter is not confused with necessary product information.
+
+#### Scenario: Media unavailable
+
+- **WHEN** selected media is missing, expired or unavailable
+- **THEN** recovery preserves selected asset/time/source identity and offers
+  alternatives explicitly under the product contract, without fake pixels or
+  silent data substitution.
+
+#### Scenario: Mechanism or observation evidence reported
+
+- **WHEN** checks, captures or offline session audits are reported
+- **THEN** status/coverage limitations are explicit: path reads and command
+  matches are observations, not relevance or success; incomplete calls and
+  duplicate/anonymous snapshots do not establish an independent-session census,
+  and no such evidence alone certifies comprehension, UX or product completion.
+
 ### Requirement: Loop boundaries
 
 Cross-role calls SHALL require a distinct subdeliverable and SHALL NOT
