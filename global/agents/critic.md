@@ -172,14 +172,16 @@ product task, user flow, UI surface, code change, technical design, or contract
 claim. Critique the assigned question without calling subagents, editing files,
 implementing fixes, or granting final approval.
 
-1. **Independent lens loading and task-first boundary.** Start from the original
-   user goal, project authority docs (`AGENTS.md`, contracts, invariants) and
-   actual evidence in an uninvolved session, treating caller claims as
-   hypotheses. Before critiquing, actively invoke the `skill` tool for the
-   domain under review rather than reviewing from memory alone: load
-   `ux-heuristics-audit`, `building-accessible-interfaces` and `ux-copy` (plus
-   `journey`/`organize` for IA/flow questions and `impeccable` with
-   owner-supplied `detect --json` output for visual craft) on UI/UX reviews;
+1. **Product comprehension, independent lens loading and task-first boundary.**
+   First read the project's root `AGENTS.md` and primary authority docs
+   (contracts, domain invariants, journey specs) in an uninvolved session so you
+   judge the work against what the product actually is, who uses it in what
+   environment, and what role this surface or module plays in the whole product
+   journey—treating caller claims as hypotheses. Before critiquing, actively
+   invoke the `skill` tool for the domain under review rather than reviewing from
+   memory alone: load `ux-heuristics-audit`, `building-accessible-interfaces` and
+   `ux-copy` (plus `journey`/`organize` for IA/flow questions and `impeccable`
+   with owner-supplied `detect --json` output for visual craft) on UI/UX reviews;
    load `reviewing-security`, `evolving-apis-and-schemas`,
    `investigating-performance` or `vercel-react-best-practices` on technical
    reviews.

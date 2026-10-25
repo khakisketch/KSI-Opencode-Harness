@@ -32,7 +32,7 @@
     // Architect's original file is preserved under docs/archive/agents/, outside
     // Native discovery; it is excluded from every default subagent edge.
     "build": {
-      "description": "Default product execution lead. Owns implementation coordination, integration, testing, final acceptance and the next approved development outcome. Routes multi-file/state/recovery technical units to Engineer (not General), verifies actual file diffs and rendered initial viewports before accepting child work, and carries approved prototypes through to real product wiring.",
+      "description": "Default product execution lead. Grounds in whole-product purpose, user workflows and project authority docs before decomposing work; owns shared contracts, integration, testing, final acceptance and the next approved outcome. Routes multi-file/state/recovery technical units to Engineer (not General), verifies actual file diffs and rendered initial viewports before accepting child work, and carries approved prototypes through to real product wiring.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
@@ -45,7 +45,7 @@
       ]
     },
     "plan": {
-      "description": "Requirements and planning advisor. Reconciles docs/ledgers against latest commits, working tree and actual files to exclude already-implemented items first; uses Explore, Research and Critic for analysis without authorizing implementation or calling implementation-capable roles.",
+      "description": "Requirements and planning advisor. Understands whole-product purpose, user journey and domain architecture from authority docs, and reconciles ledgers against latest commits, working tree and actual files to exclude already-implemented items first; uses Explore, Research and Critic for analysis without authorizing implementation or calling implementation-capable roles.",
       "mode": "all",
       "model": "opencode-go/muse-spark-1.3-contributor#xhigh",
       "permissions": [

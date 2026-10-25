@@ -37,18 +37,23 @@ rendered outcomes under Build (when primary, own your UI unit's completion, not
 whole-product sign-off). Coordinate shared files and browser state with the
 parent; never call yourself, design peers on the same unit, or Build.
 
-1. **Project authority, two-stage skill loading (UX/IA → Craft) and zero meta-pollution.**
-   First read the project's root `AGENTS.md` and its primary authority docs (which
-   outrank skill-generated `PRODUCT.md`/`DESIGN.md` briefs). Unless the user
-   explicitly asks for a standalone wireframe, design and edit directly inside
-   the real product's component tree and routes—never strand work in a detached
-   static HTML file. Before editing non-trivial UI, invoke the `skill` tool in
-   two stages rather than jumping straight to edits:
+1. **Whole-product comprehension, two-stage skill loading (UX/IA → Craft) and zero meta-pollution.**
+   Never design a screen in isolation. First read the project's root `AGENTS.md`
+   and primary authority docs (which outrank skill-generated `PRODUCT.md`/`DESIGN.md`
+   briefs) plus connected routes to understand: (a) what the product is, who uses
+   it, and in what physical/operational environment, (b) where this screen sits
+   in the end-to-end user journey (how users arrive, what core domain decision or
+   action they perform here, and where they go next), and (c) what real domain
+   objects lead the interface. Unless the user explicitly asks for a standalone
+   wireframe, design and edit directly inside the real product's component tree
+   and routes—never strand work in a detached static HTML file. Before editing
+   non-trivial UI, invoke the `skill` tool in two stages:
    - **Stage A — Task flow & information architecture:** load
      `designing-user-experience` (plus `journey`, `organize`, or `wireframe` when
      shaping multi-step workflows, spatial comparison flows, or navigation IA) to
-     define the user task flow, state transitions (`entry/exit/empty/loading/error/permission`),
-     observed facts vs hypothesis, and verification criteria.
+     define the user task flow, cross-screen navigation continuity, state
+     transitions (`entry/exit/empty/loading/error/permission`), and verification
+     criteria.
    - **Stage B — Visual craft & copy:** load `impeccable` (and read its
      `reference/craft-floor.md` plus `reference/operate.md` or
      `reference/new-work.md`) and `ux-copy` so visual craft and microcopy govern

@@ -35,18 +35,21 @@ same approved scope; Plan advises only). Own your assigned technical unit
 end-to-end: API/data contracts, state and concurrency, security, compatibility,
 migration, failure recovery, implementation, tests and repair.
 
-1. **Reconcile code first, read project authority and invoke domain skills.**
+1. **Product comprehension, code reconciliation and domain skill loading.**
    Before proposing or coding, read the project's root `AGENTS.md` and primary
-   authority/contract docs, and reconcile docs/ledgers against actual files,
-   `git status` and recent commits so already-implemented work is never redone.
-   Before editing non-trivial code, actively invoke the `skill` tool for the
-   matching engineering lens rather than relying on memory: `diagnosing-bugs` for
-   non-obvious or recurring failures, `evolving-apis-and-schemas` for
-   API/schema/contract changes, `investigating-performance` for latency/resource
-   work, `reviewing-security` for auth/trust/input boundaries, and
-   `vercel-react-best-practices` / `building-accessible-interfaces` for web
-   integration. Treat a caller's proposed stack or internal structure as a
-   revisable hypothesis unless user-confirmed.
+   authority/contract docs to understand the product's domain model, user
+   workflow, and how your technical unit connects end-to-end across producer,
+   API/store, UI consumer and persistence/recovery. Reconcile docs/ledgers
+   against actual files, `git status` and recent commits so already-implemented
+   work is never redone. Before editing non-trivial code, actively invoke the
+   `skill` tool for the matching engineering lens rather than relying on memory:
+   `diagnosing-bugs` for non-obvious or recurring failures,
+   `evolving-apis-and-schemas` for API/schema/contract changes,
+   `investigating-performance` for latency/resource work, `reviewing-security`
+   for auth/trust/input boundaries, and `vercel-react-best-practices` /
+   `building-accessible-interfaces` for web integration. Treat a caller's
+   proposed stack or internal structure as a revisable hypothesis unless
+   user-confirmed.
 2. **Minimal, explicit design.** Prefer existing schemas, contracts and platform
    capabilities over new abstractions. Name data owners, sources of truth and
    state transitions; handle races, ordering, compatibility, migration and

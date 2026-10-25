@@ -47,21 +47,27 @@ describe('session-audit behavioral verification', () => {
       ]),
     ];
     const res = auditMessages(msgs, { sessionId: 'ses_bad_design' });
+    assert.ok(res.gaps.includes('design-edited-without-authority-read'));
     assert.ok(res.gaps.includes('design-edited-without-skill-or-craft-reference'));
     assert.ok(res.gaps.includes('design-edited-without-visual-capture-read'));
   });
 
-  it('flags engineer editing without running checks and critic reviewing without evidence or skill lens', () => {
+  it('flags engineer editing without authority or checks, plan without authority, and critic without evidence or skill lens', () => {
     const msgs = [
       assistantMsg('engineer', [
         toolPart('edit', { path: '/proj/src/api.ts' }),
+      ]),
+      assistantMsg('plan', [
+        { type: 'text', text: 'Do X next.' },
       ]),
       assistantMsg('critic', [
         { type: 'text', text: 'Looks good to me.' },
       ]),
     ];
     const res = auditMessages(msgs, { sessionId: 'ses_gaps' });
+    assert.ok(res.gaps.includes('engineer-edited-without-authority-read'));
     assert.ok(res.gaps.includes('engineer-edited-without-runtime-or-test-check'));
+    assert.ok(res.gaps.includes('plan-advised-without-authority-read'));
     assert.ok(res.gaps.includes('critic-reviewed-without-evidence-read'));
     assert.ok(res.gaps.includes('critic-reviewed-without-skill-lens'));
   });

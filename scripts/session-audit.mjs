@@ -90,6 +90,12 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
 
   const gaps = [];
   for (const [role, s] of Object.entries(byRole)) {
+    if ((role === 'design' || role === 'engineer') && s.edits > 0 && s.authorityReads.length === 0) {
+      gaps.push(`${role}-edited-without-authority-read`);
+    }
+    if (role === 'plan' && s.turns > 0 && s.authorityReads.length === 0) {
+      gaps.push('plan-advised-without-authority-read');
+    }
     if (role === 'design' && s.edits > 0) {
       if (s.skillsLoaded.length === 0 && s.craftReads.length === 0) {
         gaps.push('design-edited-without-skill-or-craft-reference');
