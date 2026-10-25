@@ -188,23 +188,20 @@ implementation.
 ### Requirement: Staged-skills compatibility
 
 The workflow SHALL preserve existing skill IDs, avoid same-ID collisions,
-require a permissive license (MIT for the 6 gap skills; MIT or Apache-2.0
-for trial skills) plus script/permission review for any adopted or trial
-external skill, and never execute a destructive installer. Global
-installation SHALL respect active-config protection (idle legacy sessions
-and backup before apply), with no fixed approval phase, and trial skills
-(`diagnosing-bugs`, `ux-copy`) SHALL be retained only if they reduce rework
-or copy corrections over 2–3 real tasks.
+require a permissive license (MIT or Apache-2.0) plus script/permission review
+for any external or trial skill, never execute a destructive installer, and
+apply global changes only under active-config protection.
 
 #### Scenario: Additive global install considered
 
 - **WHEN** a staged or trial skill is installed project-locally or globally
 - **THEN** its gap rationale, license (MIT for the 6 gap skills; MIT or
-  Apache-2.0 for trial skills), script/permission review, and overlap
-  mapping are cited from `docs/openspec-and-skills.md`, existing IDs are
-  preserved, the osmontero `install.sh` (destructive: removes non-repo
-  skills, replaces global config) is never executed, and workers do not
-  mutate unapproved global state.
+  Apache-2.0 for trial skills `diagnosing-bugs` and `ux-copy`),
+  script/permission review, and overlap mapping are cited from
+  `docs/openspec-and-skills.md`, existing IDs are preserved, the osmontero
+  `install.sh` (destructive: removes non-repo skills, replaces global config)
+  is never executed, trial skills are retained only if they reduce rework over
+  2–3 real tasks, and workers do not mutate unapproved global state.
 
 #### Scenario: Discovery is not application proof
 
