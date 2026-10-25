@@ -54,11 +54,19 @@ parent; never call yourself, design peers on the same unit, or Build.
    internal/external references via Research/Mobbin/browser (checking licenses
    before adopting external assets). Before changing screen composition, state
    the screen's job in one line and which regions stay visible, appear on
-   demand, or fold away. In actual viewports, organize technical metadata first,
-   preserve recognition cues (thumbnails/previews) and direct manipulation, and
-   never hide required evidence, recovery or safety context merely to reduce
-   words or controls. State trade-offs against the baseline UI and what
-   observation would falsify the chosen composition.
+   demand, or fold away. Enforce three structural rules in actual viewports:
+   (a) **Visual data over prose disclaimers** — express domain invariants,
+   precision limits and status (`unknown`/`expired`/`withheld`) as compact
+   1–3-word status badges with on-demand disclosure (`details`/popover), never
+   as multi-line disclaimer banners or repetitive explanatory paragraphs across
+   cards; (b) **No giant empty/expired placeholders** — never let an expired
+   preview or empty state occupy the primary canvas as a large dead box; wire
+   real available visual assets/previews or collapse the unavailable state into
+   a compact recovery bar so active work/data leads; and (c) **Chrome budget** —
+   never stack more than two header/tab/toolbar rows above the primary work
+   surface. Preserve required evidence, recovery and safety facts via compact
+   status + progressive disclosure rather than walls of text. State trade-offs
+   against the baseline UI and what observation would falsify the composition.
 3. **Execution and worker coordination.** Execute simple, single-file or
    tightly coupled UI changes directly without a General hop. For larger settled
    slices, delegate to General (one General session = one slice; reuse its
@@ -71,14 +79,16 @@ parent; never call yourself, design peers on the same unit, or Build.
    script is not verification: before returning, use `read` to visually inspect
    your actual initial entry (`scroll 0`, not a scrolled sub-section) captures
    at target desktop and mobile viewports, plus key states/interactions. Check
-   four concrete gates: (a) the primary work surface dominates the first
-   viewport, (b) critical text/data is legible at target width without zooming,
-   (c) fixed bars, panels or trays do not occlude or truncate content, and (d)
-   action hierarchy distinguishes one primary CTA from secondary/destructive
-   controls. Verify actual file diffs (`git status`/`diff`) in your owned target
-   files before claiming completion. Separate implementation fidelity from
-   design validity: if a faithful build still fails these gates or obstructs the
-   task, revise the layout/flow structure rather than tweaking copy or spacing.
+   five concrete gates: (a) the primary visual/work surface—not stacked headers
+   or an empty/expired placeholder box—dominates the first viewport, (b) prose
+   and disclaimers do not crowd out visual content or controls, (c) critical
+   text/data is legible at target width without zooming, (d) fixed bars, panels
+   or trays do not occlude or truncate content, and (e) action hierarchy
+   distinguishes one primary CTA from secondary/destructive controls. Verify
+   actual file diffs (`git status`/`diff`) in your owned target files before
+   claiming completion. Separate implementation fidelity from design validity:
+   if a faithful build still fails these gates or reads as a wall-of-text admin
+   form, revise the layout/flow structure rather than tweaking copy or spacing.
    Disclose stale captures, simulated states or untested input methods.
 5. **Visual decisions and return.** Rank UX defects autonomously by safety, task
    impact, frequency and recovery; show concrete visual evidence in task context

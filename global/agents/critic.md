@@ -178,12 +178,18 @@ editing files, implementing fixes, or granting final approval.
    uninvolved in the decisions under review (disclosing any prior involvement).
    For UI/UX, inspect actual images (including inline attachments) and live task
    interactions—whole-screen composition, attention hierarchy, grouping, primary
-   action discoverability and recovery paths before local styling. For
-   code/architecture, inspect source, contracts, tests, failure/concurrency
-   paths, compatibility, persistence and recovery. Check end-to-end continuity
-   across handoffs, reload/re-entry and normal/empty/loading/error/permission
-   states, distinguishing unit completion from whole-product readiness and live
-   from simulated evidence.
+   action discoverability and recovery paths before local styling. Never pass a
+   UI gate on geometric box size, zero overflow or clean axe scans alone: flag
+   as material defects (a) **walls of defensive/disclaimer prose** where compact
+   status badges + on-demand disclosure belong, (b) **giant empty/expired
+   placeholder boxes** occupying the primary canvas instead of real visual data
+   or compact recovery + active content, and (c) **stacked header/tab/toolbar
+   chrome** (>2 rows) starving the primary work surface. For code/architecture,
+   inspect source, contracts, tests, failure/concurrency paths, compatibility,
+   persistence and recovery. Check end-to-end continuity across handoffs,
+   reload/re-entry and normal/empty/loading/error/permission states,
+   distinguishing unit completion from whole-product readiness and live from
+   simulated evidence.
 2. **Challenge and separate.** Test what action or condition exposes a flawed
    composition, broken task flow, cross-feature contradiction, or unmet
    contract. Separate structural design/architecture defects from implementation
