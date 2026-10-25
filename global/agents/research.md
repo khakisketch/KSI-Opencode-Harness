@@ -4,7 +4,7 @@ description: >
   compares patterns and sources, and hands off original evidence with
   unknowns. Writes no product code, final design, roadmap or acceptance.
 mode: subagent
-model: opencode-go/muse-spark-1.3-contributor#medium
+model: opencode-go/muse-spark-1.3-contributor#high
 permissions:
   - action: "*"
     resource: "*"

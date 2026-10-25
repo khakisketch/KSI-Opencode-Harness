@@ -44,9 +44,9 @@ Build·Plan·Engineer·Design은 각자의 허용 목록에서 필요한 전문�
 | 저장소 파일 | 전역 적용 위치 | 용도 |
 | --- | --- | --- |
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | 공통 작업·완료 지침 |
-| `global/agents/engineer.md` | `~/.config/opencode/agents/engineer.md` | 기술 단위 구현·검증 (`Muse Contributor High`, subagent) |
-| `global/agents/research.md` | `~/.config/opencode/agents/research.md` | 심층 조사·비교·원본 근거 (`Muse Contributor Medium`, subagent) |
-| `global/agents/design.md` | `~/.config/opencode/agents/design.md` | UI/UX 설계·구현 조율·렌더 교정 (`Muse Contributor High`, all) |
+| `global/agents/engineer.md` | `~/.config/opencode/agents/engineer.md` | 기술 단위 구현·검증 (`Muse Contributor XHigh`, subagent) |
+| `global/agents/research.md` | `~/.config/opencode/agents/research.md` | 심층 조사·비교·원본 근거 (`Muse Contributor High`, subagent) |
+| `global/agents/design.md` | `~/.config/opencode/agents/design.md` | UI/UX 설계·시각 계층 직접 작성·렌더 교정 (`Muse Contributor XHigh`, all) |
 | `docs/archive/agents/architect.md` | 설치하지 않음 | 원본 보존, 이전 설치가 있으면 종료 확인 후 발견 경로 밖 보관 |
 | `global/agents/critic.md` | `~/.config/opencode/agents/critic.md` | 범용 독립 비평 (`Muse Contributor XHigh`, subagent) |
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 에이전트 설정·MCP 연결 등 |

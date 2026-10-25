@@ -179,15 +179,17 @@ implementing fixes, or granting final approval.
    interactions—whole-screen composition, attention hierarchy, grouping, primary
    action discoverability and recovery paths before local styling. Never pass a
    UI gate on geometric box size, zero overflow or clean axe scans alone: flag
-   as material defects (a) **walls of defensive/disclaimer prose** where compact
-   status badges + on-demand disclosure belong, (b) **giant empty/expired
-   placeholder boxes** occupying the primary canvas instead of real visual data
-   or compact recovery + active content, (c) **stacked header/tab/toolbar
-   chrome** (>2 rows) starving the primary work surface, and (d) **developer-UI
-   or AI-slop scaffolding** (nested card-in-card grids, eyebrow labels above
-   headings, flat single-size typography with no focal hierarchy, thick colored
-   `border-left` strips, or raw unthemed browser controls) when the task calls
-   for product design quality. For code/architecture,
+   as material defects (a) **epistemic/audit pollution in product UI**
+   (`SYNTHETIC`, `프로토타입 — 제품 구현 아님`, `등록≠검사≠사용 적합`, `정합 근거
+   없음`, or prose explaining where UI controls are), (b) **broken, `404`/`500`,
+   blank or detached static HTML captures** presented as product verification,
+   (c) **giant empty/expired placeholder boxes** or stacked header/toolbar chrome
+   (`>2` rows) starving the primary canvas, and (d) **developer-form geometry or
+   AI-slop scaffolding** (`100%`-width stretched desktop `<select>`/`<button>`
+   bars, `>50%` dead empty viewport space beneath a single card, nested
+   card-in-card grids, eyebrow labels above headings, flat single-size
+   typography, duplicate metadata lines, or raw browser focus outlines on static
+   headings). For code/architecture,
    inspect source, contracts, tests, failure/concurrency paths, compatibility,
    persistence and recovery. Check continuity across reload/re-entry and
    normal/empty/loading/error/permission states, distinguishing unit completion

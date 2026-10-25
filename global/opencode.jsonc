@@ -57,7 +57,7 @@
     },
     "explore": {
       "description": "Read-only local code locator. Finds exact file paths, line ranges, symbols and call sites and states searched scope; never declares features unimplemented, evaluates whole-project completion, or makes design/architecture judgments.",
-      "model": "opencode-go/muse-spark-1.3-contributor#low",
+      "model": "opencode-go/muse-spark-1.3-contributor#medium",
       "steps": 20,
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
@@ -74,7 +74,10 @@
         { "action": "skill", "resource": "evolving-apis-and-schemas", "effect": "allow" },
         { "action": "skill", "resource": "building-accessible-interfaces", "effect": "allow" },
         { "action": "skill", "resource": "playwright-cli", "effect": "allow" },
-        { "action": "skill", "resource": "opencode", "effect": "allow" }
+        { "action": "skill", "resource": "opencode", "effect": "allow" },
+        { "action": "skill", "resource": "impeccable", "effect": "allow" },
+        { "action": "skill", "resource": "ux-copy", "effect": "allow" },
+        { "action": "skill", "resource": "diagnosing-bugs", "effect": "allow" }
       ]
     }
   },

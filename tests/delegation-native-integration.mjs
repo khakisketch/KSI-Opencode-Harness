@@ -926,9 +926,9 @@ async function main() {
   // Every operational role uses the contracted Muse Contributor model; only
   // the reasoning variant differs by role.
   const WANT_MODELS = {
-    "design.md": "opencode-go/muse-spark-1.3-contributor#high",
-    "research.md": "opencode-go/muse-spark-1.3-contributor#medium",
-    "engineer.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "design.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
+    "research.md": "opencode-go/muse-spark-1.3-contributor#high",
+    "engineer.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
     "critic.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
   };
   let modelsOk = true;
@@ -939,7 +939,7 @@ async function main() {
   const WANT_JSON_MODELS = {
     plan: "opencode-go/muse-spark-1.3-contributor#xhigh",
     general: "opencode-go/muse-spark-1.3-contributor#high",
-    explore: "opencode-go/muse-spark-1.3-contributor#low",
+    explore: "opencode-go/muse-spark-1.3-contributor#medium",
   };
   for (const [id, want] of Object.entries(WANT_JSON_MODELS)) {
     if (srcAgents[id]?.model !== want) { modelsOk = false; note(`model drift agents.${id}`, `got=${srcAgents[id]?.model} want=${want}`); }
@@ -971,7 +971,7 @@ async function main() {
   // broad default-allow premise, probed live.
   const WANT_CRITIC_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "impeccable", "investigating-performance", "journey", "opencode", "organize", "playwright-cli", "reviewing-security", "ux-copy", "ux-heuristics-audit", "vercel-react-best-practices"].sort();
   const WANT_RESEARCH_SKILLS = ["building-accessible-interfaces", "journey", "mobbin-design", "opencode", "organize", "playwright-cli"].sort();
-  const WANT_GENERAL_SKILLS = ["building-accessible-interfaces", "evolving-apis-and-schemas", "opencode", "playwright-cli", "vercel-react-best-practices"].sort();
+  const WANT_GENERAL_SKILLS = ["building-accessible-interfaces", "diagnosing-bugs", "evolving-apis-and-schemas", "impeccable", "opencode", "playwright-cli", "ux-copy", "vercel-react-best-practices"].sort();
   const gotCriticSkills = skillAllows(parseMdRules(mdSources.critic));
   const gotResearchSkills = skillAllows(parseMdRules(mdSources.research));
   check("source critic skill allows are exactly the 12 (review + technical + copy lenses)",

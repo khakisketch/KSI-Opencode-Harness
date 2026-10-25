@@ -90,12 +90,12 @@ check('build registered primary, no global model', () => {
 });
 for (const [id, model, mode] of [
   ['plan', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'all'],
-  ['design', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'all'],
-  ['engineer', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
-  ['research', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],
+  ['design', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'all'],
+  ['engineer', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
+  ['research', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
   ['critic', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
-  ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'low' }, 'subagent'],
+  ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],
 ]) {
   const a = list.find(a => a.id === id);
   check(`${id} model/mode`, () => {
@@ -459,8 +459,8 @@ async function probeSkillSet({ agent, allow, deny }) {
 }
 await probeSkillSet({
   agent: 'general',
-  allow: ['vercel-react-best-practices', 'evolving-apis-and-schemas', 'building-accessible-interfaces', 'playwright-cli', 'opencode'],
-  deny: ['designing-user-experience', 'journey', 'organize', 'wireframe', 'impeccable', 'mobbin-design', 'ux-heuristics-audit', 'investigating-performance', 'reviewing-security', 'diagnosing-bugs', 'ux-copy', 'emilkowalski-motion', 'design-taste-frontend', 'gpt-taste', 'no-such-skill-ksi-probe'],
+  allow: ['vercel-react-best-practices', 'evolving-apis-and-schemas', 'building-accessible-interfaces', 'playwright-cli', 'opencode', 'impeccable', 'ux-copy', 'diagnosing-bugs'],
+  deny: ['designing-user-experience', 'journey', 'organize', 'wireframe', 'mobbin-design', 'ux-heuristics-audit', 'investigating-performance', 'reviewing-security', 'emilkowalski-motion', 'design-taste-frontend', 'gpt-taste', 'no-such-skill-ksi-probe'],
 });
 await probeSkillSet({
   agent: 'explore',

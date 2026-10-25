@@ -78,10 +78,10 @@ Build — 전체 목표·공통 계약·교차 일관성·통합·최종 인수
 | **Build** / `build` | 제품 실행 총괄·다음 작업 연결·통합·테스트·최종 인수 | primary | 세션 선택, 전역 모델 미고정 |
 | **Plan** / `plan` | 제품·기술 방향, 요구·우선순위·대안·의존성 독립 자문 (Explore·Research·Critic 분석) | all | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **General** / `general` | 맡은 구현·실행·기술적 결함 수정 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
-| **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#low` |
-| **Engineer** / `engineer` | 기술 단위 설계·구현 조율·테스트·복구·반복 개선 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
-| **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#medium` |
-| **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·구현 조율·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#high` |
+| **Explore** / `explore` | 기존 코드·구조 탐색 | subagent | `opencode-go/muse-spark-1.3-contributor#medium` |
+| **Engineer** / `engineer` | 기술 단위 설계·구현 조율·테스트·복구·반복 개선 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
+| **Research** / `research` | 심층 조사·사례 비교·기술/제품/UX 대안·적용 조건·원본 근거 | subagent | `opencode-go/muse-spark-1.3-contributor#high` |
+| **Design** / `design` | UI/UX·여정·정보 구조·인터랙션·시각 계층 직접 작성·렌더 교정 | all | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 | **Critic** / `critic` | 제품·UX·코드·기술 설계의 독립 비평·반례·누락 검토 | subagent | `opencode-go/muse-spark-1.3-contributor#xhigh` |
 
 표는 저장소의 배포 정본이며 2026-10-24 전역 적용본과 일치합니다. 실제 모델의 역할별 품질·비용 검증은 별도입니다. [적용 상태·모델 정책·검증 근거](docs/engineer-routing-validation.md).
@@ -205,7 +205,7 @@ Critic은 제품·UX·코드·기술 설계의 독립 검토를 맡지만, 모�
 
 General·Explore·Research는 Critic을 직접 호출하지 않고 소유자에게 반환합니다. Critic은 수정·재설계·최종 인수를 하지 않으며, 문제 개수·점수·필수 반복 횟수를 만들지 않습니다. 중요한 최종 검토는 작업에 참여하지 않은 새 세션에 맡깁니다.
 
-- 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic은 `xhigh`, Engineer·Design·General은 `high`, Research는 `medium`(시험 배정), Explore는 `low`로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다. Variant별 실제 품질·비용 우위는 아직 비교 측정하지 않았으며, 근거가 쌓이면 조정합니다.
+- 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고, Plan·Critic·Engineer·Design은 `xhigh`, General·Research는 `high`, Explore는 `medium`으로 추론 강도를 조정합니다. Build는 전역 모델을 고정하지 않습니다.
 
 - `experimental.subagent_depth=3`은 **루트 0 아래 최대 3단계**입니다. 기본적으로 1~2단계를 사용하고 유용한 필요가 있을 때만 세 번째를 사용합니다. `all`은 메인/하위 실행 가능이라는 뜻이며 권한·위임 깊이와 별개입니다.
 - Build·Plan·Engineer·Design은 허용된 전문가를 선택해 호출합니다. Plan은 Explore·Research·Critic만 호출하며 Engineer·Design·General에는 직접 위임하지 않습니다. Research는 Explore에 한정된 근거 추출을 맡길 수 있습니다. General·Explore·Critic은 말단입니다. 자기 호출·미등록 대상·Architect는 거부하며 `build`는 하위 역할로 호출하지 않습니다. 이는 역량/권한 경계이지 고정 업무 순서가 아닙니다.
@@ -275,12 +275,12 @@ KSI Harness가 기본 OpenCode와 다른 점은 다음과 같습니다.
 | Plan | `opencode`, 분석 보조 | 구현·디자인 실행 |
 | Engineer | `diagnosing-bugs`, `evolving-apis-and-schemas`, `investigating-performance`, `reviewing-security`, `vercel-react-best-practices`, `building-accessible-interfaces`, `playwright-cli`, Context7 | 디자인 방향·최종 UX 결정 |
 | Design | `designing-user-experience`, `journey`, `organize`, `wireframe`, `building-accessible-interfaces`, `ux-heuristics-audit`, `ux-copy`, `impeccable`, `mobbin-design`, `playwright-cli`, `vercel-react-best-practices`, `emilkowalski-motion` | API/마이그레이션·보안 리뷰의 소유 |
-| General | `vercel-react-best-practices`, `evolving-apis-and-schemas`, `building-accessible-interfaces`, `playwright-cli`, `opencode` | 디자인·전략·아키텍처·보안 리뷰 |
+| General | `vercel-react-best-practices`, `evolving-apis-and-schemas`, `building-accessible-interfaces`, `playwright-cli`, `opencode`, `impeccable`, `ux-copy`, `diagnosing-bugs` | 전략·정보 구조·아키텍처·보안 리뷰 소유 |
 | Explore | 없음 — 읽기·검색 도구만 | 디자인·리서치·구현 |
 | Research | `playwright-cli`, `mobbin-design`, `journey`, `organize`, `building-accessible-interfaces`, `opencode` | 구현·최종 디자인·승인 |
 | Critic | `playwright-cli`, `impeccable`, `journey`, `organize`, `vercel-react-best-practices`, `opencode`, `reviewing-security`, `building-accessible-interfaces`, `ux-heuristics-audit`, `evolving-apis-and-schemas`, `investigating-performance`, `ux-copy` | 구현·재설계·최종 인수 |
 
-General은 의도적으로 코딩·검증 스킬만 허용하고, 디자인·전략·아키텍처·보안 리뷰 스킬은 허용하지 않습니다. Explore는 스킬 없이 코드 위치·사실만 찾습니다. Engineer·Design은 필요한 기술·디자인 스킬을 넓게 사용하되, 각자의 소유권 경계는 유지합니다. 권한과 실제 설치·발견은 별개이므로 새 스킬을 추가할 때는 설치 상태와 이 표를 함께 확인합니다.
+General은 코딩·검증·조형 바닥선(`impeccable`·`ux-copy`)·디버깅(`diagnosing-bugs`) 스킬만 허용하고, 전략·정보 구조·아키텍처·보안 리뷰 스킬은 허용하지 않습니다. Explore는 스킬 없이 코드 위치·사실만 찾습니다. Engineer·Design은 필요한 기술·디자인 스킬을 넓게 사용하되, 각자의 소유권 경계는 유지합니다. 권한과 실제 설치·발견은 별개이므로 새 스킬을 추가할 때는 설치 상태와 이 표를 함께 확인합니다.
 
 `diagnosing-bugs`(Engineer)와 `ux-copy`(Design·Critic)는 2026-10-24 trial로 설치했습니다. 설치 출처는 `mattpocock/skills`의 `diagnosing-bugs`, `anthropics/knowledge-work-plugins`의 `design/skills/ux-copy`로 고정했습니다. 2~3개 실제 작업에서 반복 수정·원인 발견·문구 교정이 실제로 줄었는지 확인하고, 효과가 없거나 호출만 늘면 제거합니다.
 
