@@ -288,20 +288,21 @@ General은 코딩·검증·조형 바닥선(`impeccable`·`ux-copy`)·디버깅(
 
 외부 스킬의 제한된 실행과 제품 전체의 인수를 구분하는 적용 정책은 [스킬 연결 검토](docs/validation.md#스킬-연결-검토-2026-10-17)에 기록했습니다. 사용자 범위·예산은 지키며, 스킬 종료를 미충족 제품의 완료로 간주하지 않습니다. 등록이나 본문 검토를 실제 활용 성능 검증으로 간주하지 않습니다.
 
-등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 선택 점검합니다. 설치·인증·모델 호출은 하지 않으며 결과는 실제 권한·제품 품질의 증거가 아닙니다. 추적 대상은 위 8개 역할, 하네스에 연결된 17개 스킬(코어·선별 외부 6종·Trial 2종·`opencode`), MCP 2개입니다. Research·Critic은 제품/보고서 편집·임의 Shell·서버 기동·설치·배포를 거부하고 각각 `research-*` / `critic-*` 고유 CLI 세션을 사용합니다. Engineer·Design은 승인 단위의 구현 권한을 갖습니다. 필요한 Context7 문서 조회와 역할별 설치 스킬을 허용하고 Research의 Mobbin 검색 3개를 유지합니다. 임의 스킬·MCP 액션은 허용하지 않습니다. 브라우저·CLI·execute는 읽기 전용 샌드박스가 아니므로 승인된 환경·계정·상태 전이를 사용합니다. [현재 구성·검증 범위](docs/engineer-routing-validation.md)
+등록·연결 상태가 의심되면 `node scripts/capabilities.mjs`로 정적 등록을 점검하고, 실제 작업 세션에서 에이전트가 스킬·정본 문서·시각 캡처 판독·검증을 실제로 수행했는지는 `node scripts/session-audit.mjs <session-json-or-dir>`로 감사할 수 있습니다. 두 스크립트 모두 읽기 전용이며 설치·인증·모델 호출은 하지 않습니다. `capabilities.mjs`의 추적 대상은 위 8개 역할, 하네스에 연결된 17개 스킬(코어·선별 외부 6종·Trial 2종·`opencode`), MCP 2개이고, `session-audit.mjs`는 역할별 실제 `skill` 호출 목록, 정본(`AGENTS.md`·`product-state.md`·`ADR`·`openspec/`) `read` 여부, 이미지 캡처 `read` 횟수, `detect --json` 실행 횟수 및 스킬/캡처 미확인 편집(`design-edited-without-skill-or-craft-reference` 등)을 정량 집계합니다. [현재 구성·검증 범위](docs/engineer-routing-validation.md)
 
 ### UI/UX 작업 흐름 — 사고·조사·설계·구현·검증
 
 UI 단위는 코드부터 쓰지 않습니다. 먼저 사용자 과업·대표 데이터·큰 실패 비용을 확인하고, 기존 화면·패턴·근거를 조사한 뒤 구조·상태·상호작용 가설을 세웁니다. 비사소한 변경은 현재 제품과 관련 내부·외부 레퍼런스(기존 패턴, 비교 가능한 제품, 디자인 패턴)를 함께 조사하고, 그대로 복사하지 않고 적용 조건·차이·한계를 비교합니다. 작고 명확한 수정은 이 과정을 줄여 바로 구현할 수 있습니다. 아래는 Build가 메인인 경우의 예시이며 고정 단계·필수 호출이 아닙니다.
 
 ```text
-[1] 이해와 근거
+[1] 이해와 근거 (2단계 스킬 로드: Stage A 구조/흐름 → Stage B 조형/카피)
 Build — 목표·제약·인수 조건 확인
   └─(선택) Plan — 요구·우선순위·대안·의존성 자문 (구현·승인 없음)
-Design — 기존 화면·데이터·흐름 직접 확인 + `impeccable`(`craft-floor.md`·`operate.md`/`new-work.md`) 선행 로드
+Design — 프로젝트 루트 `AGENTS.md` 및 1순위 정본 문서 확인 + 기존 화면·데이터·흐름 직접 확인
+  ├─ Stage A (UX/IA 구조): `designing-user-experience` (다단계 여정·비교·정보 구조는 `journey`·`organize`·`wireframe`) 선행 로드
+  ├─ Stage B (조형·문구): `impeccable`(`craft-floor.md`·`operate.md`/`new-work.md`) + `ux-copy` 로드
   ├─ 코드 위치·사실 → Explore
-  ├─ 외부 사례·대안·충돌 근거 → Research
-  └─ 필요 시 designing-user-experience·journey·organize·wireframe·Mobbin
+  └─ 외부 사례·대안·충돌 근거 → Research / Mobbin
 
 [2] 설계 가설 (다듬기 vs 시각 수준 격상 판단)
 Design — 문제 정의 → 기존 화면이 투박한 스캐폴딩이면 옛 스타일을 버리고 서피스·타이포·여백 체계 재설계
@@ -383,11 +384,13 @@ Build — 제품 통합·교차 일관성·최종 인수
 ```sh
 node --test tests/completion-guidance.test.mjs
 node --test tests/capabilities.test.mjs
+node --test tests/session-audit.test.mjs
 node --test tests/permission-probe.test.mjs
 node --test tests/delegation-errors.test.mjs
 node --test tests/compaction-continuity.test.mjs
 node tests/agent-routing-native.mjs
 node tests/delegation-native-integration.mjs
+node scripts/session-audit.mjs <session-json-or-dir>
 ```
 
 - `delegation-native-integration.mjs`는 격리 환경과 로컬 모의 모델을 사용하며 외부 모델을 호출하지 않습니다. 역할 라우팅 검사는 모델 호출 없이 자신의 임시 세션에서 정책을 조회합니다.

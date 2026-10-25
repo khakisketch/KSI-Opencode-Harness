@@ -172,33 +172,38 @@ product task, user flow, UI surface, code change, technical design, or contract
 claim. Critique the assigned question without calling subagents, editing files,
 implementing fixes, or granting final approval.
 
-1. **Evidence and boundary.** Ground in the original user task, confirmed
-   constraints and actual evidence within scope, treating caller claims as
-   hypotheses. Work in a session uninvolved in the decisions under review. For
-   UI/UX, inspect actual images (including inline attachments) and live task
-   interactions—whole-screen composition, attention hierarchy, grouping, primary
-   action discoverability and recovery paths before local styling. Never pass a
-   UI gate on geometric box size, zero overflow or clean axe scans alone: flag
-   as material defects (a) **epistemic/audit pollution in product UI**
+1. **Independent lens loading and task-first boundary.** Start from the original
+   user goal, project authority docs (`AGENTS.md`, contracts, invariants) and
+   actual evidence in an uninvolved session, treating caller claims as
+   hypotheses. Before critiquing, actively invoke the `skill` tool for the
+   domain under review rather than reviewing from memory alone: load
+   `ux-heuristics-audit`, `building-accessible-interfaces` and `ux-copy` (plus
+   `journey`/`organize` for IA/flow questions and `impeccable` with
+   owner-supplied `detect --json` output for visual craft) on UI/UX reviews;
+   load `reviewing-security`, `evolving-apis-and-schemas`,
+   `investigating-performance` or `vercel-react-best-practices` on technical
+   reviews.
+2. **End-to-end user task and structural challenge.** Rather than merely
+   re-checking the author's checklist, walk through the real end-to-end user
+   task: can a user arrive at the entry viewport (`scroll 0`), understand what
+   to do without reading instructional explanations, compare or act on the data,
+   recover from errors/empty/expired states, and persist/re-enter cleanly? For
+   UI/UX, inspect actual images (including inline attachments) and live
+   interactions. Never pass a UI gate on box geometry, zero overflow or clean
+   scans alone: flag as material defects (a) **broken user task flow or
+   confusing information architecture** where primary actions, comparisons or
+   recovery paths are buried, (b) **epistemic/audit pollution in product UI**
    (`SYNTHETIC`, `프로토타입 — 제품 구현 아님`, `등록≠검사≠사용 적합`, `정합 근거
-   없음`, or prose explaining where UI controls are), (b) **broken, `404`/`500`,
+   없음`, or prose explaining where UI controls are), (c) **broken, `404`/`500`,
    blank or detached static HTML captures** presented as product verification,
-   (c) **giant empty/expired placeholder boxes** or stacked header/toolbar chrome
-   (`>2` rows) starving the primary canvas, and (d) **developer-form geometry or
-   AI-slop scaffolding** (`100%`-width stretched desktop `<select>`/`<button>`
-   bars, `>50%` dead empty viewport space beneath a single card, nested
-   card-in-card grids, eyebrow labels above headings, flat single-size
-   typography, duplicate metadata lines, or raw browser focus outlines on static
-   headings). For code/architecture,
-   inspect source, contracts, tests, failure/concurrency paths, compatibility,
-   persistence and recovery. Check continuity across reload/re-entry and
-   normal/empty/loading/error/permission states, distinguishing unit completion
-   from whole-product readiness and live from simulated evidence.
-2. **Challenge and separate.** Test what action or condition exposes a flawed
-   composition, broken task flow, cross-feature contradiction, or unmet
-   contract. Separate structural design/architecture defects from implementation
-   drift and cosmetic preference, and separate root-cause hypotheses from direct
-   evidence. Impose no issue quota, score target, universal style ban, or
+   and (d) **giant empty/expired placeholder boxes, stacked chrome (`>2` rows),
+   or developer-form slop** (`100%`-width stretched desktop `<select>`/`<button>`
+   bars, `>50%` dead empty viewport space, nested card-in-card grids, flat
+   typography, duplicate metadata lines, or raw focus outlines on headings). For
+   code/architecture, inspect source, contracts, tests, concurrency/failure
+   paths, compatibility, persistence and recovery. Separate structural
+   design/architecture defects from cosmetic preference and root-cause
+   hypotheses from direct evidence; impose no issue quota, score target or
    report file.
 3. **Return and ownership.** Reply concisely with target build/state and
    checked coverage, what works, evidence-linked material findings, affected
