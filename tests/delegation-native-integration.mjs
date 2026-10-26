@@ -994,9 +994,8 @@ async function main() {
     try {
       // Roles with source rules (JSON agents or Markdown) must declare exactly the
       // contract allows. Plan declares nothing (Native retained); builtin leaves
-      // with no subagent allows (general/explore) declare only the leaf deny;
-      // their leaf behavior is additionally proven by live native probes below,
-      // which stay authoritative if source adds rules.
+       // with no subagent allows (general/explore) may omit duplicate denies.
+       // Their effective leaf behavior is proven by Native probes below.
       const rules = mdSources[caller] ? parseMdRules(mdSources[caller]) : (srcAgents[caller]?.permissions ?? null);
       got = rules ? subagentAllows(rules) : [];
     } catch (e) {
@@ -1088,27 +1087,17 @@ async function main() {
     (srcAgents.plan?.permissions ?? undefined) === undefined);
   check("source explore carries no steps pin (Native default applies)",
     srcAgents.explore?.steps === undefined);
-  // Shared instructions carry the five-principle contract plus the provider
-  // data-policy line (retained behavior, not an automatic fallback framework).
-  check("source AGENTS.md carries the five principles and provider policy",
-    srcAgentsMd.includes("**Goal.**") && srcAgentsMd.includes("**Evidence.**")
-    && srcAgentsMd.includes("**Autonomy.**") && srcAgentsMd.includes("**Responsibility.**")
-    && srcAgentsMd.includes("**Boundaries.**")
-    && srcAgentsMd.includes("not an automatic fallback framework")
-    && srcAgentsMd.includes("Respect each provider's training, retention and region policy"));
-  check("source AGENTS.md routes by assignment with optional review",
-    srcAgentsMd.includes("no mandatory Lead routing") && srcAgentsMd.includes("zero/one/several General")
-    && srcAgentsMd.includes("deliberate consultation exception")
-    && srcAgentsMd.includes("never a default stage, pass-gate or mandatory question"));
-  check("source keeps General ownership model-independent",
-    srcAgentsMd.includes("model choice does not transfer ownership")
-    && (srcAgents.general?.description ?? "").includes("Model choice does not transfer ownership"));
+   // Natural-language wording is not an executable contract. Check that the
+   // actual sources remain present; policy/tool/chain assertions below carry
+   // the mechanism proof without pretending to test model understanding.
+   check("source common instructions are non-empty", srcAgentsMd.trim().length > 0);
+   check("source preserves Native builtin system prompts",
+     ["build", "plan", "general", "explore"].every((id) => srcAgents[id]?.system === undefined));
   check("source retires repo-bundled custom skill and detector plugin",
     !fs.existsSync(path.join(REPO, "skills", "task-first-ux-review"))
     && !fs.existsSync(path.join(REPO, "global", "plugins", "ksi-impeccable-detector")));
-  check("source lead owns whole-task verification with no mandatory detector",
-    (mdSources.lead ?? "").includes("Required verification always applies")
-    && !(mdSources.lead ?? "").includes("mandatory"));
+   check("source Lead has a dispatch description and non-empty system body",
+     Boolean(mdFrontField(mdSources.lead, "description")) && mdBody(mdSources.lead).trim().length > 0);
 
   // --- 2. Sandbox (private HOME/XDG; copies actual source, sandbox-only transforms) ---
   fs.mkdirSync(WORKSPACE, { recursive: true });
@@ -1353,7 +1342,8 @@ async function main() {
     const agentCatalog = await mustApi("GET", `/api/agent?${LOC_Q}`, undefined, "agent catalog");
     if (agentCatalog?.location?.directory !== WORKSPACE) throw new Error("agent catalog location echo mismatch");
     const catalogList = requireDataArray(agentCatalog, "agent catalog");
-    const byId = new Map(catalogList.map((a) => [a?.id, a]));
+     const byId = new Map(catalogList.map((a) => [a?.id, a]));
+     fs.writeFileSync(path.join(ROOT, "catalog-operating.json"), JSON.stringify(catalogList, null, 1));
     for (const id of OPERATING_IDS) {
       check(`sandbox catalog registers ${id}`, byId.has(id));
     }
@@ -1366,7 +1356,11 @@ async function main() {
       try { fs.writeFileSync(path.join(ROOT, `catalog-${id}-entry.json`), JSON.stringify(entry)); } catch {}
       check(`sandbox catalog offers no ${id} id (removed, phantom rejected)`, entry === null);
     }
-    const wantModes = { ...CONTRACT.modes, build: "primary" };
+     const wantModes = { ...CONTRACT.modes, build: "primary" };
+     const defaultSession = (await mustApi("POST", "/api/session", {
+       location: { directory: WORKSPACE }, model: { id: "fixture", providerID: "fixture" },
+     }, "session.create Native default"))?.data;
+     fs.writeFileSync(path.join(ROOT, "default-session-created.json"), JSON.stringify(defaultSession, null, 1));
     for (const [id, mode] of Object.entries(wantModes)) {
       check(`sandbox ${id} mode == ${mode} (catalog, not echo)`, byId.get(id)?.mode === mode, `got=${byId.get(id)?.mode}`);
     }
@@ -1480,7 +1474,10 @@ async function main() {
     check("policy explore edit scope-note: deny (read-centric)", (await probe("explore", "edit", scopeAbs)) === "deny");
     check("policy plan read scope-note: allow", (await probe("plan", "read", scopeAbs)) === "allow");
     check("policy lead read scope-note: allow", (await probe("lead", "read", scopeAbs)) === "allow");
-    check("policy explore read scope-note: allow", (await probe("explore", "read", scopeAbs)) === "allow");
+     check("policy explore read scope-note: allow", (await probe("explore", "read", scopeAbs)) === "allow");
+     for (const caller of ["general", "explore"]) {
+       check(`policy ${caller} question: deny (Native leaf)`, (await probe(caller, "question", "*")) === "deny");
+     }
 
     // --- 5. Runtime chains (real Native sessions + real subagent tool calls) ---
     async function runChain(rootAgent, rootText, doneToken, label, settleSecs = 150) {
@@ -1502,7 +1499,7 @@ async function main() {
     }
     // Follow-up turn on an existing owned session (continuity/recovery). Same
     // settle contract as runChain; the session (and its owned children) persist.
-    async function promptTurn(sessionID, text, doneToken, label, settleSecs = 150) {
+     async function promptTurn(sessionID, text, doneToken, label, settleSecs = 150) {
       await mustApi("POST", `/api/session/${sessionID}/prompt`, { text }, `prompt turn ${label}`);
       let messages = null;
       for (let i = 0; i < settleSecs; i++) {
@@ -1516,8 +1513,16 @@ async function main() {
       }
       if (!Array.isArray(messages)) throw new Error(`messages ${label}: canonical {data:[]} shape never observed`);
       fs.writeFileSync(path.join(ROOT, `messages-${label}.json`), JSON.stringify(messages, null, 1));
-      return messages;
-    }
+       return messages;
+     }
+     // Native chooses the default on execution, not in session.create metadata.
+     // Check an actual completed assistant turn instead of treating that echo as
+     // selection proof. The fixed local fixture replies without tools or writes.
+     const defaultMessages = await promptTurn(defaultSession.id, "Reply ok without using tools.", "ok", "native-default");
+     const defaultReplies = defaultMessages.filter((m) => m.type === "assistant" && m.time?.completed);
+     check("Native default execution selects Build without an agent override",
+       defaultReplies.length > 0 && defaultReplies.every((m) => m.agent === "build"),
+       `agents=${defaultReplies.map((m) => m.agent).join(",")}`);
     // Owned-child ID straight from a Native subagent tool result delivered to the
     // parent (own API read of own session). Null when Native never reported one.
     function childIdFromParentMessages(messages) {

@@ -1,11 +1,10 @@
-// Source-contract guards for the five-profile Native migration (source only).
-// These do not test model judgment or rendered UX. Sources are the active
-// Lead prompt, the common AGENTS contract, Native config edges and the MERGED
-// main spec — never the removed specialist prompts and
-// never equality with a partial delta or the frozen old change.
+// Structural guards for runtime instructions, role configuration and the merged
+// specification. Natural-language wording is deliberately not a test contract;
+// Native execution tests cover permissions and delegation, not model judgment.
 import { readFileSync, existsSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 const shared = read('global/AGENTS.md');
@@ -15,61 +14,25 @@ const strippedJsonc = () => read('global/opencode.jsonc')
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/(^|\n)[ \t]*\/\/[^\n]*/g, '$1');
 
-describe('five-profile common contract (source only)', () => {
-  it('centers on goal, evidence, autonomy, responsibility and boundaries', () => {
-    for (const principle of ['**Goal.**', '**Evidence.**', '**Autonomy.**', '**Responsibility.**', '**Boundaries.**']) {
-      assert.ok(shared.includes(principle), `missing principle ${principle}`);
+describe('runtime instruction structure (not prose or quality assertions)', () => {
+  it('keeps a non-empty common instruction source', () => {
+    assert.ok(shared.trim().length > 0);
+  });
+
+  it('preserves Native system prompts for all four builtins', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    for (const id of ['build', 'plan', 'general', 'explore']) {
+      assert.equal(cfg.agents[id].system, undefined, `${id} uses its Native system`);
     }
-    assert.match(shared, /Separate binding contracts from revisable assumptions/);
-    assert.match(shared, /not only the author's edit list/);
-    assert.match(shared, /not an automatic fallback framework/);
-    assert.match(shared, /Respect each provider's training, retention and region policy/);
-  });
-
-  it('routes by assignment with no mandatory Lead stage and no forced skill machinery', () => {
-    assert.match(shared, /no mandatory Lead routing by complexity, file count or domain/);
-    assert.match(shared, /Direct implementation or direct General use stays permitted/);
-    assert.match(shared, /not only tiny\/single-file\/UI-free/);
-    assert.match(shared, /checks Lead outputs rather than managing every General worker/);
-    assert.match(shared, /coherent workstream assignment/);
-    assert.match(shared, /No mandated skill-load stages, mandatory lenses or sequences/);
-    assert.match(shared, /role-owned CSS authorship/);
-    assert.match(shared, /single-file-only limits/);
-    assert.match(shared, /model choice does not transfer ownership/);
-  });
-
-  it('keeps independent review optional with enforced non-mutation limits', () => {
-    assert.match(shared, /never a default stage, pass-gate or mandatory question/);
-    assert.match(shared, /`No issue found` is valid/);
-    assert.match(shared, /an edit-deny alone stops no shell\/browser\/network effect/);
-    assert.match(shared, /role allows are not OS sandboxes/);
-  });
-
-  it('runs Plan as a deliberate consultation exception, never a gate', () => {
-    assert.match(shared, /deliberate consultation exception/);
-    assert.match(shared, /user-selectable or optional Build\/Lead advisory call/);
-    assert.match(shared, /never an approver\/mandater\/vetoer of independent verification/);
-    assert.match(shared, /no forced stage or approval gate/);
-  });
-
-  it('protects other workers, shared state and approval boundaries', () => {
-    assert.match(shared, /Protect others' work and shared state/);
-    assert.match(shared, /never discard another worker's changes/);
-    assert.match(shared, /production services, credentials, or unapproved hardware\/session state without authorization/);
-    assert.match(shared, /never bypass permission or analysis-only limits via alternate tools or delegation/);
   });
 });
 
-describe('lead prompt role-boundary semantics (source only)', () => {
-  it('states short whole-task ownership without merged method prescriptions', () => {
-    assert.match(lead, /whole-task owner under Build/);
-    assert.match(lead, /from research\/UX\/design through implementation,\s*tests, recovery and completion/);
-    assert.match(lead, /zero\/one\/several General workers/);
-    assert.match(lead, /reuse the same session for follow-ups on that\s*task/);
-    assert.match(lead, /remain accountable for the actual result/);
-    assert.match(lead, /Required verification always applies/);
-    assert.match(lead, /Choose an independent check only for\s*a useful specific question/);
-    assert.doesNotMatch(lead, /Stage A|Stage B|mandatory loop|CSS|adopt\/adapt\/reject/);
+describe('lead instruction structure (source only)', () => {
+  it('keeps frontmatter, a dispatch description and a non-empty system body', () => {
+    const parts = lead.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+    assert.ok(parts, 'Lead must remain a Native Markdown agent');
+    assert.match(parts[1], /^description:\s*\S/m);
+    assert.ok(parts[2].trim().length > 0);
   });
 
   it('keeps the Lead model and child edges Native-shaped', () => {
@@ -111,7 +74,9 @@ describe('native config edges for five profiles (source only)', () => {
     const cfg = JSON.parse(strippedJsonc());
     for (const id of ['general', 'explore']) {
       const rules = cfg.agents[id].permissions ?? [];
-      assert.ok(rules.some((r) => r.action === 'subagent' && r.resource === '*' && r.effect === 'deny'), `${id} stays a leaf`);
+      // The builtin leaf deny need not be duplicated in source. Its effective
+      // policy and removed tool surface are tested by Native execution.
+      assert.ok(!rules.some((r) => r.action === 'subagent' && r.effect === 'allow'), `${id} adds no child allows`);
       assert.ok(!rules.some((r) => r.action === 'skill'), `${id} declares no skill rules`);
     }
     assert.equal(cfg.agents.general.model, 'opencode-go/muse-spark-1.3-contributor#high');
@@ -127,6 +92,36 @@ describe('native config edges for five profiles (source only)', () => {
       assert.equal(existsSync(new URL(`../global/agents/${id}.md`, import.meta.url)), false, `${id}.md removed from source`);
     }
     assert.ok(!('architect' in (cfg.agents ?? {})));
+  });
+});
+
+describe('installed-check asynchronous reporting', () => {
+  const source = read('tests/agent-routing-native.mjs');
+  const helper = source.match(/async function checkAsync\([^]*?\n}/)?.[0];
+
+  it('reports success only after the asynchronous assertion settles', () => {
+    assert.ok(helper);
+    const run = spawnSync(process.execPath, ['--input-type=module', '--eval', `
+      let checks = 0;
+      ${helper}
+      let settled = false;
+      await checkAsync('awaited', async () => { await Promise.resolve(); settled = true; });
+      if (!settled || checks !== 1) process.exit(2);
+    `], { encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.stdout.trim(), 'PASS awaited');
+  });
+
+  it('an asynchronous failure exits nonzero without printing PASS', () => {
+    assert.ok(helper);
+    const run = spawnSync(process.execPath, ['--input-type=module', '--eval', `
+      let checks = 0;
+      ${helper}
+      await checkAsync('must fail', async () => { await Promise.resolve(); throw new Error('expected failure'); });
+    `], { encoding: 'utf8' });
+    assert.notEqual(run.status, 0);
+    assert.doesNotMatch(run.stdout, /PASS/);
+    assert.match(run.stderr, /expected failure/);
   });
 });
 

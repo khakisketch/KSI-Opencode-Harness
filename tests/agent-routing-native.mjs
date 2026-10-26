@@ -70,6 +70,11 @@ async function api(op, params = [], data = null) {
 }
 let checks = 0;
 function check(label, fn) { fn(); checks++; console.log(`PASS ${label}`); }
+async function checkAsync(label, fn) {
+  await fn();
+  checks++;
+  console.log(`PASS ${label}`);
+}
 async function rejectIfPending(sessionID, r) {
   // Source-free policy probes can return ask without a pending tool request.
   // Same call sites as before; idempotent cleanup lives in the helper.
@@ -122,7 +127,7 @@ for (const [id, model, mode] of [
 // permission/call checks below — never by hiding.
 for (const id of ['engineer', 'design', 'research', 'critic']) {
   const rel = `agents/${id}.md`;
-  check(`removed ${id}.md absent from source`, async () => {
+  await checkAsync(`removed ${id}.md absent from source`, async () => {
     try {
       await readFile(path.join(repo, 'global', rel), 'utf8');
       assert.fail(`repo source still carries ${rel}`);
@@ -130,7 +135,7 @@ for (const id of ['engineer', 'design', 'research', 'critic']) {
       if (e?.code !== 'ENOENT') throw e;
     }
   });
-  check(`removed ${id}.md absent from installed global`, async () => {
+  await checkAsync(`removed ${id}.md absent from installed global`, async () => {
     try {
       await readFile(path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'), 'opencode', rel), 'utf8');
       assert.fail(`installed global still carries ${rel}`);
@@ -159,7 +164,7 @@ for (const retired of ['architect', 'design-specialist', 'design-architect', 'ux
     assert.ok(archSrc.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim().length > 0, 'archive missing body');
   });
   const installedArch = path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'), 'opencode', 'agents', 'architect.md');
-  check('installed global carries no architect.md (archive not installed)', async () => {
+  await checkAsync('installed global carries no architect.md (archive not installed)', async () => {
     try {
       await readFile(installedArch, 'utf8');
       assert.fail(`installed architect.md present at ${installedArch}`);
@@ -168,10 +173,8 @@ for (const retired of ['architect', 'design-specialist', 'design-architect', 'ux
     }
   });
 }
-// Plan is analysis-only: the repo JSONC must not override the Native prompt
-// with an agents.plan.system entry, and the four superseded specialists must
-// be Native-disabled (exactly {disabled:true}: no hidden fallback, no extra
-// rules). Main owns the install; this asserts source.
+// Plan keeps its Native system and permission rules. Removed specialist roles
+// have no operating definitions; source hiding/tombstones are not removal.
 {
   const raw = await readFile(path.join(repo, 'global', 'opencode.jsonc'), 'utf8');
   const stripped = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\n)[ \t]*\/\/[^\n]*/g, '$1');
@@ -230,10 +233,8 @@ check('experimental.subagent_depth declared == 3, consistent', () => {
 // plan/general/explore; Plan (mode all, deliberate consultation exception)
 // advises and delegates analysis-only to general/explore; General and Explore
 // are leaves that call nothing. Effects below are allowed targets, not a fixed
-// chain; the Native guard limits remaining depth. Unknown targets deny
-// everywhere (fail closed). Retired engineer/design/research/critic deny
-// everywhere: they are retained-but-disabled, never operational targets; the
-// archived architect id is never an operational caller either.
+// chain; the Native guard limits remaining depth. Plan keeps Native permission
+// defaults, so exclusion there rests on absent targets, not a policy denial.
 const UNKNOWN = 'no-such-agent-ksi-probe';
 const RETIRED = ['engineer', 'design', 'research', 'critic'];
 async function probeSubagent(caller, targets) {
@@ -285,7 +286,7 @@ await probeSubagent('explore', [
   ['build', 'deny'], [UNKNOWN, 'deny'],
 ]);
 // The archived architect id is never an operational caller: no session is
-// created for it, and every live caller above already asserted target-deny.
+// created for it; the catalog must exclude it regardless of policy effects.
 // Plan stays analysis-only: normal edits deny in its own session even though it
 // may delegate analysis to General under explicit boundaries. Children own
 // their own permissions; nothing is inherited from the parent (behavioral
@@ -342,6 +343,7 @@ await probeSubagent('explore', [
     ['subagent', 'lead', 'deny'],
     ['subagent', 'build', 'deny'],
     ['subagent', UNKNOWN, 'deny'],
+    ['question', '*', 'deny'],
   ]) {
     const normalized = ['read', 'edit'].includes(action) ? path.resolve(fixture, resource) : resource;
     const gr = await api('session.permission.create', [`sessionID=${generalSession.id}`], { action, resources: [normalized], agent: 'general' });
@@ -356,6 +358,7 @@ await probeSubagent('explore', [
     ['subagent', 'general', 'deny'],
     ['subagent', 'explore', 'deny'],
     ['subagent', UNKNOWN, 'deny'],
+    ['question', '*', 'deny'],
   ]) {
     const normalized = ['read', 'edit'].includes(action) ? path.resolve(fixture, resource) : resource;
     const xr = await api('session.permission.create', [`sessionID=${exploreSession.id}`], { action, resources: [normalized], agent: 'explore' });
