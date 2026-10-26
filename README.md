@@ -1,6 +1,6 @@
 # KSI OpenCode Harness
 
-> **상태: 프로젝트 지식·상태 운용 원칙의 전역 적용·검증 완료 (2026-10-26).** 문서 책임·선택적 참조·지속 사실 갱신을 공통 지침에 반영했습니다. 파일명·문서 수·독서 순서는 강제하지 않습니다. 5개 역할·모델·권한은 유지하며 회귀 135개·설치본 146개·격리 Native 362개 검사가 통과했습니다. [검증 근거와 한계](docs/engineer-routing-validation.md). 지침 전달·메커니즘 검증이지 실제 제품 품질 향상 측정은 아닙니다.
+> **상태: OpenSpec 활성 통합 제거·Sol High Plan·프로젝트 지식 운용의 전역 적용 완료 (2026-10-26).** 이전 명세·변경·생성물은 역사로 보존하고 별도 프레임워크를 요구하지 않습니다. Plan은 `openai/gpt-6.1-sol#high`, 역할·권한은 유지합니다. 회귀 134개·설치본 146개·격리 Native 362개가 통과했고 실제 OpenAI 합성 과제 호출도 확인했습니다. [검증 근거와 한계](docs/engineer-routing-validation.md). 모델 우위·실제품 완주 개선은 아직 미입증입니다.
 
 **제품을 먼저 이해하고, 스스로 설계·구현 판단을 내리며, 실제 동작하는 결과물과 화면으로 검증하도록 구성한 OpenCode Native 개발 하네스입니다.**
 
@@ -84,13 +84,15 @@
 
 5개 운영 역할(**Build · Lead · Plan · General · Explore**)로 구성됩니다. 최대 위임 깊이는 **3**(`root 0 → 1 → 2 → 3`, 평소 1~2단계)이며, 고정 파이프라인이 아니라 작업 성격에 따라 필요한 역할만 동적으로 호출합니다. 이전 전문 4개 역할(`engineer`·`design`·`research`·`critic`) 운영 파일은 사용자 승인으로 **저장소와 전역에서 삭제됐습니다**(최종 승인 내용은 비공개 백업에만 보존, 자동 복원 없음). 전역 JSONC의 `disabled`만으로는 뒤에 발견되는 Markdown 역할을 제외하지 못했던 실험 결과에 따라 파일 자체를 제거했습니다.
 
-| 역할 / ID | 핵심 책임과 소유 범위 | 모드 | 기본 모델 (`opencode-go/muse-spark-1.3-contributor`) | 허용된 하위 호출 (`subagent`) |
+| 역할 / ID | 핵심 책임과 소유 범위 | 모드 | 기본 모델 | 허용된 하위 호출 (`subagent`) |
 | --- | --- | --- | --- | --- |
 | **Build** (`build`) | 제품 실행 총괄, 공유 계약 고정, 통합, 종단 검증, 최종 인수 | `primary` | 세션 선택 (전역 미고정) | `plan`, `lead`, `general`, `explore` |
-| **Plan** (`plan`) | 제품·여정·정본 대조, 미구현 범위 식별, 우선순위·방향·대안 자문 (협의 예외 호출만, 구현·승인·검증 게이트 금지) | `all` | `#xhigh` | Native 기본값 — 분석 한정 운용 (호출 시 경계) |
-| **Lead** (`lead`) | 배정된 전체 과업 소유 (조사·UX/디자인·구현·테스트·복구·완결, 직접 또는 General 활용) | `subagent` | `#xhigh` | `plan`, `general`, `explore` |
-| **General** (`general`) | 배정된 과업 실행 소유 — 범위 내 조사·설계·구현·테스트·수리, 스스로 검증·복귀 (자식·질문 없음) | `subagent` | `#high` | 없음 (말단) |
-| **Explore** (`explore`) | 코드·웹 검색과 읽기 전용 분석, 탐색 범위 보고 (편집·호출·인수 없음) | `subagent` | `#medium` | 없음 (말단) |
+| **Plan** (`plan`) | 제품·여정·정본 대조, 미구현 범위 식별, 우선순위·방향·대안 자문 (협의 예외 호출만, 구현·승인·검증 게이트 금지) | `all` | `openai/gpt-6.1-sol#high` | Native 기본값 — 분석 한정 운용 (호출 시 경계) |
+| **Lead** (`lead`) | 배정된 전체 과업 소유 (조사·UX/디자인·구현·테스트·복구·완결, 직접 또는 General 활용) | `subagent` | Muse Contributor `#xhigh` | `plan`, `general`, `explore` |
+| **General** (`general`) | 배정된 과업 실행 소유 — 범위 내 조사·설계·구현·테스트·수리, 스스로 검증·복귀 (자식·질문 없음) | `subagent` | Muse Contributor `#high` | 없음 (말단) |
+| **Explore** (`explore`) | 코드·웹 검색과 읽기 전용 분석, 탐색 범위 보고 (편집·호출·인수 없음) | `subagent` | Muse Contributor `#medium` | 없음 (말단) |
+
+Muse의 정확한 ID는 `opencode-go/muse-spark-1.3-contributor`입니다. Plan의 모델 선호 변경은 기존 세션에 저장된 모델을 강제로 전환하지 않습니다. 기본 프롬프트·분석 범위는 그대로이며 모델 우위는 실제 과업에서 별도로 확인합니다.
 
 ### 역할 간 경계와 핸드오프 규칙
 
@@ -132,13 +134,13 @@
 - **원인 기반 디버깅 렌즈 (`diagnosing-bugs`, 선택):** 원인이 불분명하거나 반복되는 버그에 유용한 참고 순서(재현 신호 → 가설·이분 탐색 → 최소 수정 → 회귀 테스트 → 런타임 재검증)이며, 강제 절차가 아닙니다. 결과물의 실제 검증이 필수입니다.
 - **프로젝트 정본과 간결한 원장:**
   - 각 프로젝트 `AGENTS.md`에서 관련 정본과 충돌 시 권위를 찾습니다. 상태 원장은 구현·검증 사실의 진입점이지 승인된 제품 요구사항을 바꾸는 권위가 아닙니다. 변경된 지속 사실은 소유 정본과 상태 요약에 반영하고, 기존 결정·검증 이력은 연결합니다([상세 기준](docs/project-knowledge.md)).
-  - 이미 `openspec/`을 사용하는 저장소에서는 스펙 변경 시 공식 아티팩트를 사용하되, 자체 PRD/ADR 정본 체계를 갖춘 프로젝트에 중복 명세를 만들지 않습니다.
+  - 별도 명세 프레임워크를 요구하지 않습니다. OpenSpec의 활성 루트·명령·스킬은 제거했고, 이전 명세·변경·생성물은 [퇴역 기록](docs/archive/openspec-2026-10-26/README.md)에 보존합니다. 과거의 OpenSpec 사용 조항은 현행 의무가 아닙니다.
 
 ### 3. 역할별 스킬·도구 활용 (필요 시 로드, 강제 단계 없음)
 
 | 역할 | 활용 가능한 스킬 및 외부 도구 |
 | --- | --- |
-| **Build** | OpenSpec, `opencode`, Browser, Playwright CLI, Context7, Mobbin |
+| **Build** | `opencode`, Browser, Playwright CLI, Context7, Mobbin |
 | **Lead** | 과업에 맞는 도메인 렌즈 전부 (`diagnosing-bugs`, `evolving-apis-and-schemas`, `investigating-performance`, `reviewing-security`, `designing-user-experience`, `journey`, `organize`, `wireframe`, `impeccable`, `ux-copy` 등), Context7, Mobbin |
 | **Plan** | Native 도구·설치 스킬을 분석 범위에서 활용 (별도 허용 목록 없음; 일반 파일 편집 제한 유지, General/Explore 위임도 분석 한정) |
 | **General** | Native 폭 그대로 (배정 범위 안에서 UX·리서치·보안 스킬 포함, 설정 화이트리스트 없음; 자식·질문 도구 없음) |
@@ -170,13 +172,10 @@
 # 1. 단위·소스 계약 회귀 (모델의 판단력 검사가 아님)
 node --test tests/completion-guidance.test.mjs tests/capabilities.test.mjs tests/session-audit.test.mjs tests/prompt-boundaries.test.mjs tests/permission-probe.test.mjs tests/delegation-errors.test.mjs tests/compaction-continuity.test.mjs
 
-# 2. OpenSpec 정합성 검사
-openspec validate --all
-
-# 3. 전역 설치본 5개 프로필 등록·모델·권한·본문·retired 제외 검사 (모델 호출 없음)
+# 2. 전역 설치본 5개 프로필 등록·모델·권한·본문·retired 제외 검사 (모델 호출 없음)
 node tests/agent-routing-native.mjs
 
-# 4. 격리 Native 서버 5프로필·깊이 3·위임·복구·병렬·세션 제한 상속 통합 검사 (로컬 fixture 모델)
+# 3. 격리 Native 서버 5프로필·깊이 3·위임·복구·병렬·세션 제한 상속 통합 검사 (로컬 fixture 모델)
 node tests/delegation-native-integration.mjs
 
 # 선택 진단: 등록 점검과 세션 흔적 관찰 — 품질/합격 판정 아님
@@ -185,6 +184,6 @@ node scripts/session-audit.mjs <session-json-file-or-dir>
 ```
 
 - **세션 실행 이상 징후 탐지기 (`scripts/session-audit.mjs`):** 명시적으로 완료된 호출만 관찰 집계하며 미완료·실패를 분리합니다. 선택 스킬·렌더 캡처 누락은 실패로 집계하지 않습니다. 배열에 보이는 열람·편집 순서, 이미지 경로 열람과 검증 명령 패턴을 보여주지만 이미지의 관련성·검사 성공·제품 이해를 판정하지 않습니다. 누락 표시는 주입된 지침·앞선 맥락·인라인 이미지·부분 스냅샷을 고려해 수동 확인해야 합니다. 파일 제외·오류·중복 창·명시 ID/익명 스냅샷 범위를 공개하며, 파일 수를 독립 세션 수나 품질 점수로 해석하지 않습니다.
-- 상세 검증 기록과 이전 변경의 미완료 실증 과제(`openspec/changes/engineer-unit-openspec-skills/tasks.md` §5): [현행 구성·적용 검증](docs/engineer-routing-validation.md) · [전체 검증 안내](docs/validation.md) · [OpenSpec 및 외부 스킬](docs/openspec-and-skills.md)
+- 상세 검증 기록과 아직 미입증인 모델·렌더·실제 과업 효과: [현행 구성·적용 검증](docs/engineer-routing-validation.md) · [전체 검증 안내](docs/validation.md). [과거 OpenSpec·스킬 채택 기록](docs/openspec-and-skills.md)은 역사·출처 자료이며 현재 실행 절차가 아닙니다.
 
 [MIT](LICENSE) — Copyright (c) 2026 KSI

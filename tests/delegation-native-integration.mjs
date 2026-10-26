@@ -1040,9 +1040,8 @@ async function main() {
   }
   check("source role modes match contract (plan all; lead/general/explore subagent)", true);
 
-  // --- 1b. Source freeze: exact models, single-provider routing, skill sets.
-  // Every operating profile uses the contracted Muse Contributor model; only
-  // the reasoning variant differs by role. Lead inherits the Engineer xhigh.
+  // --- 1b. Source contract: exact model preferences and skill sets.
+  // Plan uses OpenAI Sol High; execution workers retain Muse preferences.
   const WANT_MODELS = {
     "lead.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
   };
@@ -1052,26 +1051,26 @@ async function main() {
     if (got !== want) { modelsOk = false; note(`model drift ${file}`, `got=${got} want=${want}`); }
   }
   const WANT_JSON_MODELS = {
-    plan: "opencode-go/muse-spark-1.3-contributor#xhigh",
+    plan: "openai/gpt-6.1-sol#high",
     general: "opencode-go/muse-spark-1.3-contributor#high",
     explore: "opencode-go/muse-spark-1.3-contributor#medium",
   };
   for (const [id, want] of Object.entries(WANT_JSON_MODELS)) {
     if (srcAgents[id]?.model !== want) { modelsOk = false; note(`model drift agents.${id}`, `got=${srcAgents[id]?.model} want=${want}`); }
   }
-  check("source models match the frozen catalog references (Muse Contributor, role variants)", modelsOk);
+  check("source models match configured preferences (Sol Plan, Muse workers)", modelsOk);
   if (!modelsOk) { failClosed("CONTRACT-MISMATCH: source model drift", "see model drift notes"); return void finish(); }
   // Build root carries no forced model: caller/session selection applies.
   check("source forces no model on build root (no top-level or build model)",
     srcCfg.model === undefined && srcAgents.build?.model === undefined,
     `top=${srcCfg.model} build=${srcAgents.build?.model}`);
-  // Single fixed provider: Muse Contributor only, no router and no per-model
-  // OpenRouter data-policy filter left behind after the routing simplification.
+  // Only Muse needs a request override; OpenAI uses Native provider defaults.
+  // No router or automatic provider fallback is introduced.
   const museBody = srcCfg?.providers?.["opencode-go"]?.models?.["muse-spark-1.3-contributor"]?.body;
   check("source Muse routing exact (auto tool choice)",
     isDeepStrictEqual(museBody, { tool_choice: "auto" }),
     `got=${JSON.stringify(museBody)}`.slice(0, 160));
-  check("source providers are exactly opencode-go (no auto router)",
+  check("source custom provider overlay is Muse only (OpenAI Native, no router)",
     JSON.stringify(Object.keys(srcCfg.providers ?? {}).sort()) === JSON.stringify(["opencode-go"]),
     `got=${Object.keys(srcCfg.providers ?? {}).sort().join(",")}`);
   const hasFallbackKey = (o) => {

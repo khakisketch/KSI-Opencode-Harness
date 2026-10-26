@@ -1,7 +1,7 @@
-// Structural guards for runtime instructions, role configuration and the merged
-// specification. Natural-language wording is deliberately not a test contract;
+// Structural guards for runtime instructions and active role/tool configuration.
+// Natural-language wording is deliberately not a test contract;
 // Native execution tests cover permissions and delegation, not model judgment.
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -65,7 +65,7 @@ describe('native config edges for five profiles (source only)', () => {
   it('keeps Plan analysis-only with Native permissions (no custom allowlist)', () => {
     const cfg = JSON.parse(strippedJsonc());
     assert.equal(cfg.agents.plan.mode, 'all');
-    assert.equal(cfg.agents.plan.model, 'opencode-go/muse-spark-1.3-contributor#xhigh');
+    assert.equal(cfg.agents.plan.model, 'openai/gpt-6.1-sol#high');
     assert.ok(cfg.agents.plan.system === undefined);
     // No custom system or permission allowlist: the Native prompt and Native
     // permissions apply; only mode `all` (deliberate consultation exception)
@@ -130,69 +130,22 @@ describe('installed-check asynchronous reporting', () => {
   });
 });
 
-describe('merged main spec coherence (source only)', () => {
-  const main = read('openspec/specs/engineer-workflow/spec.md');
-  const newDelta = read('openspec/changes/task-completion-native-lead/specs/engineer-workflow/spec.md');
-  const oldDelta = read('openspec/changes/engineer-unit-openspec-skills/specs/engineer-workflow/spec.md');
-
-  it('carries the merged contract under one Requirements section', () => {
-    assert.ok(!main.includes('## ADDED Requirements'));
-    assert.ok(!main.includes('## MODIFIED Requirements'));
-    assert.ok(main.includes('## Requirements'));
-    // Three added requirements landed.
-    for (const name of [
-      '### Requirement: Five operating profiles and Native autonomy',
-      '### Requirement: Result verification with OPTIONAL independent checks and enforced boundaries',
-      '### Requirement: Retired operating profile removal and backup',
-    ]) {
-      assert.ok(main.includes(name), `missing ${name}`);
-    }
-    // Seven modified requirements took the delta content, not the old text.
-    for (const marker of [
-      'no mandatory Lead routing by complexity/file-count/domain',
-      'zero/one/several General workers',
-      'mode `all` as a deliberate consultation exception',
-      'OPTIONAL fresh-General check',
-      'short whole-workflow responsibility',
-    ]) {
-      assert.ok(main.includes(marker), `missing modified marker: ${marker}`);
-    }
-    assert.ok(!main.includes('the Engineer unit owns it end-to-end within its assignment'));
-    assert.ok(!main.includes('the Design unit owns it, not Engineer'));
+describe('framework-free active discovery (not archived prose)', () => {
+  it('has no active OpenSpec project root', () => {
+    assert.equal(existsSync(new URL('../openspec', import.meta.url)), false);
   });
 
-  it('preserves the six untouched requirement blocks', () => {
-    // Canonical workflow, staged-skills, architect-retention, model-caveat,
-    // Native context and Native MCP requirements stay preserved via merge.
-    for (const [header, marker] of [
-      ['### Requirement: Canonical OpenSpec workflow usage', 'baseline 1.15.0'],
-      ['### Requirement: Staged-skills compatibility', 'the osmontero'],
-      ['### Requirement: Architect file retention', 'docs/archive/agents/architect.md'],
-      ['### Requirement: No unverified model requirements', 'remains advisory prose until quality-verified'],
-      ['### Requirement: Native context policy', 'no top-level `compaction`'],
-      ['### Requirement: Native MCP server configuration', 'mcp.servers'],
-    ]) {
-      assert.ok(main.includes(header), `missing ${header}`);
-      assert.ok(main.includes(marker), `missing frozen marker: ${marker}`);
-    }
-    const headers = [...main.matchAll(/^### Requirement: (.+)$/gm)].map((m) => m[1]);
-    assert.equal(headers.length, 16);
-    assert.equal(new Set(headers).size, 16);
+  it('has no generated opsx command files or configured commands', () => {
+    const dir = new URL('../.opencode/commands', import.meta.url);
+    const names = existsSync(dir) ? readdirSync(dir) : [];
+    assert.deepEqual(names.filter((name) => name.startsWith('opsx-')), []);
+    const cfg = JSON.parse(strippedJsonc());
+    assert.deepEqual(Object.keys(cfg.commands ?? {}).filter((name) => name.startsWith('opsx-')), []);
   });
 
-  it('never equates the merged spec with a partial delta or the old change', () => {
-    assert.notEqual(main, newDelta.replace('# Spec Delta', '# Engineer-Workflow Specification'));
-    assert.notEqual(main, oldDelta.replace('## ADDED Requirements', '## Requirements'));
-    // The old change stays frozen on its own baseline: its 8-role routing
-    // text lives only there, never in the merged main spec.
-    assert.ok(oldDelta.includes('the Engineer unit owns it end-to-end within its assignment'));
-    assert.ok(oldDelta.includes('the Design unit owns it, not Engineer'));
-  });
-
-  it('does not close the four empirical verification tasks', () => {
-    const tasks = read('openspec/changes/engineer-unit-openspec-skills/tasks.md');
-    for (const id of ['5.1', '5.2', '5.4', '5.5']) {
-      assert.ok(tasks.includes(`- [ ] ${id} `), `${id} still needs real-task evidence`);
-    }
+  it('has no generated OpenSpec skills in project discovery', () => {
+    const dir = new URL('../.opencode/skills', import.meta.url);
+    const names = existsSync(dir) ? readdirSync(dir) : [];
+    assert.deepEqual(names.filter((name) => name.startsWith('openspec-')), []);
   });
 });

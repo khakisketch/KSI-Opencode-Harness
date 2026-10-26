@@ -1,5 +1,10 @@
 # OpenSpec + 외부 스킬 통합
 
+> **역사·출처 기록.** OpenSpec 활성 통합은 2026-10-26 제거했습니다. 아래 당시 역할·명세·
+> 설치 지시는 현재 의무가 아닙니다. [퇴역 원본](archive/openspec-2026-10-26/README.md)과
+> [현행 구성·검증 한계](engineer-routing-validation.md)를 구분하세요. 외부 스킬의 당시
+> 출처·라이선스·해시와 미완료 효과 측정은 보존합니다.
+
 ## 1. 버전 및 생성물
 
 - OpenSpec CLI **1.15.0** (npm `@fission-ai/openspec@latest`, MIT).

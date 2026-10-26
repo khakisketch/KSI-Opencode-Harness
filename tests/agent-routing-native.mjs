@@ -98,7 +98,7 @@ check('build registered primary, no global model', () => {
   assert.ok(buildEntry.model === undefined || buildEntry.model === null);
 });
 for (const [id, model, mode] of [
-  ['plan', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'all'],
+  ['plan', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'high' }, 'all'],
   ['lead', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
   ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],

@@ -40,7 +40,7 @@
     "plan": {
       "description": "Advises on direction and priorities within analysis-only scope; neither implements nor approves.",
       "mode": "all",
-      "model": "opencode-go/muse-spark-1.3-contributor#xhigh"
+      "model": "openai/gpt-6.1-sol#high"
     },
     "explore": {
       "model": "opencode-go/muse-spark-1.3-contributor#medium"

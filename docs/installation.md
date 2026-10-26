@@ -1,6 +1,6 @@
 # 설치 안내
 
-> **상태: 프로젝트 지식·상태 원칙을 포함한 전역 5개 역할 적용·검증 완료 (2026-10-26).** 활성 파일 3개가 정본과 일치하고 설치본 검사 146개가 통과했습니다. 제품 문서 일괄 생성·이전이나 상세 안내 자동 주입은 하지 않습니다. 이전 운영 파일 4개는 재설치하지 않습니다. [실행 근거와 검증 한계](engineer-routing-validation.md). 다른 컴퓨터에는 별도 적용이 필요합니다.
+> **상태: OpenSpec 퇴역·OpenAI Sol High Plan·전역 5개 역할 적용·검증 완료 (2026-10-26).** 활성 파일 3개가 정본과 일치하고 설치본 검사 146개가 통과했습니다. OpenSpec이나 이전 전문 역할 4개를 재설치하지 않습니다. 제품 문서 자동 생성·이전·상세 안내 자동 주입은 하지 않습니다. [실행 근거와 검증 한계](engineer-routing-validation.md). 다른 컴퓨터에는 별도 적용이 필요합니다.
 
 이 저장소는 개인 전역 OpenCode 환경에 자동 설치되지 않습니다. 설치 전 대상 환경과 기존 파일을 확인하고, 사용자 설정과 자격증명을 보존하면서 관련 항목만 적용하세요.
 
@@ -29,7 +29,7 @@ Build — depth 0 · 제품 실행 총괄·통합·인수
 4. **기존 도구 재사용:** 브라우저·선택 스킬·공식 Impeccable 수동 소스 검사. 키·OAuth 토큰·유료 구독은 사용자별이며 복사하지 않습니다.
 5. **결과 확인:** 아래 파일 일치와 등록/권한 조회를 확인하고, 미확인·인증 대기·실패를 구분합니다. 설치 확인만으로 실제 디자인 품질이나 스킬 활용 능력을 인증하지 않습니다.
 
-배포 정본의 모델은 [README 표](../README.md#역할과-위임-구조)를 따르며 [실제 가용성·정책·검증 상태](engineer-routing-validation.md)를 별도로 확인합니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. Plan은 `all`(협의 예외), Build는 `primary`, Lead·General·Explore는 `subagent`입니다. Lead는 Engineer `#xhigh`를 상속합니다. 기존 세션의 역할·모델은 강제로 바꾸지 않습니다. 운영 역할은 `opencode-go/muse-spark-1.3-contributor`를 공통 사용하고 역할별 Variant만 조정합니다. Contributor 모델은 학습 사용 조건이 있으므로 비공개 코드·고객 데이터는 승인된 제공자 경로에만 전달합니다.
+배포 정본의 모델은 [README 표](../README.md#역할과-위임-구조)를 따르며 [실제 가용성·정책·검증 상태](engineer-routing-validation.md)를 별도로 확인합니다. Build는 세션 선택을 따르고 전역 모델을 고정하지 않습니다. Plan은 `all`(협의 예외)·`openai/gpt-6.1-sol#high`, Lead·General·Explore는 `subagent`·기존 Muse Contributor 선호를 유지합니다. 기존 세션의 역할·모델은 강제로 바꾸지 않습니다. Native는 세션에 저장된 모델을 우선하므로 기존 주 에이전트 Plan 세션은 사용자가 모델을 따로 선택해야 합니다. Contributor 모델의 학습 사용 조건을 포함해 비공개 코드·고객 데이터는 승인된 제공자 경로에만 전달합니다.
 
 ### 동적 호출과 승인 범위
 
@@ -162,7 +162,6 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
 | Playwright CLI | [공식 저장소 및 원본 스킬](https://github.com/microsoft/playwright-cli). 기존 `@playwright/cli` 0.1.22를 재사용하며, Playwright MCP는 기본 구성에서 제거했습니다. |
 | Context7 | [Context7](https://mcp.context7.com/mcp) 원격 서비스에 연결합니다. 사용자별 계정 인증이 필요합니다. |
 | Mobbin(선택) | [Mobbin](https://api.mobbin.com/mcp)은 유료 서비스라 **선택 사항**입니다. 쓰지 않으면 `mcp.servers`에서 `"disabled": true`로 두거나 항목을 지워도 하네스는 동작합니다. |
-| OpenSpec | [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec), 공식 `@fission-ai/openspec`. 기존 설치·Node·제품 루트를 먼저 확인하고 해당 프로젝트에만 `openspec init --tools opencode`를 적용합니다. [실제 버전·이관 범위](openspec-and-skills.md) |
 | 선별 외부 스킬 | [osmontero](https://github.com/osmontero/opencode-skills)·[Uxcel](https://github.com/Uxcel-Lab/product-skills). [ID·라이선스·해시·중복 판단](openspec-and-skills.md). 전체 설치 스크립트는 실행하지 않습니다. |
 | Vercel React Best Practices | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills)의 `vercel-react-best-practices`(MIT, v1.0.0). 현재 `~/.agents/skills/`에 설치되어 React/Next 작업에서 사용합니다. |
 
@@ -177,6 +176,9 @@ DO_NOT_TRACK=1 npx -y skills@1.7.2 add https://github.com/ghaida/intent/tree/v1.
 현재 공식 CLI는 선택한 세 스킬을 `~/.agents/skills/`에 설치하며 OpenCode가 전역 호환 소스로 인식합니다. 공유 스킬 위치와 `~/.agents/.skill-lock.json`의 기존 항목을 보존하고 중복 설치하지 않습니다. 저장소는 Intent 원본을 복제하지 않으며 `wireframe`의 CSS·JS·스타일가이드도 원본과 함께 설치합니다.
 
 이 저장소는 자체 제작 스킬을 번들하지 않습니다. 2026-10-24 이전의 `task-first-ux-review`는 폐기했고, 같은 목적은 설치된 `designing-user-experience`·`ux-heuristics-audit`와 Design의 과업 비교 원칙으로 대체합니다. 2026-10-24 전역 적용에서 기존 세션이 모두 idle임을 확인한 뒤 `~/.agents/skills/task-first-ux-review/`와 `~/.config/opencode/plugins/ksi-impeccable-detector/`를 백업으로 옮겼습니다. 백업은 `/tmp/opencode/ksi-depth3-install-qxzxj_rl/pre-apply-20261024T111208Z/retired/`에 있습니다. 선별 외부 스킬 6종은 프로젝트 `.opencode/skills/`와 전역 `~/.agents/skills/`에 동일 바이트로 설치되어 있습니다.
+
+OpenSpec은 설치 대상이 아닙니다. `openspec init`이나 `openspec update`를 실행해 생성물을
+복구하지 않습니다. 이 저장소의 과거 명세·생성물은 [역사 기록](archive/openspec-2026-10-26/README.md)으로만 보존하며, 실제 역할·권한·검증 계약은 `global/`·README·실행 테스트를 따릅니다.
 
 ## 전역 파일 일치 확인
 
