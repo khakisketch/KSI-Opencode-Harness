@@ -28,7 +28,6 @@ const LIMITATIONS = [
   'visual-basis: image-extension reads are observed path reads only; not proof of task relevance, rendering, or inspection.',
   'order-basis: sequence is input-array order as observed only; not timestamp or concurrency proof.',
   'identity-basis: file basenames are labels, not session identity; exact repeated message windows are grouped, not a complete census.',
-  'design-skill-gap: requires at least one of UX/IA skill, craft/copy skill, or craft-doc read; never every UI skill.',
   'no-quality-attribution: no version, prompt, or model quality claims; not a product or design certifier.',
 ];
 
@@ -233,6 +232,14 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
       if (s.authorityReads.length === 0) gaps.push('build-acted-without-authority-read');
       else if (!s.authorityReadBeforeAction) gaps.push('build-acted-before-authority-read');
     }
+    // Owner-unit authority grounding: lead is the current whole-task owner and
+    // acts through edits and delegation alike (build-style trigger/ids);
+    // design/engineer branches below stay byte-stable for honest historical
+    // trace parsing of sessions recorded before the five-profile migration.
+    if (role === 'lead' && (s.edits > 0 || s.subagentsCalled.length > 0)) {
+      if (s.authorityReads.length === 0) gaps.push('lead-acted-without-authority-read');
+      else if (!s.authorityReadBeforeAction) gaps.push('lead-acted-before-authority-read');
+    }
     if ((role === 'design' || role === 'engineer') && s.edits > 0) {
       if (s.authorityReads.length === 0) gaps.push(`${role}-edited-without-authority-read`);
       else if (!s.authorityReadBeforeAction) gaps.push(`${role}-edited-before-authority-read`);
@@ -240,27 +247,19 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
     if (role === 'plan' && s.turns > 0 && s.authorityReads.length === 0) {
       gaps.push('plan-advised-without-authority-read');
     }
-    if (role === 'design' && s.edits > 0) {
-      const hasDesignSkill = s.uxSkillsLoaded.length > 0 || s.craftSkillsLoaded.length > 0 || s.craftReads.length > 0;
-      if (!hasDesignSkill) {
-        gaps.push('design-edited-without-ux-or-craft-skill');
-      }
-      if (s.visualReads.length === 0) {
-        gaps.push('design-edited-without-visual-capture-read');
-      } else if (s.postEditVisualReads.length === 0) {
-        gaps.push('design-no-post-edit-visual-read');
-      }
-    }
-    if (role === 'engineer' && s.edits > 0) {
+    // Owner-unit verification candidates: lead mirrors engineer (required
+    // verification always applies). Skill-lens, visual-capture and critic-lens
+    // mandates are intentionally absent: optional lenses are observed as
+    // loaded skills/reads, never as failure gaps.
+    if ((role === 'lead' || role === 'engineer') && s.edits > 0) {
       if (s.verificationRuns === 0) {
-        gaps.push('engineer-no-observed-verification-candidate');
+        gaps.push(`${role}-no-observed-verification-candidate`);
       } else if (s.postEditVerificationRuns === 0) {
-        gaps.push('engineer-no-post-edit-verification-candidate');
+        gaps.push(`${role}-no-post-edit-verification-candidate`);
       }
     }
     if (role === 'critic' && s.turns > 0) {
       if (s.reads === 0) gaps.push('critic-reviewed-without-evidence-read');
-      if (s.skillsLoaded.length === 0) gaps.push('critic-reviewed-without-skill-lens');
     }
   }
 

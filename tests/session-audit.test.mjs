@@ -45,7 +45,7 @@ describe('session-audit behavioral and temporal verification', () => {
     assert.equal(res.roles.design.detectorRuns, 1);
   });
 
-  it('flags out-of-order authority reads, non-design skill only, and pre-edit-only visual reads', () => {
+  it('flags out-of-order authority reads only; optional skill/visual lenses are observed, never gaps', () => {
     const msgs = [
       assistantMsg('design', [
         // Read image BEFORE edit, never after
@@ -59,8 +59,33 @@ describe('session-audit behavioral and temporal verification', () => {
     ];
     const res = auditMessages(msgs, { sessionId: 'ses_order_gaps' });
     assert.ok(res.gaps.includes('design-edited-before-authority-read'));
-    assert.ok(res.gaps.includes('design-edited-without-ux-or-craft-skill'));
-    assert.ok(res.gaps.includes('design-no-post-edit-visual-read'));
+    // Normative optional-skill gap inference is retired: the loads/reads
+    // above stay observable but never become failure gaps.
+    assert.ok(!res.gaps.includes('design-edited-without-ux-or-craft-skill'));
+    assert.ok(!res.gaps.includes('design-edited-without-visual-capture-read'));
+    assert.ok(!res.gaps.includes('design-no-post-edit-visual-read'));
+    assert.deepEqual(res.roles.design.skillsLoaded, ['playwright-cli']);
+    assert.deepEqual(res.roles.design.visualReads, ['opencode/before.png']);
+  });
+
+  it('holds the lead owner to authority grounding and verification candidates', () => {
+    const bad = auditMessages([
+      assistantMsg('lead', [
+        toolPart('subagent', { agent: 'general', prompt: 'do work' }),
+        toolPart('edit', { path: '/proj/src/api.ts' }),
+      ]),
+    ], { sessionId: 'ses_lead_gaps' });
+    assert.ok(bad.gaps.includes('lead-acted-without-authority-read'));
+    assert.ok(bad.gaps.includes('lead-no-observed-verification-candidate'));
+    const good = auditMessages([
+      assistantMsg('lead', [
+        toolPart('read', { path: '/proj/AGENTS.md' }),
+        toolPart('subagent', { agent: 'general', prompt: 'do work' }),
+        toolPart('edit', { path: '/proj/src/api.ts' }),
+        toolPart('shell', { command: 'node --test tests/api.test.mjs' }),
+      ]),
+    ], { sessionId: 'ses_lead_good' });
+    assert.deepEqual(good.gaps, []);
   });
 
   it('ignores failed (status:error) tool calls and non-test shell commands', () => {
@@ -91,7 +116,9 @@ describe('session-audit behavioral and temporal verification', () => {
     assert.ok(res.gaps.includes('build-acted-without-authority-read'));
     assert.ok(res.gaps.includes('plan-advised-without-authority-read'));
     assert.ok(res.gaps.includes('critic-reviewed-without-evidence-read'));
-    assert.ok(res.gaps.includes('critic-reviewed-without-skill-lens'));
+    // Critic skill-lens mandate is retired: a lens-less review with reads
+    // is observed as-is, never a skill gap.
+    assert.ok(!res.gaps.includes('critic-reviewed-without-skill-lens'));
   });
 
   it('requires verification run AFTER the latest engineer edit', () => {

@@ -9,6 +9,7 @@
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   lastTurn,
@@ -253,5 +254,45 @@ describe("frozen scenario sanity", () => {
     assert.ok(p.some((r) => r.action === "edit" && r.effect === "allow"));
     assert.ok(p.some((r) => r.action === "shell" && r.resource === "python3 check.py" && r.effect === "allow"));
     assert.ok(!p.some((r) => r.effect === "ask"));
+  });
+});
+
+describe("production config omits context overrides (source only)", () => {
+  // Same comment-stripping idiom as tests/agent-routing-native.mjs: prose in
+  // comments (e.g. a note saying DCP is not used) must not fail these guards;
+  // only actual configuration declarations are inspected.
+  const stripped = () => readFileSync(new URL("../global/opencode.jsonc", import.meta.url), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|\n)[ \t]*\/\/[^\n]*/g, "$1");
+  // Every plugin declaration in either V2 shape: bare string entries
+  // ("plugins": ["@scope/name"]) or object entries ({"package": "@scope/name"}).
+  const pluginRefs = (node) => {
+    const out = [];
+    const visit = (n) => {
+      if (Array.isArray(n)) { n.forEach(visit); return; }
+      if (n && typeof n === "object") {
+        for (const [key, value] of Object.entries(n)) {
+          if (key === "plugins" && Array.isArray(value)) {
+            for (const entry of value) {
+              if (typeof entry === "string") out.push(entry);
+              else if (entry && typeof entry === "object" && typeof entry.package === "string") out.push(entry.package);
+            }
+          } else visit(value);
+        }
+      }
+    };
+    visit(node);
+    return out;
+  };
+  const DCP_RE = /dcp|dynamic[-_ ]?context[-_ ]?pruning/i;
+  it("carries no top-level compaction or tool_output object", () => {
+    const src = stripped();
+    assert.doesNotMatch(src, /"compaction"\s*:/);
+    assert.doesNotMatch(src, /"tool_output"\s*:/);
+  });
+  it("loads no DCP plugin in any V2 plugin entry form", () => {
+    const cfg = JSON.parse(stripped());
+    const refs = pluginRefs(cfg);
+    assert.ok(refs.every((r) => !DCP_RE.test(r)), `unexpected DCP plugin ref in ${JSON.stringify(refs)}`);
   });
 });

@@ -10,5 +10,9 @@ export function isDelegationCeilingError(message, { depth, toolAdvertised }) {
   }
   // A removed-tool rejection must name the subagent tool explicitly. Session,
   // service, permission and transport failures are not evidence of this guard.
+  // The `No tool named ... is currently available.` head below is Native-observed
+  // (isolated fixture, 2026-10-26: a depth-3 leaf forced subagent attempt); the
+  // explicit tool-identity requirement is unchanged.
+  if (/^No tool named ["']?subagent["']? is currently available\./i.test(message)) return true;
   return /^(?:Unknown tool: ["']?subagent["']?|(?:Tool ["']?subagent["']?) (?:not found|is not available)|No such tool: ["']?subagent["']?)\.?$/i.test(message);
 }

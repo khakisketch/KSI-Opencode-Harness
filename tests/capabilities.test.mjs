@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
-import { writeSync, promises as tfsp } from 'node:fs';
+import { writeSync, readFileSync, promises as tfsp } from 'node:fs';
 import {
   TRACKED_AGENTS,
   TRACKED_SKILLS,
@@ -34,8 +34,8 @@ const realSkills = [
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
 describe('tracked role inventory', () => {
-  it('tracks 8 roles in exact order build,plan,general,explore,engineer,design,research,critic', () => {
-    assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'general', 'explore', 'engineer', 'design', 'research', 'critic']);
+  it('tracks 5 operating roles in exact order build,plan,lead,general,explore', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'lead', 'general', 'explore']);
   });
   it('tracks all 17 harness-wired skills (core, external gap 6, trial 2, opencode)', () => {
     assert.deepEqual(TRACKED_SKILLS, [
@@ -47,49 +47,55 @@ describe('tracked role inventory', () => {
       'diagnosing-bugs', 'ux-copy',
     ]);
   });
-  it('exposes research registration; unregistered research is false absence, not unknown', () => {
-    const withResearch = projectAgents([
+  it('exposes lead registration; unregistered lead is false absence, not unknown', () => {
+    const withLead = projectAgents([
       { id: 'build', name: 'Build', mode: 'primary' },
-      { id: 'research', name: 'Research', mode: 'subagent', extra: SECRET },
+      { id: 'lead', name: 'Lead', mode: 'subagent', extra: SECRET },
     ]);
-    assert.equal(withResearch.find((a) => a.name === 'research').registered, true);
-    assert.equal(withResearch.find((a) => a.name === 'research').mode, 'subagent');
-    assert.equal(withResearch.find((a) => a.name === 'engineer').registered, false);
-    assert.ok(!JSON.stringify(withResearch).includes(SECRET));
-    const withoutResearch = projectAgents([]);
-    assert.equal(withoutResearch.find((a) => a.name === 'research').registered, false);
-    assert.equal(withoutResearch.find((a) => a.name === 'research').mode, 'unknown');
-    assert.ok(!JSON.stringify(withoutResearch).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
+    assert.equal(withLead.find((a) => a.name === 'lead').registered, true);
+    assert.equal(withLead.find((a) => a.name === 'lead').mode, 'subagent');
+    assert.equal(withLead.find((a) => a.name === 'general').registered, false);
+    assert.ok(!JSON.stringify(withLead).includes(SECRET));
+    const withoutLead = projectAgents([]);
+    assert.equal(withoutLead.find((a) => a.name === 'lead').registered, false);
+    assert.equal(withoutLead.find((a) => a.name === 'lead').mode, 'unknown');
+    assert.ok(!JSON.stringify(withoutLead).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
-  it('exposes design/engineer/critic registration; unregistered roles are false absence, not unknown', () => {
+  it('exposes plan/general/explore registration; unregistered roles are false absence, not unknown', () => {
     const withNew = projectAgents([
       { id: 'build', name: 'Build', mode: 'primary' },
-      { id: 'design', name: 'Design', mode: 'all', apiKey: SECRET },
-      { id: 'engineer', name: 'Engineer', mode: 'subagent' },
-      { id: 'critic', name: 'Critic', mode: 'subagent', headers: { auth: SECRET } },
+      { id: 'plan', name: 'Plan', mode: 'all', apiKey: SECRET },
+      { id: 'general', name: 'General', mode: 'subagent' },
+      { id: 'explore', name: 'Explore', mode: 'subagent', headers: { auth: SECRET } },
     ]);
-    assert.equal(withNew.find((a) => a.name === 'design').registered, true);
-    assert.equal(withNew.find((a) => a.name === 'design').mode, 'all');
-    assert.equal(withNew.find((a) => a.name === 'engineer').registered, true);
-    assert.equal(withNew.find((a) => a.name === 'engineer').mode, 'subagent');
-    assert.equal(withNew.find((a) => a.name === 'critic').registered, true);
-    assert.equal(withNew.find((a) => a.name === 'critic').mode, 'subagent');
-    assert.equal(withNew.find((a) => a.name === 'research').registered, false);
+    assert.equal(withNew.find((a) => a.name === 'plan').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'plan').mode, 'all');
+    assert.equal(withNew.find((a) => a.name === 'general').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'general').mode, 'subagent');
+    assert.equal(withNew.find((a) => a.name === 'explore').registered, true);
+    assert.equal(withNew.find((a) => a.name === 'explore').mode, 'subagent');
+    assert.equal(withNew.find((a) => a.name === 'lead').registered, false);
     assert.ok(!JSON.stringify(withNew).includes(SECRET));
     const withoutNew = projectAgents([]);
-    for (const n of ['design', 'engineer', 'critic']) {
+    for (const n of ['plan', 'general', 'explore']) {
       assert.equal(withoutNew.find((a) => a.name === n).registered, false);
       assert.equal(withoutNew.find((a) => a.name === n).mode, 'unknown');
     }
     assert.ok(!JSON.stringify(withoutNew).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
-  it('retired/archived native ids are not tracked and never project as registered', () => {
-    // architect.md is retained untouched as an archived non-operational file
-    // (Main owns archive placement); the id must never be tracked or projected.
-    for (const retired of ['architect', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
+  it('retired/superseded native ids are not tracked and never project as registered', () => {
+    // engineer/design/research/critic sources are retained byte-identical but
+    // Native-disabled out of default operations (Main owns suppression proof);
+    // architect.md stays an archived non-operational file. None of these ids
+    // may be tracked or projected as registered operating roles.
+    for (const retired of ['engineer', 'design', 'research', 'critic', 'architect', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
       assert.ok(!TRACKED_AGENTS.includes(retired), `${retired} must not be tracked`);
     }
     const mocked = projectAgents([
+      { id: 'engineer', name: 'Engineer', mode: 'subagent' },
+      { id: 'design', name: 'Design', mode: 'all' },
+      { id: 'research', name: 'Research', mode: 'subagent' },
+      { id: 'critic', name: 'Critic', mode: 'subagent' },
       { id: 'architect', name: 'Architect', mode: 'subagent' },
       { id: 'ux-scout', name: 'UX Scout', mode: 'subagent' },
       { id: 'ui-ux-critic', name: 'UI UX Critic', mode: 'subagent' },
@@ -98,15 +104,15 @@ describe('tracked role inventory', () => {
       { id: 'design-specialist', name: 'Design Specialist', mode: 'all' },
     ]);
     assert.ok(mocked.every((a) => a.registered === false));
-    assert.ok(!mocked.some((a) => ['architect', 'ux-scout', 'ui-ux-critic', 'design-architect', 'product-reviewer', 'design-specialist'].includes(a.name)));
+    assert.ok(!mocked.some((a) => ['engineer', 'design', 'research', 'critic', 'architect', 'ux-scout', 'ui-ux-critic', 'design-architect', 'product-reviewer', 'design-specialist'].includes(a.name)));
   });
-  it('tracks 8 roles in projections and mocks without secret exposure', () => {
-    assert.equal(projectAgents([]).length, 8);
-    assert.equal(projectAgents([]).find((a) => a.name === 'critic').registered, false);
+  it('tracks 5 roles in projections and mocks without secret exposure', () => {
+    assert.equal(projectAgents([]).length, 5);
+    assert.equal(projectAgents([]).find((a) => a.name === 'lead').registered, false);
     const mocked = projectAgents([
-      { id: 'critic', name: 'Critic', mode: 'subagent', headers: { auth: SECRET } },
+      { id: 'lead', name: 'Lead', mode: 'subagent', headers: { auth: SECRET } },
     ]);
-    assert.equal(mocked.find((a) => a.name === 'critic').registered, true);
+    assert.equal(mocked.find((a) => a.name === 'lead').registered, true);
     assert.ok(!JSON.stringify(mocked).includes(SECRET));
   });
 });
@@ -305,5 +311,42 @@ describe('file transport (injected runner, no CLI/network)', () => {
     assert.equal(report.coreQueriesOk, true);
     assert.equal(report.skills.find((s) => s.name === 'impeccable').registered, true);
     assert.ok(!JSON.stringify(report).includes(SECRET));
+  });
+});
+
+describe('mcp servers canonical V2 source', () => {
+  // Same JSONC comment-stripping idiom as tests/compaction-continuity.test.mjs:
+  // only actual server fields are inspected as parsed objects, never prose
+  // word-bans, and no secret values are read or asserted.
+  const mcpBlock = () => {
+    const stripped = readFileSync(new URL('../global/opencode.jsonc', import.meta.url), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|\n)[ \t]*\/\/[^\n]*/g, '$1');
+    return JSON.parse(stripped).mcp;
+  };
+  it('nests the two approved remote servers under mcp.servers', () => {
+    const mcp = mcpBlock();
+    assert.ok(mcp && typeof mcp === 'object');
+    assert.ok(!('mobbin' in mcp));
+    assert.ok(!('context7' in mcp));
+    const servers = mcp.servers;
+    assert.deepEqual(Object.keys(servers).sort(), ['context7', 'mobbin']);
+    assert.equal(servers.mobbin.type, 'remote');
+    assert.equal(servers.mobbin.url, 'https://api.mobbin.com/mcp');
+    assert.equal(servers.context7.type, 'remote');
+    assert.equal(servers.context7.url, 'https://mcp.context7.com/mcp');
+  });
+  it('keeps auth separation with defaults omitted and no secrets', () => {
+    const servers = mcpBlock().servers;
+    assert.deepEqual(servers.context7.headers, { CONTEXT7_API_KEY: '{env:CONTEXT7_API_KEY}' });
+    assert.equal(servers.context7.oauth, false);
+    assert.ok(!('oauth' in servers.mobbin));
+    assert.ok(!('headers' in servers.mobbin));
+    for (const server of Object.values(servers)) {
+      assert.ok(!('enabled' in server));
+      assert.ok(!('timeout' in server));
+      assert.ok(!('disabled' in server));
+    }
+    assert.ok(!JSON.stringify(servers).match(/sk-[A-Za-z0-9]|Bearer [A-Za-z0-9]/));
   });
 });

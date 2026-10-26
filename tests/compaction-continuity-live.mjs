@@ -11,10 +11,13 @@
  *     /tmp/opencode fixture directory. Model opencode-go/deepseek-v4.1-flash#max,
  *     agent build (fixed). Model calls consume usage; not part of the default suite.
  *   - The only variable between variants is the fixture's project-level
- *     compaction.keep.tokens: `current` mirrors the installed global value
- *     (8192), `native` uses the Native default (15000). `buffer` stays the
- *     global value for both; manual compaction tail selection does not consult
- *     buffer, so this isolates keep.tokens on the manual path.
+ *     compaction.keep.tokens (historical Oct-17 experiment values, frozen
+ *     fixture — NOT the current production configuration, which omits
+ *     compaction entirely and lets OpenCode V2 Native choose defaults):
+ *     `current` mirrors the then-installed global value (8192), `native`
+ *     uses the then-observed Native default (15000). `buffer` stays the
+ *     then-global value for both; manual compaction tail selection does not
+ *     consult buffer, so this isolates keep.tokens on the manual path.
  *   - Scenario (one session): goal + confirmed decisions + unconfirmed
  *     candidate + milestone state → work (create m2.py) → ~11k-token filler log
  *     that pushes the goal turn out of the retained tail → manual compact #1 →
@@ -43,8 +46,8 @@ export const PER_VARIANT_MS = 15 * 60 * 1000;
 export const OVERALL_MS = 32 * 60 * 1000;
 
 export const VARIANTS = {
-  current: { keepTokens: 8192, label: "installed current (keep.tokens 8192)" },
-  native: { keepTokens: 15000, label: "Native default (keep.tokens 15000)" },
+  current: { keepTokens: 8192, label: "historical Oct-17 installed value (keep.tokens 8192, frozen fixture)" },
+  native: { keepTokens: 15000, label: "historical Oct-17 Native default (keep.tokens 15000, frozen fixture)" },
 };
 
 // ---------------------------------------------------------------- fixtures and frozen prompts
@@ -92,7 +95,8 @@ export const PROMPTS = {
 };
 
 // ~11k-token filler: a single user message long enough that the earlier goal
-// turn falls outside an 8192-token retained tail but inside a 15000 one.
+// turn falls outside the historical 8192-token retained tail but inside the
+// historical 15000 one (frozen Oct-17 experiment sizing, not current config).
 export function fillerText() {
   const lines = [];
   for (let i = 0; i < 320; i++) {

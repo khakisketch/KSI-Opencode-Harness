@@ -57,3 +57,62 @@ and overstated historical evidence in scripts/tests/docs. Align the capability
 spec and apply backed-up prompts globally; do not change roles, models,
 permissions, third-party skills, other products, or shared services. Real-product
 design quality and autonomous completion remain unproven; tasks §5 stay open.
+
+## Approved prompt-semantics correction (2026-10-26)
+
+Follow-up to the two role-boundary recommendations, same no-new-machinery
+terms: no new roles, stages/approvals, mandatory Research/Critic loops,
+quotas, scores, checklists/report files, model/permission/skill changes beyond
+the approved prompt sentences, or universal layout prescriptions. Design
+reports the actual requested resolution — task/IA/interaction changes,
+visual-only changes, and what of the original problem remains — without
+inflating cosmetic refinement into structural redesign; Critic compares
+before/after only across a comparable viewport/device, data/identity and
+state, marks unmatched or unverified comparisons (and a missing baseline)
+rather than claiming sameness, separates observation from interpretation from
+proposal, treats research recommendations as hypotheses, and flags
+contract-conflicting recommendations as CONTRACT-CHANGE PROPOSALs rather than
+applicable defect fixes; `ux-copy` loads only when the task actually reviews
+user-facing copy; Research stays evidence-only, distinguishing primary docs,
+observed screens and cross-domain analogy in kind without letting weak
+evidence become strong product-specific conclusions, separating observed
+findings from inferred recommendations so the owner decides; Design owns
+adopt/adapt/reject against the actual user task and protected constraints,
+reading decision-relevant research before settling dependent decisions, while
+retrospective/parallel research remains valid and may reopen a judgment.
+Existing structures may remain where they already solve the problem, with
+neither keeping nor changing required. No proven cost/quality effect
+is claimed; tasks §5 stay open. Out of scope for this change: any
+truncation/transport fix (final-text delivery already works).
+
+## Approved Native context policy (2026-10-26)
+
+The user explicitly requested Native handling for context settings
+('압축 설정이던 뭐던 Opencode V2 네이티브로 해줘 우리 KSI로 설정하지 말고'):
+remove the KSI compaction and `tool_output` context-processing overrides and
+let OpenCode V2 itself choose defaults. No DCP, no forced provider-native
+compaction, no copied default numbers. Role/model/permissions and other
+preferences stay unchanged, as do the latest judgment guards (owned outside
+this change). The 2026-10-17 compaction experiment becomes a frozen
+historical fixture, not the current configuration; tasks §5 stay open and no
+new live benchmark or model run is part of this change.
+
+## Approved Native MCP V2 configuration (2026-10-26)
+
+The user asked for MCP Native V2 cleanup plus Mobbin reconnect after
+disconnect (official Mobbin MCP docs for other clients): the official
+Mobbin endpoint `https://api.mobbin.com/mcp` uses StreamableHTTP+OAuth,
+and the official V2 config shape is canonical `mcp.servers` (OpenCode V2
+MCP-servers docs, already fetched by the parent). Convert only the `mcp`
+block of `global/opencode.jsonc`: nest mobbin and context7 under
+`mcp.servers`, keep both remote URLs, keep the Context7
+`{env:CONTEXT7_API_KEY}` header literal with `oauth: false`, leave Mobbin
+OAuth at its default, and omit legacy `enabled: true` and numeric
+`timeout: 30000` so V2 Native defaults apply (default-enabled; optional
+`disabled: true`). Migration is optional — the legacy shape still works —
+so the old format is not diagnosed as broken. Context7 keeps its working
+legacy-API-key env setup exactly. No new protocol, client registration,
+timeouts or provider-fallback settings. Mobbin OAuth login stays a user
+action in `/mcps`; no shell `mcp auth`, logout, token/cookie/credential
+reset or auto-login. Tasks §5 stay open and no connected claim is made
+from CLI inventory alone.

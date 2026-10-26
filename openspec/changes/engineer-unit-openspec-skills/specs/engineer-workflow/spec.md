@@ -275,3 +275,115 @@ only adopted, evidence-backed selections may enter specs.
 - **WHEN** a model is proposed for a role
 - **THEN** it remains advisory prose until quality-verified, and specs
   reference roles and acceptance evidence, not model IDs.
+
+### Requirement: Prompt role-boundary semantics
+
+Role prompts SHALL report the actual problem resolution without inflating
+cosmetic refinement into structural redesign, and SHALL load `ux-copy` only
+when the task actually reviews user-facing copy. This correction SHALL
+introduce no new roles, stages/approvals, mandatory Research/Critic loops,
+quotas, scores, checklists/report files, or universal layout prescriptions,
+and SHALL make no model/permission/skill changes beyond replacing the
+approved prompt sentences.
+
+#### Scenario: Existing structure already solves the problem
+
+- **WHEN** the actual user task is resolved under protected constraints
+  without changing the existing structure
+- **THEN** keeping that structure counts as success, structural change is not
+  required, and no cost/quality effect is claimed without real-task evidence.
+
+#### Scenario: Design completes and reports a UI unit
+
+- **WHEN** Design completes and reports any assigned UI unit, including a
+  partially resolved one
+- **THEN** it reports the actual requested resolution — task/IA/interaction
+  changes, visual-only changes, and what of the original problem remains —
+  owns adopt/adapt/reject over references and research, reads
+  decision-relevant research before settling dependent decisions, and accepts
+  retrospective or parallel research as valid input that may reopen a judgment;
+  the existing structure may remain where it already solves the task, with
+  neither keeping nor changing it required.
+
+#### Scenario: Critic reviews a change
+
+- **WHEN** Critic reviews an assigned change
+- **THEN** it compares before/after only across a comparable viewport/device,
+  data/identity and state, distinguishes changed from unchanged, and marks
+  unmatched or unverified comparisons rather than claiming sameness (marking
+  a missing baseline as a limit, with no fixed output form); it treats caller
+  claims and supplied research recommendations as hypotheses, not truth,
+  separates observation from interpretation from proposal, respects binding
+  contracts while challenging only revisable choices — flagging a
+  recommendation that conflicts with a binding contract as a CONTRACT-CHANGE
+  PROPOSAL rather than an applicable defect fix — and neither downgrades
+  structural findings into tweaks nor inflates cosmetic refinement
+  into redesign.
+
+#### Scenario: Research hands off evidence
+
+- **WHEN** Research returns findings
+- **THEN** it distinguishes primary docs, observed screens and cross-domain
+  analogy in kind, keeps weak evidence and analogy from becoming strong
+  product-specific design/technical conclusions, separates observed findings
+  from inferred recommendations with their limits explicit so the owner can
+  decide, and makes no final decisions.
+
+### Requirement: Native context policy
+
+Production configuration SHALL omit context-processing overrides so
+OpenCode V2 Native chooses its own defaults: no KSI compaction values, no
+DCP, no forced provider-native compaction, and no custom memory/prune/
+summary prompt or provider compaction hook. Role, model, permission and
+other preference entries SHALL remain as they are under this correction;
+this requirement SHALL NOT be read as a perpetual ban on future unrelated
+user-approved model, role or settings changes.
+
+#### Scenario: Production config carries context overrides
+
+- **WHEN** the production `global/opencode.jsonc` is read
+- **THEN** it contains no top-level `compaction` or `tool_output` object
+  and no DCP or compaction-agent override; no replacement default numbers
+  are pinned anywhere in its place.
+
+#### Scenario: Historical experiment referenced
+
+- **WHEN** the 2026-10-17 compaction continuity experiment is cited
+- **THEN** it is treated as a frozen historical fixture, not the current
+  production configuration; its recorded numbers stay intact as experiment
+  provenance and no new live benchmark or model run is required.
+
+### Requirement: Native MCP server configuration
+
+Production MCP configuration SHALL use the canonical V2 `mcp.servers`
+shape with the two approved remote servers and default activation; legacy
+`enabled` and NUMERIC `timeout` fields SHALL be omitted (purpose-specific
+timeout objects remain valid when separately needed — this migration pins
+none) and secrets SHALL stay as env references. Mobbin OAuth login SHALL
+remain a user action in `/mcps`.
+
+#### Scenario: Production config declares MCP servers
+
+- **WHEN** the production `global/opencode.jsonc` is read
+- **THEN** `mcp.servers` carries `mobbin`
+  (`https://api.mobbin.com/mcp`, no explicit auth fields) and `context7`
+  (`https://mcp.context7.com/mcp`, `CONTEXT7_API_KEY` header
+  `{env:CONTEXT7_API_KEY}` literal, `oauth: false`); neither server pins
+  `enabled` nor a numeric `timeout`, and no `disabled` entry is present
+  for an active server.
+
+#### Scenario: Mobbin unused
+
+- **WHEN** Mobbin is not wanted
+- **THEN** its entry MAY carry V2 `"disabled": true` or be removed; the
+  harness works without it.
+
+#### Scenario: Mobbin wanted but OAuth expired or revoked
+
+- **WHEN** Mobbin is wanted but its OAuth session has expired or been revoked
+- **THEN** the configuration is kept as-is — an expired or revoked session
+  never triggers automatic deactivation or removal — the state is reported
+  as needs-auth, and re-authentication is performed by the user in `/mcps`;
+  recovery is verified by an actual readonly tool call, never by CLI
+  inventory alone. No shell auth command, logout, token/cookie/credential
+  reset or auto-login is part of this change.

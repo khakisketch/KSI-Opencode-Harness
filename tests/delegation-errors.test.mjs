@@ -26,6 +26,14 @@ describe('Native delegation ceiling evidence (pure classification, no runtime)',
       assert.equal(isDelegationCeilingError(message, omitted), true);
     }
   });
+  it('accepts the Native-observed removed-tool head naming subagent explicitly', () => {
+    // Observed in the isolated five-profile fixture (2026-10-26): a depth-3
+    // leaf forced subagent attempt ends in this rejection. Identity stays
+    // explicit; trailing guidance sentences do not weaken the match.
+    assert.equal(isDelegationCeilingError('No tool named "subagent" is currently available. Please use a tool from the available tool list.', omitted), true);
+    assert.equal(isDelegationCeilingError('No tool named "subagent" is currently available.', omitted), true);
+    assert.equal(isDelegationCeilingError('No tool named "shell" is currently available. Please use a tool from the available tool list.', omitted), false);
+  });
   it('never treats session, service, network or permission failures as removal', () => {
     for (const message of ['Session not found', 'Service not available', 'Unknown tool: shell', 'Connection reset', 'Permission denied: subagent', 'subagent not available because service disconnected']) {
       assert.equal(isDelegationCeilingError(message, omitted), false);

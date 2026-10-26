@@ -9,75 +9,58 @@
     "subagent_depth": 3
   },
   "mcp": {
-    // Design owns UI delivery; Research gathers task-specific evidence when useful.
+    // Lead owns assigned whole-task delivery; task-specific evidence gathering happens inside the assigned scope when useful.
     // Mobbin is an optional paid service: this operator enables it, but the harness works without it.
-    "mobbin": {
-      "type": "remote",
-      "url": "https://api.mobbin.com/mcp",
-      "enabled": true,
-      "timeout": 30000
-    },
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+    // V2 Native shape: servers under mcp.servers are default-enabled; set "disabled": true to deactivate.
+    "servers": {
+      "mobbin": {
+        "type": "remote",
+        "url": "https://api.mobbin.com/mcp"
       },
-      "oauth": false,
-      "timeout": 30000
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+        },
+        "oauth": false
+      }
     }
   },
   "agents": {
-    // Native Markdown owns custom-role prompts and permissions; these are user routing preferences.
-    // Architect's original file is preserved under docs/archive/agents/, outside
-    // Native discovery; it is excluded from every default subagent edge.
+    // Five operating profiles: Build (primary), Plan (mode all as a deliberate
+    // consultation exception), Lead (custom whole-task owner), General and
+    // Explore (Native breadth). The superseded specialist operating files were
+    // removed with user approval (contents survive only in private backups);
+    // the archived Architect file stays outside discovery and is installed
+    // nowhere.
     "build": {
-      "description": "Default product execution lead. Grounds in whole-product purpose, user workflows and project authority docs before decomposing work; owns shared contracts, integration, testing, final acceptance and the next approved outcome. Routes multi-file/state/recovery technical units to Engineer (not General), verifies actual file diffs and rendered initial viewports before accepting child work, and carries approved prototypes through to real product wiring.",
+      "description": "Default product execution lead. Grounds in whole-product purpose, user workflows and project authority docs before decomposing work; owns product goal, planning, coherent workstream assignment, dependency and parallel-vs-sequential orchestration, integration, final acceptance and the next approved outcome. Checks Lead outputs rather than managing every General worker; direct implementation or direct General use stays permitted for simple or appropriate work, with no mandatory Lead routing by complexity, file count or domain. Verifies actual file diffs and evidence — plus rendered initial viewports where the outcome has a UI surface — before accepting child work. Model choice does not transfer ownership.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
-        { "action": "subagent", "resource": "engineer", "effect": "allow" },
-        { "action": "subagent", "resource": "design", "effect": "allow" },
+        { "action": "subagent", "resource": "lead", "effect": "allow" },
         { "action": "subagent", "resource": "general", "effect": "allow" },
-        { "action": "subagent", "resource": "explore", "effect": "allow" },
-        { "action": "subagent", "resource": "research", "effect": "allow" },
-        { "action": "subagent", "resource": "critic", "effect": "allow" }
-      ]
-    },
-    "plan": {
-      "description": "Requirements and planning advisor. Understands whole-product purpose, user journey and domain architecture from authority docs, and reconciles ledgers against latest commits, working tree and actual files to exclude already-implemented items first; uses Explore, Research and Critic for analysis without authorizing implementation or calling implementation-capable roles.",
-      "mode": "all",
-      "model": "opencode-go/muse-spark-1.3-contributor#xhigh",
-      "permissions": [
-        { "action": "subagent", "resource": "*", "effect": "deny" },
-        { "action": "subagent", "resource": "research", "effect": "allow" },
-        { "action": "subagent", "resource": "critic", "effect": "allow" },
         { "action": "subagent", "resource": "explore", "effect": "allow" }
       ]
     },
+    "plan": {
+      "description": "Direction advisor by deliberate consultation exception: user-selectable or optional Build/Lead advisory call. Reconciles ledgers against latest commits, working tree and actual files to exclude already-implemented items first; advises on priorities, sequence and alternatives without implementing, authorizing implementation, approving requirements/products, or approving/mandating/vetoing independent verification; never a forced stage, approval gate or review dispatcher. Analysis-only delegation (General/Explore) happens under explicit call-time boundaries, never as an implementation bypass.",
+      "mode": "all",
+      "model": "opencode-go/muse-spark-1.3-contributor#xhigh"
+    },
     "explore": {
-      "description": "Read-only local code locator. Finds exact file paths, line ranges, symbols and call sites and states searched scope; never declares features unimplemented, evaluates whole-project completion, or makes design/architecture judgments.",
+      "description": "Read-centric searcher. Uses Native code and web search with read-only analysis, reporting its searched scope; writes nothing, calls no subagent, owns no acceptance and performs no implementation.",
       "model": "opencode-go/muse-spark-1.3-contributor#medium",
-      "steps": 20,
       "permissions": [
-        { "action": "subagent", "resource": "*", "effect": "deny" },
-        { "action": "skill", "resource": "*", "effect": "deny" }
+        { "action": "subagent", "resource": "*", "effect": "deny" }
       ]
     },
     "general": {
-      "description": "Bounded implementation worker. Executes one already-decided, file-scoped slice, verifies actual file diffs and targeted checks, and returns; if cross-file design, state/auth architecture, or multi-round coordination emerges, stops and returns to Engineer or Design. Model choice does not transfer ownership.",
+      "description": "Broad Native task-execution worker. Owns its assigned task execution inside the given objective and scope — investigating, deciding locally, executing multi-file research/design/implementation/test/repair with UX, research and security skills as needed and no configuration whitelist — self-verifying, completing and returning results normally, and reporting material uncertainty upward. Gains no child/question capabilities and takes on no mandated independent review. Model choice does not transfer ownership.",
       "model": "opencode-go/muse-spark-1.3-contributor#high",
       "permissions": [
-        { "action": "subagent", "resource": "*", "effect": "deny" },
-        { "action": "skill", "resource": "*", "effect": "deny" },
-        { "action": "skill", "resource": "vercel-react-best-practices", "effect": "allow" },
-        { "action": "skill", "resource": "evolving-apis-and-schemas", "effect": "allow" },
-        { "action": "skill", "resource": "building-accessible-interfaces", "effect": "allow" },
-        { "action": "skill", "resource": "playwright-cli", "effect": "allow" },
-        { "action": "skill", "resource": "opencode", "effect": "allow" },
-        { "action": "skill", "resource": "impeccable", "effect": "allow" },
-        { "action": "skill", "resource": "ux-copy", "effect": "allow" },
-        { "action": "skill", "resource": "diagnosing-bugs", "effect": "allow" }
+        { "action": "subagent", "resource": "*", "effect": "deny" }
       ]
     }
   },
@@ -90,15 +73,5 @@
         }
       }
     }
-  },
-  "tool_output": {
-    "max_lines": 600,
-    "max_bytes": 24576
-  },
-  "compaction": {
-    "auto": true,
-    // V2 retains context by token budget; V1 prune/tail-turn controls have no V2 equivalent.
-    "keep": { "tokens": 8192 },
-    "buffer": 4096
   }
 }

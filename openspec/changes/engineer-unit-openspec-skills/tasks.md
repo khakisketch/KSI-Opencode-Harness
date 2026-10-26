@@ -80,3 +80,59 @@
 - [x] 6.3 Run regression/spec/isolated Native checks, obtain scoped independent
   review, apply backed-up global prompts without restarting services/sessions,
   and correct validation provenance while leaving tasks §5 unchecked.
+
+## 7. Prompt-semantics correction (2026-10-26)
+
+- [x] 7.1 Correct `design`/`critic`/`research` prompt bodies (frontmatter
+  byte-identical): conditional `ux-copy`, actual-resolution reporting without
+  magnitude inflation, Critic before/after + observation/interpretation/
+  proposal separation with binding-contract respect, Research evidence classes
+  with weak-evidence limits and no decision authority, Design adopt/adapt/
+  reject with research timing; keep existing structures on solved problems.
+- [x] 7.2 Align proposal/design/delta+main specs and README skill/use wording;
+  add source-contract regression to `tests/prompt-boundaries.test.mjs`
+  (presence-only, no quality judgment) without weakening prior assertions and
+  with tasks §5 still open; run regression + `openspec validate --all`.
+- [x] 7.3 Parent-owned: independent review, backed-up global prompt deploy and
+  evidence recording completed; parent reran regression/spec/isolated Native/
+  installed-routing checks. See `docs/engineer-routing-validation.md`; tasks §5
+  remain open and no real-product quality or cost improvement is claimed.
+
+## 8. Native context policy (2026-10-26)
+
+- [x] 8.1 Remove top-level `compaction` and `tool_output` from
+  `global/opencode.jsonc` (adjacent comma only, all other bytes preserved);
+  record the user approval in proposal/design and the delta+main specs with
+  tasks §5 still open and no default numbers pinned.
+- [x] 8.2 Mark the 2026-10-17 compaction experiment a frozen historical
+  fixture in `docs/validation.md` and state the Native policy in README;
+  clarify live-test variant labels as historical opt-in only and add
+  source-contract omission guards to `tests/compaction-continuity.test.mjs`.
+  No paid run, refactor or deletion.
+- [x] 8.3 Parent-owned: independent review, backed-up top-level JSONC install,
+  runtime config-source omission check and evidence recording completed;
+  regression/spec/isolated Native/installed-routing checks rerun. See
+  `docs/engineer-routing-validation.md`; tasks §5 remain open and no actual
+  long-session quality or cost improvement is claimed.
+
+## 9. Native MCP server configuration (2026-10-26)
+
+- [x] 9.1 Convert `global/opencode.jsonc` MCP block to the canonical V2
+  `mcp.servers` shape (mobbin + context7 remote URLs preserved, Context7
+  `{env:CONTEXT7_API_KEY}` header literal and `oauth: false` preserved,
+  Mobbin OAuth left at default, legacy `enabled: true` and numeric
+  `timeout: 30000` omitted so Native defaults apply); update
+  `docs/installation.md` stale `enabled: false` instructions to V2
+  `disabled: true` + `mcp.servers` + user `/mcps` OAuth procedure with all
+  unrelated historical records preserved; add parsed-source V2 guards to
+  `tests/capabilities.test.mjs` without weakening existing assertions.
+- [x] 9.2 Run the 7-suite regression, `openspec validate --all` and scoped
+  diff check; no live calls, auth, services or model testing in this slice.
+- [x] 9.3 Parent-owned: backed-up global deploy, runtime V2 config-source
+  check, independent review and installed-routing re-verification completed.
+  User reports `/mcps` sign-in complete (2026-10-26); authenticated Mobbin
+  `list_collections` and Context7 lookup actually succeeded. Mobbin search
+  returned HTTP 429 `rate_limited`, so search readiness remains unresolved;
+  no repeated search retries or rate-limit bypass. Regression/spec/isolated
+  Native/installed-routing checks rerun; see `docs/engineer-routing-validation.md`.
+  Tasks §5 remain open; no connected claim is made from CLI inventory alone.

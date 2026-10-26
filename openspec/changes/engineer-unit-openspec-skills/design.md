@@ -87,3 +87,47 @@
 - Trade-off: single capability is coarser than per-skill specs, but matches
   the staged-not-adopted state; per-skill requirements belong to the future
   adoption change, not this one.
+
+## Approved prompt-semantics correction (2026-10-26)
+
+- Same no-new-machinery terms as the 2026-10-25 correction: replace and
+  consolidate existing prompt sentences in `design.md`/`critic.md`/`research.md`
+  bodies only (frontmatter byte-identical), conditionalize `ux-copy` on actual
+  copy review, and keep original-task/managed-focus/media-identity/simulation
+  guards intact. No new roles, stages, loops, quotas, scores, checklists,
+  report files, model/permission/skill changes, or universal layout rules.
+- Research keeps no final-decision authority; out of scope is any
+  truncation/transport fix (final-text delivery already works). Design (when
+  primary) owns UI-scope completion, never product-wide sign-off; Critic
+  stays terminal with no subagents.
+
+## Approved Native context policy (2026-10-26)
+
+- Production `global/opencode.jsonc` omits top-level `compaction` and
+  `tool_output` so OpenCode V2 Native chooses its own defaults; no KSI
+  values, no DCP, no forced provider-native compaction, no replacement
+  default numbers. All other bytes (roles, models, permissions, provider
+  body, MCP, share/update/depth) are preserved.
+- The 2026-10-17 compaction experiment is a frozen historical fixture:
+  its recorded numbers stay intact as experiment provenance and are not
+  the current production configuration. Live-test variants remain manual
+  opt-in only with labels clarified as historical; no paid run, refactor
+  or deletion. Tasks §5 stay open.
+
+## Approved Native MCP V2 configuration (2026-10-26)
+
+- Production `global/opencode.jsonc` carries the MCP block only as
+  `mcp.servers` with two remote servers: `mobbin`
+  (`https://api.mobbin.com/mcp`, OAuth default, no explicit auth fields)
+  and `context7` (`https://mcp.context7.com/mcp`, `CONTEXT7_API_KEY`
+  header `{env:CONTEXT7_API_KEY}` literal, `oauth: false`). No
+  `enabled: true`, no numeric `timeout`, no per-purpose timeout object:
+  default activation applies and deactivation is `"disabled": true`.
+- `docs/installation.md` teaches the V2 shape (`mcp.servers`,
+  `disabled: true`, user `/mcps` OAuth); unrelated historical records are
+  preserved byte-for-byte.
+- `tests/capabilities.test.mjs` guards the parsed V2 source objects
+  (two server URLs, auth separation, default fields omitted) with the
+  repo's JSONC comment-strip idiom; no secrets, no weakened guards.
+- Parent-owned and out of this slice: global deploy, `/mcps` user-login
+  evidence, installed-routing checks. Tasks §5 stay open.
