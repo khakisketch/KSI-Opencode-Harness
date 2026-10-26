@@ -53,7 +53,8 @@ Sol High Build는 실제 로컬 앱에서 다음을 스스로 찾아 고쳤습�
 - **실제 확인:** OpenCode MCP 연결과 세션 수집, Codex MCP 조회가 `Pilot memory decision`을 반환, OpenCode·Codex가 남긴 핸드오프 확인. 마커 없는 저장소에서는 세션 수가 늘지 않아 allowlist가 동작했습니다.
 - **Claude Code:** MCP 등록은 확인했지만 이 환경의 OAuth 세션이 만료되어 실제 모델 호출은 재로그인 전까지 미검증입니다.
 - **Codex:** hook 신뢰를 아직 영구 승인하지 않았습니다. 시험에서는 `--dangerously-bypass-hook-trust`로 수집을 확인했으며, 실제 사용 전 Codex `/hooks`에서 검토·승인이 필요합니다.
-- **레거시 hook 정리:** `bin/ksi-continuity-inject.mjs`가 없는 오래된 KSI hook이 Claude Code·Codex 설정에 남아 `SessionStart Failed`를 만들고 있었습니다. 백업 후 해당 항목만 제거했고, ai-memory hook은 정상 완료했습니다.
+- **레거시 hook 정리:** `bin/ksi-continuity-inject.mjs`가 없는 오래된 KSI hook이 Claude Code·Codex 설정에 남아 `SessionStart Failed`를 만들고 있었습니다. 백업 후 해당 항목만 제거했고, ai-memory hook은 정상 완료했습니다. Codex 전역 `impeccable` hook도 백업 후 제거했고, Mobbin MCP는 `disabled`로 전환했습니다. 백업: `/tmp/opencode/ksi-stale-hook-cleanup-20261027-011918`, `/tmp/opencode/ksi-cleanup-20261027-012721`, `/tmp/opencode/opencode.jsonc.before-mobbin-20261027-012750`.
+- **첫 실제 프로젝트:** `KSI-Site-Intelligence-Platform`에 `.ai-memory.toml`을 추가했습니다(`ksi-site` / `site-intelligence-platform`). 짧은 OpenCode 세션 1건이 이 프로젝트로 수집되는 것도 확인했습니다. 파일은 아직 untracked이며 프로젝트의 다른 변경과 함께 커밋 여부를 결정해야 합니다. `.playwright-cli` 로그는 저장소 밖으로 이동했습니다.
 - **한계:** 합성 파일럿 저장소 한 곳, 짧은 세션, 장기 운용·대규모 병렬·실제 프로젝트 적용 전입니다. 기억은 지시가 아니라 과거 데이터이며, 현재 코드·정본·사용자 지시가 우선입니다.
 
 상세 설치·운용·보안·해제는 [ai-memory 안내](ai-memory.md)를 참고하세요.

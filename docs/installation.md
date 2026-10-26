@@ -12,7 +12,7 @@
 | `global/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | 5개 역할, 깊이 3, 모델·권한, MCP 설정 |
 | `global/agents/lead.md` | `~/.config/opencode/agents/lead.md` | 배정 과업 완결 책임자 프롬프트 |
 
-`global/opencode.jsonc`의 Context7·Mobbin MCP는 선택 기능입니다. API 키·OAuth 토큰·유료 구독은 사용자별이며 저장소에 포함되지 않습니다. Mobbin 없이도 하네스는 동작합니다.
+`global/opencode.jsonc`의 Context7·Mobbin MCP는 선택 기능입니다. API 키·OAuth 토큰·유료 구독은 사용자별이며 저장소에 포함되지 않습니다. Mobbin은 기본 `disabled: true`이며 필요할 때만 활성화합니다. Mobbin 없이도 하네스는 동작합니다.
 
 ## 설치 전에
 

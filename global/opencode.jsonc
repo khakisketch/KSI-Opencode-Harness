@@ -12,8 +12,10 @@
     // V2 Native shape: servers under mcp.servers are default-enabled; set "disabled": true to deactivate.
     "servers": {
       "mobbin": {
+        // Optional paid service; disabled by default. Re-enable when used.
         "type": "remote",
-        "url": "https://api.mobbin.com/mcp"
+        "url": "https://api.mobbin.com/mcp",
+        "disabled": true
       },
       "context7": {
         "type": "remote",

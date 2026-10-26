@@ -342,10 +342,12 @@ describe('mcp servers canonical V2 source', () => {
     assert.equal(servers.context7.oauth, false);
     assert.ok(!('oauth' in servers.mobbin));
     assert.ok(!('headers' in servers.mobbin));
+    // Mobbin is optional and intentionally off by default; Context7 stays on.
+    assert.equal(servers.mobbin.disabled, true);
+    assert.ok(!('disabled' in servers.context7));
     for (const server of Object.values(servers)) {
       assert.ok(!('enabled' in server));
       assert.ok(!('timeout' in server));
-      assert.ok(!('disabled' in server));
     }
     assert.ok(!JSON.stringify(servers).match(/sk-[A-Za-z0-9]|Bearer [A-Za-z0-9]/));
   });
