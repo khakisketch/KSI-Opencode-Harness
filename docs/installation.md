@@ -1,6 +1,6 @@
 # 설치 안내
 
-> **상태 (2026-10-26):** 전역 5개 역할과 공통 지침을 적용·검증했습니다. 활성 파일 3개가 정본과 일치하고 설치본 검사 **146/146**이 통과했습니다. 모델·모드·권한·깊이는 유지하며 새 역할·필수 단계는 없습니다. [검증 근거와 한계](validation.md)
+> **상태 (2026-10-27):** 전역 5개 역할과 공통 지침을 적용·검증했고 설치본 검사 **146/146**이 통과했습니다. 기본 하네스 파일은 정본과 일치합니다. ai-memory를 선택적으로 연결하면 `opencode.jsonc`에 `mcp.servers.ai-memory` 항목이 추가되어 정본과 바이트가 달라질 수 있으므로, 역할·권한은 설치본 검사로 확인합니다. [검증 근거와 한계](validation.md)
 
 이 저장소는 전역 OpenCode 환경에 자동 설치되지 않습니다. clone/pull 후 아래 순서로 **기존 설정을 보존하면서** 적용하세요. 다른 컴퓨터·다른 프로젝트에는 별도 적용이 필요합니다.
 
@@ -57,16 +57,19 @@ README와 global/ 정본을 기준으로 내 OpenCode 전역 환경에 하네스
    진행 세션이 없을 때만 기존 파일을 백업 후 제거해줘.
 3. 기존 세션의 모델·권한은 강제로 바꾸지 말고, 서비스·다른 프로젝트·운영 환경은
    재시작하거나 변경하지 마.
-4. 아래 검증 명령을 실행하고, 정본/설치본 일치·실패·미확인을 구분해 보고해줘.
+4. 아래 검증 명령을 실행하고, 기본 정본/설치본 일치(ai-memory 선택 항목 제외)·실패·미확인을 구분해 보고해줘.
 ```
 
 ## 확인
 
 ```sh
-# 정본과 설치본 바이트 일치
-for f in AGENTS.md opencode.jsonc agents/lead.md; do
+# 공통 지침·Lead는 정본과 바이트 일치
+for f in AGENTS.md agents/lead.md; do
   cmp "global/$f" "$HOME/.config/opencode/$f" && echo "OK $f"
 done
+
+# opencode.jsonc는 ai-memory 연결 시 선택 항목이 추가될 수 있습니다.
+# 기본 정본과 비교하려면 ai-memory 항목을 제외하거나 아래 설치본 검사를 사용하세요.
 
 # 설치본 5개 역할 등록·모델·권한·본문 검사 (모델 호출 없음)
 node tests/agent-routing-native.mjs
@@ -89,6 +92,23 @@ cp -a "$BACKUP/agents/lead.md" "$HOME/.config/opencode/agents/lead.md"
 ```
 
 기존 세션의 모델·권한은 설치 전 값으로 자동 복원되지 않습니다. 필요한 경우 세션별 설정을 별도로 확인하세요.
+
+## 선택: ai-memory 전역 기억
+
+에이전트 간 장기 기억이 필요하면 ai-memory를 별도 계층으로 연결할 수 있습니다. 하네스의 역할·제품 정본을 대체하지 않습니다.
+
+```sh
+node scripts/install-ai-memory.mjs
+node scripts/install-ai-memory.mjs --verify
+```
+
+- OpenCode·Claude Code·Codex에 MCP와 lifecycle hook을 연결합니다.
+- 포트 `49375`, 데이터 `~/.local/share/ai-memory`, systemd 사용자 서비스를 사용합니다.
+- **allowlist:** `.ai-memory.toml`이 있는 저장소만 수집합니다.
+- cloud LLM·임베딩·프로젝트 간 profile·자동 압축은 끕니다.
+- Codex는 새 hook을 한 번 신뢰해야 합니다. Claude Code는 MCP 사용 전 로그인이 필요할 수 있습니다.
+
+프로젝트 마커, 보안 한계, 해제 방법은 [ai-memory 안내](ai-memory.md)를 참고하세요.
 
 ## 더 보기
 

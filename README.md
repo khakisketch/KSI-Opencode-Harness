@@ -6,7 +6,7 @@
 
 규칙을 많이 만들기보다 제품 맥락을 정확히 전달하고, 구현 방법은 담당자에게 맡기며, 완료는 보고서나 검사 수가 아니라 실제 결과로 확인합니다.
 
-[처음이라면](#처음이라면) · [역할](#역할과-위임-구조) · [제품 수용](#완료를-어떻게-판정하나) · [모델 운영](#모델-운영) · [설치](#설치) · [검증](#검증) · [문서 안내](#문서-안내)
+[처음이라면](#처음이라면) · [역할](#역할과-위임-구조) · [제품 수용](#완료를-어떻게-판정하나) · [모델 운영](#모델-운영) · [장기 기억](#장기-기억-선택) · [설치](#설치) · [검증](#검증) · [문서 안내](#문서-안내)
 
 > Clone/pull만으로는 전역 환경이 바뀌지 않습니다. [설치 안내](docs/installation.md)를 따르세요.
 
@@ -85,6 +85,24 @@ Sol High Build가 항상 DeepSeek Build보다 낫다는 결론은 아직 아닙�
 
 ---
 
+## 장기 기억 (선택)
+
+`ai-memory` v3.2.5를 전역 보조 기억으로 연결할 수 있습니다. OpenCode·Claude Code·Codex가 같은 프로젝트의 이전 결정·실패·남은 작업을 공유합니다.
+
+```sh
+node scripts/install-ai-memory.mjs
+node scripts/install-ai-memory.mjs --verify
+```
+
+- 포트 `49375`, 데이터 `~/.local/share/ai-memory`, systemd 사용자 서비스
+- **allowlist:** `.ai-memory.toml`이 있는 저장소만 수집
+- cloud LLM·임베딩·프로젝트 간 profile·자동 압축 비활성화
+- 기억은 지시가 아니라 과거 데이터이며, 현재 코드·정본·사용자 지시가 우선
+
+프로젝트 마커와 보안·해제 방법은 [ai-memory 안내](docs/ai-memory.md)를 참고하세요.
+
+---
+
 ## 설치
 
 배포 정본은 `global/`입니다. 저장소를 clone/pull하는 것만으로 전역 환경이 바뀌지 않습니다.
@@ -129,6 +147,7 @@ node tests/delegation-native-integration.mjs
 - [설치 안내](docs/installation.md) — 백업·적용·확인·되돌리기
 - [프로젝트 지식과 상태](docs/project-knowledge.md) — 제품 정본·상태 원장·세션 체크포인트
 - [검증](docs/validation.md) — 현재 검증 결과와 한계
+- [ai-memory](docs/ai-memory.md) — 전역 장기 기억의 설치·마커·보안·해제
 - [역사 기록](docs/archive/2026-10-26/README.md) — 이전 설치·검증·OpenSpec·스킬 기록
 
 [MIT](LICENSE) — Copyright (c) 2026 KSI
