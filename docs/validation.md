@@ -50,9 +50,10 @@ Sol High Build는 실제 로컬 앱에서 다음을 스스로 찾아 고쳤습�
 
 - **설정:** loopback + bearer auth, systemd 사용자 서비스, **allowlist** 수집, cloud LLM·임베딩·프로젝트 간 profile·자동 압축 비활성화. `scripts/install-ai-memory.mjs`는 재실행해도 설정을 중복 생성하지 않았고, `--verify`와 `--marker` 경로를 확인했습니다.
 - **연결:** OpenCode V2·Claude Code·Codex에 MCP, 세 에이전트에 lifecycle hook. 설치본 `opencode.jsonc`에는 선택적 `mcp.servers.ai-memory` 항목이 추가되어 소스 정본과 바이트가 다르며, 역할·권한은 설치본 **146/146**으로 확인했습니다.
-- **실제 확인:** OpenCode MCP 연결과 세션 수집(세션 3·관찰 12·페이지 4), Codex MCP 조회가 `Pilot memory decision`을 반환, OpenCode·Codex가 남긴 핸드오프 2건 확인. 마커 없는 저장소에서는 세션 수가 3→3으로 늘지 않아 allowlist가 동작했습니다.
+- **실제 확인:** OpenCode MCP 연결과 세션 수집, Codex MCP 조회가 `Pilot memory decision`을 반환, OpenCode·Codex가 남긴 핸드오프 확인. 마커 없는 저장소에서는 세션 수가 늘지 않아 allowlist가 동작했습니다.
 - **Claude Code:** MCP 등록은 확인했지만 이 환경의 OAuth 세션이 만료되어 실제 모델 호출은 재로그인 전까지 미검증입니다.
 - **Codex:** hook 신뢰를 아직 영구 승인하지 않았습니다. 시험에서는 `--dangerously-bypass-hook-trust`로 수집을 확인했으며, 실제 사용 전 Codex `/hooks`에서 검토·승인이 필요합니다.
+- **레거시 hook 정리:** `bin/ksi-continuity-inject.mjs`가 없는 오래된 KSI hook이 Claude Code·Codex 설정에 남아 `SessionStart Failed`를 만들고 있었습니다. 백업 후 해당 항목만 제거했고, ai-memory hook은 정상 완료했습니다.
 - **한계:** 합성 파일럿 저장소 한 곳, 짧은 세션, 장기 운용·대규모 병렬·실제 프로젝트 적용 전입니다. 기억은 지시가 아니라 과거 데이터이며, 현재 코드·정본·사용자 지시가 우선입니다.
 
 상세 설치·운용·보안·해제는 [ai-memory 안내](ai-memory.md)를 참고하세요.
