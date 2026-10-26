@@ -17,6 +17,8 @@
 
 OpenCode는 기본 포트 `49374`를 이미 사용하므로 ai-memory는 **49375**를 씁니다.
 
+하네스의 기본 `global/opencode.jsonc`에는 ai-memory 항목이 없습니다. 하네스 설정을 다시 적용한 뒤에는 `node scripts/install-ai-memory.mjs`를 다시 실행해 선택 항목을 복원하세요. 스크립트는 중복 없이 병합합니다.
+
 ## 설치·확인
 
 하네스 저장소에서 실행합니다.

@@ -99,7 +99,7 @@ node scripts/install-ai-memory.mjs --verify
 - cloud LLM·임베딩·프로젝트 간 profile·자동 압축 비활성화
 - 기억은 지시가 아니라 과거 데이터이며, 현재 코드·정본·사용자 지시가 우선
 
-프로젝트 마커와 보안·해제 방법은 [ai-memory 안내](docs/ai-memory.md)를 참고하세요.
+프로젝트 마커와 보안·해제 방법은 [ai-memory 안내](docs/ai-memory.md)를 참고하세요. 하네스 설정을 다시 적용한 뒤에는 `node scripts/install-ai-memory.mjs`를 다시 실행해 선택 항목을 복원하세요.
 
 ---
 

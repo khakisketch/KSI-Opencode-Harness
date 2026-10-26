@@ -108,7 +108,7 @@ node scripts/install-ai-memory.mjs --verify
 - cloud LLM·임베딩·프로젝트 간 profile·자동 압축은 끕니다.
 - Codex는 새 hook을 한 번 신뢰해야 합니다. Claude Code는 MCP 사용 전 로그인이 필요할 수 있습니다.
 
-프로젝트 마커, 보안 한계, 해제 방법은 [ai-memory 안내](ai-memory.md)를 참고하세요.
+하네스의 `global/opencode.jsonc`를 다시 적용하면 ai-memory 선택 항목이 빠지므로, 이후 `node scripts/install-ai-memory.mjs`를 다시 실행하세요. 프로젝트 마커, 보안 한계, 해제 방법은 [ai-memory 안내](ai-memory.md)를 참고하세요.
 
 ## 더 보기
 
