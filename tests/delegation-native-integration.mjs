@@ -771,7 +771,7 @@ function scriptFor(marker, advertised, ctx = {}) {
 function chunk(id, model, delta, finish) {
   return { id, object: "chat.completion.chunk", created: Math.floor(Date.now() / 1000), model, choices: [{ index: 0, delta, finish_reason: finish }] };
 }
-function startFakeModel(port) {
+function startFakeModel(port, sharedInstructions) {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       const url = new URL(req.url ?? "/", "http://x");
@@ -788,6 +788,13 @@ function startFakeModel(port) {
           try { body = JSON.parse(raw); } catch {}
           const text = userTextOf(body);
           const allUser = userTextsOf(body).join("\n");
+          // Inspect actual model input, not a source-copy echo. The new log
+          // field records presence, not instruction prose; delivery only.
+          const instructionText = (body.messages ?? [])
+            .filter((m) => m.role === "system" || m.role === "user")
+            .flatMap((m) => typeof m.content === "string" ? [m.content]
+              : Array.isArray(m.content) ? m.content.map((p) => p.text ?? "") : [])
+            .join("\n");
           const marker = chainMarker(allUser);
           const tools = toolMsgsOf(body);
           const advertised = Array.isArray(body.tools) ? body.tools.map((t) => t?.function?.name ?? t?.type) : null;
@@ -811,6 +818,7 @@ function startFakeModel(port) {
               // by case L to test real call overlap. No other timing framework.
               t: Date.now(),
               marker, hasTools, advertised: advertised ?? [],
+              sharedInstructionsPresent: normText(instructionText).includes(normText(sharedInstructions)),
               userTail: text.slice(-300), userAll: allUser.slice(-2000),
               toolMsgs: tools.map((t) => t.slice(0, 1500)),
               scriptKind: script.kind,
@@ -1261,7 +1269,7 @@ async function main() {
     process.exit(1);
   }, 15 * 60 * 1000);
   if (typeof watchdog.unref === "function") watchdog.unref();
-  const fake = await startFakeModel(MODEL_PORT);
+  const fake = await startFakeModel(MODEL_PORT, srcAgentsMd);
   const serveLog = path.join(ROOT, "serve.stdout.log");
   const serveOut = fs.openSync(serveLog, "a");
   const serve = spawn(OPENCODE_BIN, ["serve", "--port", String(SERVE_PORT), "--hostname", "127.0.0.1"], { env, cwd: WORKSPACE, stdio: ["ignore", serveOut, serveOut] });
@@ -2316,6 +2324,16 @@ async function main() {
     })());
     check("I chain results returned up (I1B-LEAD-OK -> I2-PLAN-OK -> I3-GENERAL-OK)",
       blobsI.includes("I1B-LEAD-OK") && blobsI.includes("I2-PLAN-OK") && blobsI.includes("I3-GENERAL-OK"));
+
+    const instructionRequests = reqLog();
+    for (const [role, marker] of [
+      ["build", "KSI-DELEG-A0"], ["lead", "KSI-DELEG-A1"],
+      ["plan", "KSI-DELEG-A2"], ["explore", "KSI-DELEG-A3"],
+      ["general", "KSI-DELEG-M1"],
+    ]) {
+      const first = instructionRequests.find((r) => r.marker === marker);
+      check(`full common instructions reach ${role} model input (delivery only)`, first?.sharedInstructionsPresent === true);
+    }
 
     // Final guards across F/G/H/I/J/D/M/T/V/L: still the same bytes.
     // J/D/M/T/V/L own exactly their separate task-local files; the shared scope

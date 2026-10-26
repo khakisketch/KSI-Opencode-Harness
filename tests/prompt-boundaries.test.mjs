@@ -25,6 +25,11 @@ describe('runtime instruction structure (not prose or quality assertions)', () =
       assert.equal(cfg.agents[id].system, undefined, `${id} uses its Native system`);
     }
   });
+
+  it('does not eagerly inject project documents through global instructions', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    assert.deepEqual(cfg.instructions ?? [], []);
+  });
 });
 
 describe('lead instruction structure (source only)', () => {

@@ -120,6 +120,11 @@ for (const [id, model, mode] of [
     });
   }
 }
+{
+  const source = await readFile(path.join(repo, 'global', 'AGENTS.md'), 'utf8');
+  const installed = await readFile(path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'), 'opencode', 'AGENTS.md'), 'utf8');
+  check('common instructions installed match source', () => assert.equal(installed, source));
+}
 // Superseded specialists are REMOVED with user approval (last-approved
 // contents survive only in private backups): the repo source files must be
 // absent, the installed files must be absent after the Main deploy, and the
