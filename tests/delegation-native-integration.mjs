@@ -129,8 +129,8 @@ const FIXTURE_MODEL = "fixture/fixture";
 const UNKNOWN = "no-such-agent-ksi-probe";
 
 // Contract under test (depth 3, root = 0; a max allowance, not a mandatory tree).
-// Five operating profiles: build (primary), plan (all, deliberate consultation
-// exception), lead/general/explore (subagent). The four superseded specialists
+// Five operating profiles: build (primary), plan (all, optional analysis and
+// advice), lead/general/explore (subagent). The four superseded specialists
 // (engineer/design/research/critic) were REMOVED with user approval
 // (last-approved contents survive only in private backups): they appear in NO
 // edge list and in NO catalog; every live caller must deny them (or fail

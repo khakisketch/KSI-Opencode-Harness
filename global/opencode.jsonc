@@ -28,7 +28,7 @@
   "agents": {
     // Native Build/Plan/General/Explore plus the custom Lead profile.
     "build": {
-      "description": "Owns product planning, workstreams, integration and final acceptance; implements directly or delegates.",
+      "description": "Owns the whole approved goal, work allocation, integration and final product quality; implements directly or delegates.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
@@ -38,7 +38,7 @@
       ]
     },
     "plan": {
-      "description": "Advises on direction and priorities within analysis-only scope; neither implements nor approves.",
+      "description": "Analyzes complex problems, product and technical alternatives, and causes; returns evidence-based advice without implementation or approval authority.",
       "mode": "all",
       "model": "openai/gpt-6.1-sol#high"
     },

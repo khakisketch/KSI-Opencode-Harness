@@ -68,8 +68,8 @@ describe('native config edges for five profiles (source only)', () => {
     assert.equal(cfg.agents.plan.model, 'openai/gpt-6.1-sol#high');
     assert.ok(cfg.agents.plan.system === undefined);
     // No custom system or permission allowlist: the Native prompt and Native
-    // permissions apply; only mode `all` (deliberate consultation exception)
-    // and the model preference are configured. Native analysis delegation to
+    // permissions apply; mode `all` permits optional analysis/advice, alongside
+    // the description and model preference. Native analysis delegation to
     // General/Explore and the Native edit deny are proven live in the isolated
     // fixture, never by static allows here.
     assert.ok(cfg.agents.plan.permissions === undefined);
