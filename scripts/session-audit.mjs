@@ -36,6 +36,7 @@ const COVERAGE = {
   verificationBasis: 'command-pattern candidate only: verificationRuns counts candidates, not passed tests; nonzero-exit hints separated; not exit-success proof',
   visualBasis: 'observed image-path reads only; not task-relevance proof',
   orderBasis: 'input-array order only; not timestamp/concurrency proof',
+  skillTimingBasis: 'first completed skill load per role, before or after its first observed completed edit/delegation in this snapshot; not task relevance, decision timing, or compliance proof',
   identityBasis: 'explicit in-payload session id only; basename labels stay anonymous:<file>; exact message-window duplicates grouped',
   qualityScope: 'visible tool traces only; no version/prompt/model quality attribution',
 };
@@ -51,6 +52,7 @@ const UX_IA_SKILLS = new Set([
 const CRAFT_COPY_SKILLS = new Set([
   'impeccable',
   'ux-copy',
+  // Retain classification of this removed skill in historical session traces.
   'emilkowalski-motion',
 ]);
 
@@ -123,6 +125,8 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
         failedTools: {},
         incompleteTools: {},
         skillsLoaded: [],
+        skillsLoadedBeforeAction: [],
+        skillsFirstLoadedAfterAction: [],
         uxSkillsLoaded: [],
         craftSkillsLoaded: [],
         authorityReads: [],
@@ -176,6 +180,9 @@ export function auditMessages(messages, { sessionId = 'unknown' } = {}) {
 
       if (toolName === 'skill') {
         const skillId = typeof inp.id === 'string' ? inp.id : (typeof inp.name === 'string' ? inp.name : '');
+        if (skillId && !stat.skillsLoaded.includes(skillId)) {
+          pushUnique(stat.actedYet ? stat.skillsFirstLoadedAfterAction : stat.skillsLoadedBeforeAction, skillId);
+        }
         pushUnique(stat.skillsLoaded, skillId);
         if (UX_IA_SKILLS.has(skillId)) pushUnique(stat.uxSkillsLoaded, skillId);
         if (CRAFT_COPY_SKILLS.has(skillId)) pushUnique(stat.craftSkillsLoaded, skillId);
@@ -296,6 +303,8 @@ export function summarizeAudits(audits) {
           authorityBeforeActionSessions: 0,
           detectorRuns: 0,
           skillsById: {},
+          skillsBeforeActionById: {},
+          skillsFirstAfterActionById: {},
         };
       }
       const rt = roleTotals[role];
@@ -316,6 +325,12 @@ export function summarizeAudits(audits) {
       if (s.authorityReadBeforeAction) rt.authorityBeforeActionSessions += 1;
       for (const sk of s.skillsLoaded) {
         rt.skillsById[sk] = (rt.skillsById[sk] ?? 0) + 1;
+      }
+      for (const sk of s.skillsLoadedBeforeAction ?? []) {
+        rt.skillsBeforeActionById[sk] = (rt.skillsBeforeActionById[sk] ?? 0) + 1;
+      }
+      for (const sk of s.skillsFirstLoadedAfterAction ?? []) {
+        rt.skillsFirstAfterActionById[sk] = (rt.skillsFirstAfterActionById[sk] ?? 0) + 1;
       }
     }
   }

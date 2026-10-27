@@ -3,7 +3,7 @@
  * Install and wire ai-memory as the optional global long-term memory layer.
  *
  * This is intentionally narrower than `ai-memory setup`: it installs the
- * pinned binary, runs a local-only server, wires MCP + lifecycle hooks for
+ * baseline binary when absent, runs a local-only server, wires MCP + lifecycle hooks for
  * OpenCode, Claude Code and Codex, and leaves skills/profile/cloud features
  * alone. Capture uses allowlist mode: only repositories with an
  * `.ai-memory.toml` marker emit lifecycle events.
@@ -21,8 +21,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, chmod
 import { homedir, platform, arch } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-const VERSION = "3.2.5";
+const VERSION = "3.2.8";
 const HOME = homedir();
 const args = process.argv.slice(2);
 const has = (name) => args.includes(name);
@@ -57,7 +58,9 @@ Options:
   --no-hooks               Wire MCP only; no automatic lifecycle capture.
   --help                   Show this help.
 
-This installs a pinned binary and uses local-only mode: no cloud LLM,
+This bootstraps a baseline binary and preserves newer stable installs.
+Existing older installs must be updated with the official ai-memory upgrade command.
+It uses local-only mode: no cloud LLM,
 no embedding model download, no cross-project profile, no auto-compaction.
 `);
   process.exit(0);
@@ -120,13 +123,30 @@ async function download(url, destination) {
   writeFileSync(destination, Buffer.from(await response.arrayBuffer()));
 }
 
+// Compare the executable's version, not its directory name: the official
+// upgrader replaces the binary in place, including under an older version path.
+export function keepInstalledBinary(output, minimum = VERSION) {
+  const installed = /^ai-memory (\d+\.\d+\.\d+)\s*$/.exec(output.trim());
+  if (!installed || !/^\d+\.\d+\.\d+$/.test(minimum)) {
+    throw new Error("Cannot establish a stable ai-memory version; leaving the existing binary untouched.");
+  }
+  const actual = installed[1].split(".").map(Number);
+  const required = minimum.split(".").map(Number);
+  for (let i = 0; i < 3; i += 1) {
+    if (actual[i] !== required[i]) return actual[i] > required[i];
+  }
+  return true;
+}
+
 async function ensureBinary() {
   if (existsSync(BIN_LINK)) {
     const result = run(BIN_LINK, ["--version"], { allowFailure: true });
-    if (result.status === 0 && result.stdout.includes(VERSION)) {
+    if (result.status !== 0) fail("Existing ai-memory could not report its version; leaving it untouched.");
+    if (keepInstalledBinary(result.stdout)) {
       log(`binary already installed: ${result.stdout.trim()}`);
       return;
     }
+    fail(`Existing binary is older than ${VERSION}; back up memory, run ai-memory upgrade, then restart only the ai-memory service before reapplying this integration.`);
   }
   const asset = releaseAsset();
   const installRoot = join(HOME, ".local/share/ai-memory", VERSION);
@@ -363,7 +383,7 @@ async function verify() {
 }
 
 async function main() {
-  log(`target: ai-memory ${VERSION}, data=${DATA_DIR}, port=${PORT}`);
+  log(`baseline: ai-memory ${VERSION} (newer stable installs preserved), data=${DATA_DIR}, port=${PORT}`);
   if (verifyOnly) {
     await verify();
     return;
@@ -375,10 +395,12 @@ async function main() {
   installAgentHooks();
   createMarker();
   await verify();
-  log("done. Restart OpenCode, Claude Code, and Codex to load MCP/hooks.");
+  log("done. OpenCode V2 watches config/plugins; no shared-service restart is required. Start a new Claude Code/Codex session to load changed hooks.");
   log("Codex will ask you to trust the new hooks once; review them before accepting.");
   log("Only repositories with .ai-memory.toml are captured (allowlist).");
   log("No cloud LLM, embedding model, cross-project profile, or auto-compaction is enabled.");
 }
 
-main().catch((error) => fail(error.stack || error.message));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => fail(error.stack || error.message));
+}

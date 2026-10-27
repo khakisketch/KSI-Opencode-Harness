@@ -2,7 +2,7 @@
 
 **ai-memory는 KSI 하네스를 대체하지 않습니다.** 프로젝트 정본·현재 코드·실행 결과가 여전히 판단의 기준이고, ai-memory는 이전 결정·실패·남은 작업을 찾는 **보조 기억 계층**입니다.
 
-현재 이 컴퓨터에는 `v3.2.5`가 전역 설치되어 있습니다.
+현재 이 컴퓨터에는 `v3.2.8`이 전역 설치되어 있습니다.
 
 | 항목 | 값 |
 | --- | --- |
@@ -29,7 +29,7 @@ node scripts/install-ai-memory.mjs
 
 이 스크립트는 다음을 수행합니다.
 
-1. 고정 버전 `v3.2.5` 바이너리를 체크섬 검증 후 설치
+1. 미설치 시 기준 버전 `v3.2.8` 바이너리를 체크섬 검증 후 설치. 같은 버전·더 최신의 안정 버전은 유지하며, 기존 구버전은 공식 `ai-memory upgrade`로 먼저 갱신하도록 안내
 2. 전용 데이터 디렉터리와 설정 생성
 3. loopback `49375` 서버를 systemd 사용자 서비스로 등록
 4. OpenCode·Claude Code·Codex에 MCP 연결
@@ -39,6 +39,21 @@ node scripts/install-ai-memory.mjs
 ```sh
 node scripts/install-ai-memory.mjs --verify
 ```
+
+### 업데이트
+
+데이터·설정을 백업한 뒤 **공식 `ai-memory upgrade`**를 사용합니다. 새 바이너리가 서버에도 적용되도록 ai-memory 서비스만 다시 시작합니다. OpenCode 공유 서비스는 재시작하지 않습니다.
+
+```sh
+ai-memory backup --to ~/ai-memory-before-upgrade.tar.gz
+ai-memory upgrade
+systemctl --user restart ai-memory.service
+node scripts/install-ai-memory.mjs --verify
+```
+
+공식 `backup`은 자격증명·raw ledger 등을 포함하는 전체 이관 백업이 아닙니다. 전체 복구본이 필요하면 ai-memory 서비스를 중지한 상태에서 데이터 디렉터리와 에이전트 설정도 접근 제한된 위치에 보관합니다. 원래의 토큰·포트·수집 정책을 유지하며, 업데이트를 이유로 전체 에이전트 자동 setup이나 새 기능 활성화를 수행하지 않습니다.
+
+2026-10-27에는 `upgrade --version 3.2.8`로 갱신하고, 이미 사용 중인 OpenCode V2·Claude Code·Codex의 hook만 새 바이너리의 공식 `install-hooks`로 재적용했습니다. 설정 파일·인증 토큰은 유지됐고, 설치기 재실행도 바이너리를 바꾸지 않았습니다. 공식 업그레이더는 기존 바이너리를 제자리 교체하므로 실제 경로의 `3.2.5/` 이름이 남아 있어도 실행 버전은 **3.2.8**입니다. 버전 판정에 디렉터리 이름을 사용하지 않습니다.
 
 ## 프로젝트에서 기억 켜기
 
@@ -71,7 +86,7 @@ node scripts/install-ai-memory.mjs --marker /path/to/project \
 | Claude Code | 세션 인식 bridge | 전역 hook | MCP 등록 확인, 실제 호출은 OAuth 재로그인 필요 |
 | Codex | 로컬 bridge | 전역 hook | MCP 조회·세션 수집·핸드오프 확인 |
 
-- OpenCode는 새 프로세스에서 플러그인을 로드합니다. 현재 실행 중인 세션에는 다음 시작부터 적용됩니다.
+- OpenCode V2는 설정·플러그인을 감시하므로 공유 서비스 재시작은 필요하지 않습니다. 스킬 발견과 최신 Intent 본문 반영은 실행 중인 Native API에서 확인했습니다.
 - Codex는 새 hook을 처음 한 번 신뢰해야 합니다. Codex TUI의 `/hooks`에서 검토 후 허용하세요.
 - Claude Code는 MCP 설정은 연결됐지만, 이 환경의 OAuth 세션이 만료되어 실제 모델 호출은 재로그인이 필요합니다.
 - 핸드오프는 **루트 세션** 중심입니다. 하위 에이전트의 자동 인수인계를 기대하지 않습니다.
@@ -112,8 +127,8 @@ ai-memory backup --data-dir ~/.local/share/ai-memory --to ~/ai-memory-backup.tar
 
 ## 참고
 
-- [ai-memory v3.2.5](https://github.com/akitaonrails/ai-memory/releases/tag/v3.2.5)
-- [지원 매트릭스](https://github.com/akitaonrails/ai-memory/blob/v3.2.5/docs/support-matrix.md)
-- [데이터 처리](https://github.com/akitaonrails/ai-memory/blob/v3.2.5/DATA_HANDLING.md)
-- [프로젝트 마커](https://github.com/akitaonrails/ai-memory/blob/v3.2.5/docs/marker-file.md)
-- [보안](https://github.com/akitaonrails/ai-memory/blob/v3.2.5/docs/security.md)
+- [ai-memory v3.2.8](https://github.com/akitaonrails/ai-memory/releases/tag/v3.2.8)
+- [지원 매트릭스](https://github.com/akitaonrails/ai-memory/blob/v3.2.8/docs/support-matrix.md)
+- [데이터 처리](https://github.com/akitaonrails/ai-memory/blob/v3.2.8/DATA_HANDLING.md)
+- [프로젝트 마커](https://github.com/akitaonrails/ai-memory/blob/v3.2.8/docs/marker-file.md)
+- [보안](https://github.com/akitaonrails/ai-memory/blob/v3.2.8/docs/security.md)

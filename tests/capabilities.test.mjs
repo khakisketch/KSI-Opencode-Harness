@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
-import { writeSync, readFileSync, promises as tfsp } from 'node:fs';
+import { writeSync, readFileSync, fstatSync, promises as tfsp } from 'node:fs';
 import {
   TRACKED_AGENTS,
   TRACKED_SKILLS,
@@ -37,10 +37,10 @@ describe('tracked role inventory', () => {
   it('tracks 5 operating roles in exact order build,plan,lead,general,explore', () => {
     assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'lead', 'general', 'explore']);
   });
-  it('tracks all 17 harness-wired skills (core, external gap 6, trial 2, opencode)', () => {
+  it('tracks the 16 current harness-wired skills, excluding removed local adaptations', () => {
     assert.deepEqual(TRACKED_SKILLS, [
       'impeccable', 'journey', 'organize', 'wireframe',
-      'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design',
+      'vercel-react-best-practices', 'playwright-cli', 'mobbin-design',
       'opencode',
       'designing-user-experience', 'building-accessible-interfaces', 'evolving-apis-and-schemas',
       'investigating-performance', 'reviewing-security', 'ux-heuristics-audit',
@@ -295,11 +295,30 @@ describe('file transport (injected runner, no CLI/network)', () => {
     assert.ok(!JSON.stringify(threw).includes(SECRET));
   });
   it('removes only its own temp file and dir', async () => {
-    const before = await capDirs();
-    await queryApi('/api/skill', async (fd) => { writeSync(fd, '[]'); return { ok: true }; });
-    await queryApi('/api/skill', async () => ({ ok: false }));
-    await queryApi('/api/skill', async () => { throw new Error('x'); });
-    assert.deepEqual(await capDirs(), before);
+    // Other Native probes may create/remove their own ksi-cap-* directories at
+    // the same time. Inspect our exact fd's inode, not a global directory diff.
+    const sentinel = await tfsp.mkdtemp('/tmp/opencode/ksi-cap-sentinel-');
+    const owned = [];
+    try {
+      for (const outcome of ['success', 'failure', 'throw']) {
+        await queryApi('/api/skill', async (fd) => {
+          const current = fstatSync(fd);
+          for (const dir of await capDirs()) {
+            const file = path.join(dir, 'resp.json');
+            try { const stat = await tfsp.stat(file); if (stat.ino === current.ino && stat.dev === current.dev) owned.push({ dir, file }); }
+            catch (error) { if (error.code !== 'ENOENT') throw error; }
+          }
+          if (outcome === 'throw') throw new Error('x');
+          writeSync(fd, '[]'); return { ok: outcome === 'success' };
+        });
+      }
+      assert.equal(owned.length, 3);
+      for (const { dir, file } of owned) {
+        await assert.rejects(tfsp.stat(file), { code: 'ENOENT' });
+        await assert.rejects(tfsp.stat(dir), { code: 'ENOENT' });
+      }
+      assert.ok((await tfsp.stat(sentinel)).isDirectory());
+    } finally { await tfsp.rmdir(sentinel); }
   });
   it('collects end-to-end through file transport', async () => {
     const bodyFor = (route) => (route.startsWith('/api/agent') ? realAgents : route.startsWith('/api/skill') ? realSkills : realMcp);
@@ -342,8 +361,9 @@ describe('mcp servers canonical V2 source', () => {
     assert.equal(servers.context7.oauth, false);
     assert.ok(!('oauth' in servers.mobbin));
     assert.ok(!('headers' in servers.mobbin));
-    // Mobbin is optional and intentionally off by default; Context7 stays on.
-    assert.equal(servers.mobbin.disabled, true);
+    // Mobbin is enabled by the operator; Context7 stays on. Both remain
+    // switchable without changing the harness's core behavior.
+    assert.equal(servers.mobbin.disabled, false);
     assert.ok(!('disabled' in servers.context7));
     for (const server of Object.values(servers)) {
       assert.ok(!('enabled' in server));

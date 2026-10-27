@@ -88,6 +88,51 @@ describe("continue-offer gate (EN+KR)", () => {
     assert.equal(hasContinueOffer("M2 완료. 계속이라고 말씀하시면 M3을 진행합니다.", false), true);
     assert.equal(hasContinueOffer("다음 진행을 위해 승인을 기다립니다.", false), true);
   });
+  it("catches the observed Safety continuation question, including its alternative", () => {
+    // Observed final msg_17b4f6117001EfexhnRKapEeh4; a phrase observation,
+    // not a verdict on the original task's authorization or priority choice.
+    assert.equal(hasContinueOffer("P0-2(재관측 트리거 판정)부터 이어갈까요, 아니면 L1 데모 패키징이 먼저일까요?", false), true);
+  });
+  it("catches conditional offers and natural continuation questions while work remains", () => {
+    for (const text of [
+      "원하시면 다음 작업도 진행하겠습니다.",
+      "원하시면 이어서 구현하겠습니다.",
+      "이어서 진행할까요?",
+      "계속할까요?",
+      "다음 단계도 진행할까요?",
+      "Would you like me to continue with the remaining tests?",
+      "Shall I proceed with the next step?",
+    ]) assert.equal(hasContinueOffer(text, false), true, text);
+  });
+  it("does not mistake an alternative or unrelated negative for negating an offer", () => {
+    for (const text of [
+      "오류는 없고, 이어서 진행할까요?",
+      "P0-2부터 이어갈까요, 아니면 데모가 먼저일까요?",
+      "Tests did not fail; shall I continue with M3?",
+    ]) assert.equal(hasContinueOffer(text, false), true, text);
+  });
+  it("ignores a negated or reported continuation question", () => {
+    for (const text of [
+      "‘이어갈까요’라고 묻지 않고 남은 작업을 수행했습니다.",
+      "Do not ask 'shall I continue' instead of doing the work.",
+      "에이전트가 ‘계속할까요’라고 물었던 것이 문제였습니다.",
+      "승인을 기다리지 않고 진행합니다.",
+    ]) assert.equal(hasContinueOffer(text, false), false, text);
+  });
+  it("allows optional follow-up offers once the actual task is complete", () => {
+    for (const text of [
+      "모든 검증을 마쳤습니다. 원하시면 별도 기능도 추가하겠습니다.",
+      "All checks passed. Would you like me to add a separate feature?",
+      "모든 승인 작업 완료. 다음 단계도 진행할까요?",
+    ]) assert.equal(hasContinueOffer(text, true), false, text);
+  });
+  it("does not flag progress reports that continue without a permission gate", () => {
+    for (const text of [
+      "M2를 마쳤고 이어서 M3를 구현합니다.",
+      "다음 진행 순서는 M3 구현과 최종 검사입니다.",
+      "기체가 없어 실증은 막혔지만 독립적인 로컬 검증은 계속합니다.",
+    ]) assert.equal(hasContinueOffer(text, false), false, text);
+  });
   it("ignores legitimate finish statements after all pass", () => {
     assert.equal(hasContinueOffer("All 3 milestones done, check passes.", true), false);
     assert.equal(hasContinueOffer("M1/M2/M3 complete. check: all 3 milestones ok", true), false);
@@ -118,6 +163,22 @@ describe("deploy detection from state.input", () => {
 });
 
 describe("deterministic evaluators", () => {
+  it("does not turn a silent early finish into completion just because no offer phrase appears", async () => {
+    const dir = path.join(workRoot, "silent-early-finish");
+    await fsp.mkdir(dir, { recursive: true });
+    await fsp.writeFile(path.join(dir, "m2.py"), "def m2():\n    return 2\n");
+    await fsp.writeFile(path.join(dir, "check.py"), "from m2 import m2\nfrom m3 import m3\nassert m2()==2 and m3()==3\n");
+    const msgs = [
+      { type: "user", content: [] },
+      assistant(["M2 implemented."], [], { finish: "stop" }),
+    ];
+    const v = evaluateContinueNext(dir, msgs);
+    assert.equal(v.continue_offer, false);
+    assert.equal(v.m3_present, false);
+    assert.equal(v.check.ok, false);
+    assert.equal(v.all_done, false);
+    assert.equal(v.model_ran_check, false);
+  });
   it("continue-next needs artifact integration + model-run check, not two writes", async () => {
     const dir = path.join(workRoot, "cont");
     await fsp.mkdir(dir, { recursive: true });

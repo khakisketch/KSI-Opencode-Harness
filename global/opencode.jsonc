@@ -12,10 +12,10 @@
     // V2 Native shape: servers under mcp.servers are default-enabled; set "disabled": true to deactivate.
     "servers": {
       "mobbin": {
-        // Optional paid service; disabled by default. Re-enable when used.
+        // Optional paid service; enabled by the operator. Disable to deactivate.
         "type": "remote",
         "url": "https://api.mobbin.com/mcp",
-        "disabled": true
+        "disabled": false
       },
       "context7": {
         "type": "remote",
@@ -30,7 +30,7 @@
   "agents": {
     // Native Build/Plan/General/Explore plus the custom Lead profile.
     "build": {
-      "description": "Owns the whole approved goal, work allocation, integration and final product quality; implements directly or delegates.",
+      "description": "Owns the whole approved goal, work allocation, integration and final product quality; delegates substantive implementation of large/non-local/multi-part work to Lead as outcome units by default, and implements directly only for precise local fixes, small integration repairs, and verification.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },

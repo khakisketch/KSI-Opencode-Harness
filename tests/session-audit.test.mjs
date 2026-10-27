@@ -23,6 +23,68 @@ const assistantMsg = (agent, parts) => ({
 });
 
 describe('session-audit behavioral and temporal verification', () => {
+  it('observes complementary skills before action and review skills first loaded after it', () => {
+    const res = auditMessages([
+      assistantMsg('build', [
+        toolPart('read', { path: '/proj/AGENTS.md' }),
+        toolPart('skill', { id: 'designing-user-experience' }),
+        toolPart('skill', { id: 'impeccable' }),
+        toolPart('edit', { path: '/proj/page.tsx' }),
+        toolPart('skill', { id: 'ux-heuristics-audit' }),
+        toolPart('skill', { id: 'impeccable' }),
+      ]),
+    ]);
+    const s = res.roles.build;
+    assert.deepEqual(s.skillsLoadedBeforeAction, ['designing-user-experience', 'impeccable']);
+    assert.deepEqual(s.skillsFirstLoadedAfterAction, ['ux-heuristics-audit']);
+    const summary = summarizeAudits([res]);
+    assert.deepEqual(summary.roleTotals.build.skillsBeforeActionById, { 'designing-user-experience': 1, impeccable: 1 });
+    assert.deepEqual(summary.roleTotals.build.skillsFirstAfterActionById, { 'ux-heuristics-audit': 1 });
+    assert.deepEqual(res.gaps, []); // Review-time loading is not a violation.
+    assert.ok(summary.coverage.skillTimingBasis.includes('not task relevance'));
+  });
+
+  it('keeps skill timing local to each role and includes delegation as an observed action', () => {
+    const res = auditMessages([
+      assistantMsg('build', [
+        toolPart('subagent', { agent: 'lead' }),
+        toolPart('skill', { id: 'impeccable' }),
+      ]),
+      assistantMsg('lead', [toolPart('skill', { id: 'impeccable' })]),
+    ]);
+    assert.deepEqual(res.roles.build.skillsFirstLoadedAfterAction, ['impeccable']);
+    assert.deepEqual(res.roles.lead.skillsLoadedBeforeAction, ['impeccable']);
+    assert.deepEqual(res.roles.lead.skillsFirstLoadedAfterAction, []);
+  });
+
+  it('does not count failed or pending skills/actions as completed timing evidence', () => {
+    const res = auditMessages([
+      assistantMsg('general', [
+        toolPart('skill', { id: 'diagnosing-bugs' }, 'error', 'unavailable'),
+        toolPart('edit', { path: '/proj/x.js' }, 'error', 'denied'),
+        toolPart('skill', { id: 'diagnosing-bugs' }, 'pending'),
+        toolPart('subagent', { agent: 'general' }, 'pending'),
+        toolPart('skill', { name: 'diagnosing-bugs' }), // Historical input shape.
+        toolPart('edit', { path: '/proj/x.js' }),
+      ]),
+    ]);
+    assert.deepEqual(res.roles.general.skillsLoadedBeforeAction, ['diagnosing-bugs']);
+    assert.deepEqual(res.roles.general.skillsFirstLoadedAfterAction, []);
+  });
+
+  it('does not infer missing skills or task compliance from absent timing evidence', () => {
+    const res = auditMessages([assistantMsg('general', [toolPart('edit', { path: '/proj/x.js' })])]);
+    assert.deepEqual(res.roles.general.skillsLoadedBeforeAction, []);
+    assert.deepEqual(res.roles.general.skillsFirstLoadedAfterAction, []);
+    assert.deepEqual(res.gaps, []);
+    // Existing stored audit results without the new optional fields still summarize.
+    delete res.roles.general.skillsLoadedBeforeAction;
+    delete res.roles.general.skillsFirstLoadedAfterAction;
+    const summary = summarizeAudits([res]);
+    assert.deepEqual(summary.roleTotals.general.skillsBeforeActionById, {});
+    assert.deepEqual(summary.roleTotals.general.skillsFirstAfterActionById, {});
+  });
+
   it('passes a well-ordered design session (authority -> UX/craft skill -> edit -> detect -> post-edit visual read)', () => {
     const msgs = [
       assistantMsg('design', [
@@ -324,6 +386,8 @@ describe('session-audit behavioral and temporal verification', () => {
       // Full per-file sessions payload stays out of CLI output.
       assert.ok(!('sessions' in parsed));
       const eng = parsed.roleTotals.engineer;
+      assert.deepEqual(eng.skillsBeforeActionById, {});
+      assert.deepEqual(eng.skillsFirstAfterActionById, {});
       // Guessed `success` alias and pending reads are incomplete, never completed.
       assert.deepEqual(eng.incompleteTools, { read: 2 });
       assert.equal(eng.reads, 1);

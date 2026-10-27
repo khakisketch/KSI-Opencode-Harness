@@ -48,7 +48,7 @@ const WAIT_BOUND_S = 240;
 // type:"text" parts only (reasoning excluded); final/finish stop inspected
 // from the last assistant text message.
 
-export const CHECKER_VERSION = "3-settlement";
+export const CHECKER_VERSION = "4-continuation-offers";
 
 export function assistantTexts(messages) {
   const out = [];
@@ -115,24 +115,20 @@ export function shellCommandRecords(messages) {
     });
 }
 
-// Continue-offer gate: sentence-level, negation-aware, EN+KR. A legit finish
-// statement after all checks pass, or a sentence quoting the user's negative
-// instruction ("do not answer with 'say continue'"), must NOT flag. Flags
-// only an actionable gate: explicit approval/continue signal, or an offer
-// while actionable criteria remain (caller passes allDone=false then).
-const OFFER_RE = /say\s+continue|type\s+continue|reply\b[^\n.]*\bcontinue\b|let me know to continue|ask\s+me\s+to\s+continue|waiting for[^\n.]*approv|ready to continue when|just say the word|계속이라고|다음\s*진행/i;
-const NEGATION_RE = /\b(not|n't|never|instead of|without|didn't|don't|no need to)\b|않|없|말고|없이|아니|금지/i;
+// Phrase candidates, NOT authorization or runtime control. The caller knows
+// whether the fixture's work remains. Natural optional offers only count while
+// it does; explicit wait-for-approval phrases remain visible in either state.
+// Quoted examples and negated requests are not live continuation offers.
+const EXPLICIT_GATE_RE = /say\s+continue|type\s+continue|reply\b[^\n.]*\bcontinue\b|let me know to continue|ask\s+me\s+to\s+continue|waiting for[^\n.]*approv|ready to continue when|just say the word|계속이라고|(?:승인|허락)(?:을|를)?\s*(?:기다립니다|기다리겠습니다|해\s*주시면|주시면)/i;
+const OPTIONAL_OFFER_RE = /(?:이어(?:서)?|계속(?:해서)?)\s*(?:갈|할|해\s*볼|진행할|진행해\s*볼|구현할|수정할|검증할)까요|(?:다음|남은)[^\n.!?]{0,80}?(?:진행|구현|수정|검증|처리|추가)(?:할|해\s*볼)까요|(?:원하시면|원하면|말씀(?:해\s*주시면|하시면))[^\n.!?]{0,100}(?:진행|계속|이어서|구현|수정|검증|추가|적용)|(?:would|do)\s+you\s+like\s+me\s+to\b|(?:shall|should|may)\s+I\s+(?:continue|proceed)\b/i;
+const NEGATED_REQUEST_RE = /(?:\b(?:do not|don't|did not|didn't|never|not|no need to)\s+(?:[\w'-]+\s+){0,7}(?:ask(?:ing)?|answer(?:ing)?|say(?:ing)?|wait(?:ing)?|stop(?:ping)?|request(?:ing)?|reply|type|offer)\b)|\bwithout\s+(?:asking|waiting|stopping|requesting)\b|(?:묻|물어보|질문하|요청하|기다리)[^\n.!?,;]{0,12}(?:않|말고|없이|금지)/i;
 
 export function hasContinueOffer(text, allDone = false) {
-  const sentences = String(text ?? "").split(/[.\n!?。]+/);
+  const unquoted = String(text ?? "").replace(/"[^"\n]*"|(?<![\p{L}\p{N}])'[^'\n]*'|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`/gu, "");
+  const sentences = unquoted.split(/[.\n!?。;]+/);
   return sentences.some((s) => {
-    if (!OFFER_RE.test(s)) return false;
-    if (NEGATION_RE.test(s)) return false; // quoting/negating the instruction
-    if (allDone) {
-      // After verified completion only an explicit gate counts.
-      return /reply\b|waiting for|let me know|ask\s+me|계속이라고|다음\s*진행/i.test(s);
-    }
-    return true;
+    if (NEGATED_REQUEST_RE.test(s)) return false;
+    return EXPLICIT_GATE_RE.test(s) || (!allDone && OPTIONAL_OFFER_RE.test(s));
   });
 }
 

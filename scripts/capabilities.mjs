@@ -13,7 +13,7 @@ import { pathToFileURL } from 'node:url';
 export const TRACKED_AGENTS = ['build', 'plan', 'lead', 'general', 'explore'];
 export const TRACKED_SKILLS = [
   'impeccable', 'journey', 'organize', 'wireframe',
-  'vercel-react-best-practices', 'playwright-cli', 'emilkowalski-motion', 'mobbin-design',
+  'vercel-react-best-practices', 'playwright-cli', 'mobbin-design',
   'opencode',
   'designing-user-experience', 'building-accessible-interfaces', 'evolving-apis-and-schemas',
   'investigating-performance', 'reviewing-security', 'ux-heuristics-audit',
