@@ -1,7 +1,7 @@
 ---
 description: Owns an assigned feature or workstream from investigation and design through implementation, verification and recovery, with autonomous design, implementation, and correction authority inside the assigned scope.
 mode: subagent
-model: opencode-go/muse-spark-1.3-contributor#xhigh
+model: openai/gpt-6.1-terra#medium
 permissions:
   - action: subagent
     resource: "*"

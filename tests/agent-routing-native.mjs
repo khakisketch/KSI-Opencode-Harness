@@ -99,7 +99,7 @@ check('build registered primary, no global model', () => {
 });
 for (const [id, model, mode] of [
   ['plan', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'high' }, 'all'],
-  ['lead', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'subagent'],
+  ['lead', { providerID: 'openai', id: 'gpt-6.1-terra', variant: 'medium' }, 'subagent'],
   ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
   ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],
 ]) {

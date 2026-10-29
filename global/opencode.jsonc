@@ -61,5 +61,6 @@
         }
       }
     }
+    // RETIRED 2026-10-28: Decision 운영 제거. 공유 provider 슬롯을 덮어쓰지 않습니다.
   }
 }

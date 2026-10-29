@@ -41,7 +41,7 @@ describe('lead instruction structure (source only)', () => {
   });
 
   it('keeps the Lead model and child edges Native-shaped', () => {
-    assert.match(lead, /^model: opencode-go\/muse-spark-1\.3-contributor#xhigh$/m);
+    assert.match(lead, /^model: openai\/gpt-6\.1-terra#medium$/m);
     assert.match(lead, /^mode: subagent$/m);
     for (const target of ['plan', 'general', 'explore']) {
       assert.match(lead, new RegExp(`- action: subagent\\s*\\n\\s*resource: ${target}\\s*\\n\\s*effect: allow`));

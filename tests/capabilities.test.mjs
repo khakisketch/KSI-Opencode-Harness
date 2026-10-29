@@ -10,8 +10,12 @@ import {
   TRACKED_SKILLS,
   TRACKED_MCP,
   TRACKED_BINARIES,
+  TRACKED_DOMAINS,
   QUERY_MAX_BUFFER,
   routeFor,
+  normalizeDomains,
+  resolveCliDomainsStrict,
+  parseInventoryArgs,
   validPayload,
   projectAgents,
   projectSkills,
@@ -84,10 +88,9 @@ describe('tracked role inventory', () => {
     assert.ok(!JSON.stringify(withoutNew).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
   it('retired/superseded native ids are not tracked and never project as registered', () => {
-    // engineer/design/research/critic sources are retained byte-identical but
-    // Native-disabled out of default operations (Main owns suppression proof);
-    // architect.md stays an archived non-operational file. None of these ids
-    // may be tracked or projected as registered operating roles.
+    // The four specialist files were removed from active sources; Architect
+    // remains archived outside discovery. This projection test only checks
+    // the tracked inventory, not the effective installed runtime.
     for (const retired of ['engineer', 'design', 'research', 'critic', 'architect', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
       assert.ok(!TRACKED_AGENTS.includes(retired), `${retired} must not be tracked`);
     }
@@ -139,6 +142,15 @@ describe('canonical id shapes', () => {
     assert.equal(mcp.find((m) => m.name === 'context7').status, 'connected');
     assert.equal(mcp.find((m) => m.name === 'mobbin').status, 'unavailable');
     assert.ok(!JSON.stringify(mcp).includes(SECRET));
+  });
+  it('mcp entries with missing or unverified status stay unknown, not unavailable', () => {
+    const missing = projectMcp([{ name: 'context7' }, { name: 'mobbin', status: {} }]);
+    assert.equal(missing.find((m) => m.name === 'context7').status, 'unknown');
+    assert.equal(missing.find((m) => m.name === 'mobbin').status, 'unknown');
+    const odd = projectMcp([{ name: 'context7', status: { status: 'connecting' } }]);
+    assert.equal(odd.find((m) => m.name === 'context7').status, 'unknown');
+    assert.equal(odd.find((m) => m.name === 'mobbin').status, 'unavailable');
+    assert.ok(!JSON.stringify(missing).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
   it('allows only primary/subagent/all modes; arbitrary strings become unknown', () => {
     const agents = projectAgents([{ id: 'build', name: 'Build', mode: SECRET }]);
@@ -201,6 +213,8 @@ describe('collectCapabilities with injected query', () => {
     assert.equal(routes.length, 3);
     assert.equal(new Set(routes).size, 3);
     assert.ok(report.coreQueriesOk);
+    assert.equal(report.queriedOk, true);
+    assert.equal(report.partial, false);
     for (const n of TRACKED_BINARIES) assert.equal(report.cli[n].present, true);
     assert.ok(!JSON.stringify(report).includes(SECRET));
   });
@@ -246,6 +260,8 @@ describe('collectCapabilities with injected query', () => {
       checkPath: async () => 'unknown',
     });
     assert.equal(exitCode, 0);
+    assert.equal(report.coreQueriesOk, true);
+    assert.equal(report.queriedOk, false);
     assert.equal(report.mcp.find((m) => m.name === 'context7').status, 'unknown');
   });
   it('fixed tracked roles/skills always present; presence never claims the tool works', () => {
@@ -266,9 +282,16 @@ describe('collectCapabilities with injected query', () => {
 describe('file transport (injected runner, no CLI/network)', () => {
   async function capDirs() {
     const out = [];
+    const seen = new Set();
     for (const base of [path.join('/tmp', 'opencode'), os.tmpdir()]) {
       try {
-        for (const e of await tfsp.readdir(base)) if (e.startsWith('ksi-cap-')) out.push(path.join(base, e));
+        // TMPDIR can resolve to the preferred /tmp/opencode base (or an alias
+        // of it). Scan each real directory once so one owned inode is not
+        // reported twice, while still checking the actual owned file below.
+        const canonical = await tfsp.realpath(base);
+        if (seen.has(canonical)) continue;
+        seen.add(canonical);
+        for (const e of await tfsp.readdir(canonical)) if (e.startsWith('ksi-cap-')) out.push(path.join(canonical, e));
       } catch { /* base may not exist */ }
     }
     return out.sort();
@@ -370,5 +393,143 @@ describe('mcp servers canonical V2 source', () => {
       assert.ok(!('timeout' in server));
     }
     assert.ok(!JSON.stringify(servers).match(/sk-[A-Za-z0-9]|Bearer [A-Za-z0-9]/));
+  });
+});
+
+describe('selective domains and confirmation time (offline, no CLI)', () => {
+  it('normalizes domain filters to the canonical subset in canonical order', () => {
+    assert.deepEqual(TRACKED_DOMAINS, ['agent', 'skill', 'mcp']);
+    assert.deepEqual(normalizeDomains(undefined), ['agent', 'skill', 'mcp']);
+    assert.deepEqual(normalizeDomains(null), ['agent', 'skill', 'mcp']);
+    assert.deepEqual(normalizeDomains('skill,agent'), ['agent', 'skill']);
+    assert.deepEqual(normalizeDomains(['skills', 'AGENT', ' mcp ', 'agent']), ['agent', 'skill', 'mcp']);
+    assert.deepEqual(normalizeDomains('garbage'), []);
+    assert.deepEqual(normalizeDomains(''), []);
+    assert.deepEqual(normalizeDomains([]), []);
+  });
+  it('resolves strict CLI domains; typos and empty selections are input errors', () => {
+    assert.deepEqual(resolveCliDomainsStrict('skill,agent'), ['agent', 'skill']);
+    assert.deepEqual(resolveCliDomainsStrict(['skills', 'AGENT']), ['agent', 'skill']);
+    assert.throws(() => resolveCliDomainsStrict('agent,typo'), /unknown domains/);
+    assert.throws(() => resolveCliDomainsStrict('bogus'), /unknown domains/);
+    assert.throws(() => resolveCliDomainsStrict(''), /empty domain selection/);
+    assert.throws(() => resolveCliDomainsStrict([]), /empty domain selection/);
+    assert.throws(() => resolveCliDomainsStrict(' , '), /empty domain selection/);
+  });
+  it('parses directory and --only without extra positionals or unknown flags', () => {
+    assert.deepEqual(parseInventoryArgs([]), { directory: undefined, domains: undefined });
+    assert.deepEqual(parseInventoryArgs(['/tmp/x']), { directory: '/tmp/x', domains: undefined });
+    assert.deepEqual(parseInventoryArgs(['--only', 'mcp']), { directory: undefined, domains: ['mcp'] });
+    assert.deepEqual(parseInventoryArgs(['--only=mcp']), { directory: undefined, domains: ['mcp'] });
+    assert.deepEqual(parseInventoryArgs(['/tmp/x', '--only', 'agent,skill']), { directory: '/tmp/x', domains: ['agent', 'skill'] });
+    assert.deepEqual(parseInventoryArgs(['--only', 'skill', '/tmp/x']), { directory: '/tmp/x', domains: ['skill'] });
+    assert.deepEqual(parseInventoryArgs(['--only', 'agents']), { directory: undefined, domains: ['agent'] });
+    assert.deepEqual(parseInventoryArgs(['--help']), { help: true });
+    assert.deepEqual(parseInventoryArgs(['-h']), { help: true });
+    assert.deepEqual(parseInventoryArgs(['--nope']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['/a', '/b']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['--only', 'agent,typo']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['--only', 'bogus']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['--only']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['--only', '']), { invalid: true });
+    assert.deepEqual(parseInventoryArgs(['--only=']), { invalid: true });
+  });
+  it('stamps confirmation time and queried domains; full runs stay non-partial', () => {
+    const r = buildReport({
+      directory: '/tmp', agentResult: { ok: true, payload: [] },
+      skillResult: { ok: true, payload: [] }, mcpResult: { ok: true, payload: [] },
+      binaries: {}, at: '2026-10-28T00:00:00.000Z',
+    });
+    assert.equal(r.at, '2026-10-28T00:00:00.000Z');
+    assert.ok(!Number.isNaN(Date.parse(r.at)));
+    assert.deepEqual(r.domainsQueried, ['agent', 'skill', 'mcp']);
+    assert.equal(r.partial, false);
+    assert.equal(r.coreQueriesOk, true);
+    assert.equal(r.queriedOk, true);
+    assert.ok(r.notice.includes('Read-only'));
+    assert.ok(r.notice.includes('registration does not prove connection completion'));
+    assert.ok(!JSON.stringify(r).match(/works|healthy|version/i));
+    assert.ok(!JSON.stringify(r).includes(SECRET));
+    const generated = buildReport({
+      directory: '/tmp', agentResult: { ok: true, payload: [] },
+      skillResult: { ok: true, payload: [] }, mcpResult: { ok: true, payload: [] }, binaries: {},
+    });
+    assert.ok(!Number.isNaN(Date.parse(generated.at)));
+    const fullMcpFail = buildReport({
+      directory: '/tmp', agentResult: { ok: true, payload: [] },
+      skillResult: { ok: true, payload: [] }, mcpResult: { ok: false },
+      binaries: {},
+    });
+    assert.equal(fullMcpFail.coreQueriesOk, true);
+    assert.equal(fullMcpFail.queriedOk, false);
+    assert.equal(fullMcpFail.partial, false);
+  });
+  it('partial mcp-only success exits 0 on the requested scope while core stays unconfirmed', async () => {
+    const routes = [];
+    const { report, exitCode } = await collectCapabilities({
+      domains: ['mcp'],
+      query: async (route) => {
+        routes.push(route);
+        if (route.startsWith('/api/mcp')) return { ok: true, payload: realMcp };
+        throw new Error('must not query skipped domains');
+      },
+      checkPath: async () => true,
+    });
+    assert.deepEqual(routes.length, 1);
+    assert.ok(routes[0].startsWith('/api/mcp'));
+    assert.deepEqual(report.domainsQueried, ['mcp']);
+    assert.equal(report.partial, true);
+    assert.ok(report.agents.every((a) => a.registered === 'unknown'));
+    assert.ok(report.skills.every((s) => s.registered === 'unknown'));
+    assert.equal(report.mcp.find((m) => m.name === 'context7').status, 'connected');
+    assert.equal(report.coreQueriesOk, false);
+    assert.equal(report.queriedOk, true);
+    assert.equal(exitCode, 0);
+    assert.ok(report.notice.includes('partial domains only'));
+    assert.ok(!JSON.stringify(report).match(/works|healthy|version/i));
+    assert.ok(!JSON.stringify(report).includes(SECRET));
+  });
+  it('partial failures stay nonzero on the requested scope', async () => {
+    const mcpFail = await collectCapabilities({
+      domains: ['mcp'],
+      query: async () => ({ ok: false }),
+      checkPath: async () => true,
+    });
+    assert.equal(mcpFail.report.queriedOk, false);
+    assert.equal(mcpFail.report.coreQueriesOk, false);
+    assert.equal(mcpFail.report.partial, true);
+    assert.equal(mcpFail.exitCode, 1);
+    assert.ok(mcpFail.report.mcp.every((m) => m.status === 'unknown'));
+    const agentOnly = await collectCapabilities({
+      domains: ['agent'],
+      query: async (route) => {
+        if (route.startsWith('/api/agent')) return { ok: true, payload: realAgents };
+        throw new Error('must not query skipped domains');
+      },
+      checkPath: async () => true,
+    });
+    assert.deepEqual(agentOnly.report.domainsQueried, ['agent']);
+    assert.equal(agentOnly.report.queriedOk, true);
+    assert.equal(agentOnly.report.coreQueriesOk, false);
+    assert.equal(agentOnly.exitCode, 0);
+    assert.equal(agentOnly.report.agents.find((a) => a.name === 'build').registered, true);
+    assert.ok(agentOnly.report.skills.every((s) => s.registered === 'unknown'));
+  });
+  it('empty filter queries nothing and stays nonzero with all unknown', async () => {
+    let calls = 0;
+    const { report, exitCode } = await collectCapabilities({
+      domains: [],
+      query: async () => { calls += 1; return { ok: true, payload: [] }; },
+      checkPath: async () => true,
+    });
+    assert.equal(calls, 0);
+    assert.deepEqual(report.domainsQueried, []);
+    assert.equal(report.partial, true);
+    assert.equal(report.coreQueriesOk, false);
+    assert.equal(report.queriedOk, false);
+    assert.equal(exitCode, 1);
+    assert.ok(report.agents.every((a) => a.registered === 'unknown'));
+    assert.ok(report.skills.every((s) => s.registered === 'unknown'));
+    assert.ok(report.mcp.every((m) => m.status === 'unknown'));
   });
 });

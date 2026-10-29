@@ -22,8 +22,84 @@ export const TRACKED_SKILLS = [
 export const TRACKED_MCP = ['context7', 'mobbin'];
 export const TRACKED_BINARIES = ['node', 'playwright-cli', 'gh'];
 export const AGENT_MODES = ['primary', 'subagent', 'all'];
+export const TRACKED_DOMAINS = ['agent', 'skill', 'mcp'];
 export const QUERY_TIMEOUT_MS = 10000;
 export const QUERY_MAX_BUFFER = 1 << 20;
+
+// Canonical domain filter for selective runs. undefined/null means the full
+// inventory (all three routes). Strings split on commas; known aliases
+// agents->agent and skills->skill are accepted case-insensitively. Unknown
+// names are dropped; an empty result means no queries (all unknown).
+// Kept lenient for programmatic callers; CLI argv parsing below is strict
+// and rejects unknown/empty selections before any query.
+export function normalizeDomains(input) {
+  if (input === undefined || input === null) return [...TRACKED_DOMAINS];
+  const parts = (Array.isArray(input) ? input.join(',') : String(input)).split(',');
+  const alias = (s) => {
+    const t = String(s ?? '').trim().toLowerCase();
+    if (t === 'agents') return 'agent';
+    if (t === 'skills') return 'skill';
+    return t;
+  };
+  const wanted = new Set(parts.map(alias).filter((d) => TRACKED_DOMAINS.includes(d)));
+  return TRACKED_DOMAINS.filter((d) => wanted.has(d));
+}
+
+// Strict resolution for CLI --only input: unknown names, typos, and empty or
+// missing values are input errors, never silently dropped. Throws; the CLI
+// parser turns this into {invalid:true} with no queries performed.
+export function resolveCliDomainsStrict(input) {
+  const raw = Array.isArray(input) ? input.join(',') : String(input ?? '');
+  const parts = raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+  if (!parts.length) throw new Error('capabilities: empty domain selection');
+  const mapped = parts.map((s) => {
+    const t = s.toLowerCase();
+    if (t === 'agents') return 'agent';
+    if (t === 'skills') return 'skill';
+    return t;
+  });
+  const unknown = mapped.filter((d) => !TRACKED_DOMAINS.includes(d));
+  if (unknown.length) throw new Error('capabilities: unknown domains requested');
+  return TRACKED_DOMAINS.filter((d) => mapped.includes(d));
+}
+
+// Minimal CLI parsing without extra dependencies. First non-flag positional
+// is the directory; --only <csv> / --only=<csv> selects domains; --help/-h
+// prints usage with no queries. Unknown flags or extra positionals are
+// invalid (fail closed, no queries).
+export function parseInventoryArgs(argv) {
+  const args = Array.isArray(argv) ? [...argv] : [];
+  let directory;
+  let onlyRaw;
+  let onlySet = false;
+  let help = false;
+  let invalid = false;
+  let positionals = 0;
+  for (let i = 0; i < args.length; i += 1) {
+    const a = String(args[i] ?? '');
+    if (a === '--help' || a === '-h') { help = true; continue; }
+    if (a === '--only') {
+      onlySet = true;
+      const next = args[i + 1];
+      onlyRaw = next === undefined ? '' : String(next);
+      i += 1;
+      continue;
+    }
+    if (a.startsWith('--only=')) { onlySet = true; onlyRaw = a.slice('--only='.length); continue; }
+    if (a.startsWith('--')) { invalid = true; continue; }
+    positionals += 1;
+    if (positionals === 1) directory = a;
+    else invalid = true;
+  }
+  if (help) return { help: true };
+  if (invalid) return { invalid: true };
+  if (onlySet) {
+    try {
+      return { directory, domains: resolveCliDomainsStrict(onlyRaw) };
+    } catch { return { invalid: true }; }
+  }
+  return { directory, domains: undefined };
+}
 
 export function routeFor(base, directory) {
   const q = new URLSearchParams();
@@ -90,7 +166,10 @@ export function projectMcp(payload) {
   for (const e of entriesOf(payload)) {
     const k = keyOf(e, 'mcp');
     if (!k || stat.has(k)) continue;
-    stat.set(k, e?.status?.status === 'connected' ? 'connected' : 'unavailable');
+    // Only an explicit connected state counts as connected. A present entry
+    // with missing or unverified status is unknown, never unavailable:
+    // unavailable strictly means confirmed absence from a valid list.
+    stat.set(k, e?.status?.status === 'connected' ? 'connected' : 'unknown');
   }
   return TRACKED_MCP.map((name) => ({ name, status: stat.has(name) ? stat.get(name) : 'unavailable' }));
 }
@@ -152,54 +231,91 @@ export async function checkPathPresent(name, pathValue = process.env.PATH ?? '',
 const asResult = (r) => (r && typeof r === 'object' && typeof r.ok === 'boolean' ? r : { ok: false });
 const asPresent = (v) => (v === true ? true : v === false ? false : 'unknown');
 
-export function buildReport({ directory, directoryStatus = 'ok', agentResult, skillResult, mcpResult, binaries }) {
+export function buildReport({ directory, directoryStatus = 'ok', agentResult, skillResult, mcpResult, binaries, at, domainsQueried }) {
   const a = asResult(agentResult); const s = asResult(skillResult); const m = asResult(mcpResult);
   const aOk = a.ok && validPayload(a.payload, 'agent');
   const sOk = s.ok && validPayload(s.payload, 'skill');
   const mOk = m.ok && validPayload(m.payload, 'mcp');
+  const stamped = (typeof at === 'string' && !Number.isNaN(Date.parse(at))) ? at : new Date().toISOString();
+  const queried = Array.isArray(domainsQueried)
+    ? TRACKED_DOMAINS.filter((d) => domainsQueried.includes(d))
+    : [...TRACKED_DOMAINS];
+  const partial = queried.length < TRACKED_DOMAINS.length;
+  const coreQueried = queried.includes('agent') && queried.includes('skill');
+  const queriedOk = directoryStatus === 'ok' && queried.length > 0
+    && queried.every((d) => (d === 'agent' ? aOk : d === 'skill' ? sOk : d === 'mcp' ? mOk : false));
   return {
     directory,
     directoryStatus,
+    at: stamped,
+    domainsQueried: queried,
+    partial,
     agents: aOk ? projectAgents(a.payload) : unknownAgents(),
     skills: sOk ? projectSkills(s.payload) : unknownSkills(),
     mcp: mOk ? projectMcp(m.payload) : unknownMcp(),
     cli: Object.fromEntries(TRACKED_BINARIES.map((n) => [n, { present: asPresent(binaries?.[n]) }])),
-    coreQueriesOk: directoryStatus === 'ok' && aOk && sOk,
-    notice: 'Read-only configuration inventory; private temporary response removed, CLI may auto-start.',
+    coreQueriesOk: directoryStatus === 'ok' && coreQueried && aOk && sOk,
+    queriedOk,
+    notice: partial
+      ? 'Read-only configuration inventory; registration does not prove connection completion or actual call success; private temporary response removed, CLI may auto-start; partial domains only, not a full inventory.'
+      : 'Read-only configuration inventory; registration does not prove connection completion or actual call success; private temporary response removed, CLI may auto-start.',
   };
 }
 
-export async function collectCapabilities({ directory, query = queryApi, checkPath = checkPathPresent } = {}) {
+export async function collectCapabilities({ directory, query = queryApi, checkPath = checkPathPresent, domains, at } = {}) {
   const explicit = directory !== undefined && directory !== null && String(directory) !== '';
   const dir = explicit ? path.resolve(String(directory)) : process.cwd();
   let dirOk = false;
   try { dirOk = (await fsp.stat(dir)).isDirectory(); } catch { dirOk = false; }
+  const wanted = normalizeDomains(domains);
   if (!dirOk) {
-    return { report: buildReport({ directory: 'unavailable', directoryStatus: 'directoryUnavailable' }), exitCode: 1 };
+    return { report: buildReport({ directory: 'unavailable', directoryStatus: 'directoryUnavailable', at, domainsQueried: wanted }), exitCode: 1 };
   }
+  const want = (d) => wanted.includes(d);
   const safeQuery = async (route) => {
     try { return asResult(await query(route)); } catch { return { ok: false }; }
   };
+  // Skipped domains are never queried: fixed {ok:false} keeps them unknown
+  // (never false absence) and keeps coreQueriesOk false when core is skipped.
   const [agents, skills, mcps] = await Promise.all([
-    safeQuery(routeFor('/api/agent', dir)),
-    safeQuery(routeFor('/api/skill', dir)),
-    safeQuery(routeFor('/api/mcp', dir)),
+    want('agent') ? safeQuery(routeFor('/api/agent', dir)) : { ok: false },
+    want('skill') ? safeQuery(routeFor('/api/skill', dir)) : { ok: false },
+    want('mcp') ? safeQuery(routeFor('/api/mcp', dir)) : { ok: false },
   ]);
   const binaries = {};
   for (const n of TRACKED_BINARIES) {
     try { binaries[n] = await checkPath(n); } catch { binaries[n] = 'unknown'; }
   }
-  const report = buildReport({ directory: dir, agentResult: agents, skillResult: skills, mcpResult: mcps, binaries });
-  return { report, exitCode: report.coreQueriesOk ? 0 : 1 };
+  const report = buildReport({ directory: dir, agentResult: agents, skillResult: skills, mcpResult: mcps, binaries, at, domainsQueried: wanted });
+  // Full runs keep the historical core exit (mcp stays informational).
+  // Partial runs exit on the requested scope so `--only mcp` success is not
+  // forced to 1; `coreQueriesOk` still reports full-core confirmation and
+  // `partial` marks the result as not a full inventory.
+  const exitCode = report.partial ? (report.queriedOk ? 0 : 1) : (report.coreQueriesOk ? 0 : 1);
+  return { report, exitCode };
 }
+
+const INVENTORY_USAGE = 'usage: node scripts/capabilities.mjs [directory] [--only agent,skill,mcp]\n';
 
 async function main() {
   try {
-    const { report, exitCode } = await collectCapabilities({ directory: process.argv[2] });
+    const parsed = parseInventoryArgs(process.argv.slice(2));
+    if (parsed.help) {
+      process.stdout.write(INVENTORY_USAGE);
+      process.exit(0);
+      return;
+    }
+    if (parsed.invalid) {
+      process.stdout.write(`${JSON.stringify({ directory: 'unavailable', directoryStatus: 'directoryUnavailable', at: new Date().toISOString(), domainsQueried: [], partial: true, coreQueriesOk: false, queriedOk: false, notice: 'Read-only configuration inventory; invalid arguments, no queries performed.' }, null, 2)}\n`);
+      process.exit(1);
+      return;
+    }
+    const { report, exitCode } = await collectCapabilities({ directory: parsed.directory, domains: parsed.domains });
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     process.exit(exitCode);
   } catch {
-    process.stdout.write('{"directory":"unavailable","directoryStatus":"directoryUnavailable","coreQueriesOk":false}\n');
+    process.stdout.write(JSON.stringify({ directory: 'unavailable', directoryStatus: 'directoryUnavailable', at: new Date().toISOString(), domainsQueried: [], partial: true, coreQueriesOk: false, queriedOk: false, notice: 'Read-only configuration inventory; invalid arguments, no queries performed.' }));
+    process.stdout.write('\n');
     process.exit(1);
   }
 }

@@ -1,0 +1,7 @@
+{
+  "task": "Synthetic: find a setting",
+  "request": "Improve navigation without losing clarity",
+  "baseline": {"name":"A", "conditions":{"scenario":"find setting", "state":"signed in", "viewport":"mobile", "inputs":"touch", "environment":"mock"}, "provenance":"synthetic description, no capture", "minutes":10, "cost":0, "costUnit":"USD", "iterations":1},
+  "candidate": {"name":"B", "conditions":{"scenario":"find setting", "state":"signed in", "viewport":"mobile", "inputs":"touch", "environment":"mock"}, "provenance":"synthetic description, no capture", "minutes":20, "cost":0, "costUnit":"USD", "iterations":2},
+  "issues": [{"topic":"Findability", "preserve":"Clear labels", "counterevidence":"Synthetic user could not find setting", "userFeedback":"negative", "referenceJudgment":"unknown", "agentJudgment":"positive"}]
+}

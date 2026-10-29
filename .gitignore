@@ -11,3 +11,29 @@ design-previews/
 .opencode/skills/investigating-performance/
 .opencode/skills/reviewing-security/
 .opencode/skills/ux-heuristics-audit/
+# Local-only: absolute project config with a machine path + Decision opt-in
+# (allowDataTransfer). Tracking it would leak the operator path and auto-enable
+# the experiment on fresh clones. The canonical source stays in global/.
+/.opencode/opencode.json
+/.opencode/opencode.jsonc
+# Repository-local operating notes and instructions can contain machine- and
+# project-specific information. The portable examples are under examples/ and
+# global/. These ignores are not encryption or a substitute for staged review.
+/.harness-journal/
+/AGENTS.md
+# Local model weights are not part of the harness distribution.
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+# Local credential-bearing environment files; sample templates may be shared.
+.env
+.env.*
+!.env.example
+!.env.sample
+# Python bytecode (sidecar test artifacts, regenerated on demand).
+__pycache__/
+*.pyc
+*.pyo

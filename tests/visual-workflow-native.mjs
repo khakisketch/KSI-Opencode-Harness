@@ -1,5 +1,7 @@
 // Opt-in real Native transport/permission test with a LOCAL SCRIPTED model.
 // Proves skill activation and tool/image wiring, NOT model/design quality.
+// A scripted Native child explicitly reads synthetic project-local evidence;
+// it does not inherit the parent's receipt, review automatically, or judge pixels.
 // Own HOME, server, fake credentials, files and sessions; no shared reloads.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -27,8 +29,8 @@ await fs.writeFile(path.join(workspace, 'tokens.xml'), '<color name="primary">#1
 await fs.writeFile(path.join(workspace, 'before.png'), fixturePng());
 await fs.writeFile(path.join(workspace, 'after.png'), fixturePng(32, 24, 90));
 const password = randomBytes(20).toString('hex');
-const observations = [];
-let step = 0, deniedStep = 0, checks = 0;
+const observations = [], childObservations = [];
+let step = 0, childStep = 0, deniedStep = 0, followupStep = 0, firstReceiptID, checks = 0;
 function check(label, value) { assert.ok(value, label); checks++; console.log(`PASS ${label}`); }
 function strings(value) {
   if (typeof value === 'string') return [value];
@@ -40,16 +42,34 @@ const model = http.createServer(async (req, res) => {
   const chunks = []; for await (const chunk of req) chunks.push(chunk);
   const body = JSON.parse(Buffer.concat(chunks).toString());
   const flat = strings(body.messages).join('\n');
+  const userText = (body.messages ?? []).filter(m => m.role === 'user').flatMap(m => strings(m.content)).join('\n');
   const names = (body.tools ?? []).map(t => t.function?.name);
   await fs.writeFile(path.join(root, 'model-shape.json'), JSON.stringify({ keys: Object.keys(body), tools: body.tools?.map(t => ({ type: t.type, name: t.name, function: t.function?.name, namespace: t.namespace })) }, null, 2));
   const primary = names.includes('visual_prepare');
   let name, args, text = 'Fixture auxiliary response';
-  if (primary && flat.includes('NATIVE_VISUAL_DENIED')) {
+  if (userText.includes('NATIVE_VISUAL_CHILD_REVIEW')) {
+    childObservations.push({ step: childStep, hasGoal: flat.includes('Fixture overall recovery goal'),
+      hasScope: flat.includes('Fixture panel scope'), hasProblem: flat.includes('Original plan hierarchy problem'),
+      hasFeedback: flat.includes('Synthetic feedback: the plans look too similar'),
+      hasTokens: flat.includes('#123456'), imageCount: (flat.match(/data:image\/png;base64,/g) ?? []).length,
+      hasBeforeBytes: flat.includes(fixturePng().toString('base64')),
+      hasAfterBytes: flat.includes(fixturePng(32, 24, 90).toString('base64')) });
+    if (childStep === 0) { name = 'read'; args = { path: path.join(workspace, 'tokens.xml') }; }
+    else if (childStep === 1) { name = 'read'; args = { path: path.join(workspace, 'before.png') }; }
+    else if (childStep === 2) { name = 'read'; args = { path: path.join(workspace, 'after.png') }; }
+    else text = 'CHILD_SCRIPTED_TRANSPORT_ONLY: no visual judgment.';
+    childStep++;
+  } else if (primary && flat.includes('NATIVE_VISUAL_DENIED')) {
     if (deniedStep++ === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', resources: ['tokens.xml'] }; }
     else text = 'VISUAL_DENIAL_COMPLETE';
+  } else if (primary && flat.includes('NATIVE_VISUAL_FOLLOWUP')) {
+    if (followupStep === 0) { name = 'visual_review_single'; args = { receipt: firstReceiptID ?? 'missing', problem: 'Follow-up must invalidate earlier receipt' }; }
+    else if (followupStep === 1) { name = 'visual_prepare'; args = { target: 'Screen.kt' }; }
+    else text = 'VISUAL_FOLLOWUP_COMPLETE';
+    followupStep++;
   } else if (primary) {
-    observations.push({ step, hasSkill: flat.includes('SYNTHETIC_SKILL_TEST_MARKER'), hasRuntime: flat.includes('KSI visual tools'), hasTokens: flat.includes('#123456'), imageCount: (flat.match(/data:image\/png;base64,/g) ?? []).length });
-    if (step === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', resources: ['tokens.xml'] }; }
+    observations.push({ step, hasSkill: flat.includes('SYNTHETIC_SKILL_TEST_MARKER'), hasRuntime: flat.includes('KSI visual tools'), hasTokens: flat.includes('#123456'), hasDeclaredScope: flat.includes('Fixture overall recovery goal') && flat.includes('Fixture panel scope'), imageCount: (flat.match(/data:image\/png;base64,/g) ?? []).length });
+    if (step === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', resources: ['tokens.xml'], overallGoal: 'Fixture overall recovery goal', assignedScope: 'Fixture panel scope' }; }
     if (step === 1) { name = 'visual_capture'; args = { adapter: 'existing', path: 'before.png', state: 'mission', simulated: true, provenance: 'Synthetic fixture, not native UI' }; }
     if (step === 2) { name = 'read'; args = { path: path.join(workspace, 'Screen.kt') }; }
     if (step === 3) { name = 'edit'; args = { path: path.join(workspace, 'Screen.kt'), oldString: 'original', newString: 'revised' }; }
@@ -58,7 +78,15 @@ const model = http.createServer(async (req, res) => {
       const ids = [...new Set([...flat.matchAll(/"id"\s*:\s*"([0-9a-f-]{36})"/g)].map(m => m[1]))];
       name = 'visual_review'; args = { before: ids[0] ?? 'missing', after: ids[1] ?? 'missing', problem: 'Original plan hierarchy problem' };
     }
-    if (step >= 6) text = 'VISUAL_TRANSPORT_COMPLETE. No design acceptance is claimed.';
+    if (step === 6) {
+      const ids = [...new Set([...flat.matchAll(/"id"\s*:\s*"([0-9a-f-]{36})"/g)].map(m => m[1]))];
+      name = 'visual_review_single'; args = { receipt: ids[1] ?? 'missing', problem: 'New screen hierarchy' };
+    }
+    if (step === 7) {
+      name = 'subagent'; args = { agent: 'general', description: 'Review synthetic images',
+        prompt: `NATIVE_VISUAL_CHILD_REVIEW: Synthetic task only. Overall goal: Fixture overall recovery goal. Assigned scope: Fixture panel scope. Original problem: Original plan hierarchy problem. Synthetic feedback: the plans look too similar. Read tokens.xml and both project-local PNG files before.png and after.png using your own Native read permissions. Imported files and caller-declared scope do not prove build, device behavior or acceptance. Report transport only.` };
+    }
+    if (step >= 8) text = 'VISUAL_TRANSPORT_COMPLETE. No design acceptance is claimed.';
     step++;
   }
   const tool = name ? { id: `call_visual_${step}`, type: 'function', function: { name, arguments: JSON.stringify(args) } } : null;
@@ -107,7 +135,9 @@ try {
   await fs.writeFile(path.join(root, 'location.json'), JSON.stringify(locationInfo, null, 2));
   await api('POST', `/api/location/reload?${locationQuery}`, {});
   const session = await api('POST', '/api/session', { location: { directory: workspace }, agent: 'build', model: { providerID: 'fixture', id: 'fixture' } });
-  const prompt = 'NATIVE_VISUAL_CASE: 이 임무 화면 디자인을 개선해줘. Screen.kt와 tokens.xml이 실제 대상이다.';
+  // Component + visual action without the old explicit 화면/디자인 keywords:
+  // verifies the broadened route through real Native attachment resolution.
+  const prompt = 'NATIVE_VISUAL_CASE: 로그인 모달의 버튼이 너무 작아. 대비를 높여줘. Screen.kt와 tokens.xml이 실제 대상이다.';
   await api('POST', `/api/session/${session.id}/prompt`, { text: prompt });
   let messages;
   for (let i = 0; i < 160; i++) {
@@ -118,6 +148,7 @@ try {
   }
   await fs.writeFile(path.join(root, 'messages.json'), JSON.stringify(messages, null, 2));
   await fs.writeFile(path.join(root, 'model-observations.json'), JSON.stringify(observations, null, 2));
+  await fs.writeFile(path.join(root, 'child-observations.json'), JSON.stringify(childObservations, null, 2));
   const plugins = await api('GET', `/api/plugin?${locationQuery}`);
   await fs.writeFile(path.join(root, 'plugins.json'), JSON.stringify(plugins, null, 2));
   check('real plugin loaded', plugins.some(p => p.id === 'ksi.visual-workflow' && p.state.status === 'active'));
@@ -128,10 +159,42 @@ try {
   check('runtime context reaches the model', observations[0]?.hasRuntime);
   check('actual design resource reaches the following model call', observations.some(o => o.hasTokens));
   const calls = messages.filter(m => m.type === 'assistant').flatMap(m => m.content ?? []).filter(p => p.type === 'tool');
-  for (const name of ['visual_prepare', 'visual_capture', 'visual_review']) check(`actual Native ${name} completes`, calls.some(p => p.name === name && p.state?.status === 'completed'));
+  for (const name of ['visual_prepare', 'visual_capture', 'visual_review', 'visual_review_single']) check(`actual Native ${name} completes`, calls.some(p => p.name === name && p.state?.status === 'completed'));
+  check('declared overall goal and assigned scope reach subsequent model input', observations.some(o => o.hasDeclaredScope));
+  for (const name of ['visual_review', 'visual_review_single']) {
+    const call = calls.find(p => p.name === name && p.state?.status === 'completed');
+    const packet = JSON.parse(call.state.content.find(c => c.type === 'text').text);
+    check(`${name} retains unverified declared goal and scope`, packet.declaredScope?.overallGoal === 'Fixture overall recovery goal'
+      && packet.declaredScope?.assignedScope === 'Fixture panel scope' && packet.declaredScope?.provenance?.includes('unverified')
+      && packet.acceptance === 'not-evaluated');
+  }
   check('implementation source actually changed', (await fs.readFile(path.join(workspace, 'Screen.kt'), 'utf8')).includes('revised'));
   check('actual PNG images reach model input', observations.some(o => o.imageCount >= 2));
+  const delegated = calls.find(p => p.name === 'subagent' && p.state?.status === 'completed' && strings(p.state?.input).some(s => s.includes('NATIVE_VISUAL_CHILD_REVIEW')));
+  check('actual Native fresh subagent call completes', Boolean(delegated));
+  check('child input has original problem, declared goal and scope, and synthetic feedback', childObservations.some(o => o.hasProblem && o.hasGoal && o.hasScope && o.hasFeedback));
+  check('child separately reads product source into its model input', childObservations.some(o => o.hasTokens));
+  check('child separately reads both exact project-local image fixtures into its model input', childObservations.some(o => o.imageCount >= 2 && o.hasBeforeBytes && o.hasAfterBytes));
+  check('scripted child claims transport only, not a design verdict', strings(delegated?.state?.content).some(s => s.includes('CHILD_SCRIPTED_TRANSPORT_ONLY')));
   check('bounded Native tool loop reaches final response', strings(messages).some(s => s.includes('VISUAL_TRANSPORT_COMPLETE')));
+  const firstCapture = calls.find(p => p.name === 'visual_capture' && p.state?.status === 'completed');
+  firstReceiptID = JSON.parse(firstCapture.state.content.find(c => c.type === 'text').text).id;
+  const followupPrompt = 'NATIVE_VISUAL_FOLLOWUP: Review this revised UI task without changing files.';
+  await api('POST', `/api/session/${session.id}/prompt`, { text: followupPrompt });
+  let followupMessages;
+  for (let i = 0; i < 100; i++) {
+    await sleep(250);
+    const result = await api('GET', `/api/session/${session.id}/message`);
+    followupMessages = Array.isArray(result) ? result : result.messages;
+    if (strings(followupMessages).some(s => s.includes('VISUAL_FOLLOWUP_COMPLETE'))) break;
+  }
+  const followupCalls = followupMessages.filter(m => m.type === 'assistant').flatMap(m => m.content ?? []).filter(p => p.type === 'tool');
+  const staleCall = followupCalls.find(p => p.name === 'visual_review_single' && p.state?.input?.problem === 'Follow-up must invalidate earlier receipt');
+  check('later user message invalidates prior task receipt', staleCall?.state?.status === 'error');
+  const latestPrepare = followupCalls.find(p => p.name === 'visual_prepare' && p.state?.status === 'completed');
+  const latestPacket = JSON.parse(latestPrepare.state.content.find(c => c.type === 'text').text);
+  check('re-preparation observes the latest user message', latestPacket.originalRequest === followupPrompt);
+  check('follow-up scripted loop completes', strings(followupMessages).some(s => s.includes('VISUAL_FOLLOWUP_COMPLETE')));
   const denied = await api('POST', '/api/session', { location: { directory: workspace }, agent: 'build', model: { providerID: 'fixture', id: 'fixture' },
     permissions: [{ action: 'read', resource: '*', effect: 'deny' }, { action: 'edit', resource: '*', effect: 'deny' }] });
   await api('POST', `/api/session/${denied.id}/prompt`, { text: 'NATIVE_VISUAL_DENIED: Improve this UI screen.' });

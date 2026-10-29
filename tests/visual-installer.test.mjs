@@ -1,6 +1,6 @@
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, stat, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -51,6 +51,52 @@ it('refuses a modified managed file without partially changing other files', asy
   assert.notEqual(h.run().status, 0); assert.notEqual(h.run('--verify').status, 0);
   assert.deepEqual(await readFile(path.join(h.target, 'index.ts')), index);
   assert.equal(await readFile(path.join(h.target, 'runtime.mjs'), 'utf8'), '// user edit');
+});
+it('does not recreate a missing manifest-recorded file or change other files', async () => {
+  const h = await fixture(); assert.equal(h.run().status, 0);
+  const index = await readFile(path.join(h.target, 'index.ts'));
+  const manifest = await readFile(path.join(h.target, '.ksi-install.json'));
+  await unlink(path.join(h.target, 'runtime.mjs'));
+  const install = h.run();
+  assert.notEqual(install.status, 0); assert.match(install.stderr, /missing/);
+  assert.notEqual(h.run('--verify').status, 0);
+  await assert.rejects(stat(path.join(h.target, 'runtime.mjs')), { code: 'ENOENT' });
+  assert.deepEqual(await readFile(path.join(h.target, 'index.ts')), index);
+  assert.deepEqual(await readFile(path.join(h.target, '.ksi-install.json')), manifest);
+  assert.deepEqual((await readdir(h.target)).sort(), ['.ksi-install.json', 'index.ts']);
+});
+it('refuses a relative XDG_CONFIG_HOME before writing in the working directory', async () => {
+  const h = await fixture(); const workdir = await mkdtemp('/tmp/opencode/ksi-visual-installer-cwd-');
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
+    cwd: workdir, env: { ...process.env, HOME: h.root, XDG_CONFIG_HOME: 'relative-config' }, encoding: 'utf8',
+  });
+  const install = run(); assert.notEqual(install.status, 0); assert.match(install.stderr, /XDG_CONFIG_HOME/);
+  assert.notEqual(run('--verify').status, 0);
+  assert.deepEqual(await readdir(workdir), []);
+});
+it('treats an empty XDG_CONFIG_HOME as unset, using HOME rather than the working directory', async () => {
+  const h = await fixture(); const workdir = await mkdtemp('/tmp/opencode/ksi-visual-installer-empty-');
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
+    cwd: workdir, env: { ...process.env, HOME: h.root, XDG_CONFIG_HOME: '' }, encoding: 'utf8',
+  });
+  const install = run(); assert.equal(install.status, 0, install.stderr);
+  assert.equal(run('--verify').status, 0);
+  assert.ok((await stat(path.join(h.root, '.config/opencode/plugins/ksi-visual-workflow/runtime.mjs'))).isFile());
+  assert.deepEqual(await readdir(workdir), []);
+});
+it('refuses to install or verify alongside unknown plugin entrypoints', async () => {
+  for (const alreadyManaged of [false, true]) {
+    const h = await fixture();
+    if (alreadyManaged) assert.equal(h.run().status, 0);
+    else await mkdir(h.target, { recursive: true });
+    const extra = path.join(h.target, 'server.ts');
+    await writeFile(extra, '// preserve unrelated entrypoint\n');
+    const before = (await readdir(h.target)).sort();
+    const install = h.run(); assert.notEqual(install.status, 0); assert.match(install.stderr, /unmanaged|partial/);
+    assert.notEqual(h.run('--verify').status, 0);
+    assert.equal(await readFile(extra, 'utf8'), '// preserve unrelated entrypoint\n');
+    assert.deepEqual((await readdir(h.target)).sort(), before);
+  }
 });
 it('refuses unmanaged files even when their bytes equal current source', async () => {
   const h = await fixture(); await mkdir(h.target, { recursive: true });

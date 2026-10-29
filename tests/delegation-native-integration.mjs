@@ -1041,9 +1041,9 @@ async function main() {
   check("source role modes match contract (plan all; lead/general/explore subagent)", true);
 
   // --- 1b. Source contract: exact model preferences and skill sets.
-  // Plan uses OpenAI Sol High; execution workers retain Muse preferences.
+  // Plan uses Sol High, Lead uses Terra Medium, and bounded workers retain Muse preferences.
   const WANT_MODELS = {
-    "lead.md": "opencode-go/muse-spark-1.3-contributor#xhigh",
+    "lead.md": "openai/gpt-6.1-terra#medium",
   };
   let modelsOk = true;
   for (const [file, want] of Object.entries(WANT_MODELS)) {
@@ -1058,7 +1058,7 @@ async function main() {
   for (const [id, want] of Object.entries(WANT_JSON_MODELS)) {
     if (srcAgents[id]?.model !== want) { modelsOk = false; note(`model drift agents.${id}`, `got=${srcAgents[id]?.model} want=${want}`); }
   }
-  check("source models match configured preferences (Sol Plan, Muse workers)", modelsOk);
+  check("source models match configured preferences (Sol Plan, Terra Lead, Muse workers)", modelsOk);
   if (!modelsOk) { failClosed("CONTRACT-MISMATCH: source model drift", "see model drift notes"); return void finish(); }
   // Build root carries no forced model: caller/session selection applies.
   check("source forces no model on build root (no top-level or build model)",
@@ -1308,10 +1308,7 @@ async function main() {
           research: { sha256: "e2df56022a47c20c17632ba135f7b73c7f066263b37bd93084cb51acce680854" },
           critic: { sha256: "6b4fa4df05845b312680b9691fef0743938c1e15da3a622cf9bf6132d31c6ac7" },
         },
-        locations: [
-          "/tmp/opencode/ksi-native-lead-deploy-wpt16al1/working-before/global/agents/",
-          "/tmp/opencode/ksi-native-lead-deploy-wpt16al1/installed-before/agents/",
-        ],
+        locations: "Private local backup paths are not portable and are omitted from this public source.",
       },
     }, null, 1));
 
