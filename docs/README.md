@@ -17,6 +17,8 @@
 | [검증](validation.md) | 현재 검증 범위와 한계를 볼 때 | 최근 검사 결과, Sol Build trial 결과, 아직 입증되지 않은 것 |
 | [ai-memory](ai-memory.md) | 장기 기억을 연결·운용할 때 | 전역 설치, 에이전트별 연결, 프로젝트 마커, 보안·해제 |
 | [시각 작업 도구](visual-workflow.md) | UI 작업의 실행 연결을 확인할 때 | 공식 스킬 attachment, 실제 자원 패킷, 캡처·전후 비교, 권한·증거 한계 |
+| [내장 목표](native-goal.md) | Build 목표 사용법과 Lead 기본 목표 연결을 볼 때 | 승인된 방향과 세션별 반복·설치·중단·검증 한계 |
+| [Native Decision](native-decision.md) | 판단 보조와 현재 연결 상태를 볼 때 | 승인된 방향과 API 관찰, 권한·전송·연결 한계 |
 | [오프라인 UX 비교 보조](ux-evaluation.md) | 사용자 피드백과 에이전트 판단의 차이를 정리할 때 | 선택형 stdin 도구, 비교 조건과 출처·판단 구분, 자동 수용 없음 |
 | [기능 목록과 세션 실행 증거](workflow-evidence.md) | 사용 가능한 기능이나 현재 작업의 검증 흔적을 확인할 때 | 선택형 조회, 순서·권한·증거 한계 |
 

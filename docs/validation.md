@@ -1,6 +1,6 @@
 # 검증과 한계
 
-> **기록 (2026-10-29):** Decision은 운영에서 제거됐습니다. 배포 호스트에서 시각 어댑터의 설치 파일 일치와 당시 세션의 네 도구 합성 자료 연결을 확인했습니다. 앞선 `visual_prepare` 호출 두 번은 `original user request is unavailable`로 실패했고 새 요청 후 성공했지만, 실패의 근본 원인과 다른 상황의 영향은 미확인입니다. 아래 **742/742** 전체 회귀는 이전 시점의 역사 기록이지 이번 변경 후 전체 재실행 결과가 아닙니다. 실제 제품 디자인 개선과 장기 효과는 미입증입니다.
+> **기록 (2026-10-29):** 자체 Decision 도구는 운영에서 제거됐으며, 새 Native Decision 보조는 명시적인 위치·제공자 동의와 권한이 필요한 선택형 소스 연결입니다. Lead Goal 자동 시작은 미구현이고 전경 상태 전달만 부분 구현했습니다. 두 연결은 clone만으로 설치되지 않으며 실모델의 자율 사용과 실제 제공자 성공은 미확인입니다. 이전 배포 호스트에서 시각 어댑터의 설치 파일 일치와 당시 세션의 네 도구 합성 자료 연결을 확인했습니다. 앞선 `visual_prepare` 호출 두 번의 근본 원인은 미확인입니다. 아래 **742/742** 전체 회귀는 이전 시점의 기록이지 최신 변경 후 전체 재실행 결과가 아닙니다. 실제 제품 디자인 개선과 장기 효과는 미입증입니다.
 
 이 문서는 **현재 검증의 범위와 한계**만 요약합니다. 변경 시점의 상세 배포·시험 서사는 덜어내고 최신 결론·근거·미입증 사항만 둡니다. 2026-10-26 이전의 상세 역할·모델·스킬·배포 이력은 [문서 이력](archive/2026-10-26/README.md)에 보존했습니다.
 
@@ -20,6 +20,7 @@
 | 시각 도구 격리 Native | **28/28** | 합성 PNG·스킬·scripted 모델: 네 도구와 후속 요청/read 거부, 별도 자식의 과업·합성 피드백 수신 및 자체 소스·이미지 읽기. 자동 첨부·실제 시각 판단의 증거가 아님 |
 | 기능 목록 도구 | **단위·설치기 76/76, 격리 Native 26/26** | 합성 도구·스킬·위치 격리·MCP 선택 조회; 전역 설치 파일 일치와 이 세션의 `agent`·`tool` 선택 조회 확인. 목록에는 시각 도구 네 개도 등록돼 있었으나 등록은 사용 권한·성공 보장이 아님 |
 | 세션 증거 도구 | **단위·설치기 80/80, 격리 Native 1/1** | 시간 동률·위치·실제 Native 실패 출력·입력 예산을 합성 자료로 확인. 전역 파일 일치와 이 세션의 선택 호출 확인; 결과는 후보·단서이지 검사 성공 판정이 아님 |
+| Native Goal·Decision 보조 | **소스 부분 연결 / 격리 합성 확인** | 수동 주입한 Lead Goal의 `paused` 사유가 전경 첫 위임과 기존 자식 후속 위임에 전달됨. Build·합성 Lead의 Native Decision 가짜 응답과 권한 거부·동의 부재 시 미전송 확인. 자동 Goal 시작·백그라운드 상태 전달과 실제 모델의 자율 사용·실제 제공자 성공은 미구현 또는 미확인. [Goal](native-goal.md) · [Decision](native-decision.md) |
 | 배포 경계 정적 검사 | **3/3** | 합성 Git 저장소의 ignore 정책, 현재 공개 안내의 로컬 전용 참조 제거, 감사 core 존재를 확인. 실제 staged 내용이나 공개 배포물 검사는 아님 |
 | 시각 어댑터 전역 적용 | **설치 파일 일치 / 당시 세션 합성 연결 확인** | 배포 호스트에서 `--verify` 후 `visual_prepare`, 두 합성 PNG 등록, `visual_review`·`visual_review_single`의 이미지·재확인된 선택 자원 반환을 확인. 앞선 요청 부재 오류의 원인은 미확인; 다른 세션 receipt는 재로드로 무효화될 수 있음 |
 | 오프라인 UX 비교 보조 | **선택 검사 포함 / 실제 비교 미실시** | 별도 저장소 CLI를 합성 기록으로만 검사. 출처·피드백 진위, 모델 우위·제품 수용을 검증하지 않음 |
@@ -45,6 +46,16 @@ node tests/agent-routing-native.mjs
 # 격리 Native 위임·복구·병렬·세션 제한 통합 검사 (로컬 fixture 모델)
 node tests/delegation-native-integration.mjs
 
+# 선택: Goal 상태·Native Decision 보조 단위 검사 (모의 SDK)
+node --test tests/native-lead-goal-status.test.mjs tests/native-decision-bridge.test.mjs
+
+# 선택: 수동 Goal 주입 및 Native Decision 연결 (격리 서버·가짜 제공자)
+node tests/native-lead-goal-native.mjs
+node tests/native-decision-host.mjs
+
+# 선택: 목표 안내의 scripted Build·Lead 입력 전달
+node tests/native-goal-guidance-integration.mjs
+
 # 격리 Native 시각 도구 연결 (합성 스킬·PNG, 로컬 scripted 모델)
 node tests/visual-workflow-native.mjs
 
@@ -64,7 +75,7 @@ node --test tests/session-audit.test.mjs tests/session-evidence-native.test.mjs 
 - **소스·설치:** 2026-10-29 배포 호스트에서 선택 발췌·현재 자원 재확인·검토 맥락 전달을 포함한 시각 플러그인 파일과 전역 설치본이 일치했습니다. 다른 환경의 설치·활성 여부는 별도 확인해야 합니다.
 - **등록·활성:** 당시 배포 호스트의 목록에서 `ksi.visual-workflow`와 네 시각 도구 ID가 보였고, 별도로 해당 요청의 `visual_prepare`와 합성 PNG 등록·전후 및 단일 검토 호출이 성공해 선택 자원·이미지와 `acceptance: not-evaluated`를 반환했습니다. 합성 PNG는 제품 화면이 아닙니다. 그 전 `visual_prepare` 두 호출은 `original user request is unavailable`로 실패했고 최소 입력도 같았습니다. 새 요청 후 성공한 사실만으로 실패 원인이나 다른 세션의 영향을 단정할 수 없습니다. 요청이 없는 합성 context에서는 오류로 중단하는 단위 사례를 확인했지만 실제 실패의 원인이라고 단정할 수 없습니다. 당시 세션 context를 명시적 로컬 API로 확인하려던 읽기 요청은 인증 거부로 막혔으며 인증을 우회하지 않았습니다. 공유 서비스 재시작·권한/자격증명 변경은 하지 않았습니다. 상세 절차는 [설치 안내](installation.md)를 따릅니다.
 - **병합 판정:** `opencode.jsonc`는 수동 병합이 정상이고, ai-memory 선택 항목(`mcp.servers.ai-memory`) 때문에 정본과 바이트가 다를 수 있습니다. 역할·권한은 바이트 일치가 아니라 설치본 검사로 확인합니다. 기존 **146/146**은 이전 시점의 결과이며 이후 Lead 모델 변경 후 전체 검사를 재실행한 근거는 없습니다.
-- **배포 provenance:** 위임 중심 강화 당시 source 수정은 Lead가 맡고 Build가 검토·통합·전역 배포했습니다. 전역 config는 Build 설명만 바꿔 ai-memory 등 MCP·모델·권한을 보존했고, 공통 지침·Lead 설치본은 정본과 바이트 일치합니다. 공유 서비스 재시작·강제 reload 없이 PID를 유지했습니다.
+- **배포 provenance:** 위임 중심 강화 당시 source 수정은 Lead가 맡고 Build가 검토·통합·전역 배포했습니다. 당시 전역 config는 Build 설명만 바꿔 ai-memory 등 MCP·모델·권한을 보존했고, 공통 지침·Lead 설치본은 당시 정본과 일치했습니다. 이후 Goal·Decision 지침은 소스에서만 변경됐습니다. 당시 공유 서비스 재시작·강제 reload 없이 PID를 유지했습니다.
 
 ## 시각 작업 어댑터 (2026-10-27)
 

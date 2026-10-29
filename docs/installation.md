@@ -24,6 +24,11 @@
 | `global/plugins/ksi-capabilities-inventory/` | `~/.config/opencode/plugins/ksi-capabilities-inventory/` | 필요할 때만 호출하는 기능 목록 도구 |
 | `global/plugins/ksi-session-evidence/` | `~/.config/opencode/plugins/ksi-session-evidence/` | 필요할 때만 호출하는 세션 증거 요약과 공유 감사 core |
 
+Lead Goal 상태 전달과 Native Decision 보조 연결은 저장소 소스로 제공됩니다. 내려받기만으로
+전역에 설치되거나 활성화되지는 않습니다. 특히 상태
+전달만으로 Lead Goal이 자동 시작되지는 않습니다. 각각의 현재 상태와 데이터 전송 조건은
+[Native Goal](native-goal.md)과 [Native Decision](native-decision.md)을 확인하세요.
+
 `global/opencode.jsonc`의 Context7·Mobbin MCP는 선택 기능입니다. API 키·OAuth 토큰·유료 구독은 사용자별이며 저장소에 포함되지 않습니다. 현재 정본은 사용자의 선택으로 Mobbin을 켜 두었으며, 사용하지 않으면 `disabled: true`로 끕니다. Mobbin 없이도 하네스는 동작합니다.
 
 > [!CAUTION]
