@@ -4,7 +4,7 @@
 // Run: `node --test tests/session-evidence-installer.test.mjs`
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir, realpath } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const script = fileURLToPath(new URL('../scripts/install-session-evidence.mjs', import.meta.url));
 const pluginId = 'ksi-session-evidence';
 async function fixture() {
-  const root = await mkdtemp('/tmp/opencode/ksi-session-evidence-installer-');
+  const root = await realpath(await mkdtemp('/tmp/opencode/ksi-session-evidence-installer-'));
   const target = path.join(root, `opencode/plugins/${pluginId}`);
   const run = (...args) => spawnSync(process.execPath, [script, ...args], { env: { ...process.env, XDG_CONFIG_HOME: root }, encoding: 'utf8' });
   return { root, target, run };

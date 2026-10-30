@@ -25,3 +25,31 @@ test('ignores mismatched resumed, background, unrelated and wrong-parent calls',
   }
   const e = event(); await annotate(e, { getSession: async () => ({ parentID: 'another', agent: 'lead' }), getGoal: () => { throw Error('must not read'); } }); assert.equal(e.result.content, 'child output');
 });
+
+test('fails closed on unverified identity and malformed native responses', async () => {
+  for (const getSession of [async () => { throw Error('unavailable'); }, async () => ({ parentID: 'parent', agent: 'general' })]) {
+    const e = event(); let reads = 0;
+    await annotate(e, { getSession, getGoal: async () => { reads++; return null; } });
+    assert.equal(reads, 0);
+    if (e.result.content !== 'child output') assert.match(e.result.content, /unknown/);
+  }
+  for (const goal of [undefined, {}, { status: 'done' }, { status: 'complete', reason: 42 }]) {
+    const e = event(); await annotate(e, { getSession: session, getGoal: async () => goal });
+    assert.match(e.result.content, /unknown/);
+    assert.doesNotMatch(e.result.content, /Goal snapshot: complete/);
+  }
+});
+
+test('preserves array content and metadata; only completed foreground results are eligible', async () => {
+  const e = event(); e.result.content = [{ type: 'text', text: 'original' }];
+  const metadata = e.result.metadata;
+  await annotate(e, { getSession: session, getGoal: async () => null });
+  assert.deepEqual(e.result.content[0], { type: 'text', text: 'original' });
+  assert.match(e.result.content[1].text, /not set/);
+  assert.equal(e.result.metadata, metadata);
+  for (const change of [e => { e.status = 'error'; }, e => { e.result.metadata.status = 'running'; }, e => { delete e.result.metadata.sessionID; }]) {
+    const x = event(); change(x); let reads = 0;
+    await annotate(x, { getSession: async () => { reads++; }, getGoal: async () => { reads++; } });
+    assert.equal(reads, 0); assert.equal(x.result.content, 'child output');
+  }
+});

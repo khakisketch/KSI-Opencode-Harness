@@ -1,6 +1,6 @@
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir, realpath } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('../scripts/install-visual-workflow.mjs', import.meta.url));
 async function fixture() {
-  const root = await mkdtemp('/tmp/opencode/ksi-visual-installer-');
+  const root = await realpath(await mkdtemp('/tmp/opencode/ksi-visual-installer-'));
   const target = path.join(root, 'opencode/plugins/ksi-visual-workflow');
   const run = (...args) => spawnSync(process.execPath, [script, ...args], { env: { ...process.env, XDG_CONFIG_HOME: root }, encoding: 'utf8' });
   return { root, target, run };

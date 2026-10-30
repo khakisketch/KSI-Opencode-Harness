@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readFile, symlink, mkdir, unlink } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, symlink, mkdir, unlink, realpath } from 'node:fs/promises';
 import { renameSync, symlinkSync } from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
@@ -123,7 +123,8 @@ describe('bounded PNG evidence', () => {
 });
 
 async function harness({ deny, capture } = {}) {
-  const root = await mkdtemp('/tmp/opencode/ksi-visual-unit-');
+  // Permission assertions use canonical paths, including on macOS where /tmp is a link.
+  const root = await realpath(await mkdtemp('/tmp/opencode/ksi-visual-unit-'));
   await writeFile(path.join(root, 'Screen.kt'), 'fun screen() = "original"\n');
   await writeFile(path.join(root, 'tokens.xml'), '<color name="primary">#123456</color>');
   await writeFile(path.join(root, 'before.png'), fixturePng());
@@ -382,6 +383,24 @@ describe('visual runtime tools and Native boundaries', () => {
     const a = h.data(await h.call('visual_capture', input)), b = h.data(await h.call('visual_capture', input));
     assert.notEqual(a.file, b.file); assert.deepEqual(await readFile(a.file), fixturePng());
     assert.match(a.sourceHashMeaning, /not proof/); assert.equal(typeof a.registeredAt, 'number');
+  });
+  it('uses the canonical temporary parent before authorizing an emulator capture on macOS', { skip: process.platform !== 'darwin' }, async () => {
+    const root = await realpath(await mkdtemp('/tmp/opencode/ksi-visual-tmp-link-'));
+    const actual = path.join(root, 'actual'), alias = path.join(root, 'alias');
+    await mkdir(actual); await symlink(actual, alias);
+    const previous = process.env.TMPDIR;
+    try {
+      process.env.TMPDIR = alias;
+      const h = await harness({ capture: async () => fixturePng() }); await h.prepare();
+      const input = { adapter: 'android-emulator', serial: 'emulator-5560', state: 'flight', simulated: true, provenance: 'synthetic test transport' };
+      const receipt = h.data(await h.call('visual_capture', input));
+      assert.ok(receipt.file.startsWith(actual + path.sep));
+      assert.ok(h.permissions.some(p => p.action === 'edit' && p.resources.includes(receipt.file)));
+      assert.deepEqual(await readFile(receipt.file), fixturePng());
+    } finally {
+      if (previous === undefined) delete process.env.TMPDIR;
+      else process.env.TMPDIR = previous;
+    }
   });
   it('disposes only its own registrations', async () => {
     const h = await harness(); await h.close(); assert.deepEqual(h.disposed, ['context', 'prompt', 'tools']);

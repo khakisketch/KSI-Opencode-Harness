@@ -308,7 +308,9 @@ export async function setupVisualWorkflow(ctx, deps = {}) {
       let file;
       if (input.adapter === 'existing') file = path.resolve(root, origin);
       else {
-        if (!artifacts) artifacts = path.join(process.platform === 'linux' ? '/tmp/opencode' : os.tmpdir(), `ksi-visual-${randomUUID()}`);
+        // Resolve the operator's temporary parent before the Native edit check.
+        // macOS commonly supplies /var/... as a symlink to /private/var/....
+        if (!artifacts) artifacts = path.join(process.platform === 'linux' ? '/tmp/opencode' : await realpath(os.tmpdir()), `ksi-visual-${randomUUID()}`);
         file = path.join(artifacts, `${id}.png`);
         await permission(ctx, tc, 'edit', [file]);
         if (!artifactsReady) { await mkdir(artifacts, { mode: 0o700 }); artifactsReady = true; }

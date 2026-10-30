@@ -220,15 +220,28 @@ node scripts/install-session-evidence.mjs --verify
 | Impeccable | 사용자 전역 설치 위치에서 공식 `npx impeccable update`; 제공자별 파일·엔진·hook은 설치기가 관리 |
 | skills CLI로 설치한 스킬 | 공식 `npx skills update -g` 또는 대상 스킬 지정; 관리 기록의 소스·고정 ref가 적용되므로 새 릴리스로 이동하려면 공식 `skills add`로 선택한 ref를 갱신 |
 | Playwright CLI의 스킬 | 패키지 관리자로 `npm update -g @playwright/cli`; Node 설치 위치 변경 시 공식 설치·스킬 연결 안내로 재확인 |
-| ai-memory | 데이터·설정 백업 후 공식 `ai-memory upgrade`, ai-memory 서비스 재시작·확인. 하네스 설치기는 기준 버전보다 최신인 바이너리를 낮춰 설치하지 않음. [상세](ai-memory.md#업데이트) |
+| ai-memory | 이 Mac의 연결·복구는 [현재 운영 안내](ai-memory.md#이-mac의-현재-연결-2026-10-30)를 따름. 다른 환경의 갱신은 데이터·설정과 서비스 범위를 확인한 뒤 수행하며, 이전 systemd 환경의 [갱신 기록](ai-memory.md#업데이트)을 이 Mac의 명령으로 사용하지 않음. |
 | 직접 복사한 외부 원본 | 원래 출처의 업데이트·설치 방법 사용; 관리 도구에 등록되지 않은 사본까지 자동 갱신된다고 가정하지 않음 |
 | 로컬 통합 가이드 | `mobbin-design` 등은 공식 배포본의 자동 갱신 대상이 아님; 외부 원본 도입과 구분 |
 
 **skills 1.7.4 주의:** 문서에서는 `skills check`를 확인 전용으로 설명하지만, 확인한 설치본의 dispatch는 `check`를 `update`와 같은 경로로 보냅니다. 읽기 전용 조사에서 `check -g`를 실행하지 않습니다. 조사에는 관리 기록·원본 Git 트리·패키지 메타데이터를 사용합니다. 실제 갱신은 사용자 승인 후 `update -g -y`로 실행했습니다. 버전별 CLI의 동작을 확인하고 사용하세요. [공식 명령 안내](https://github.com/vercel-labs/skills/blob/main/docs/commands.md).
 
-## 선택: ai-memory 전역 기억
+## 선택: ai-memory 장기 기억
 
-에이전트 간 장기 기억이 필요하면 ai-memory를 별도 계층으로 연결할 수 있습니다. 하네스의 역할·제품 정본을 대체하지 않습니다.
+ai-memory는 하네스의 역할·제품 정본을 대체하지 않는 별도 계층입니다. 이 Mac에는 사용자가
+승인한 프로젝트 로컬 MCP가 이미 연결되어 있으며 자동 수집은 없습니다. 사용·범위·상태 확인·복구는
+[현재 운영 안내](ai-memory.md#이-mac의-현재-연결-2026-10-30)를 따릅니다.
+
+> [!CAUTION]
+> 아래 명령은 OpenCode 외에 Claude Code·Codex도 연결하는 **systemd 환경의 예시**입니다. macOS에서는
+> 서비스가 자동 시작되지 않습니다. 특히 OpenCode 2.2.1·ai-memory 3.2.10의 격리 시험에서 세션 이동 시
+> 대상 프로젝트의 기억이 다른 마커 프로젝트로 재분류됐으므로, `allowlist`만으로 한 프로젝트의 자동
+> 수집 경계를 보장하지 않습니다. 해당 범위에서는 검증 없이 자동 훅을 켜지 마세요.
+> 정적 프로젝트 로컬 MCP 설정도 하위의 별도 중첩 저장소에 상속될 수 있습니다. 조건부 등록 시험에서도
+> linked worktree와 이미 로드된 위치의 저장소 변경에 대한 반례가 나왔습니다. 사용자는 이 제한을
+> 이해한 뒤 이 Mac에서 자동 훅 없이 공식 MCP 연결을 승인했습니다. 현재 운영 상태와 복구 방법은
+> [ai-memory 안내](ai-memory.md#이-mac의-현재-연결-2026-10-30)에 기록합니다. 아래 systemd 설치기를
+> 이 Mac의 연결을 복원하는 명령으로 사용하지 마세요.
 
 ```sh
 node scripts/install-ai-memory.mjs
@@ -240,8 +253,6 @@ node scripts/install-ai-memory.mjs --verify
 - **allowlist:** `.ai-memory.toml`이 있는 저장소만 수집합니다.
 - cloud LLM·임베딩·프로젝트 간 profile·자동 압축은 끕니다.
 - Codex는 새 hook을 한 번 신뢰해야 합니다. Claude Code는 MCP 사용 전 로그인이 필요할 수 있습니다.
-
-수동 병합 때는 기존 `mcp.servers.ai-memory` 항목을 유지하세요. 전체 교체로 해당 항목이 사라졌다면 이후 `node scripts/install-ai-memory.mjs`를 다시 실행해 복원하세요. 프로젝트 마커, 보안 한계, 해제 방법은 [ai-memory 안내](ai-memory.md)를 참고하세요.
 
 ## 더 보기
 

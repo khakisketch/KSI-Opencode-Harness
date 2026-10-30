@@ -15,7 +15,7 @@
 | [설치 안내](installation.md) | 내 컴퓨터에 적용할 때 | 적용 파일, 백업, 설치 절차, 확인, 되돌리기 |
 | [프로젝트 지식과 상태](project-knowledge.md) | 프로젝트 문서를 정리할 때 | 제품 정본·상태 원장·결정 이력·세션 체크포인트의 책임 |
 | [검증](validation.md) | 현재 검증 범위와 한계를 볼 때 | 최근 검사 결과, Sol Build trial 결과, 아직 입증되지 않은 것 |
-| [ai-memory](ai-memory.md) | 장기 기억을 연결·운용할 때 | 전역 설치, 에이전트별 연결, 프로젝트 마커, 보안·해제 |
+| [ai-memory](ai-memory.md) | 장기 기억을 연결·운용할 때 | 이 Mac의 프로젝트 연결·사용·범위와 이전 설치 이력 |
 | [시각 작업 도구](visual-workflow.md) | UI 작업의 실행 연결을 확인할 때 | 공식 스킬 attachment, 실제 자원 패킷, 캡처·전후 비교, 권한·증거 한계 |
 | [내장 목표](native-goal.md) | Build 목표 사용법과 Lead 기본 목표 연결을 볼 때 | 승인된 방향과 세션별 반복·설치·중단·검증 한계 |
 | [Native Decision](native-decision.md) | 판단 보조와 현재 연결 상태를 볼 때 | 승인된 방향과 API 관찰, 권한·전송·연결 한계 |
