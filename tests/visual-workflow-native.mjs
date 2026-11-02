@@ -17,7 +17,9 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { fixturePng } from './helpers/visual-fixture.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const root = await fs.mkdtemp(path.join(await fs.realpath(os.homedir()), '.ksi-visual-native-'));
+// Keep the workspace outside the operator's HOME ancestry. Native discovers
+// ancestor .agents/skills too, which otherwise can override the fake HOME skill.
+const root = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'ksi-visual-native-'));
 const home = path.join(root, 'home'), workspace = path.join(root, 'project');
 const cfg = path.join(home, '.config/opencode');
 await fs.mkdir(workspace, { recursive: true });

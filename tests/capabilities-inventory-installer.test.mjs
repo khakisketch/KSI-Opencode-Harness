@@ -1,28 +1,28 @@
-// capabilities-inventory-installer.test.mjs — isolated XDG fixture only.
-// Never touches the real global installation. Uses a temp XDG_CONFIG_HOME
-// per fixture, mirroring the visual installer safety pattern.
+// Project-only installer fixtures; never touches the real global installation.
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile, stat, symlink, unlink, readdir, realpath } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('../scripts/install-capabilities-inventory.mjs', import.meta.url));
 async function fixture() {
-  const root = await realpath(await mkdtemp('/tmp/opencode/ksi-capabilities-installer-'));
-  const target = path.join(root, 'opencode/plugins/ksi-capabilities-inventory');
-  const run = (...args) => spawnSync(process.execPath, [script, ...args], { env: { ...process.env, XDG_CONFIG_HOME: root }, encoding: 'utf8' });
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), 'ksi-capabilities-installer-')));
+  const target = path.join(root, '.opencode/plugins/ksi-capabilities-inventory');
+  const run = (...args) => spawnSync(process.execPath, [script, '--project', root, ...args], { env: { ...process.env, XDG_CONFIG_HOME: path.join(root, 'global-config') }, encoding: 'utf8' });
   return { root, target, run };
 }
 
 it('installs and verifies only adapter files while preserving existing settings', async () => {
-  const h = await fixture(); await mkdir(path.join(h.root, 'opencode/plugins'), { recursive: true });
-  const unrelated = path.join(h.root, 'opencode/opencode.jsonc');
+  const h = await fixture(); await mkdir(path.join(h.root, '.opencode/plugins'), { recursive: true });
+  const unrelated = path.join(h.root, '.opencode/opencode.jsonc');
   await writeFile(unrelated, '{"personal":"preserve"}');
   assert.equal(h.run().status, 0); assert.equal(h.run('--verify').status, 0);
   assert.equal(await readFile(unrelated, 'utf8'), '{"personal":"preserve"}');
+  await assert.rejects(stat(path.join(h.root, 'global-config')), { code: 'ENOENT' });
 });
 it('verification of a missing installation is read-only', async () => {
   const h = await fixture(); assert.notEqual(h.run('--verify').status, 0);
@@ -68,24 +68,28 @@ it('does not recreate a missing manifest-recorded file or change other files', a
   assert.deepEqual(await readFile(path.join(h.target, '.ksi-install.json')), manifest);
   assert.deepEqual((await readdir(h.target)).sort(), ['.ksi-install.json', 'index.ts']);
 });
-it('refuses a relative XDG_CONFIG_HOME before writing in the working directory', async () => {
-  const h = await fixture(); const workdir = await mkdtemp('/tmp/opencode/ksi-capabilities-installer-cwd-');
+it('requires an explicit absolute project before writing anywhere', async () => {
+  const h = await fixture(); const workdir = await mkdtemp(path.join(tmpdir(), 'ksi-capabilities-installer-cwd-'));
   const run = (...args) => spawnSync(process.execPath, [script, ...args], {
     cwd: workdir, env: { ...process.env, HOME: h.root, XDG_CONFIG_HOME: 'relative-config' }, encoding: 'utf8',
   });
-  const install = run(); assert.notEqual(install.status, 0); assert.match(install.stderr, /XDG_CONFIG_HOME/);
+  const install = run(); assert.notEqual(install.status, 0); assert.match(install.stderr, /--project/);
   assert.notEqual(run('--verify').status, 0);
+  assert.notEqual(run('--project', 'relative-project').status, 0);
+  assert.notEqual(run('--project', path.join(h.root, 'missing')).status, 0);
   assert.deepEqual(await readdir(workdir), []);
+  assert.deepEqual(await readdir(h.root), []);
 });
-it('treats an empty XDG_CONFIG_HOME as unset, using HOME rather than the working directory', async () => {
-  const h = await fixture(); const workdir = await mkdtemp('/tmp/opencode/ksi-capabilities-installer-empty-');
+it('ignores global configuration homes and installs only inside the explicit project', async () => {
+  const h = await fixture(); const workdir = await realpath(await mkdtemp(path.join(tmpdir(), 'ksi-capabilities-installer-project-')));
   const run = (...args) => spawnSync(process.execPath, [script, ...args], {
-    cwd: workdir, env: { ...process.env, HOME: h.root, XDG_CONFIG_HOME: '' }, encoding: 'utf8',
+    cwd: workdir, env: { ...process.env, HOME: h.root, XDG_CONFIG_HOME: 'relative-config' }, encoding: 'utf8',
   });
-  const install = run(); assert.equal(install.status, 0, install.stderr);
-  assert.equal(run('--verify').status, 0);
-  assert.ok((await stat(path.join(h.root, '.config/opencode/plugins/ksi-capabilities-inventory/runtime.mjs'))).isFile());
-  assert.deepEqual(await readdir(workdir), []);
+  const install = run('--project', workdir); assert.equal(install.status, 0, install.stderr);
+  assert.equal(run('--project', workdir, '--verify').status, 0);
+  assert.ok((await stat(path.join(workdir, '.opencode/plugins/ksi-capabilities-inventory/runtime.mjs'))).isFile());
+  assert.deepEqual(await readdir(workdir), ['.opencode']);
+  assert.deepEqual(await readdir(h.root), []);
 });
 it('refuses to install or verify alongside unknown plugin entrypoints', async () => {
   for (const alreadyManaged of [false, true]) {
@@ -117,12 +121,12 @@ it('refuses malformed manifests without replacing them or installing files', asy
 });
 for (const scope of ['directory', 'file', 'manifest', 'parent']) {
   it(`refuses symlink installation ${scope}`, async () => {
-    const h = await fixture(); const outside = await mkdtemp('/tmp/opencode/ksi-capabilities-install-outside-');
+    const h = await fixture(); const outside = await mkdtemp(path.join(tmpdir(), 'ksi-capabilities-install-outside-'));
     await mkdir(path.dirname(h.target), { recursive: true });
     if (scope === 'directory') await symlink(outside, h.target);
     else if (scope === 'parent') {
-      await symlink(outside, path.join(h.root, 'opencode/linked'));
-      const result = spawnSync(process.execPath, [script], { env: { ...process.env, XDG_CONFIG_HOME: path.join(h.root, 'opencode/linked') }, encoding: 'utf8' });
+      await symlink(outside, path.join(h.root, 'linked'));
+      const result = spawnSync(process.execPath, [script, '--project', path.join(h.root, 'linked')], { encoding: 'utf8' });
       assert.notEqual(result.status, 0); assert.match(result.stderr, /symlink/); return;
     } else {
       await mkdir(h.target); const name = scope === 'file' ? 'runtime.mjs' : '.ksi-install.json';

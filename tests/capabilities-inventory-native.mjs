@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { openSync, closeSync } from 'node:fs';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import http from 'node:http';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
@@ -15,17 +16,18 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const root = await fs.mkdtemp('/tmp/opencode/ksi-capinv-native-');
+const root = await fs.mkdtemp(path.join(tmpdir(), 'ksi-capinv-native-'));
 const home = path.join(root, 'home');
 const workspace1 = path.join(root, 'proj1');
 const workspace2 = path.join(root, 'proj2');
 const cfg = path.join(home, '.config/opencode');
 await fs.mkdir(workspace1, { recursive: true });
 await fs.mkdir(workspace2, { recursive: true });
-await fs.mkdir(path.join(cfg, 'plugins'), { recursive: true });
-await fs.cp(path.join(repo, 'global/plugins/ksi-capabilities-inventory'), path.join(cfg, 'plugins/ksi-capabilities-inventory'), { recursive: true });
-await fs.mkdir(path.join(home, '.agents/skills/fixture-extra-skill'), { recursive: true });
-await fs.writeFile(path.join(home, '.agents/skills/fixture-extra-skill/SKILL.md'), '---\nname: fixture-extra-skill\ndescription: Synthetic skill for Native inventory delivery verification only\n---\nSYNTHETIC_SKILL_TEST_MARKER. Use inventory tools on this test project.\n');
+await fs.mkdir(cfg, { recursive: true });
+await fs.mkdir(path.join(workspace1, '.opencode/plugins'), { recursive: true });
+await fs.cp(path.join(repo, 'global/plugins/ksi-capabilities-inventory'), path.join(workspace1, '.opencode/plugins/ksi-capabilities-inventory'), { recursive: true });
+await fs.mkdir(path.join(workspace1, '.agents/skills/fixture-extra-skill'), { recursive: true });
+await fs.writeFile(path.join(workspace1, '.agents/skills/fixture-extra-skill/SKILL.md'), '---\nname: fixture-extra-skill\ndescription: Synthetic skill for Native inventory delivery verification only\n---\nSYNTHETIC_SKILL_TEST_MARKER. Use inventory tools on this test project.\n');
 await fs.writeFile(path.join(workspace1, 'README.md'), '# proj1\n');
 await fs.writeFile(path.join(workspace2, 'README.md'), '# proj2\n');
 const password = randomBytes(20).toString('hex');
@@ -44,6 +46,7 @@ function toolText(call) {
   return t ? JSON.parse(t.text) : null;
 }
 
+const outsideToolLists = [];
 const model = http.createServer(async (req, res) => {
   if (req.method === 'GET') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ data: [{ id: 'fixture' }] })); return; }
   const chunks = []; for await (const chunk of req) chunks.push(chunk);
@@ -53,6 +56,7 @@ const model = http.createServer(async (req, res) => {
   let name, args, text = 'Fixture auxiliary response';
   const lastUser = [...body.messages].reverse().find((m) => m.role === 'user');
   const userText = typeof lastUser?.content === 'string' ? lastUser.content : strings(lastUser?.content).join('\n');
+  if (userText.includes('NATIVE_CAPINV_W2')) outsideToolLists.push(names);
   const alreadyCalled = strings(body.messages).some((s) => s.includes('"domainsQueried"'));
   const sawInventoryError = strings(body.messages).some((s) => s.includes('session inputs are not accepted') || s.includes('unsupported input') || s.includes('session moved') || s.includes('calling session'));
   if (!alreadyCalled && !sawInventoryError) {
@@ -62,7 +66,6 @@ const model = http.createServer(async (req, res) => {
     else if (userText.includes('NATIVE_CAPINV_LOCATE')) { name = 'ksi_capabilities_inventory'; args = { domains: ['skill'], locateSkills: ['fixture-extra-skill'] }; }
     else if (userText.includes('NATIVE_CAPINV_LOCATE_UNVERIFIED')) { name = 'ksi_capabilities_inventory'; args = { domains: ['tool'], locateSkills: ['fixture-extra-skill'] }; }
     else if (userText.includes('NATIVE_CAPINV_BADSESSION')) { name = 'ksi_capabilities_inventory'; args = { sessionID: 'ses_other' }; }
-    else if (userText.includes('NATIVE_CAPINV_W2')) { name = 'ksi_capabilities_inventory'; args = {}; }
   }
   if (!name) {
     if (userText.includes('NATIVE_CAPINV_DEFAULT')) text = 'CAPINV_DEFAULT_DONE';
@@ -200,11 +203,15 @@ try {
     }
   }
   {
+    const q = `location[directory]=${encodeURIComponent(workspace2)}`;
+    const outsidePlugins = await api('GET', `/api/plugin?${q}`);
+    const outsideSkills = await api('GET', `/api/skill?${q}`);
+    check('project plugin is not registered in the unrelated workspace', !outsidePlugins.some((p) => p.id === 'ksi.capabilities-inventory'));
+    check('project-only skill is not registered in the unrelated workspace', !outsideSkills.some((s) => s.id === 'fixture-extra-skill'));
     const { messages } = await runCase(workspace2, 'NATIVE_CAPINV_W2: list capabilities here', 'CAPINV_W2_DONE');
     const call = toolCalls(messages).find((p) => p.name === 'ksi_capabilities_inventory');
-    check('second workspace inventory completes', call?.state?.status === 'completed');
-    const report = toolText(call);
-    check('second workspace scope does not leak the first', report.directory === workspace2 && !JSON.stringify(report).includes(workspace1));
+    check('unrelated workspace cannot call the project-only inventory', call === undefined);
+    check('actual outside model input omits the project-only tool', outsideToolLists.length > 0 && outsideToolLists.every((names) => !names.includes('ksi_capabilities_inventory')));
   }
   console.log(`${checks} checks passed; scripted transport evidence: ${root}`);
 } finally {

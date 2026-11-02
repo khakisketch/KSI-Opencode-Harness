@@ -19,6 +19,8 @@ test('fresh clone ignores local records and common weights, not portable sources
       'models/fake.gguf', 'models/fake.safetensors', 'models/fake.bin',
       'models/fake.pt', 'models/fake.pth', 'models/fake.ckpt',
       'scripts/__pycache__/fake.pyc',
+      '.agents/skills/find-skills/SKILL.md', 'skills-lock.json',
+      '.opencode/plugins/ksi-capabilities-inventory/index.ts',
     ];
     const portable = [
       'global/AGENTS.md', 'global/opencode.jsonc', 'examples/project-AGENTS.md',

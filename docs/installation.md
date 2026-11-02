@@ -11,7 +11,7 @@
 | `global/agents/lead.md` | 선택형 Lead 정의. 빈 본문으로 Native 기본 실행 지침 보존 |
 | `global/commands/` | 선택형 `/debug`·`/perf`·`/ux-audit` 바로가기 |
 | `global/plugins/ksi-visual-workflow/` | 시각 도구 전용 설치기 사용 |
-| `global/plugins/ksi-capabilities-inventory/` | 필요한 경우에만 기능 목록 도구 설치 |
+| `global/plugins/ksi-capabilities-inventory/` | 소스 경로 이름과 달리 **프로젝트 전용** 진단. 이 하네스의 `.opencode/plugins/`에만 설치 |
 
 Build는 직접 완수하며 Lead·General은 부모 모델을 상속합니다. Plan·Explore의 설정, 기존 세션의 저장 모델과 프로젝트별 override는 별도입니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
 
@@ -24,9 +24,9 @@ Build는 직접 완수하며 Lead·General은 부모 모델을 상속합니다. 
    ```sh
    node scripts/install-visual-workflow.mjs
    node scripts/install-visual-workflow.mjs --verify
-   # 선택형 진단
-   node scripts/install-capabilities-inventory.mjs
-   node scripts/install-capabilities-inventory.mjs --verify
+   # 이 하네스 프로젝트에서만 쓰는 선택형 진단; 전역 대상은 지원하지 않음
+   node scripts/install-capabilities-inventory.mjs --project "$PWD"
+   node scripts/install-capabilities-inventory.mjs --project "$PWD" --verify
    ```
 
 4. Native plugin/agent catalog에서 로딩과 모델·권한을 별도 확인합니다. 파일 일치나 도구 등록만으로 호출 성공을 주장하지 않습니다. OpenCode는 설정을 감시하므로 공유 서비스를 재시작하지 않습니다.
@@ -50,6 +50,30 @@ Build는 직접 완수하며 Lead·General은 부모 모델을 상속합니다. 
 공식 스킬은 별도 설치입니다. 공식 설치기가 관리하는 제공자별 사본·링크·lock·라이선스·hook을 단순 중복으로 보고 삭제하지 않습니다. 프로젝트별 스킬과 다른 도구의 설정은 보존합니다. `skills 1.7.4`의 `check`가 설치본에서 update 경로로 연결된 사례가 있으므로 읽기 전용 조사에서 업데이트 명령을 대신 실행하지 않습니다.
 
 Context7 공식 플러그인과 명시적 MCP 설정은 이 정리에서 유지합니다. 공식 플러그인은 기존 MCP를 중복 등록하지 않고 문서 스킬도 제공하므로 성급하게 하나를 삭제하지 않습니다. Mobbin 등 선택 서비스의 인증·유료 구독은 사용자별입니다.
+
+### 이 Mac의 스킬 범위 조정 (2026-11-02)
+
+- 영상·연출 6종(`continuity-editing-axis-match`, `director-visual-language`, `reference-driven-video-prompting`, `scene-blocking-and-staging`, `storyboard-shot-design`, `world-asset-identity-lock`)은 전역 발견 경로 밖으로 이동했습니다. 대상 영상 프로젝트가 지정되지 않아 임의의 제품 저장소에는 설치하지 않았습니다. 필요 프로젝트의 `.opencode/skills/`에만 원본·리소스를 함께 배치합니다.
+- `find-skills`는 이 하네스의 `.agents/skills/find-skills/`에만 보존합니다. 전역 사본과 전역 lock 항목은 제거했습니다. Vercel Skills CLI 자체의 제거와는 다릅니다.
+- `ksi.capabilities-inventory`는 이 하네스의 `.opencode/plugins/ksi-capabilities-inventory/`에서만 동작합니다. 전역 관리본은 발견 경로 밖으로 이동했고, 설치기는 명시한 절대 프로젝트 경로만 받습니다. 다른 프로젝트에는 설치하지 않습니다.
+- `opencode_console` MCP, Context7·ai-memory·Cua Driver·Mobbin, Impeccable 및 기존 계정·모델·권한은 유지합니다. Context Mode·Ghidra·추가 플러그인 marketplace는 설치하지 않았습니다. Ghidra는 필요 프로젝트에서 별도 검토합니다.
+- 원본과 이전 설정은 `~/.local/share/ksi-harness-backups/skill-scope-20261102-183546/`에 보존합니다. 영상 스킬 보관 위치는 그 아래 `disabled-global-skills/`이며 자동 발견 경로가 아닙니다.
+
+### 추가한 선택형 스킬
+
+공식 Skills CLI `1.7.4`에서 스킬·에이전트·전역 범위를 명시하고 아래 커밋으로 설치했습니다. 이 버전의 CLI는 OpenCode를 universal agent로 취급해 `~/.agents/skills/`에 설치하므로 **다른 호환 에이전트도 발견할 수 있습니다**. 다른 에이전트의 설정·훅은 변경하지 않았습니다. 설치 파일은 아래 원본과 해시로 대조했으며 본문은 수정하지 않았습니다. CLI telemetry/security-audit 전송은 이번 호출에서 비활성화했습니다.
+
+| ID | 원본 | 고정 커밋 |
+| --- | --- | --- |
+| `security-audit` | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8` |
+| `hallmark` | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) | `4f6a46c6dc325d40ab268c93e25c7b96676ebccd` |
+| `design-taste-frontend` | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) | `12af471f627f866411b4bd785b19646d3672784c` |
+
+Impeccable·Hallmark·Taste는 누적 필수 절차가 아니라 담당자가 과업에 맞게 고르는 대안입니다. 사용자가 정한 브랜드·기능·권한이 우선이며, 세 스킬을 항상 함께 쓰거나 Taste를 무조건 호출하지 않습니다. 새 디자인용 자동 훅·별도 보안 에이전트는 추가하지 않았습니다. Hallmark의 렌더 검사 의존성으로 `puppeteer-core@25.16.0`만 전역 설치했고 npm lifecycle script와 브라우저 다운로드는 실행하지 않았습니다. 기존 Chrome과 별도의 임시 프로필을 사용합니다.
+
+Cloudflare는 일상 보안 질문의 guidance와 명시적 전체 감사를 구분합니다. 전체 감사는 하위 에이전트·보고서 비용이 있고 대상 코드를 실행하려면 네트워크·환경·쓰기·자원을 제한한 **OS 수준 격리**가 필요합니다. worktree나 이 스킬 설치는 그 격리를 제공하지 않습니다. 격리가 없으면 실행 검증을 보류하고 미확인 사실을 남깁니다.
+
+스킬·프로젝트 로컬 설치본·lock·백업은 공개 하네스 소스에 묶지 않습니다. 다른 컴퓨터에는 이 표와 공식 설치 방법을 검토해 필요한 항목만 별도로 설치합니다. 자동 업데이트는 하지 않았으며, 이후 업데이트 때에는 고정 ref·설치 범위·의존성과 지침 변화를 다시 확인합니다.
 
 - [ai-memory의 현재 연결·범위·복구](ai-memory.md): 이 Mac의 기존 승인된 전역 자동 기록 정책은 그대로 유지합니다. 하네스 clone·기본 설정 적용이 자동 수집을 새로 켜지는 않습니다. `scripts/install-ai-memory.mjs`의 과거 systemd 설치 경로를 Mac 복구 명령으로 실행하지 않습니다.
 - [Cua Driver](computer-use.md): OS 권한과 실제 기기·앱 검증은 별도입니다.

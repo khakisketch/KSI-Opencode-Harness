@@ -11,6 +11,10 @@ design-previews/
 .opencode/skills/investigating-performance/
 .opencode/skills/reviewing-security/
 .opencode/skills/ux-heuristics-audit/
+.agents/skills/find-skills/
+/skills-lock.json
+# Project-local diagnostic installation; portable source/installer stays versioned.
+.opencode/plugins/ksi-capabilities-inventory/
 # Local project configuration and memory scope are operator-owned, not defaults
 # for everyone who clones the harness. Portable sources stay under global/.
 /.opencode/opencode.json

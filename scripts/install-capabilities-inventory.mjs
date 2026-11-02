@@ -1,22 +1,28 @@
 #!/usr/bin/env node
-// Installs only KSI's Native capabilities-inventory adapter, never external
-// skills, provider config, or model/MCP/service settings.
+// Installs only KSI's Native capabilities-inventory adapter into an explicitly
+// selected project. Never installs globally or changes model/MCP/service settings.
 import { readFile, writeFile, mkdir, mkdtemp, copyFile, lstat, rename, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { homedir, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2);
-if (args.some(a => !['--verify', '--help'].includes(a))) throw new Error('Usage: node scripts/install-capabilities-inventory.mjs [--verify]');
-if (args.includes('--help')) {
-  console.log('Install the KSI capabilities-inventory Native V2 plugin only. --verify checks installed file hashes without changing files. No skill/model/MCP/service changes.');
+const usage = 'Usage: node scripts/install-capabilities-inventory.mjs --project <absolute-directory> [--verify]';
+if (args.length === 1 && args[0] === '--help') {
+  console.log(`${usage}\nProject-local only; no global installation. --verify checks hashes without changing files. No skill/model/MCP/service changes.`);
   process.exit(0);
 }
+let project;
+let verify = false;
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--project' && !project && args[i + 1] && !args[i + 1].startsWith('--')) project = args[++i];
+  else if (args[i] === '--verify' && !verify) verify = true;
+  else throw new Error(usage);
+}
+if (!project || !path.isAbsolute(project)) throw new Error(`${usage}; refusing an implicit, relative, or global destination.`);
 const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../global/plugins/ksi-capabilities-inventory');
-const rawConfigHome = process.env.XDG_CONFIG_HOME;
-if (rawConfigHome && !path.isAbsolute(rawConfigHome)) throw new Error('Refusing relative XDG_CONFIG_HOME; inspect the installation location before retrying.');
-const target = path.join(rawConfigHome || path.join(homedir(), '.config'), 'opencode/plugins/ksi-capabilities-inventory');
+const target = path.join(project, '.opencode/plugins/ksi-capabilities-inventory');
 const files = ['runtime.mjs', 'index.ts'];
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const exists = async file => { try { await lstat(file); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; } };
@@ -27,6 +33,7 @@ for (const item of [...ancestors, manifestPath, ...files.map(file => path.join(t
   try { if ((await lstat(item)).isSymbolicLink()) throw new Error(`Refusing symlink install target: ${item}`); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
 }
+if (!(await lstat(project)).isDirectory()) throw new Error('Project must be an existing directory.');
 // Native can load server.ts instead of index.ts; never install alongside an
 // unknown entry or silently overwrite an interrupted install's staged files.
 if (await exists(target)) {
@@ -53,7 +60,7 @@ for (const file of files) {
   }
   changed.push(file);
 }
-if (args.includes('--verify')) {
+if (verify) {
   if (changed.length) throw new Error(`Capabilities inventory differs or is absent: ${changed.join(', ')}`);
   console.log('Capabilities inventory installed files match source. Runtime activation is checked separately.');
 } else {
@@ -77,5 +84,5 @@ if (args.includes('--verify')) {
   }
   console.log(`Capabilities inventory ${changed.length ? 'installed/updated' : 'already current'}: ${target}`);
   if (backup) console.log(`Backup: ${backup}`);
-  console.log('OpenCode V2 watches plugins; no shared-service restart. External skills and model/MCP settings were left untouched.');
+  console.log('Project-local installation only. OpenCode V2 watches plugins; no shared-service restart. External skills and global/model/MCP settings were left untouched.');
 }

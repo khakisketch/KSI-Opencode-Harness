@@ -71,6 +71,16 @@ LaunchAgent가 보호된 폴더에 접근하지 못할 때 이 증상이 나타�
 Full Disk Access를 부여하고 **ai-memory 서비스만** 재시작하도록 안내합니다. 권한의 실제 원인은 확정하지
 않았고 전체 디스크 접근 권한은 자동으로 부여하지 않았습니다.
 
+### Claude-Mem·Native 컨텍스트와의 비교 (2026-11-02)
+
+현재는 **Native compaction·Code Mode + ai-memory**를 유지합니다. Claude-Mem `15.8.3`의 [V2 어댑터](https://github.com/thedotmack/claude-mem/blob/1a244e723b25cebf8ba5a13855caa5260b6aa783/src/integrations/opencode-plugin/v2.ts)에는 V2 훅·검색 도구·정리 경로가 실제로 있어 “Claude 전용이라 V2에서 못 쓴다”는 판단은 하지 않습니다. 다만 이 Mac에서 비교 실행·검색 품질·시간·비용 우위를 검증한 것은 아닙니다.
+
+- Claude-Mem은 worker·DB·요약 모델과 점진적 검색·뷰어를 제공하지만, 현재 ai-memory의 자동 기록·이력 검색·인계와 역할이 겹칩니다. 현 ai-memory 연결은 외부 LLM·임베딩 없이 운용합니다. 교체 시 추가 요약 비용·데이터 전달·기존 기억 이관과 복구를 검토해야 합니다.
+- 확인한 [OpenCode core](https://github.com/thedotmack/claude-mem/blob/1a244e723b25cebf8ba5a13855caa5260b6aa783/src/integrations/opencode-plugin/core.ts)는 worker에 보내는 도구 출력의 앞 1,000자를 보존합니다. 이는 기록량 제한이며 모델이 원래 받는 도구 출력을 줄이는 기능이 아닙니다. 정보 손실과 검색 이점은 실제 과업으로 비교해야 합니다.
+- Native compaction은 현재 대화의 길이, Code Mode는 중간 출력의 유입, ai-memory는 세션을 넘는 기억을 담당합니다. 서로 완전히 대체하지 않습니다. Context Mode의 확인한 OpenCode 플러그인은 V1 진입점이어서 V2 전역 구성에 추가하지 않았습니다.
+
+교체는 우위가 입증된 경우에만 진행하며, 현재 승인된 수집 정책·기억·계정은 그대로 보존합니다. 두 기억 훅을 전역에서 병행해 같은 자료를 이중 수집하거나 새 외부 제공자에 전송하지 않았습니다.
+
 ### 이 Mac에서 중단·복구
 
 이 서비스와 훅은 **이 프로젝트만이 아니라 이 Mac의 OpenCode 전체 프로젝트**에 영향을 줍니다.
