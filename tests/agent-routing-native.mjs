@@ -99,14 +99,14 @@ check('build registered primary, no global model', () => {
 });
 for (const [id, model, mode] of [
   ['plan', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'high' }, 'all'],
-  ['lead', { providerID: 'openai', id: 'gpt-6.1-terra', variant: 'medium' }, 'subagent'],
-  ['general', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'high' }, 'subagent'],
-  ['explore', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'medium' }, 'subagent'],
+  ['lead', undefined, 'subagent'],
+  ['general', undefined, 'subagent'],
+  ['explore', { providerID: 'openai', id: 'gpt-6-luna', variant: 'low' }, 'subagent'],
 ]) {
   const a = list.find(a => a.id === id);
   check(`${id} model/mode`, () => {
     assert.ok(a);
-    assert.deepEqual(a.model, model);
+    if (model === undefined) assert.ok(a.model == null); else assert.deepEqual(a.model, model);
     assert.equal(a.mode, mode);
   });
   if (id === 'lead') {
@@ -116,7 +116,7 @@ for (const [id, model, mode] of [
     const installed = await readFile(path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'), 'opencode', 'agents', 'lead.md'), 'utf8');
     check('lead installed/system match', () => {
       assert.equal(source, installed);
-      assert.equal(a.system.trim(), source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim());
+      assert.ok(a.system == null || a.system.trim() === '');
     });
   }
 }

@@ -305,7 +305,100 @@ describe('visual runtime tools and Native boundaries', () => {
   it('requires re-preparation after a new user request', async () => {
     const h = await harness(); await h.prepare();
     h.messages.push({ id: 'msg_new', type: 'user', text: 'Different screen now' });
-    await assert.rejects(h.evidence('before.png'), /current task/);
+    await assert.rejects(h.evidence('before.png'), error => /continueTask:true/.test(error.message) && /direct-image read/.test(error.message));
+  });
+  it('gives recovery without guessing when task context is missing', async () => {
+    const h = await harness();
+    await assert.rejects(h.evidence('before.png'), error => /prepare a new task/.test(error.message) && /direct-image read/.test(error.message));
+    await h.prepare(); h.messages.length = 0;
+    await assert.rejects(h.evidence('before.png'), error => /context is unavailable/.test(error.message) && /direct-image read/.test(error.message));
+  });
+  it('uses an explicit declared goal without inventing unavailable user messages', async () => {
+    const h = await harness(); h.messages.length = 0;
+    await assert.rejects(h.prepare(), /original user request is unavailable/);
+    await assert.rejects(h.call('visual_prepare', { target: 'Screen.kt', overallGoal: '  ' }), /explicit nonempty overallGoal/);
+    const prepared = h.data(await h.call('visual_prepare', { target: 'Screen.kt', resources: ['tokens.xml'], overallGoal: 'Improve mission screen' }));
+    assert.equal(prepared.originalRequest, null); assert.equal(prepared.latestRequest, null);
+    assert.equal(prepared.messageID, null); assert.equal(prepared.latestMessageID, null);
+    assert.equal(prepared.originalRequestSource.status, 'unavailable');
+    assert.match(prepared.requestProvenance.scope, /unverified, not observed user request or permission/);
+    const receipt = h.data(await h.evidence('before.png'));
+    const continued = h.data(await h.call('visual_prepare', { target: 'Screen.kt', continueTask: true, overallGoal: 'Improve mission screen' }));
+    assert.equal(continued.taskID, prepared.taskID); assert.equal(continued.originalRequest, null);
+    const review = h.data(await h.call('visual_review_single', { receipt: receipt.id, problem: 'Hierarchy' }));
+    assert.equal(review.originalRequest, null); assert.equal(review.latestRequest, null);
+    assert.equal(review.requestProvenance.status, 'unavailable');
+    h.messages.push({ id: 'later', type: 'user', text: 'Keep the same task' });
+    await assert.rejects(h.evidence('after.png'), /continueTask:true/);
+    const next = h.data(await h.call('visual_prepare', { target: 'Screen.kt', continueTask: true }));
+    assert.equal(next.originalRequest, null); assert.equal(next.messageID, null);
+    assert.equal(next.latestRequest, 'Keep the same task'); assert.equal(next.latestMessageID, 'later');
+    const later = h.data(await h.call('visual_review_single', { receipt: receipt.id, problem: 'Hierarchy' }));
+    assert.equal(later.originalRequest, null); assert.equal(later.originalRequestProvenance.status, 'unavailable');
+  });
+  it('checks current source permissions for a declared-only task', async () => {
+    const h = await harness(); h.messages.length = 0;
+    await h.call('visual_prepare', { target: 'Screen.kt', resources: ['tokens.xml'], overallGoal: 'Improve screen' });
+    const receipt = h.data(await h.evidence('before.png'));
+    const originalAssert = h.ctx.permission.assert;
+    h.ctx.permission.assert = async input => {
+      if (input.action === 'read' && input.resources.includes(path.join(h.root, 'tokens.xml'))) throw new Error('source revoked');
+      return originalAssert(input);
+    };
+    await assert.rejects(h.call('visual_review_single', { receipt: receipt.id, problem: 'Hierarchy' }), /source revoked/);
+    await assert.rejects(h.call('visual_prepare', { target: 'Screen.kt', continueTask: true, overallGoal: 'Improve screen' }), /source revoked/);
+  });
+  it('continues only on explicit request and keeps same-target receipts and both provenances', async () => {
+    const h = await harness();
+    const first = h.data(await h.call('visual_prepare', { target: 'Screen.kt', resources: ['tokens.xml'], overallGoal: 'Checkout redesign', assignedScope: 'Mission spacing' }));
+    const oldReceipt = h.data(await h.evidence('before.png'));
+    await writeFile(path.join(h.root, 'tokens.xml'), 'updated continuation source');
+    h.messages.push({ id: 'msg_followup', type: 'user', text: 'Keep the same task; refine the mission spacing' });
+    const continued = h.data(await h.call('visual_prepare', { target: 'Screen.kt', resources: ['tokens.xml'], continueTask: true }));
+    assert.equal(continued.originalRequest, first.originalRequest);
+    assert.equal(continued.messageID, 'msg_visual');
+    assert.equal(continued.latestRequest, h.messages[1].text);
+    assert.equal(continued.latestMessageID, 'msg_followup');
+    assert.equal(continued.continued, true);
+    assert.equal(continued.taskID, first.taskID);
+    assert.equal(continued.declaredScope.overallGoal, 'Checkout redesign');
+    assert.equal(continued.declaredScope.assignedScope, 'Mission spacing');
+    assert.match(continued.originalRequestSource.scope, /session-local/);
+    assert.equal(continued.latestRequestSource.messageID, 'msg_followup');
+    const packet = h.data(await h.call('visual_review_single', { receipt: oldReceipt.id, problem: 'Spacing' }));
+    assert.equal(packet.originalRequest, first.originalRequest);
+    assert.equal(packet.latestRequest, h.messages[1].text);
+    assert.equal(packet.requestProvenance.messageID, 'msg_followup');
+    assert.equal(packet.sourceStillCurrent, true);
+    assert.equal(packet.resources[0].content, 'updated continuation source');
+    assert.equal(packet.resources[0].changedSincePrepare, true);
+    assert.match(packet.continuationNote, /Same-target continuation retains task receipts/);
+  });
+  it('rejects continuation when the selected target changes', async () => {
+    const h = await harness(); await h.prepare();
+    h.messages.push({ id: 'msg_followup', type: 'user', text: 'Continue the same task' });
+    await writeFile(path.join(h.root, 'Other.kt'), 'other target');
+    await assert.rejects(h.call('visual_prepare', { target: 'Other.kt', continueTask: true }), /changed target/);
+  });
+  it('does not infer continuation and reports missing prior context honestly', async () => {
+    const h = await harness();
+    await assert.rejects(h.call('visual_prepare', { target: 'Screen.kt', continueTask: true }), /prior task context is unavailable/);
+    await h.prepare();
+    h.messages.push({ id: 'msg_followup', type: 'user', text: 'Same screen, one more adjustment' });
+    const fresh = h.data(await h.call('visual_prepare', { target: 'Screen.kt' }));
+    assert.equal(fresh.originalRequest, h.messages[1].text);
+    assert.equal(fresh.continued, false);
+    assert.equal(fresh.declaredScope.overallGoal, null);
+  });
+  it('rereads selected resources under current permissions when continuing', async () => {
+    const h = await harness(); await h.prepare();
+    h.messages.push({ id: 'msg_followup', type: 'user', text: 'Continue with current source' });
+    const originalAssert = h.ctx.permission.assert;
+    h.ctx.permission.assert = async input => {
+      if (input.action === 'read' && input.resources.includes(path.join(h.root, 'tokens.xml'))) throw new Error('Native resource permission revoked');
+      return originalAssert(input);
+    };
+    await assert.rejects(h.call('visual_prepare', { target: 'Screen.kt', continueTask: true }), /resource permission revoked/);
   });
   it('invalidates old receipts even when re-preparing the same message', async () => {
     const h = await harness(); await h.prepare();
@@ -432,13 +525,13 @@ describe('honest request scope and single-screen review', () => {
     assert.match(receipt.sourceHashMeaning, /not proof/);
     assert.match(receipt.sourceScope, /Single target file hash/);
     assert.match(receipt.buildEvidence, /none-verified/);
-    assert.match(receipt.originScope, /Project-local PNG only/);
+    assert.match(receipt.originScope, /project-bound private external PNG/);
   });
   it('keeps an absolute server-local outside-project screenshot out of scope', async () => {
     const h = await harness(); await h.prepare();
     const outside = `/tmp/opencode/ksi-visual-outside-${Date.now()}.png`;
     await writeFile(outside, fixturePng());
-    await assert.rejects(h.call('visual_capture', { adapter: 'existing', path: outside, state: 'mission', simulated: true, provenance: 'server-local outside project' }), /inside the current project/);
+    await assert.rejects(h.call('visual_capture', { adapter: 'existing', path: outside, state: 'mission', simulated: true, provenance: 'server-local outside project' }), /external evidence disabled|not in the configured/);
   });
   it('does not register the interrupted external-import draft', async () => {
     const h = await harness();
@@ -465,7 +558,7 @@ describe('honest request scope and single-screen review', () => {
     await writeFile(file, fixturePng());
     // The mock allows every action; that is not an interactive decision.
     const count = h.permissions.length;
-    await assert.rejects(h.evidence(file, { provenance: 'user approved this exact file', simulated: false }), /inside the current project/);
+    await assert.rejects(h.evidence(file, { provenance: 'user approved this exact file', simulated: false }), /external evidence disabled|not in the configured/);
     assert.equal(h.permissions.length, count);
   });
   it('carries request provenance through compare review without certifying quality', async () => {
@@ -608,7 +701,7 @@ describe('declared overall goal and assigned scope', () => {
     assert.match(packet.next, /actual user feedback when available/);
     assert.match(packet.next, /Do not assume a child inherits images or receipts/);
     assert.match(packet.next, /own permitted reads/);
-    assert.match(packet.next, /docs\/ux-evaluation\.md/);
+    assert.doesNotMatch(packet.next, /ux-evaluation|experiments\//);
     assert.doesNotMatch(packet.next, /No fixed number of concepts/);
   });
   it('describes single review as returning evidence, not observing', async () => {

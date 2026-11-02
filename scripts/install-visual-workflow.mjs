@@ -16,7 +16,7 @@ const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../gl
 const rawConfigHome = process.env.XDG_CONFIG_HOME;
 if (rawConfigHome && !path.isAbsolute(rawConfigHome)) throw new Error('Refusing relative XDG_CONFIG_HOME; inspect the installation location before retrying.');
 const target = path.join(rawConfigHome || path.join(homedir(), '.config'), 'opencode/plugins/ksi-visual-workflow');
-const files = ['runtime.mjs', 'index.ts'];
+const files = ['runtime.mjs', 'index.ts', 'external-evidence.mjs'];
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const exists = async file => { try { await lstat(file); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; } };
 const manifestPath = path.join(target, '.ksi-install.json');
@@ -36,7 +36,7 @@ if (await exists(target)) {
 let previous;
 if (await exists(manifestPath)) {
   previous = JSON.parse(await readFile(manifestPath, 'utf8'));
-  if (!previous || typeof previous !== 'object' || Array.isArray(previous) || Object.keys(previous).length !== files.length || files.some(file => !/^[0-9a-f]{64}$/.test(previous[file] ?? ''))) throw new Error('Invalid visual adapter install manifest; inspect instead of overwriting.');
+  if (!previous || typeof previous !== 'object' || Array.isArray(previous) || Object.keys(previous).some(file => !files.includes(file)) || ['runtime.mjs', 'index.ts'].some(file => !/^[0-9a-f]{64}$/.test(previous[file] ?? '')) || (previous['external-evidence.mjs'] !== undefined && !/^[0-9a-f]{64}$/.test(previous['external-evidence.mjs']))) throw new Error('Invalid visual adapter install manifest; inspect instead of overwriting.');
 }
 const next = {};
 const changed = [];
@@ -44,7 +44,7 @@ for (const file of files) {
   const contents = await readFile(path.join(source, file)); next[file] = digest(contents);
   const installed = path.join(target, file);
   const present = await exists(installed);
-  if (previous && !present) throw new Error(`Managed ${installed} is missing (unexpected partial or possibly user-removed state); inspect instead of restoring.`);
+  if (previous?.[file] && !present) throw new Error(`Managed ${installed} is missing (unexpected partial or possibly user-removed state); inspect instead of restoring.`);
   if (present) {
     const current = digest(await readFile(installed));
     if (!previous || previous[file] !== current) throw new Error(`Existing ${installed} is unmanaged or modified; inspect instead of overwriting.`);

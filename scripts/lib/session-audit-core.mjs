@@ -1,8 +1,5 @@
-// session-audit-core.mjs — the single shared audit core for execution evidence.
-// Used by both scripts/session-audit.mjs (CLI/file auditing, re-exported API)
-// and the managed Native plugin in this directory (current-session-only reads
-// of ctx.session.context). Do not duplicate this logic: fix ordering, counting,
-// or honesty bugs here so every consumer inherits them.
+// Offline session-audit core. No Native tool registration or live context reads.
+// scripts/session-audit.mjs audits only explicitly supplied local snapshots.
 //
 // Input-array order follows the caller-declared `order` option
 // ('oldest-first' default, 'newest-first' explicit). The Native V2

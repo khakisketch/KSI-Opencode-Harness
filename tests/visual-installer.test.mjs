@@ -25,6 +25,16 @@ it('verification of a missing installation is read-only', async () => {
   const h = await fixture(); assert.notEqual(h.run('--verify').status, 0);
   await assert.rejects(stat(h.target), { code: 'ENOENT' });
 });
+it('never creates or replaces the fixed operator evidence file', async () => {
+  const h = await fixture();
+  const home = path.join(h.root, 'home'), parent = path.join(home, '.config/opencode');
+  await mkdir(parent, { recursive: true });
+  const file = path.join(parent, 'ksi-visual-evidence.json');
+  const run = () => spawnSync(process.execPath, [script], { env: { ...process.env, HOME: home, XDG_CONFIG_HOME: h.root }, encoding: 'utf8' });
+  assert.equal(run().status, 0); await assert.rejects(stat(file), { code: 'ENOENT' });
+  await writeFile(file, 'operator-owned'); assert.equal(run().status, 0);
+  assert.equal(await readFile(file, 'utf8'), 'operator-owned');
+});
 it('reapplication is idempotent including manifest mtime', async () => {
   const h = await fixture(); assert.equal(h.run().status, 0);
   const before = await stat(path.join(h.target, '.ksi-install.json'));
@@ -63,7 +73,7 @@ it('does not recreate a missing manifest-recorded file or change other files', a
   await assert.rejects(stat(path.join(h.target, 'runtime.mjs')), { code: 'ENOENT' });
   assert.deepEqual(await readFile(path.join(h.target, 'index.ts')), index);
   assert.deepEqual(await readFile(path.join(h.target, '.ksi-install.json')), manifest);
-  assert.deepEqual((await readdir(h.target)).sort(), ['.ksi-install.json', 'index.ts']);
+  assert.deepEqual((await readdir(h.target)).sort(), ['.ksi-install.json', 'external-evidence.mjs', 'index.ts']);
 });
 it('refuses a relative XDG_CONFIG_HOME before writing in the working directory', async () => {
   const h = await fixture(); const workdir = await mkdtemp('/tmp/opencode/ksi-visual-installer-cwd-');

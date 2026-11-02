@@ -4,74 +4,97 @@
 
 ## 이 Mac의 현재 연결 (2026-10-30)
 
-사용자가 기존 격리 한계를 이해한 뒤 공식 연결을 승인했습니다. `ai-memory 3.2.10`의 별도 저장소
-`~/.local/share/ksi-harness-ai-memory`와 사용자 LaunchAgent `local.ksi.harness-ai-memory`가
-`127.0.0.1:49375`에서 실행됩니다. 프로젝트의 `.opencode/opencode.jsonc`는 공식
-`mcp-bridge --no-session-id`를 `ksi-ai-memory`로 등록합니다. root bearer는 별도 `0600` 토큰 파일에서
-읽으며 설정·명령줄에 토큰을 넣지 않았습니다. 서버는 watcher, 임베딩, 자체 LLM, profile 및
-auto-improve scheduler를 끕니다. 이 연결은 lifecycle 훅이나 프로젝트 marker를 설치하지 않습니다.
+사용자가 **이 Mac 계정의 OpenCode 전체 프로젝트 자동 기록**을 승인했습니다. 기존 기억을 보존하기 위해
+`ai-memory 3.2.10`의 공식 `setup --agent open-code --no-service --yes`로 기존 서비스에 연결했습니다.
+다른 에이전트는 설치 대상으로 선택하지 않았습니다.
 
-기억은 **MCP 도구 호출로만** 저장·조회합니다. 관련 과거 결정·실패·남은 작업은 필요할 때 검색하고,
-지속적으로 기억할 내용은 사용자가 명시적으로 요청할 때 저장합니다. 이 sessionless bridge에서는 호출마다
-`workspace: "ksi"`, `project: "harness"`를 함께 지정합니다. 로컬 지침은 별도 데이터 디렉터리의
-`project-guidance.md`에 있습니다. 실제 연결에서 합성 페이지 쓰기·읽기·삭제를 확인했습니다. 삭제된
-합성 텍스트는 복구용 Git 체크포인트에 남을 수 있습니다.
+- 서비스: 사용자 LaunchAgent `local.ksi.harness-ai-memory`, `127.0.0.1:49375`.
+  데이터와 서버 설정은 기존 `~/.local/share/ksi-harness-ai-memory`를 사용합니다. 서버 설정은
+  setup 전과 같으며 외부 LLM·임베딩·profile은 사용하지 않습니다.
+- OpenCode: 공식 전역 MCP `ai-memory`는 `~/.config/opencode/opencode.json`에, 공식 V2 훅은
+  `~/.config/opencode/plugins/ai-memory-opencode2.ts`에 설치됐습니다. 기존
+  `~/.config/opencode/opencode.jsonc`는 그대로 보존됐습니다. 공식 스킬 6개도 설치됐습니다.
+- 인증: 공식 MCP bridge는 기존 데이터 디렉터리의 자격증명을 읽습니다. 비기본 데이터 경로의 setup 후
+  훅은 기본 macOS 경로에서 인증을 찾았으므로, 공식 `install-hooks --apply`로
+  `~/Library/Application Support/ai-memory/auth-token`에도 같은 인증을 설치했습니다. 두 파일은
+  소유자 전용입니다. 토큰을 갱신하면 양쪽이 일치하는지 확인해야 합니다.
+- 범위: 훅은 공식 기본 `denylist` 모드로 마커 없는 프로젝트도 기록합니다. 이 프로젝트의
+  `.ai-memory.toml`은 수집 필터가 아니라 기존 `ksi/harness` 기억과 새 기록을 연결하는 이름 지정입니다.
+  이 마커는 이 Mac의 로컬 설정이므로 다른 사람에게 공유하기 전 범위를 확인하세요.
+- 이전 프로젝트 전용 `ksi-ai-memory` MCP와 오래된 `project-guidance.md` 참조는 중복이어서 로컬
+  프로젝트 설정에서 제거했습니다. 해당 파일과 기존 기억은 삭제하지 않았습니다. 기존 기억의
+  `decisions/ksi-harness-operation.md`에 있는 “자동 수집을 켜지 않는다”는 문장은 과거 결정이며
+  현재 사용자 승인과 이 문서가 우선합니다.
+
+공식 MCP는 이 설치에서 `mcp-bridge --no-session-id`를 사용하는 **정적 연결**입니다. 수동 도구 호출은
+현재 프로젝트의 마커에 적힌 `workspace`와 `project`를 함께 지정합니다. 훅에 의한 자동 기록과는 별개입니다.
 
 ### 일상 사용과 확인
 
-- 프로젝트에서 에이전트에게 “이전에 이 문제의 실패 원인을 기억에서 찾아줘”처럼 요청하면 관련 기억을
-  검색할 수 있습니다. 저장은 “이 결정을 기억해줘”처럼 사용자가 명시적으로 요청할 때만 합니다.
-- 직접 도구를 호출할 때는 `memory_query`에 `query`와 함께 `workspace: "ksi"`,
-  `project: "harness"`를 지정합니다. 예를 들어 Code Mode에서는 다음과 같습니다.
+- 사용자가 매번 요청하지 않아도 훅이 프롬프트와 도구 이벤트 등을 수집합니다. 자동 기록과 별도로,
+  “이전에 이 문제의 실패 원인을 기억에서 찾아줘”라고 검색하거나 “이 결정을 기억해줘”라고 명시적인
+  지속 기억 저장을 요청할 수 있습니다. 검색 결과는 현재 지시나 프로젝트 정본보다 우선하지 않습니다.
+- 직접 도구를 호출할 때 이 프로젝트에서는 `memory_query`에 마커의 이름을 함께 지정합니다.
 
   ```js
-  await tools["ksi-ai-memory"].memory_query({
+  await tools["ai-memory"].memory_query({
     workspace: "ksi", project: "harness", query: "검색할 주제"
   })
   ```
 
-   서버의 단일 프로젝트 검색은 별도의 `global_scope_hits`도 반환할 수 있습니다. 전용 저장소가
-   비어 있다고 항상 가정하지 말고 결과의 출처를 확인하세요. `answer`를 켜거나 다른 scope로
-   검색을 넓히지 않습니다. 영어 단어에 한글 조사가 붙어 일반 검색에 나오지 않을 때는 `Goal*`처럼
-   접두어로 다시 검색할 수 있습니다. 세션 자동 기록이 없으므로 검색 결과가 없다고 이전 작업이
-   없었다는 뜻은 아닙니다.
-- 연결 확인은 프로젝트 디렉터리에서 `opencode mcp list`의 `ksi-ai-memory connected`와
+  서버의 단일 프로젝트 검색은 `global_scope_hits`도 반환할 수 있습니다. 결과의 출처를 확인하세요.
+- 연결 확인은 `opencode mcp list`의 `ai-memory connected`와
   `launchctl print "gui/$(id -u)/local.ksi.harness-ai-memory"`의 실행 상태를 각각 확인합니다.
-  MCP가 연결돼도 저장된 내용의 정확성이나 프로젝트 격리가 보장되는 것은 아닙니다.
+  MCP 연결만으로 자동 기록이나 기억의 정확성이 보장되는 것은 아닙니다.
+- `doctor --workspace ksi --project harness`는 OpenCode 캡처를 확인했지만 기존 기억의 저장소 식별자가
+  없는 상태를 `ambiguous`로 표시했습니다. 마커로 지정한 기존 페이지와 새 기록은 조회됐으며,
+  다른 프로젝트의 자동 이름 변경은 수행하거나 검증하지 않았습니다.
+- OpenCode V2는 루트 세션의 응답이 끝날 때 체크포인트와 자동 인계를 만들고, 다음 세션이 종료된
+  세션 또는 약 10분간 활동이 없는 세션의 인계를 받아갑니다. 이 휴지 시간은 병렬 작업을 위한 공식
+  휴리스틱이지 터미널 종료의 완벽한 판별은 아닙니다. assistant 답변 본문 수집은 기본적으로 꺼져 있습니다.
 
-**범위 한계:** 정적 프로젝트 설정은 하위 독립 저장소에 상속될 수 있고, linked worktree·이미 로드된
-Location에는 아래 격리 반례가 있습니다. 공식 bridge와 root 토큰은 프로젝트 접근 권한을 강제하지
-않습니다. 전체 공식 MCP 도구가 노출되므로 `global`, 다른 `scopes` 또는 다른 프로젝트 쓰기·조회는
-이 연결의 사용 범위를 벗어납니다. MCP 서버가 제공하는 일반 안내 중 자동 훅 및 다른 프로젝트로
-검색 확대를 권하는 내용은 이 설치에 적용되지 않습니다. 같은 OS 사용자에 대한 sandbox는 아니며,
-기억을 읽으면 내용이 현재 모델 제공자에게 전달될 수 있고 저장소는 완전 암호화되지 않습니다.
+**검증:** 공식 MCP로 기존 운영 결정 페이지를 다시 읽었고, 합성 프롬프트가 `ksi/harness`에 저장된 것을
+확인했습니다. 합성 세션을 종료한 뒤 같은 시험 위치의 새 OpenCode 세션이 이전 표식을 도구 호출 없이
+답변하고 해당 인계가 사용 처리됐습니다. 시험 위치 `tests/`에는 식별 가능한 합성 시험 세션과 인계가
+남아 있습니다. 이 한 번의 시험은 모든 프로젝트와 장기적인 누락 없는 수집을 증명하지 않습니다.
+
+**범위·개인정보 한계:** 공식 root 토큰은 프로젝트별 접근 권한을 강제하지 않습니다. 이전 시험에서
+세션 이동 시 프로젝트가 잘못 분류된 사례도 있었으며 아래 기록을 참고하세요. 프롬프트·도구 출력은
+저장될 수 있고 sanitizer가 모든 비밀을 제거한다고 보장하지 않습니다. 기억을 모델이 읽으면 현재 모델
+제공자에게 전달될 수 있으며 로컬 저장소는 완전 암호화되지 않습니다.
+
+**macOS 경고:** 설치 직후 서버 로그에 여러 `Desktop` 프로젝트 경로를 2초 안에 확인하지 못해 훅 이벤트가
+실패했다는 경고가 있었고, 인증 보정 직후의 합성 프롬프트 한 건은 저장되지 않았습니다. 이후 위의 기록·
+인계는 성공했지만 당시 다른 이벤트의 누락 여부는 확인하지 못했습니다.
+[공식 macOS 안내](https://github.com/akitaonrails/ai-memory/blob/v3.2.10/docs/macos.md#privacy-controls-and-full-disk-access)는
+LaunchAgent가 보호된 폴더에 접근하지 못할 때 이 증상이 나타날 수 있다고 설명하며, 필요 시 서버 바이너리에
+Full Disk Access를 부여하고 **ai-memory 서비스만** 재시작하도록 안내합니다. 권한의 실제 원인은 확정하지
+않았고 전체 디스크 접근 권한은 자동으로 부여하지 않았습니다.
 
 ### 이 Mac에서 중단·복구
 
-아래 명령은 **이 연결만** 중단합니다. 다른 서비스나 OpenCode 공유 서버를 재시작하지 않습니다.
-설정 파일을 이동하기 전에 해당 파일이 이 연결의 것인지 확인하고, 다른 항목을 추가했다면 전체 파일을
-이동하지 말고 해당 `ksi-ai-memory` 항목과 전용 `instructions` 참조만 제거하세요.
+이 서비스와 훅은 **이 프로젝트만이 아니라 이 Mac의 OpenCode 전체 프로젝트**에 영향을 줍니다.
+중단·제거 전에는 실행 중인 다른 세션에 미치는 영향을 확인하고, 공식 제거 계획을 미리 검토하세요.
+서비스 중단만으로 전역 훅이 제거되거나 데이터가 삭제되지는 않습니다.
 
 ```sh
-launchctl bootout "gui/$(id -u)/local.ksi.harness-ai-memory"
-# 다시 시작: launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/local.ksi.harness-ai-memory.plist"
-# 소유자 전용 백업을 남긴 뒤 프로젝트 .opencode/opencode.jsonc의 해당 연결만 제거
+launchctl print "gui/$(id -u)/local.ksi.harness-ai-memory"
+AI_MEMORY_SERVER_URL=http://127.0.0.1:49375 \
+  ai-memory --data-dir "$HOME/.local/share/ksi-harness-ai-memory" \
+  doctor --workspace ksi --project harness
 ```
 
-데이터와 토큰은 위 명령으로 삭제되지 않습니다. 서비스를 재시작할 때는 해당 job만
-`launchctl kickstart -k "gui/$(id -u)/local.ksi.harness-ai-memory"`로 재시작합니다.
-전용 DB의 삭제나 다른 기존 서비스의 변경은 별도 확인 후 수행합니다.
-연결이 보이지 않으면 먼저 프로젝트 위치와 설정의 해당 항목, LaunchAgent 상태를 확인합니다.
-설정이 제거됐다면 기존 소유자 전용 백업에서 **해당 항목과 전용 지침 참조만** 비교·복원하고,
-토큰·설정 원문은 로그나 대화에 출력하지 않습니다. 백업이 없다면 새 연결을 추측해 만들지 말고
-구성·자격증명 경로를 안전하게 확인한 뒤 복구합니다. 복원 후 `opencode mcp list`와 범위를
-명시한 읽기 호출을 확인합니다. 공유 OpenCode 서비스를 재시작할 필요는 없습니다.
+설치 전 설정과 공식 기억 스냅샷은 소유자 전용 `~/.config/ai-memory-before-official-kjxjxjjc/`에
+있습니다. 공식 스냅샷은 자격증명을 포함하는 완전한 이관 백업은 아닙니다. 연결이 보이지 않으면
+프로젝트 범위, 전역 MCP, 훅 인증과 LaunchAgent 상태를 각각 확인하세요. 토큰·설정 원문은 로그나
+대화에 출력하지 않습니다. OpenCode 공유 서버는 이번 설치에서 재시작하지 않았습니다.
 
 ## 격리 시험과 한계 (2026-10-30)
 
 - **자동 수집:** OpenCode 2.2.1·ai-memory 3.2.10에서 `allowlist`를 켜도 세션 이동 시 대상의 기존
   기억이 다른 마커 프로젝트로 재분류됐습니다. 독립 외부 세션과 이동 완료 후의 합성 프롬프트는
-  수집되지 않았지만 경합 순서는 확정하지 못했습니다. 이 Mac에서는 자동 훅을 켜지 않습니다.
+  수집되지 않았지만 경합 순서는 확정하지 못했습니다. 이후 사용자는 이 한계를 알고 공식 기본 범위의
+  자동 기록을 승인했습니다.
 - **MCP 범위:** 대상에 grant된 비root 키도 새 프로젝트를 만들거나 scope 없는 쓰기를 `scratch`에
   저장할 수 있었고, 단일 프로젝트 검색은 `global_scope_hits`를 함께 반환할 수 있었습니다. MCP 세션
   메타데이터도 인증 수단이 아닙니다. 따라서 현재 공식 연결에 서버 강제 범위가 있다고 주장하지 않습니다.

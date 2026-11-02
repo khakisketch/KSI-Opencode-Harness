@@ -63,6 +63,6 @@ async function main() {
   console.log(JSON.stringify(evaluate(data), null, 2));
 }
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
-  if (process.argv.length !== 2) { console.error('Usage: node scripts/ux-evaluation.mjs < input.json'); process.exitCode = 2; }
-  else main().catch(() => { console.error('Invalid input; see docs/ux-evaluation.md. No report produced.'); process.exitCode = 1; });
+  if (process.argv.length !== 2) { console.error('Usage: node experiments/ux-evaluation/evaluate.mjs < input.json'); process.exitCode = 2; }
+  else main().catch(() => { console.error('Invalid input; see experiments/ux-evaluation/README.md. No report produced.'); process.exitCode = 1; });
 }

@@ -1,5 +1,7 @@
 # 오프라인 UX 비교 보조
 
+**실험 전용:** 기본 운영·시각 도구·설치 절차에서는 사용하지 않습니다. 필요할 때만 아래 합성 시험과 명시적 로컬 입력으로 실행합니다.
+
 이 선택형 도구는 **호출자가 직접 작성한 JSON 한 건**의 비교 조건과 사용자 피드백·참고 판단·에이전트 판단 차이를 정리합니다. 화면을 실행·캡처하거나 receipt·출처를 검증하지 않고, 모델에 연락하거나 품질 PASS를 만들지 않습니다. Muse·Terra나 하네스가 더 나았는지도 판정하지 않습니다. `declared-aligned-unverified`는 입력 문자열의 일치일 뿐입니다. 생략한 조건, 선택 편향, 다른 검토자나 실제 환경이 비교를 무효화할 수 있으므로 사람이 원본 증거를 확인해야 합니다.
 
 ## 사용
@@ -9,8 +11,8 @@
 하네스 저장소에서 예시를 확인하거나, 검토한 자신의 기록을 표준 입력으로 전달합니다.
 
 ```sh
-node scripts/ux-evaluation.mjs < tests/fixtures/ux-evaluation-synthetic.json
-node --test tests/ux-evaluation.test.mjs
+node experiments/ux-evaluation/evaluate.mjs < experiments/ux-evaluation/synthetic.json
+node --test experiments/ux-evaluation/evaluate.test.mjs
 ```
 
 fixture와 그 피드백은 전부 합성이며 실제 모델 결과·캡처·사람 판단이 아닙니다. 도구는 Node.js 외 의존성 없이 **stdin만 읽고 stdout만 출력**하며, 모델·네트워크 호출이나 자동 파일 생성을 하지 않습니다. 인자에 파일명·외부 참조·명령·출력 경로를 받지 않습니다. 입력은 최대 65,536바이트이며 잘못된 입력에서는 일반 오류만 출력하고 보고서를 만들지 않습니다.

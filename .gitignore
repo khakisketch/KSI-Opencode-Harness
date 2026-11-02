@@ -11,11 +11,11 @@ design-previews/
 .opencode/skills/investigating-performance/
 .opencode/skills/reviewing-security/
 .opencode/skills/ux-heuristics-audit/
-# Local-only: absolute project config with a machine path + Decision opt-in
-# (allowDataTransfer). Tracking it would leak the operator path and auto-enable
-# the experiment on fresh clones. The canonical source stays in global/.
+# Local project configuration and memory scope are operator-owned, not defaults
+# for everyone who clones the harness. Portable sources stay under global/.
 /.opencode/opencode.json
 /.opencode/opencode.jsonc
+/.ai-memory.toml
 # Repository-local operating notes and instructions can contain machine- and
 # project-specific information. The portable examples are under examples/ and
 # global/. These ignores are not encryption or a substitute for staged review.

@@ -12,11 +12,12 @@ import net from 'node:net';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixturePng } from './helpers/visual-fixture.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const root = await fs.mkdtemp('/tmp/opencode/ksi-visual-native-');
+const root = await fs.mkdtemp(path.join(await fs.realpath(os.homedir()), '.ksi-visual-native-'));
 const home = path.join(root, 'home'), workspace = path.join(root, 'project');
 const cfg = path.join(home, '.config/opencode');
 await fs.mkdir(workspace, { recursive: true });
@@ -28,9 +29,13 @@ await fs.writeFile(path.join(workspace, 'Screen.kt'), 'fun screen() = "original"
 await fs.writeFile(path.join(workspace, 'tokens.xml'), '<color name="primary">#123456</color>');
 await fs.writeFile(path.join(workspace, 'before.png'), fixturePng());
 await fs.writeFile(path.join(workspace, 'after.png'), fixturePng(32, 24, 90));
+const evidenceDir = await fs.realpath(await fs.mkdtemp(path.join(root, 'private-evidence-')));
+const externalBefore = path.join(evidenceDir, 'before.png');
+await fs.writeFile(externalBefore, fixturePng(), { mode: 0o600 });
+const canonicalWorkspace = await fs.realpath(workspace);
 const password = randomBytes(20).toString('hex');
 const observations = [], childObservations = [];
-let step = 0, childStep = 0, deniedStep = 0, followupStep = 0, firstReceiptID, checks = 0;
+let step = 0, childStep = 0, deniedStep = 0, followupStep = 0, revokedStep = 0, firstReceiptID, checks = 0;
 function check(label, value) { assert.ok(value, label); checks++; console.log(`PASS ${label}`); }
 function strings(value) {
   if (typeof value === 'string') return [value];
@@ -62,15 +67,21 @@ const model = http.createServer(async (req, res) => {
   } else if (primary && flat.includes('NATIVE_VISUAL_DENIED')) {
     if (deniedStep++ === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', resources: ['tokens.xml'] }; }
     else text = 'VISUAL_DENIAL_COMPLETE';
+  } else if (primary && userText.includes('NATIVE_VISUAL_REVOKED')) {
+    if (revokedStep === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', continueTask: true }; }
+    else if (revokedStep === 1) { name = 'visual_review_single'; args = { receipt: firstReceiptID ?? 'missing', problem: 'Revoked external evidence' }; }
+    else text = 'VISUAL_REVOKED_COMPLETE';
+    revokedStep++;
   } else if (primary && flat.includes('NATIVE_VISUAL_FOLLOWUP')) {
     if (followupStep === 0) { name = 'visual_review_single'; args = { receipt: firstReceiptID ?? 'missing', problem: 'Follow-up must invalidate earlier receipt' }; }
-    else if (followupStep === 1) { name = 'visual_prepare'; args = { target: 'Screen.kt' }; }
+    else if (followupStep === 1) { name = 'visual_prepare'; args = { target: 'Screen.kt', continueTask: true }; }
+    else if (followupStep === 2) { name = 'visual_review_single'; args = { receipt: firstReceiptID ?? 'missing', problem: 'Continued same task' }; }
     else text = 'VISUAL_FOLLOWUP_COMPLETE';
     followupStep++;
   } else if (primary) {
     observations.push({ step, hasSkill: flat.includes('SYNTHETIC_SKILL_TEST_MARKER'), hasRuntime: flat.includes('KSI visual tools'), hasTokens: flat.includes('#123456'), hasDeclaredScope: flat.includes('Fixture overall recovery goal') && flat.includes('Fixture panel scope'), imageCount: (flat.match(/data:image\/png;base64,/g) ?? []).length });
     if (step === 0) { name = 'visual_prepare'; args = { target: 'Screen.kt', resources: ['tokens.xml'], overallGoal: 'Fixture overall recovery goal', assignedScope: 'Fixture panel scope' }; }
-    if (step === 1) { name = 'visual_capture'; args = { adapter: 'existing', path: 'before.png', state: 'mission', simulated: true, provenance: 'Synthetic fixture, not native UI' }; }
+    if (step === 1) { name = 'visual_capture'; args = { adapter: 'existing', path: externalBefore, state: 'mission', simulated: true, provenance: 'Synthetic fixture, not native UI' }; }
     if (step === 2) { name = 'read'; args = { path: path.join(workspace, 'Screen.kt') }; }
     if (step === 3) { name = 'edit'; args = { path: path.join(workspace, 'Screen.kt'), oldString: 'original', newString: 'revised' }; }
     if (step === 4) { name = 'visual_capture'; args = { adapter: 'existing', path: 'after.png', state: 'mission', simulated: true, provenance: 'Synthetic fixture, not native UI' }; }
@@ -110,6 +121,7 @@ await fs.writeFile(path.join(cfg, 'opencode.json'), JSON.stringify({
   providers: { fixture: { package: '@opencode/ai/providers/openai-compatible', settings: { baseURL: `http://127.0.0.1:${modelPort}/v1`, apiKey: 'synthetic-only' },
     models: { fixture: { capabilities: { tools: true, input: ['text', 'image'], output: ['text'] }, limit: { context: 65536, output: 4096 } } } } },
 }));
+await fs.writeFile(path.join(cfg, 'ksi-visual-evidence.json'), JSON.stringify({ version: 1, externalEvidence: [{ project: canonicalWorkspace, directory: evidenceDir }] }), { mode: 0o600 });
 const env = Object.fromEntries(['PATH', 'LANG', 'LC_ALL', 'TMPDIR', 'TERM'].filter(k => process.env[k]).map(k => [k, process.env[k]]));
 Object.assign(env, { HOME: home, XDG_CONFIG_HOME: path.join(home, '.config'), XDG_DATA_HOME: path.join(home, '.local/share'), XDG_CACHE_HOME: path.join(home, '.cache'), XDG_STATE_HOME: path.join(home, '.local/state'), OPENCODE_SERVER_PASSWORD: password });
 const fd = openSync(path.join(root, 'server.log'), 'w');
@@ -177,7 +189,8 @@ try {
   check('child separately reads both exact project-local image fixtures into its model input', childObservations.some(o => o.imageCount >= 2 && o.hasBeforeBytes && o.hasAfterBytes));
   check('scripted child claims transport only, not a design verdict', strings(delegated?.state?.content).some(s => s.includes('CHILD_SCRIPTED_TRANSPORT_ONLY')));
   check('bounded Native tool loop reaches final response', strings(messages).some(s => s.includes('VISUAL_TRANSPORT_COMPLETE')));
-  const firstCapture = calls.find(p => p.name === 'visual_capture' && p.state?.status === 'completed');
+  const firstCapture = calls.find(p => p.name === 'visual_capture' && p.state?.status === 'completed' && p.state?.input?.path === externalBefore);
+  check('configured private external PNG captured by Native', JSON.parse(firstCapture.state.content.find(c => c.type === 'text').text).file === externalBefore);
   firstReceiptID = JSON.parse(firstCapture.state.content.find(c => c.type === 'text').text).id;
   const followupPrompt = 'NATIVE_VISUAL_FOLLOWUP: Review this revised UI task without changing files.';
   await api('POST', `/api/session/${session.id}/prompt`, { text: followupPrompt });
@@ -193,8 +206,22 @@ try {
   check('later user message invalidates prior task receipt', staleCall?.state?.status === 'error');
   const latestPrepare = followupCalls.find(p => p.name === 'visual_prepare' && p.state?.status === 'completed');
   const latestPacket = JSON.parse(latestPrepare.state.content.find(c => c.type === 'text').text);
-  check('re-preparation observes the latest user message', latestPacket.originalRequest === followupPrompt);
+  check('continuation preserves original request and separately observes latest message', latestPacket.originalRequest === prompt && latestPacket.latestRequest === followupPrompt);
+  check('continued task can review the earlier external receipt', followupCalls.some(p => p.name === 'visual_review_single' && p.state?.input?.problem === 'Continued same task' && p.state?.status === 'completed'));
   check('follow-up scripted loop completes', strings(followupMessages).some(s => s.includes('VISUAL_FOLLOWUP_COMPLETE')));
+  await fs.unlink(path.join(cfg, 'ksi-visual-evidence.json'));
+  await api('POST', `/api/session/${session.id}/prompt`, { text: 'NATIVE_VISUAL_REVOKED: Continue the same UI review after the operator removed evidence access.' });
+  let revokedMessages;
+  for (let i = 0; i < 100; i++) {
+    await sleep(250);
+    const result = await api('GET', `/api/session/${session.id}/message`);
+    revokedMessages = Array.isArray(result) ? result : result.messages;
+    if (strings(revokedMessages).some(s => s.includes('VISUAL_REVOKED_COMPLETE'))) break;
+  }
+  const revokedCalls = revokedMessages.filter(m => m.type === 'assistant').flatMap(m => m.content ?? []).filter(p => p.type === 'tool');
+  const revoked = revokedCalls.find(p => p.name === 'visual_review_single' && p.state?.input?.problem === 'Revoked external evidence');
+  check('removing operator file revokes a previously captured external receipt', revoked?.state?.status === 'error');
+  check('revoked review returns no image payload', !strings(revoked?.state).some(s => s.startsWith('data:image/png;base64,')));
   const denied = await api('POST', '/api/session', { location: { directory: workspace }, agent: 'build', model: { providerID: 'fixture', id: 'fixture' },
     permissions: [{ action: 'read', resource: '*', effect: 'deny' }, { action: 'edit', resource: '*', effect: 'deny' }] });
   await api('POST', `/api/session/${denied.id}/prompt`, { text: 'NATIVE_VISUAL_DENIED: Improve this UI screen.' });

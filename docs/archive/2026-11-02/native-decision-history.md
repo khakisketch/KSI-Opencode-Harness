@@ -1,3 +1,8 @@
+# Native Decision 연결 이력 — 2026-11-02 기본 운영 제외
+
+아래는 정리 전 문서 원문입니다. 전역 로딩·공통 지침에서 제거한 뒤 실험으로 분리했던 코드도 후속 로컬 잔여 정리에서 삭제했습니다. 아래 설치 예시는 현재 운영 안내가 아닙니다. 상대 경로는 당시 `docs/native-decision.md` 기준입니다.
+
+````markdown
 # OpenCode Native Decision (선택형 소스 연결)
 
 **승인된 방향 (2026-10-29):** Build와 Lead가 도구·스킬·위임 등 중요하고 불확실한 선택에서
@@ -130,3 +135,4 @@ Decision 엔진을 되살리는 대신 Native API에 연결하는 방향을 승�
 
 참고: [OpenCode V2 플러그인의 실험적 Generate API](https://opencode.ai/v2/docs/build/plugins/server#generate-experimental),
 [OpenCode API](https://opencode.ai/v2/docs/api), [내장 목표](native-goal.md), [검증과 한계](validation.md).
+````

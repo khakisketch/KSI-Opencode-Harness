@@ -7,14 +7,14 @@
 //      custom operating file global/agents/lead.md; the four removed specialist
 //      files are NOT copied) with ONLY these mechanical transforms, all inside
 //      the sandbox:
-//        - every model reference -> fixture/fixture (top-level, agents JSON, and the
-//          `model:` frontmatter line of each copied Markdown role file),
+//        - configured models -> fixture/fixture; Lead/General remain unpinned,
+//          so their real child requests inherit the fixture parent model,
 //        - providers reduced to the scripted `fixture` provider only,
 //        - `mcp` section removed (no remote URLs / credential references),
 //        - no top-level permission widening, no invented config keys.
 //      Native builtin Plan prompt/deny-edit behavior is kept (no plan.md override
 //      is created in the sandbox; Markdown-later-override is handled by rewriting
-//      the MODEL line in sandbox copies only).
+//      configured models in the sandbox only).
 //
 // The scripted model drives REAL native `subagent` tool calls through representative
 // runtime chains (script markers in Native tool I/O only verify delegation mechanics;
@@ -358,7 +358,7 @@ function chainMarker(text) {
     "KSI-DELEG-H2R", "KSI-DELEG-H2", "KSI-DELEG-H1", "KSI-DELEG-H0",
     "KSI-DELEG-G3", "KSI-DELEG-G2", "KSI-DELEG-G1", "KSI-DELEG-G0",
     "KSI-DELEG-J3", "KSI-DELEG-J2", "KSI-DELEG-J1", "KSI-DELEG-J0",
-    "KSI-DELEG-M1", "KSI-DELEG-M0",
+    "KSI-DELEG-M1", "KSI-DELEG-M0", "KSI-DIRECT-ROOT",
     "KSI-DELEG-T1", "KSI-DELEG-T0",
     "KSI-DELEG-X1", "KSI-DELEG-X0",
     "KSI-DELEG-R1", "KSI-DELEG-R0",
@@ -617,6 +617,12 @@ function scriptFor(marker, advertised, ctx = {}) {
       return { kind: "tools", calls: [{ name: "read", args: { path: DIRECT_B_FILE } }] };
     }
     return { kind: "text", text: `M1-GENERAL-OK ${HANDOFF} ${ORIGIN} EVID-A:${evidenceMatch(toolMsgs, /DIRECT-A-CONTENT[^\n"\\]{0,48}/)} EVID-B:${evidenceMatch(toolMsgs, /\.direct-b[^\n"\\]{0,48}/)}` };
+  }
+  if (marker === "KSI-DIRECT-ROOT") {
+    if (step === 0) return { kind: "tools", calls: [{ name: "write", args: { path: "build-direct.txt", content: "build direct original\n" } }] };
+    if (step === 1) return { kind: "tools", calls: [{ name: "edit", args: { path: "build-direct.txt", oldString: "build direct original", newString: "build direct corrected" } }] };
+    if (step === 2) return { kind: "tools", calls: [{ name: "read", args: { path: "build-direct.txt" } }] };
+    return { kind: "text", text: "BUILD-DIRECT-DONE" };
   }
   // T: lead direct execution with ZERO children. T0 (build) -> T1 (lead: real
   // write+edit+read ALLOWED, byte-verified, no subagent call). Counterpart to
@@ -1041,31 +1047,17 @@ async function main() {
   check("source role modes match contract (plan all; lead/general/explore subagent)", true);
 
   // --- 1b. Source contract: exact model preferences and skill sets.
-  // Plan uses Sol High, Lead uses Terra Medium, and bounded workers retain Muse preferences.
-  const WANT_MODELS = {
-    "lead.md": "openai/gpt-6.1-terra#medium",
-  };
-  let modelsOk = true;
-  for (const [file, want] of Object.entries(WANT_MODELS)) {
-    const got = mdFrontField(mdSources[file.replace(/\.md$/, "")], "model");
-    if (got !== want) { modelsOk = false; note(`model drift ${file}`, `got=${got} want=${want}`); }
-  }
-  const WANT_JSON_MODELS = {
-    plan: "openai/gpt-6.1-sol#high",
-    general: "opencode-go/muse-spark-1.3-contributor#high",
-    explore: "opencode-go/muse-spark-1.3-contributor#medium",
-  };
-  for (const [id, want] of Object.entries(WANT_JSON_MODELS)) {
-    if (srcAgents[id]?.model !== want) { modelsOk = false; note(`model drift agents.${id}`, `got=${srcAgents[id]?.model} want=${want}`); }
-  }
-  check("source models match configured preferences (Sol Plan, Terra Lead, Muse workers)", modelsOk);
+  // Plan and Explore retain preferences; Lead and General inherit.
+  let modelsOk = mdFrontField(mdSources.lead, "model") === null && srcAgents.general?.model === undefined
+    && srcAgents.plan?.model === "openai/gpt-6.1-sol#high" && srcAgents.explore?.model === "openai/gpt-6-luna#low";
+  check("source Lead and General inherit; Plan and Explore retain preferences", modelsOk);
   if (!modelsOk) { failClosed("CONTRACT-MISMATCH: source model drift", "see model drift notes"); return void finish(); }
   // Build root carries no forced model: caller/session selection applies.
   check("source forces no model on build root (no top-level or build model)",
     srcCfg.model === undefined && srcAgents.build?.model === undefined,
     `top=${srcCfg.model} build=${srcAgents.build?.model}`);
-  // Only Muse needs a request override; OpenAI uses Native provider defaults.
-  // No router or automatic provider fallback is introduced.
+  // Preserve the existing Muse request override for any separately selected use;
+  // execution uses Native defaults. No router or fallback is introduced.
   const museBody = srcCfg?.providers?.["opencode-go"]?.models?.["muse-spark-1.3-contributor"]?.body;
   check("source Muse routing exact (auto tool choice)",
     isDeepStrictEqual(museBody, { tool_choice: "auto" }),
@@ -1103,8 +1095,8 @@ async function main() {
   check("source retires repo-bundled custom skill and detector plugin",
     !fs.existsSync(path.join(REPO, "skills", "task-first-ux-review"))
     && !fs.existsSync(path.join(REPO, "global", "plugins", "ksi-impeccable-detector")));
-   check("source Lead has a dispatch description and non-empty system body",
-     Boolean(mdFrontField(mdSources.lead, "description")) && mdBody(mdSources.lead).trim().length > 0);
+   check("source Lead has description and no system replacement",
+     Boolean(mdFrontField(mdSources.lead, "description")) && mdBody(mdSources.lead).trim().length === 0);
 
   // --- 2. Sandbox (private HOME/XDG; copies actual source, sandbox-only transforms) ---
   fs.mkdirSync(WORKSPACE, { recursive: true });
@@ -1113,23 +1105,8 @@ async function main() {
   const agentsDir = path.join(cfgDir, "agents");
   fs.mkdirSync(agentsDir, { recursive: true });
   for (const id of mdIds) {
-    const dst = path.join(agentsDir, `${id}.md`);
-    // Sandbox-only MODEL rewrite; every other line must stay identical (verified below).
-    const rewritten = mdSources[id].replace(/^model:\s*.*$/m, "model: fixture/fixture");
-    fs.writeFileSync(dst, rewritten);
-  }
-  for (const id of mdIds) {
-    const a = fs.readFileSync(path.join(SRC_AGENTS, `${id}.md`), "utf8").split("\n");
-    const b = fs.readFileSync(path.join(agentsDir, `${id}.md`), "utf8").split("\n");
-    const diffs = a.filter((l, i) => l !== b[i]).concat(b.length !== a.length ? ["line-count"] : []);
-    const onlyModel = diffs.length > 0 && diffs.every((l) => /^model:/.test(l) || l === "model: fixture/fixture");
-    // Recompute precisely: differing line pairs, each pair must be a model-line swap.
-    let clean = a.length === b.length;
-    if (clean) for (let i = 0; i < a.length; i++) {
-      if (a[i] === b[i]) continue;
-      if (!(/^model:/.test(a[i]) && b[i] === "model: fixture/fixture")) { clean = false; break; }
-    }
-    check(`sandbox ${id}.md differs from source ONLY in model line`, clean && onlyModel, diffs.slice(0, 2).join("|").slice(0, 120));
+    fs.writeFileSync(path.join(agentsDir, `${id}.md`), mdSources[id]);
+    check(`sandbox ${id}.md identical to source`, fs.readFileSync(path.join(agentsDir, `${id}.md`), "utf8") === mdSources[id]);
   }
   check("sandbox creates no plan.md builtin override", !fs.existsSync(path.join(agentsDir, "plan.md")));
   check("sandbox carries no architect.md from any path (archive out of discovery)", !fs.existsSync(path.join(agentsDir, "architect.md")));
@@ -1147,7 +1124,7 @@ async function main() {
 
   const overrideIds = [...new Set([...Object.keys(srcAgents), ...mdIds, "build", "plan", "general", "explore", "title", "compaction", "summary"])];
   const sandboxAgents = JSON.parse(JSON.stringify(srcAgents));
-  for (const id of overrideIds) {
+  for (const id of overrideIds.filter(id => id !== "lead" && id !== "general")) {
     // Sandbox-only model rewrite for operating profiles; nothing else about
     // the agents map is rewritten. Retired ids have no entries at all.
     sandboxAgents[id] = { ...(sandboxAgents[id] ?? {}), model: FIXTURE_MODEL };
@@ -1369,14 +1346,13 @@ async function main() {
       check(`sandbox ${id} mode == ${mode} (catalog, not echo)`, byId.get(id)?.mode === mode, `got=${byId.get(id)?.mode}`);
     }
     for (const id of OPERATING_IDS) {
-      const m = byId.get(id)?.model ?? {};
-      check(`sandbox ${id} model == fixture/fixture (catalog)`, m.providerID === "fixture" && m.id === "fixture", `got=${m.providerID}/${m.id}`);
+      const m = byId.get(id)?.model;
+      check(`sandbox ${id} model selection (catalog)`, ["lead", "general"].includes(id) ? m == null : m?.providerID === "fixture" && m?.id === "fixture", `got=${m?.providerID}/${m?.id}`);
     }
-    // The running server grounds on the actual Lead prompt: catalog system
-    // text must equal the copied source body (normalization: CRLF/edge space).
+    // Empty source body must not install a replacement system prompt.
     {
       const sys = byId.get("lead")?.system;
-      check("sandbox lead prompt == source body (catalog system)", typeof sys === "string" && normText(sys) === normText(mdBody(mdSources.lead)), `systemLen=${typeof sys === "string" ? sys.length : "na"}`);
+      check("sandbox lead has no system replacement", sys == null || normText(sys) === "", `systemLen=${typeof sys === "string" ? sys.length : "na"}`);
     }
     async function probe(caller, action, resource) {
       const id = await createSession(caller);
@@ -1966,6 +1942,12 @@ async function main() {
         .some((r) => (r.toolMsgs ?? []).some((text) => text.includes("D2-GENERAL-OK") && text.includes(D_UNIT_LINE))));
     check("D general created no deeper child", dGen ? (await childrenOf(dGen)).length === 0 : false);
 
+    // Scripted Native direct-owner execution; not a claim about model choice or initiative.
+    steps.clear();
+    const direct = await runChain("build", "KSI-DIRECT-ROOT implement and check directly", "BUILD-DIRECT-DONE", "build-direct");
+    const directTools = toolEntries(direct.messages);
+    check("Build directly writes, corrects and reads without children", ["write", "edit", "read"].every(n => directTools.some(p => p.name === n && p.state?.status === "completed")) && directTools.every(p => p.name !== "subagent") && (await childrenOf(direct.id)).length === 0 && fs.readFileSync(path.join(WORKSPACE, "build-direct.txt"), "utf8") === "build direct corrected\n");
+
     // --- 8d. M: Build-direct General multi-file task. ---
     // Build0 -> General1 writes+reads TWO task-local files. Positive proof
     // that small clear work may go Build-direct/General with no obligatory
@@ -1982,6 +1964,7 @@ async function main() {
       await mustApi("GET", `/api/session/${mGen}/message?limit=100&order=asc`, undefined, "M owned general messages"),
       "M owned general messages",
     ) : [];
+    check("M General actual assistant model inherits parent", mGenMsgs.some(x => x.type === "assistant" && x.time?.completed && isDeepStrictEqual(x.model, m.messages.find(y => y.type === "assistant" && y.time?.completed)?.model)));
     const mWritesA = toolEntries(mGenMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(DIRECT_A_FILE));
     const mWritesB = toolEntries(mGenMsgs).filter((t) => t.name === "write" && JSON.stringify(t.state?.input ?? {}).includes(DIRECT_B_FILE));
     const mReadsA = toolEntries(mGenMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(DIRECT_A_FILE));
@@ -2022,6 +2005,7 @@ async function main() {
       await mustApi("GET", `/api/session/${tLead}/message?limit=100&order=asc`, undefined, "T lead messages"),
       "T lead messages",
     ) : [];
+    check("T Lead actual assistant model inherits parent", tLeadMsgs.some(x => x.type === "assistant" && x.time?.completed && isDeepStrictEqual(x.model, t.messages.find(y => y.type === "assistant" && y.time?.completed)?.model)));
     const tWrites = toolEntries(tLeadMsgs).filter((t2) => t2.name === "write" && JSON.stringify(t2.state?.input ?? {}).includes(LEAD_DIRECT_FILE));
     const tEdits = toolEntries(tLeadMsgs).filter((t2) => t2.name === "edit" && JSON.stringify(t2.state?.input ?? {}).includes(LEAD_DIRECT_FILE));
     const tReads = toolEntries(tLeadMsgs).filter((t2) => t2.name === "read" && JSON.stringify(t2.state?.input ?? {}).includes(LEAD_DIRECT_FILE));
@@ -2337,7 +2321,7 @@ async function main() {
     // parallel non-interference side, V the chosen-verification side).
     const wsFilesEnd = fs.readdirSync(WORKSPACE).sort();
     check("final workspace holds only the scope probe plus J/D/M/T/L task-local files",
-      JSON.stringify(wsFilesEnd) === JSON.stringify([D_UNIT_FILE, DEV_FILE, DIRECT_A_FILE, DIRECT_B_FILE, L_API_FILE, L_UI_FILE, LEAD_DIRECT_FILE, SCOPE_FILE].sort()), wsFilesEnd.join(","));
+      JSON.stringify(wsFilesEnd) === JSON.stringify(["build-direct.txt", D_UNIT_FILE, DEV_FILE, DIRECT_A_FILE, DIRECT_B_FILE, L_API_FILE, L_UI_FILE, LEAD_DIRECT_FILE, SCOPE_FILE].sort()), wsFilesEnd.join(","));
     check("final fixture bytes unchanged since F", sha256(fs.readFileSync(path.join(WORKSPACE, SCOPE_FILE), "utf8")) === scopeHashBeforeF);
     check("final dev-unit bytes are the repaired version", fs.readFileSync(path.join(WORKSPACE, DEV_FILE), "utf8") === `${DEV_FIXED}\n`);
     check("final lead-unit bytes are the written unit", fs.readFileSync(path.join(WORKSPACE, D_UNIT_FILE), "utf8") === `${D_UNIT_LINE}\n`);

@@ -1002,7 +1002,7 @@ describe('session-audit behavioral and temporal verification', () => {
   });
 
   it('validates declared order against timestamp evidence without inferring it', async () => {
-    const { checkDeclaredOrder, messageTimeOf } = await import('../global/plugins/ksi-session-evidence/core.mjs');
+    const { checkDeclaredOrder, messageTimeOf } = await import('../scripts/lib/session-audit-core.mjs');
     assert.equal(messageTimeOf({ time: { created: 42 } }), 42);
     assert.equal(messageTimeOf({ time: 42 }), 42);
     assert.equal(typeof messageTimeOf({ time: { created: new Date(0).toISOString() } }), 'number');
@@ -1130,7 +1130,7 @@ describe('session-audit behavioral and temporal verification', () => {
   });
 
   it('detects tied runs at front, middle, and back with relevance', async () => {
-    const { checkDeclaredOrder } = await import('../global/plugins/ksi-session-evidence/core.mjs');
+    const { checkDeclaredOrder } = await import('../scripts/lib/session-audit-core.mjs');
     const t = (n) => ({ type: 'assistant', time: { created: n } });
     const tp = (n) => ({ type: 'assistant', time: { created: n }, content: [{ type: 'tool', name: 'shell', state: { status: 'completed', input: { command: 'x' } } }] });
     assert.deepEqual(checkDeclaredOrder([t(1), t(1), t(2), t(3)], 'oldest-first').tiedRuns, [{ start: 0, end: 1, relevant: false }]);

@@ -1,12 +1,11 @@
-// session-audit.mjs — thin CLI + re-export over the single shared audit core.
-// The canonical logic lives in global/plugins/ksi-session-evidence/core.mjs
-// (shared with the managed Native session-evidence plugin); this file keeps
+// session-audit.mjs — optional offline diagnostic CLI over its local audit core.
+// No plugin, live context lookup or automatic execution. This file keeps
 // the historical import path, public exports, and CLI behavior. Default input
 // order is oldest-first; pass --newest-first when the audited array is newest
 // first (operator-observed for the Native V2 /api/session/{id}/message
 // surface). A wrong declaration flips after-last-change results; when array
 // order is unconfirmed, treat the result as unknown instead of guessing.
-import { auditMessages, summarizeAudits, auditPath } from '../global/plugins/ksi-session-evidence/core.mjs';
+import { auditMessages, summarizeAudits, auditPath } from './lib/session-audit-core.mjs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 

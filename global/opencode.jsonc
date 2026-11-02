@@ -3,11 +3,13 @@
   "$schema": "https://opencode.ai/config.json",
   "share": "disabled",
   "experimental": {
+    // Optional Native task state for multi-step work; not a completion gate.
+    "todo": true,
     // Root = 0. Usually use 1-2 levels; a useful third level is allowed, never required.
     "subagent_depth": 3
   },
   "mcp": {
-    // Lead owns assigned whole-task delivery; task-specific evidence gathering happens inside the assigned scope when useful.
+    // Task-specific evidence gathering happens inside the assigned scope when useful.
     // Mobbin is an optional paid service: this operator enables it, but the harness works without it.
     // V2 Native shape: servers under mcp.servers are default-enabled; set "disabled": true to deactivate.
     "servers": {
@@ -30,7 +32,7 @@
   "agents": {
     // Native Build/Plan/General/Explore plus the custom Lead profile.
     "build": {
-      "description": "Owns the whole approved goal, work allocation, integration and final product quality; delegates substantive implementation of large/non-local/multi-part work to Lead as outcome units by default, and implements directly only for precise local fixes, small integration repairs, and verification.",
+      "description": "Owns the approved goal and can investigate, design, implement, verify and correct it directly; delegates when benefits outweigh context and handoff costs.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
@@ -45,11 +47,10 @@
       "model": "openai/gpt-6.1-sol#high"
     },
     "explore": {
-      "model": "opencode-go/muse-spark-1.3-contributor#medium"
+      "model": "openai/gpt-6-luna#low"
     },
     "general": {
-      "description": "Executes and verifies assigned tasks independently; returns results and material risks.",
-      "model": "opencode-go/muse-spark-1.3-contributor#high"
+      "description": "Executes and verifies assigned tasks independently; returns results and material risks."
     }
   },
   "providers": {
@@ -61,6 +62,5 @@
         }
       }
     }
-    // RETIRED 2026-10-28: Decision 운영 제거. 공유 provider 슬롯을 덮어쓰지 않습니다.
   }
 }

@@ -33,15 +33,15 @@ describe('runtime instruction structure (not prose or quality assertions)', () =
 });
 
 describe('lead instruction structure (source only)', () => {
-  it('keeps frontmatter, a dispatch description and a non-empty system body', () => {
+  it('keeps frontmatter, a dispatch description without replacing the Native system', () => {
     const parts = lead.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
     assert.ok(parts, 'Lead must remain a Native Markdown agent');
     assert.match(parts[1], /^description:\s*\S/m);
-    assert.ok(parts[2].trim().length > 0);
+    assert.equal(parts[2].trim(), "");
   });
 
   it('keeps the Lead model and child edges Native-shaped', () => {
-    assert.match(lead, /^model: openai\/gpt-6\.1-terra#medium$/m);
+    assert.doesNotMatch(lead, /^model:/m);
     assert.match(lead, /^mode: subagent$/m);
     for (const target of ['plan', 'general', 'explore']) {
       assert.match(lead, new RegExp(`- action: subagent\\s*\\n\\s*resource: ${target}\\s*\\n\\s*effect: allow`));
@@ -84,10 +84,11 @@ describe('native config edges for five profiles (source only)', () => {
       assert.ok(!rules.some((r) => r.action === 'subagent' && r.effect === 'allow'), `${id} adds no child allows`);
       assert.ok(!rules.some((r) => r.action === 'skill'), `${id} declares no skill rules`);
     }
-    assert.equal(cfg.agents.general.model, 'opencode-go/muse-spark-1.3-contributor#high');
-    assert.equal(cfg.agents.explore.model, 'opencode-go/muse-spark-1.3-contributor#medium');
+    assert.equal(cfg.agents.general.model, undefined);
+    assert.equal(cfg.agents.explore.model, 'openai/gpt-6-luna#low');
     assert.ok(cfg.agents.explore.steps === undefined);
     assert.equal(cfg.experimental.subagent_depth, 3);
+    assert.equal(cfg.experimental.todo, true);
   });
 
   it('removes (never hides or tombstones) the four superseded specialists', () => {
