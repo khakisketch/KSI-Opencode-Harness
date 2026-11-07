@@ -155,6 +155,8 @@ try {
     check('default scope is session workspace', report.directory === workspace1);
     check('default excludes mcp opt-in', !report.domainsQueried.includes('mcp') && report.partial === true);
     check('default core still confirmed', report.coreQueriesOk === true && report.queriedOk === true);
+    check('complete list provenance is additive and skipped mcp stays explicit', ['agent', 'skill', 'tool', 'plugin'].every(d => report.queries[d].status === 'complete' && report.queries[d].omitted === 0 && report.catalog[d].complete === true)
+      && report.queries.mcp.status === 'skipped' && report.listDeadlineMs === 2000);
     check('actual tool catalog discovers the inventory tool', report.catalog.tool.ids.includes('ksi_capabilities_inventory'));
     check('actual skill catalog discovers the fixture skill', report.catalog.skill.ids.includes('fixture-extra-skill'));
     check('catalog ids are bounded with truncation marked', report.catalog.tool.ids.length <= 200 && report.catalog.tool.ids.every((id) => id.length <= 128) && typeof report.catalog.tool.truncated === 'boolean');
@@ -175,6 +177,7 @@ try {
     check('mcp status never asserts unavailable without evidence', report.mcp.every((m) => ['connected', 'unavailable', 'unknown'].includes(m.status)));
     check('mcp notice stays unconfirmed', report.notice.includes('mcp reconnect behavior is unconfirmed'));
     check('explicit mcp catalog shape is confirmed empty, not unknown', report.catalog.mcp.status === 'known' && report.catalog.mcp.count === 0 && report.catalog.mcp.omitted === 0);
+    check('deadline notice does not promise underlying cancellation', report.notice.includes('underlying work may continue') && report.notice.includes('tool.list has no documented signal parameter'));
   }
   {
     const { messages } = await runCase(workspace1, 'NATIVE_CAPINV_LOCATE: where is the approved skill', 'CAPINV_LOCATE_DONE');

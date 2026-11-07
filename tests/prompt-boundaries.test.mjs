@@ -8,7 +8,6 @@ import { spawnSync } from 'node:child_process';
 
 const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 const shared = read('global/AGENTS.md');
-const lead = read('global/agents/lead.md');
 
 const strippedJsonc = () => read('global/opencode.jsonc')
   .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -32,47 +31,38 @@ describe('runtime instruction structure (not prose or quality assertions)', () =
   });
 });
 
-describe('lead instruction structure (source only)', () => {
-  it('keeps frontmatter, a dispatch description without replacing the Native system', () => {
-    const parts = lead.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-    assert.ok(parts, 'Lead must remain a Native Markdown agent');
-    assert.match(parts[1], /^description:\s*\S/m);
-    assert.equal(parts[2].trim(), "");
-  });
-
-  it('keeps the Lead model and child edges Native-shaped', () => {
-    assert.doesNotMatch(lead, /^model:/m);
-    assert.match(lead, /^mode: subagent$/m);
-    for (const target of ['plan', 'general', 'explore']) {
-      assert.match(lead, new RegExp(`- action: subagent\\s*\\n\\s*resource: ${target}\\s*\\n\\s*effect: allow`));
-    }
-    assert.doesNotMatch(lead, /resource: (engineer|design|research|critic)\s*\n\s*effect: allow/);
+describe('lead role removal (source only)', () => {
+  it('carries no lead operating definition (authorized removal, no tombstone)', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    assert.ok(!('lead' in (cfg.agents ?? {})), 'lead must have no agents entry');
+    assert.equal(existsSync(new URL('../global/agents/lead.md', import.meta.url)), false, 'lead.md removed from source');
   });
 });
 
 describe('native config edges for five profiles (source only)', () => {
-  it('gives Build only Lead/General/Explore/Plan child edges', () => {
+  it('gives Build only General/Explore/Plan/Design child edges', () => {
     const cfg = JSON.parse(strippedJsonc());
     const allows = (cfg.agents.build.permissions ?? [])
       .filter((r) => r.action === 'subagent' && r.effect === 'allow')
       .map((r) => r.resource)
       .sort();
-    assert.deepEqual(allows, ['explore', 'general', 'lead', 'plan']);
+    assert.deepEqual(allows, ['design', 'explore', 'general', 'plan']);
     assert.equal(cfg.agents.build.mode ?? 'primary', 'primary');
     assert.ok(cfg.agents.build.model === undefined);
   });
 
-  it('keeps Plan analysis-only with Native permissions (no custom allowlist)', () => {
+  it('keeps Plan Native editing restrictions and permits only Explore delegation', () => {
     const cfg = JSON.parse(strippedJsonc());
     assert.equal(cfg.agents.plan.mode, 'all');
-    assert.equal(cfg.agents.plan.model, 'openai/gpt-6.1-sol#high');
+    // Portable source pins no Plan model; local installs choose per docs/development.md.
+    assert.equal(cfg.agents.plan.model, undefined);
     assert.ok(cfg.agents.plan.system === undefined);
-    // No custom system or permission allowlist: the Native prompt and Native
-    // permissions apply; mode `all` permits optional analysis/advice, alongside
-    // the description and model preference. Native analysis delegation to
-    // General/Explore and the Native edit deny are proven live in the isolated
-    // fixture, never by static allows here.
-    assert.ok(cfg.agents.plan.permissions === undefined);
+    // Only subagent routing is narrowed. Native Plan edit restrictions remain;
+    // this is not an OS sandbox or a guarantee that shell cannot mutate files.
+    assert.deepEqual(cfg.agents.plan.permissions, [
+      { action: 'subagent', resource: '*', effect: 'deny' },
+      { action: 'subagent', resource: 'explore', effect: 'allow' },
+    ]);
   });
 
   it('restores General/Explore Native breadth with no KSI skill whitelist', () => {
@@ -85,19 +75,39 @@ describe('native config edges for five profiles (source only)', () => {
       assert.ok(!rules.some((r) => r.action === 'skill'), `${id} declares no skill rules`);
     }
     assert.equal(cfg.agents.general.model, undefined);
-    assert.equal(cfg.agents.explore.model, 'openai/gpt-6-luna#low');
+    // Portable source pins no Explore model either; this Mac's Go DeepSeek
+    // choice lives in the installed config, not the shared source.
+    assert.equal(cfg.agents.explore.model, undefined);
     assert.ok(cfg.agents.explore.steps === undefined);
-    assert.equal(cfg.experimental.subagent_depth, 3);
+    // Depth 1: only direct children; children are leaves and start no subagents.
+    assert.equal(cfg.experimental.subagent_depth, 1);
     assert.equal(cfg.experimental.todo, true);
   });
 
-  it('removes (never hides or tombstones) the four superseded specialists', () => {
+  it('removes (never hides or tombstones) the superseded specialists and lead', () => {
     const cfg = JSON.parse(strippedJsonc());
-    for (const id of ['engineer', 'design', 'research', 'critic']) {
+    for (const id of ['engineer', 'research', 'critic', 'lead']) {
       assert.ok(!(id in (cfg.agents ?? {})), `${id} has no operating definition`);
       assert.equal(existsSync(new URL(`../global/agents/${id}.md`, import.meta.url)), false, `${id}.md removed from source`);
     }
     assert.ok(!('architect' in (cfg.agents ?? {})));
+  });
+
+  it('gives Design an advisory-only contract (no delegation, no edits, no model pin)', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    assert.equal(cfg.agents.design.mode, 'all');
+    assert.ok(cfg.agents.design.system === undefined);
+    assert.equal(cfg.agents.design.model, undefined);
+    assert.deepEqual(cfg.agents.design.permissions ?? [], [
+      { action: 'subagent', resource: '*', effect: 'deny' },
+      { action: 'edit', resource: '*', effect: 'deny' },
+    ]);
+    for (const id of ['build', 'plan', 'general', 'explore']) {
+      const allows = (cfg.agents[id].permissions ?? [])
+        .filter((r) => r.action === 'subagent' && r.effect === 'allow')
+        .map((r) => r.resource);
+      assert.ok(!allows.includes('design') || id === 'build', `${id} must not route to design unless it is Build`);
+    }
   });
 });
 

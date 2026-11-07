@@ -10,6 +10,9 @@
  *   - One disposable Native API session per variant, location set to a fresh
  *     /tmp/opencode fixture directory. Model opencode-go/deepseek-v4.1-flash#max,
  *     agent build (fixed). Model calls consume usage; not part of the default suite.
+ *     A temporary location and Native permissions are not an OS sandbox. The
+ *     opt-in probe executes model-written Python in the fixture, including an
+ *     independent final check; it is not safe execution of adversarial code.
  *   - The only variable between variants is the fixture's project-level
  *     compaction.keep.tokens (historical Oct-17 experiment values, frozen
  *     fixture — NOT the current production configuration, which omits
@@ -25,7 +28,8 @@
  *     manual compact #2 → return prompt to resume the original development.
  *   - Compaction is requested through the official manual API, not a plugin.
  *   - Bounded: 15 min per variant, 32 min overall. Prompts wait for Native idle
- *     via experimental.session.wait with finite timeouts; a wait timeout
+ *     via experimental.session.wait with finite timeouts clamped to absolute
+ *     variant/overall deadlines (plus at most 10s for owned-session interrupt); a wait timeout
  *     interrupts only this session and stops the variant. No second prompt is
  *     injected to continue a failed stage.
  *
@@ -36,9 +40,10 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { collectNativePages, mutationPaths } from './delegation-ownership-live.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const CHECKER_VERSION = "cc-1";
+export const CHECKER_VERSION = "cc-2";
 export const EVIDENCE_PARENT = "/tmp/opencode";
 export const MODEL_REF = { providerID: "opencode-go", id: "deepseek-v4.1-flash", variant: "max" };
 export const AGENT = "build";
@@ -134,6 +139,8 @@ export function permissionsFor() {
     { action: "todoread", resource: "*", effect: "allow" },
     { action: "shell", resource: "python3 check.py", effect: "allow" },
     { action: "shell", resource: "python3 ./check.py", effect: "allow" },
+    { action: "edit", resource: "*m1.py", effect: "deny" },
+    { action: "edit", resource: "*check.py", effect: "deny" },
   ];
 }
 
@@ -161,6 +168,7 @@ export function toolCalls(messages) {
         args: part.state?.input ?? part.input ?? null,
         status: part.state?.status ?? part.status ?? null,
         error: part.state?.error?.message ?? "",
+        output: toolOutput(part),
       });
     }
   }
@@ -178,6 +186,7 @@ export function lastTurn(messages) {
   const list = messages ?? [];
   let idx = -1;
   for (let i = list.length - 1; i >= 0; i--) if (list[i]?.type === "user") { idx = i; break; }
+  if (idx < 0) return { text: '', calls: [] };
   const texts = [];
   const calls = [];
   for (let i = idx + 1; i < list.length; i++) {
@@ -186,7 +195,7 @@ export function lastTurn(messages) {
     for (const part of Array.isArray(m?.content) ? m.content : []) {
       if (part?.type === "text" && part.text) texts.push(part.text);
       if (part?.type === "tool" && part.name) {
-        calls.push({ name: part.name, args: part.state?.input ?? null, status: part.state?.status ?? null });
+        calls.push({ name: part.name, args: part.state?.input ?? null, status: part.state?.status ?? null, output: toolOutput(part) });
       }
     }
   }
@@ -207,7 +216,7 @@ export function compactionRecord(messages, id) {
 }
 
 export function compactionSettled(rec) {
-  return !!rec && rec.status !== "running";
+  return !!rec && ['completed', 'failed'].includes(rec.status);
 }
 
 export function compactionCompleted(rec) {
@@ -220,13 +229,14 @@ export function retentionFlags(summary, recent) {
   const r = String(recent ?? "");
   return {
     summaryLen: s.length,
-    recentLen: r.length,
+    recentLen: recent == null ? null : r.length,
+    recentEvidence: recent == null ? 'unknown: current V2 completed compaction exposes summary, not retained-tail text' : 'historical-field',
     goalInSummary: /csv/i.test(s) && /(export|내보내기)/i.test(s),
     fileDecisionInSummary: /orders-?yyyymmdd/i.test(s),
     planDecisionInSummary: /(refactor|리팩터|국소|scope)/i.test(s),
     unconfirmedInSummary: /(shipping|배송비)/i.test(s),
-    goalInRecent: /개발 목표/i.test(r),
-    fileDecisionInRecent: /orders-?yyyymmdd/i.test(r),
+    goalInRecent: recent == null ? null : /개발 목표/i.test(r),
+    fileDecisionInRecent: recent == null ? null : /orders-?yyyymmdd/i.test(r),
   };
 }
 
@@ -246,18 +256,49 @@ export function unconfirmedConfusion(text) {
 
 export function gradeStateCheck(text) {
   const t = String(text ?? "");
+  const clauses = t.replace(/m([123])\.py/gi, 'm$1').replace(/check\.py/gi, 'final verification').split(/[.\n;!?]+/);
+  const pending = /미완료|아직|남[아았]?|다음|예정|not\s+(?:yet\s+)?(?:done|complete)|incomplete|pending|remaining/i;
+  const done = /완료|구현됨|구현했|\bdone\b|\bcompleted?\b/i;
+  // Bounded grammar heuristic, not a language judge: a suffix status closes a
+  // shared list (M1, M2 완료), while a heading applies to following bare names
+  // (완료: M1, M2). The next explicit status starts a new comma clause, so M3
+  // 미완료 cannot retroactively negate M1/M2. Ambiguous prose stays unproved.
+  const stateClauses = clauses.flatMap(clause => {
+    const groups = [];
+    let group = '', hasStatus = false, heading = false;
+    for (const segment of clause.split(',')) {
+      const subject = segment.search(/\bm[123]\b|final verification|최종 검증/i);
+      const segmentHasStatus = done.test(segment) || pending.test(segment);
+      const statusBeforeSubject = subject >= 0 && (done.test(segment.slice(0, subject)) || pending.test(segment.slice(0, subject)));
+      if (group && ((hasStatus && !heading) || statusBeforeSubject || (heading && segmentHasStatus))) {
+        groups.push(group); group = ''; hasStatus = false; heading = false;
+      }
+      if (!group) heading = statusBeforeSubject;
+      group += `${group ? ',' : ''}${segment}`;
+      hasStatus ||= segmentHasStatus;
+    }
+    if (group) groups.push(group);
+    return groups;
+  });
+  const hasState = (id, re, reject) => stateClauses.some(s => new RegExp(`\\b${id}\\b`, 'i').test(s) && re.test(s) && (!reject || !reject.test(s)));
+  const noWrongState = !stateClauses.some(s => /\bm[12]\b/i.test(s) && pending.test(s));
   return {
     goal: /csv/i.test(t) && /(내보내기|export)/i.test(t),
     fileDecision: /orders-?yyyymmdd/i.test(t),
-    planDecision: /(리팩터|refactor|국소)/i.test(t),
-    stateDone: /m1/i.test(t) && /m2/i.test(t),
-    nextStep: /m3/i.test(t),
-    unconfirmedOk: !unconfirmedConfusion(t),
+    planDecision: /국소|local module|no global refactor|전역 리팩터[^.\n]*(?:금지|대신|않)/i.test(t),
+    stateDone: hasState('m1', done, pending) && hasState('m2', done, pending) && noWrongState,
+    nextStep: hasState('m3', /다음|구현|next|implement/i) && hasState('m3', pending),
+    m3Pending: hasState('m3', pending) && !hasState('m3', done, pending),
+    verificationPending: clauses.some(s => /최종 검증|final (?:check|verification)/i.test(s) && pending.test(s)) && !clauses.some(s => /최종 검증|final (?:check|verification)/i.test(s) && done.test(s) && !pending.test(s)),
+    m1Preserved: /m1(?:\.py)?[^\n,.]*(?:수정 (?:금지|않)|수정하지|변경 금지|unchanged|do not (?:edit|modify))/i.test(t) || /do not (?:edit|modify)\s+m1/i.test(t),
+    standardLibraryOnly: /표준 라이브러리만|standard library only|only (?:the )?standard library/i.test(t),
+    noNetwork: /네트워크[^\n,.]*(?:금지|않|없)|no network|network[^\n,.]*(?:forbidden|prohibited)/i.test(t),
+    unconfirmedOk: clauses.some(s => /배송비|shipping/i.test(s) && UNCONFIRMED_RE.test(s)) && !unconfirmedConfusion(t),
   };
 }
 
 export function stateCheckPass(g) {
-  return !!g && g.goal && g.fileDecision && g.planDecision && g.stateDone && g.nextStep && g.unconfirmedOk;
+  return !!g && ['goal', 'fileDecision', 'planDecision', 'stateDone', 'nextStep', 'm3Pending', 'verificationPending', 'm1Preserved', 'standardLibraryOnly', 'noNetwork', 'unconfirmedOk'].every(key => g[key] === true);
 }
 
 export function rereadCalls(calls) {
@@ -266,26 +307,39 @@ export function rereadCalls(calls) {
 
 export function gradeReturn(text, calls) {
   const t = String(text ?? "");
-  const shellCheck = (calls ?? []).some(
-    (c) => c.name === "shell" && c.status !== "error" &&
-      /check\.py/.test(typeof c.args?.command === "string" ? c.args.command : "")
-  );
+  const actions = (calls ?? []).map((c, index) => ({ ...c, index }));
+  const checks = actions.filter(c => c.name === 'shell' && /^python3 (?:\.\/)?check\.py$/.test(c.args?.command ?? ''));
+  const completed = checks.filter(c => c.status === 'completed');
+  const shellCheck = completed.length > 0;
+  const mutations = actions.filter(c => ['edit', 'write', 'patch', 'subagent'].includes(c.name) || (c.name === 'shell' && !checks.includes(c)));
+  const lastMutation = mutations.at(-1)?.index ?? -1;
+  const ongoingMutation = mutations.some(c => !['completed', 'error', 'failed'].includes(c.status));
+  const latest = checks.at(-1);
+  const failed = latest && (['error', 'failed'].includes(latest.status) || /exit(?:ed)?(?:\s+with)?(?:\s+code)?\s*[:=]?\s*[1-9]\d*/i.test(latest.output ?? ''));
+  const success = latest?.status === 'completed' && /^check: ok\s*$/m.test(latest.output ?? '') && /exit(?:ed)?(?:\s+with)?(?:\s+code)?\s*[:=]?\s*0\b/i.test(latest.output ?? '');
+  const verificationPassed = ongoingMutation || !latest || latest.index < lastMutation ? null : failed ? false : success ? true : null;
   const mentionsCheck = /check\.py/i.test(t);
   const mentionsGoal = /csv/i.test(t) && /(내보내기|export)/i.test(t);
-  const resumed = shellCheck || mentionsCheck || (mentionsGoal && /(다음|next|검증|verify|진행)/i.test(t));
-  const redoEdits = (calls ?? [])
-    .filter((c) => c.name === "edit" || c.name === "write" || c.name === "patch")
-    .map((c) => String(c.args?.filePath ?? c.args?.path ?? ""))
-    .filter((p) => /m[123]\.py$/.test(p));
-  return { resumed, resumedByAction: shellCheck, resumedByText: mentionsCheck, mentionsGoal, redoEdits };
+  const resumed = shellCheck;
+  const redoEdits = actions.flatMap(c => mutationPaths({ type: 'tool', name: c.name, state: { status: c.status, input: c.args } }, '/')
+    .map(p => ['edit', 'write'].includes(c.name) ? c.args?.path ?? c.args?.filePath : p.slice(1)))
+    .filter(p => /m[123]\.py$/.test(p));
+  return { resumed, resumedByAction: shellCheck, resumedByText: mentionsCheck, mentionsGoal, redoEdits,
+    verificationPassed, verificationStatus: verificationPassed === true ? 'passed' : verificationPassed === false ? 'failed' : 'unknown',
+    actionStarted: checks.length > 0, recalledNextStep: mentionsCheck,
+    verificationBasis: 'Completed exact fixture command after the last mutation plus check: ok and explicit zero-exit trailer; running mutations, text intent or tool completion alone are not success.' };
 }
 
-export function variantVerdict({ infra, readsOk, modelOk, compact1Completed, stateCheckOk, compact2Completed, returnOk }) {
+export function variantVerdict({ infra, readsOk, modelOk, compact1Completed, stateCheckOk, compact2Completed, returnOk, verificationPassed, preservationOk }) {
   if (infra) return "infra-blocked";
   if (!readsOk) return "harness-error";
-  if (!modelOk || !compact1Completed || !stateCheckOk || !returnOk) return "fail";
-  if (!compact2Completed) return "partial";
+  if (!modelOk || !compact1Completed || !stateCheckOk || verificationPassed === false || preservationOk === false) return "fail";
+  if (!compact2Completed || !returnOk || verificationPassed !== true || preservationOk !== true) return "partial";
   return "pass";
+}
+
+function toolOutput(part) {
+  return [...(part.state?.content ?? []).filter(p => p?.type === 'text').map(p => p.text), part.state?.output, part.state?.error?.message].filter(s => typeof s === 'string').join('\n');
 }
 
 export function detectInfraBlock(messages) {
@@ -296,27 +350,37 @@ export function detectInfraBlock(messages) {
 
 // ---------------------------------------------------------------- CLI plumbing (official `opencode api`)
 
-function api(op, params = [], data = null, timeoutMs = 120_000) {
+export function remainingTimeout(deadline, requested, now = Date.now()) {
+  const remaining = Math.floor(deadline - now);
+  if (remaining <= 0) throw new Error('Probe absolute deadline exhausted');
+  return Math.max(1, Math.min(requested, remaining));
+}
+
+function api(op, params = [], data = null, timeoutMs = 120_000, deadline = Infinity) {
   const args = ["api", op, ...params.flatMap((p) => ["--param", p])];
   if (data !== null) args.push("-d", data);
-  const r = spawnSync("opencode", args, { encoding: "utf8", timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 });
+  const r = spawnSync("opencode", args, { encoding: "utf8", timeout: remainingTimeout(deadline, timeoutMs), maxBuffer: 64 * 1024 * 1024 });
   let parsed = null;
   try { parsed = JSON.parse(r.stdout); } catch {}
-  return { status: r.status, signal: r.signal ?? null, stderr: (r.stderr ?? "").slice(0, 500), parsed };
+  return { ok: r.status === 0 && !r.error, status: r.status, signal: r.signal ?? null, stderr: (r.stderr ?? "").slice(0, 500), parsed };
 }
 
 function sha256String(s) {
   return crypto.createHash("sha256").update(String(s ?? ""), "utf8").digest("hex");
 }
 
-function listMessages(sessionID) {
-  const r = api("session.message.list", [`sessionID=${sessionID}`, "limit=200", "order=asc"]);
-  const ok = Array.isArray(r.parsed?.data);
-  return { ok, raw: r.parsed, messages: ok ? r.parsed.data : [] };
+export function listMessages(sessionID, deadline = Infinity, request = api) {
+  const pages = [];
+  const result = collectNativePages(params => {
+    const r = request('session.message.list', params, null, 120_000, deadline);
+    pages.push(r.parsed);
+    return r.ok ? r.parsed : null;
+  }, [`sessionID=${sessionID}`, 'limit=200']);
+  return { ok: result.ok, raw: pages, messages: result.data, reason: result.reason ?? null };
 }
 
-function dumpMessages(root, variant, tag, sessionID) {
-  const r = listMessages(sessionID);
+function dumpMessages(root, variant, tag, sessionID, deadline) {
+  const r = listMessages(sessionID, deadline);
   try {
     const dir = path.join(root, variant, "raw");
     fs.mkdirSync(dir, { recursive: true });
@@ -325,40 +389,37 @@ function dumpMessages(root, variant, tag, sessionID) {
   return r;
 }
 
-function waitIdle(sessionID, boundS) {
-  const r = spawnSync(
-    "timeout",
-    [`${boundS}s`, "opencode", "api", "experimental.session.wait", "--param", `sessionID=${sessionID}`],
-    { encoding: "utf8", timeout: (boundS + 20) * 1000 }
-  );
-  return { status: r.status, timed_out: r.status === 124 };
+function waitIdle(sessionID, deadline) {
+  // V2 returns 204: no response body is expected. Node timeout works on macOS
+  // too, unlike the old dependency on the external GNU `timeout` command.
+  return api('experimental.session.wait', [`sessionID=${sessionID}`], null, 300_000, deadline);
 }
 
-function promptStep(sessionID, text, boundS) {
-  const p = api("session.prompt", [`sessionID=${sessionID}`], JSON.stringify({ text }));
-  if (p.status !== 0) return { ok: false, stage: "prompt", detail: `status=${p.status}` };
-  const w = waitIdle(sessionID, boundS);
-  if (w.timed_out || w.status !== 0) {
-    api("session.interrupt", [`sessionID=${sessionID}`, "resume=false"]);
-    return { ok: false, stage: "wait", detail: `status=${w.status} timed_out=${w.timed_out}` };
+function promptStep(sessionID, text, boundS, deadline) {
+  const stageDeadline = Math.min(deadline, Date.now() + boundS * 1000);
+  const p = api("session.prompt", [`sessionID=${sessionID}`], JSON.stringify({ text }), 120_000, stageDeadline);
+  if (!p.ok) return { ok: false, stage: "prompt", detail: `status=${p.status}` };
+  const w = waitIdle(sessionID, stageDeadline);
+  if (!w.ok) {
+    return { ok: false, stage: "wait", detail: `status=${w.status} signal=${w.signal}` };
   }
   return { ok: true };
 }
 
-function requestCompact(sessionID) {
-  const r = api("session.compact", [`sessionID=${sessionID}`], "{}");
+function requestCompact(sessionID, deadline) {
+  const r = api("session.compact", [`sessionID=${sessionID}`], "{}", 120_000, deadline);
   const id = r.parsed?.data?.id ?? null;
-  return { ok: r.status === 0 && !!id, id, detail: r.status === 0 ? "" : `status=${r.status} stderr=${r.stderr}` };
+  return { ok: r.ok && !!id, id, detail: r.ok ? "" : `status=${r.status} stderr=${r.stderr}` };
 }
 
-function pollCompact(sessionID, id, boundS) {
-  const deadline = Date.now() + boundS * 1000;
+function pollCompact(sessionID, id, boundS, absoluteDeadline) {
+  const deadline = Math.min(absoluteDeadline, Date.now() + boundS * 1000);
   for (;;) {
-    const { messages } = listMessages(sessionID);
-    const rec = compactionRecord(messages, id);
+    const r = api('session.message.get', [`sessionID=${sessionID}`, `messageID=${id}`], null, 30_000, deadline);
+    const rec = r.ok ? compactionRecord([r.parsed?.data], id) : null;
     if (compactionSettled(rec)) return { rec, timed_out: false };
     if (Date.now() >= deadline) return { rec, timed_out: true };
-    spawnSync("sleep", ["2"]);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.min(2000, deadline - Date.now()));
   }
 }
 
@@ -375,16 +436,16 @@ function writeFixture(root, variant) {
   return dir;
 }
 
-function configDocs(dir) {
+function configDocs(dir, deadline) {
   // Route-string form: `opencode api get "/api/config?location[directory]=..."`.
   const q = new URLSearchParams({ "location[directory]": dir });
   const r = spawnSync("opencode", ["api", "get", `/api/config?${q.toString()}`], {
-    encoding: "utf8", timeout: 60_000, maxBuffer: 16 * 1024 * 1024,
+    encoding: "utf8", timeout: remainingTimeout(deadline, 60_000), maxBuffer: 16 * 1024 * 1024,
   });
   let parsed = null;
   try { parsed = JSON.parse(r.stdout); } catch {}
   const list = Array.isArray(parsed) ? parsed : parsed?.data;
-  if (!Array.isArray(list)) return [];
+  if (r.status !== 0 || !Array.isArray(list)) return null;
   return list.map((e) => ({
     type: e?.type ?? null,
     path: e?.path ?? null,
@@ -393,6 +454,7 @@ function configDocs(dir) {
 }
 
 async function runVariant(root, variant, label, deadline) {
+  deadline = Math.min(deadline, Date.now() + PER_VARIANT_MS);
   const v = VARIANTS[variant];
   const dir = writeFixture(root, variant);
   const ev = {
@@ -404,13 +466,14 @@ async function runVariant(root, variant, label, deadline) {
   const t0 = Date.now();
 
   // 0. config documents for this fixture location
-  ev.config_docs = configDocs(dir);
+  ev.config_docs = configDocs(dir, deadline);
+  ev.config_evidence = ev.config_docs === null ? 'unknown' : 'observed-documents-not-effective-default-proof';
 
   // 1. session
   const created = api("session.create", [], JSON.stringify({
     location: { directory: dir }, agent: AGENT, model: MODEL_REF, permissions: permissionsFor(),
-  }));
-  const sessionID = created.parsed?.data?.id ?? null;
+  }), 120_000, deadline);
+  const sessionID = created.ok ? created.parsed?.data?.id ?? null : null;
   if (!sessionID) {
     ev.harness_error = `session.create failed status=${created.status}`;
     ev.verdict = "harness-error";
@@ -418,7 +481,7 @@ async function runVariant(root, variant, label, deadline) {
   }
   ev.session_id = sessionID;
 
-  const readAll = (tag) => dumpMessages(root, variant, tag, sessionID);
+  const readAll = (tag) => dumpMessages(root, variant, tag, sessionID, deadline);
 
   const finishTurn = (tag) => {
     const { ok, messages } = readAll(tag);
@@ -428,22 +491,22 @@ async function runVariant(root, variant, label, deadline) {
 
   try {
     // 2. goal + first work
-    let step = promptStep(sessionID, PROMPTS.goal, 300);
+    let step = promptStep(sessionID, PROMPTS.goal, 300, deadline);
     if (!step.ok) throw new Error(`goal step failed: ${step.stage} ${step.detail}`);
     let t1 = finishTurn("after-goal");
     if (!t1) throw new Error("message read failed after goal");
     ev.after_goal = { text: t1.turn.text.slice(0, 1200), calls: t1.turn.calls.map((c) => ({ name: c.name, status: c.status })) };
 
     // 3. filler
-    step = promptStep(sessionID, fillerText(), 300);
+    step = promptStep(sessionID, fillerText(), 300, deadline);
     if (!step.ok) throw new Error(`filler step failed: ${step.stage} ${step.detail}`);
 
     // 4. manual compact #1
-    const c1 = requestCompact(sessionID);
+    const c1 = requestCompact(sessionID, deadline);
     ev.compact1_request = { ok: c1.ok, id: c1.id, detail: c1.detail };
     let rec1 = null;
     if (c1.ok) {
-      const p1 = pollCompact(sessionID, c1.id, 240);
+      const p1 = pollCompact(sessionID, c1.id, 240, deadline);
       rec1 = p1.rec;
       ev.compact1_timed_out = p1.timed_out;
     }
@@ -454,48 +517,41 @@ async function runVariant(root, variant, label, deadline) {
     readAll("after-compact1");
 
     // 5. memory-only state check
-    step = promptStep(sessionID, PROMPTS.check1, 240);
+    if (!compactionCompleted(rec1)) {
+      ev.verdict = rec1?.status === 'failed' ? 'fail' : 'partial';
+      throw new Error('First compaction not completed; continuity is unverified');
+    }
+    step = promptStep(sessionID, PROMPTS.check1, 240, deadline);
     if (!step.ok) throw new Error(`check1 step failed: ${step.stage} ${step.detail}`);
     const t2 = finishTurn("after-check1");
     if (!t2) throw new Error("message read failed after check1");
-    // If the compaction had not settled during the poll (e.g. it ran just
-    // before the next prompt was processed), pick the settled record up now.
-    if (c1.ok && !compactionCompleted(rec1)) {
-      const later = compactionRecord(t2.messages, c1.id);
-      if (later && later.status !== "running") {
-        rec1 = later;
-        ev.compact1 = {
-          status: rec1.status, reason: rec1.reason, error: rec1.error,
-          retention: retentionFlags(rec1.summary, rec1.recent), settled_after_poll: true,
-        };
-      }
-    }
     const grade = gradeStateCheck(t2.turn.text);
     const reread = rereadCalls(t2.turn.calls);
     ev.check1 = {
       text: t2.turn.text.slice(0, 2000), grade,
-      pass: stateCheckPass(grade),
+      pass: stateCheckPass(grade) && t2.turn.calls.length === 0,
+      memoryOnly: t2.turn.calls.length === 0,
       reread: reread.map((c) => ({ name: c.name })),
     };
 
     // 6. next work (m3, verification left for later)
-    step = promptStep(sessionID, PROMPTS.m3, 300);
+    step = promptStep(sessionID, PROMPTS.m3, 300, deadline);
     if (!step.ok) throw new Error(`m3 step failed: ${step.stage} ${step.detail}`);
     const t3 = finishTurn("after-m3");
     ev.after_m3 = t3 ? { text: t3.turn.text.slice(0, 600), calls: t3.turn.calls.map((c) => ({ name: c.name, status: c.status })) } : null;
 
     // 7. unrelated side task
-    step = promptStep(sessionID, sideText(), 240);
+    step = promptStep(sessionID, sideText(), 240, deadline);
     if (!step.ok) throw new Error(`side step failed: ${step.stage} ${step.detail}`);
     const t4 = finishTurn("after-side");
     ev.after_side = t4 ? { text: t4.turn.text.slice(0, 400) } : null;
 
     // 8. manual compact #2
-    const c2 = requestCompact(sessionID);
+    const c2 = requestCompact(sessionID, deadline);
     ev.compact2_request = { ok: c2.ok, id: c2.id, detail: c2.detail };
     let rec2 = null;
     if (c2.ok) {
-      const p2 = pollCompact(sessionID, c2.id, 240);
+      const p2 = pollCompact(sessionID, c2.id, 240, deadline);
       rec2 = p2.rec;
       ev.compact2_timed_out = p2.timed_out;
     }
@@ -506,50 +562,57 @@ async function runVariant(root, variant, label, deadline) {
     readAll("after-compact2");
 
     // 9. return to the original development
-    step = promptStep(sessionID, PROMPTS.ret, 300);
+    if (!compactionCompleted(rec2)) {
+      ev.verdict = rec2?.status === 'failed' ? 'fail' : 'partial';
+      throw new Error('Second compaction not completed; return continuity is unverified');
+    }
+    step = promptStep(sessionID, PROMPTS.ret, 300, deadline);
     if (!step.ok) throw new Error(`return step failed: ${step.stage} ${step.detail}`);
     const t5 = finishTurn("after-return");
     if (!t5) throw new Error("message read failed after return");
-    if (c2.ok && !compactionCompleted(rec2)) {
-      const later2 = compactionRecord(t5.messages, c2.id);
-      if (later2 && later2.status !== "running") {
-        rec2 = later2;
-        ev.compact2 = {
-          status: rec2.status, reason: rec2.reason, error: rec2.error,
-          retention: retentionFlags(rec2.summary, rec2.recent), settled_after_poll: true,
-        };
-      }
-    }
     const ret = gradeReturn(t5.turn.text, t5.turn.calls);
     ev.return = { text: t5.turn.text.slice(0, 2000), ...ret };
 
     // 10. final reads
     const final = readAll("final");
-    const info = api("session.get", [`sessionID=${sessionID}`]);
-    ev.messages_ok = !!final;
-    ev.user_messages = final ? userMessageCount(final.messages) : null;
-    ev.model_identity = info.parsed?.data?.model ?? null;
+    const info = api("session.get", [`sessionID=${sessionID}`], null, 120_000, deadline);
+    ev.messages_ok = final.ok;
+    ev.user_messages = final.ok ? userMessageCount(final.messages) : null;
+    ev.model_identity = info.ok ? info.parsed?.data?.model ?? null : null;
     ev.model_match = !!ev.model_identity &&
       ev.model_identity.providerID === MODEL_REF.providerID &&
       ev.model_identity.id === MODEL_REF.id &&
       (ev.model_identity.variant ?? null) === MODEL_REF.variant;
     ev.usage = info.parsed?.data?.tokens ?? null;
     ev.cost = info.parsed?.data?.cost ?? null;
-    ev.infra_block = final ? detectInfraBlock(final.messages) : null;
+    ev.infra_block = final.ok ? detectInfraBlock(final.messages) : null;
+    ev.preservation_ok = ['m1.py', 'check.py'].every(f => fs.readFileSync(path.join(dir, f), 'utf8') === FIXTURE_FILES[f]);
+    // Independent final-state fixture check; never substitute this for evidence
+    // that the model actually resumed work and ran its own verification.
+    const check = ev.preservation_ok ? spawnSync('python3', ['check.py'], { cwd: dir, encoding: 'utf8', timeout: remainingTimeout(deadline, 30_000) }) : null;
+    ev.functional_check = { passed: check ? check.status === 0 && !check.error : false, stdout: check?.stdout ?? null, stderr: check?.stderr ?? null };
+    ev.product_acceptance = 'not-assessed: synthetic continuity fixture, not the CSV feature or general development quality';
 
     ev.verdict = variantVerdict({
       infra: ev.infra_block,
-      readsOk: !!final && !!info.parsed?.data,
+      readsOk: final.ok && info.ok && !!info.parsed?.data,
       modelOk: ev.model_match,
       compact1Completed: compactionCompleted(rec1),
       stateCheckOk: ev.check1.pass,
       compact2Completed: compactionCompleted(rec2),
       returnOk: ret.resumed,
+      verificationPassed: ev.functional_check.passed ? ret.verificationPassed : false,
+      preservationOk: ev.preservation_ok,
     });
   } catch (e) {
     ev.harness_error = String(e?.message ?? e).slice(0, 500);
     ev.verdict = ev.verdict ?? "harness-error";
-    try { api("session.interrupt", [`sessionID=${sessionID}`, "resume=false"]); } catch {}
+  } finally {
+    try {
+      const stopped = api('session.interrupt', [`sessionID=${sessionID}`, 'resume=false'], null, 10_000);
+      ev.cleanup = { ok: stopped.ok, status: stopped.status };
+    } catch (error) { ev.cleanup = { ok: false, error: String(error.message) }; }
+    if (!ev.cleanup.ok) ev.verdict = 'harness-error';
   }
   ev.elapsed_ms = Date.now() - t0;
   ev.finished_at = new Date().toISOString();
@@ -597,7 +660,8 @@ async function main() {
       compact1: ev.compact1 ? { status: ev.compact1.status, retention: ev.compact1.retention } : null,
       check1: ev.check1 ? { pass: ev.check1.pass, grade: ev.check1.grade, reread: ev.check1.reread?.length ?? 0 } : null,
       compact2: ev.compact2 ? { status: ev.compact2.status, retention: ev.compact2.retention } : null,
-      return: ev.return ? { resumed: ev.return.resumed, byAction: ev.return.resumedByAction, redoEdits: ev.return.redoEdits } : null,
+      return: ev.return ? { resumed: ev.return.resumed, byAction: ev.return.resumedByAction, recalledNextStep: ev.return.recalledNextStep, verificationPassed: ev.return.verificationPassed, redoEdits: ev.return.redoEdits } : null,
+      functional_check: ev.functional_check ?? null,
       elapsed_ms: ev.elapsed_ms ?? null, cost: ev.cost ?? null,
     });
     console.log(`${String(ev.verdict).toUpperCase()} ${name} session=${ev.session_id ?? "-"} ${ev.harness_error ?? ""}`);

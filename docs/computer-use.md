@@ -9,7 +9,7 @@
 - 설치 전 공식 환경 변수 `CUA_DRIVER_RS_TELEMETRY_ENABLED=0`을 설정했고 이후 `telemetry disable`로 영구 비활성화했습니다. 환경 변수 없이 상태를 재확인했을 때 persisted disabled, 설치 ID 미생성이었습니다. MCP 프로세스에도 환경 변수를 설정했습니다.
 - OpenCode V2 전역 `mcp.servers.cua-driver`는 로컬 `cua-driver mcp`입니다. 공식 `mcp-config --client opencode`로 OpenCode에만 스킬을 설치하고 출력된 구형 형태를 V2 CLI로 등록했습니다. 기존 설정 백업은 소유자 전용 `~/.local/share/cua-install-audit/opencode-before-20261031-002429/`에 있습니다. 공유 서버를 재시작하지 않았습니다.
 - 실제 데몬은 기본 **standard** 모드, 정책·manifest 없음으로 보고했습니다. 앱 allowlist는 없으며 일반 데스크톱 앱에 접근할 수 있도록 설정됐습니다. `unrestricted`나 `--dangerously-bypass-approvals`는 사용하지 않았습니다. Standard도 관찰·입력을 폭넓게 허용하므로, 화면 내용은 에이전트와 현재 모델 제공자에 전달될 수 있습니다. 기존 로그인 Chromium 프로필 연결은 별도 grant가 필요하며 자동 부여하지 않았습니다. Cua 보호와 macOS 권한은 그대로입니다.
-- Plan/Explore에는 `cua-driver_*` MCP 액션을 deny하는 역할별 규칙을 추가했습니다. 이는 모든 Cua MCP 도구를 막는 역할 제한이지 앱 제한이 아닙니다. 기존 shell을 통한 Cua CLI 실행은 별도로 막지 않았으므로 OS 샌드박스나 엄격한 비변경 보장이 아닙니다. Build/Lead/General에는 해당 deny를 추가하지 않았습니다. 새 작업의 파괴적·금전적·외부 통신 행동은 설치 승인과 별개로 사용자 승인이 필요합니다.
+- Plan/Explore에는 `cua-driver_*` MCP 액션을 deny하는 역할별 규칙을 추가했습니다. 이는 모든 Cua MCP 도구를 막는 역할 제한이지 앱 제한이 아닙니다. 기존 shell을 통한 Cua CLI 실행은 별도로 막지 않았으므로 OS 샌드박스나 엄격한 비변경 보장이 아닙니다. Build/General에는 해당 deny를 추가하지 않았습니다. 새 작업의 파괴적·금전적·외부 통신 행동은 설치 승인과 별개로 사용자 승인이 필요합니다.
 
 ## 권한과 검증
 

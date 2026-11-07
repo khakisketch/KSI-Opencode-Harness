@@ -3,7 +3,8 @@
  * continuity probe (no model, no network). Mock messages use the real Native
  * v2.0.32 message schema observed during development: assistant content parts
  * (text / reasoning / tool with state.input), top-level `compaction` messages
- * with id/status/reason/summary/recent, and `idle` markers.
+ * with id/status/reason/summary, and `idle` markers. Optional `recent` is a
+ * historical fixture only, not assumed available in current V2.
  *
  * Run: `node --test tests/compaction-continuity.test.mjs` from the repo root.
  */
@@ -28,6 +29,8 @@ import {
   permissionsFor,
   PROMPTS,
   FIXTURE_FILES,
+  listMessages,
+  remainingTimeout,
 } from "./compaction-continuity-live.mjs";
 
 const tool = (name, input, status = "completed", error = null) => ({
@@ -96,6 +99,7 @@ describe("compaction records", () => {
     assert.equal(compactionCompleted(completed), true);
     assert.equal(compactionCompleted(failed), false);
     assert.equal(compactionCompleted(running), false);
+    assert.equal(compactionSettled({ status: 'unknown' }), false);
   });
   it("exposes summary, recent, and error text", () => {
     const rec = compactionRecord([failed], "msg_1");
@@ -129,6 +133,13 @@ describe("retentionFlags", () => {
     assert.equal(f.goalInRecent, false);
     assert.equal(f.fileDecisionInRecent, false);
   });
+  it('keeps absent current V2 retained-tail evidence unknown instead of absent', () => {
+    const flags = retentionFlags('summary', null);
+    assert.equal(flags.recentLen, null);
+    assert.equal(flags.goalInRecent, null);
+    assert.equal(flags.fileDecisionInRecent, null);
+    assert.match(flags.recentEvidence, /unknown/);
+  });
 });
 
 describe("unconfirmedConfusion", () => {
@@ -148,13 +159,34 @@ describe("unconfirmedConfusion", () => {
 describe("gradeStateCheck", () => {
   const full =
     "**(1) 원래 목표** 판매 CSV 내보내기 기능 추가.\n" +
-    "**(2) 확정** 파일명 orders-YYYYMMDD.csv, 표준 라이브러리만, 국소 모듈 방식(m1.py 수정 금지).\n" +
+    "**(2) 확정** 파일명 orders-YYYYMMDD.csv, 표준 라이브러리만, 네트워크 금지, 국소 모듈 방식(m1.py 수정 금지).\n" +
     "**(3) 미확정** 배송비 열 — 확정되지 않음.\n" +
-    "**(4) 완료: m1, m2. 미완료: m3.**\n" +
+    "**(4) 완료: m1, m2. 미완료: m3. 최종 검증 미완료.**\n" +
     "**(5) 다음** m3 구현.";
   it("passes a faithful answer", () => {
     const g = gradeStateCheck(full);
     assert.equal(stateCheckPass(g), true);
+  });
+  it('preserves shared milestone states across periods and comma-separated clauses', () => {
+    for (const state of [
+      'M1 완료. M2 완료. M3 미완료.',
+      'M1 완료. M2 완료, M3 미완료.',
+      'M1 완료, M2 완료, M3 미완료.',
+      'M1, M2 완료, M3 미완료.',
+      '완료: M1, M2, 미완료: M3.',
+      '완료: M1, M2. 미완료: M3.',
+    ]) {
+      const answer = full.replace('완료: m1, m2. 미완료: m3.', state);
+      const grade = gradeStateCheck(answer);
+      assert.equal(grade.stateDone, true, state);
+      assert.equal(grade.m3Pending, true, state);
+      assert.equal(stateCheckPass(grade), true, state);
+    }
+  });
+  it('does not share a done state with an explicitly incomplete milestone', () => {
+    for (const state of ['M1, M2 미완료, M3 미완료.', 'M1 완료, M2 미완료, M3 미완료.', 'M1, M2 완료, M3 완료.']) {
+      assert.equal(stateCheckPass(gradeStateCheck(full.replace('완료: m1, m2. 미완료: m3.', state))), false, state);
+    }
   });
   it("fails when the confirmed filename decision is lost", () => {
     const g = gradeStateCheck(full.replaceAll("orders-YYYYMMDD.csv", "내보내기 파일"));
@@ -171,6 +203,17 @@ describe("gradeStateCheck", () => {
     assert.equal(g.unconfirmedOk, false);
     assert.equal(stateCheckPass(g), false);
   });
+  it('rejects incomplete M1/M2, omitted candidate and lost preservation constraints', () => {
+    for (const changed of [
+      full.replace('완료: m1, m2', '미완료: m1, m2'),
+      full.replace('**(3) 미확정** 배송비 열 — 확정되지 않음.', ''),
+      full.replace('m1.py 수정 금지', 'm1.py 수정 가능'),
+      full.replace('표준 라이브러리만', '외부 패키지 허용'),
+      full.replace('네트워크 금지', '네트워크 허용'),
+      full.replace('미완료: m3', '완료: m3'),
+      full.replace('최종 검증 미완료', '최종 검증 완료'),
+    ]) assert.equal(stateCheckPass(gradeStateCheck(changed)), false, changed);
+  });
 });
 
 describe("rereadCalls", () => {
@@ -185,15 +228,32 @@ describe("rereadCalls", () => {
 });
 
 describe("gradeReturn", () => {
+  it('separates recalled intent, running/failed action and successful check evidence', () => {
+    assert.equal(gradeReturn('check.py는 나중에 실행하겠습니다.', []).resumed, false);
+    const call = { name: 'shell', args: { command: 'python3 check.py' }, status: 'running' };
+    assert.equal(gradeReturn('', [call]).resumed, false);
+    assert.notEqual(gradeReturn('', [{ ...call, status: 'completed' }]).verificationPassed, true);
+    assert.equal(gradeReturn('', [{ ...call, status: 'completed', output: 'check: ok\nExited with code 0' }]).verificationPassed, true);
+    assert.equal(gradeReturn('', [{ ...call, status: 'completed', output: 'check: ok\nExited with code 1' }]).verificationPassed, false);
+  });
+  it('requires successful verification after the last mutation, not an earlier check', () => {
+    const success = { name: 'shell', args: { command: 'python3 check.py' }, status: 'completed', output: 'check: ok\nExited with code 0' };
+    const edit = { name: 'patch', args: { patchText: '*** Update File: m2.py' }, status: 'completed' };
+    assert.notEqual(gradeReturn('', [success, edit]).verificationPassed, true);
+    assert.equal(gradeReturn('', [edit, success]).verificationPassed, true);
+    assert.notEqual(gradeReturn('', [{ ...edit, status: 'running' }, success]).verificationPassed, true);
+    assert.equal(gradeReturn('', [{ ...success, output: 'Exited with code 1' }, edit, success]).verificationPassed, true);
+  });
   it("counts a completed shell check run as resumption by action", () => {
     const r = gradeReturn("복귀합니다.", [tool("shell", { command: "python3 check.py" })].map((p) => ({ name: p.name, args: p.state.input, status: p.state.status })));
     assert.equal(r.resumedByAction, true);
     assert.equal(r.resumed, true);
   });
-  it("counts an explicit check mention in text", () => {
+  it("counts an explicit check mention as recall only, not action", () => {
     const r = gradeReturn("원래 작업으로 복귀합니다. 다음 단계로 check.py를 실행하겠습니다.", []);
     assert.equal(r.resumedByText, true);
-    assert.equal(r.resumed, true);
+    assert.equal(r.resumed, false);
+    assert.equal(r.verificationPassed, null);
   });
   it("flags re-edits of already-done modules", () => {
     const r = gradeReturn("복귀", [
@@ -209,7 +269,7 @@ describe("gradeReturn", () => {
 });
 
 describe("variantVerdict", () => {
-  const ok = { infra: null, readsOk: true, modelOk: true, compact1Completed: true, stateCheckOk: true, compact2Completed: true, returnOk: true };
+  const ok = { infra: null, readsOk: true, modelOk: true, compact1Completed: true, stateCheckOk: true, compact2Completed: true, returnOk: true, verificationPassed: true, preservationOk: true };
   it("passes when everything holds", () => assert.equal(variantVerdict(ok), "pass"));
   it("reports partial when the second compaction did not complete", () =>
     assert.equal(variantVerdict({ ...ok, compact2Completed: false }), "partial"));
@@ -222,6 +282,35 @@ describe("variantVerdict", () => {
   it("separates harness errors and infra blocks", () => {
     assert.equal(variantVerdict({ ...ok, readsOk: false }), "harness-error");
     assert.equal(variantVerdict({ ...ok, infra: "rate limit" }), "infra-blocked");
+  });
+  it('never upgrades missing verification or preservation evidence into pass', () => {
+    assert.equal(variantVerdict({ ...ok, verificationPassed: undefined }), 'partial');
+    assert.equal(variantVerdict({ ...ok, preservationOk: undefined }), 'partial');
+    assert.equal(variantVerdict({ ...ok, verificationPassed: false }), 'fail');
+    assert.equal(variantVerdict({ ...ok, preservationOk: false }), 'fail');
+    assert.equal(variantVerdict({ ...ok, returnOk: false }), 'partial');
+  });
+});
+
+describe('offline Native transport and deadline boundaries', () => {
+  it('checks .ok on every page, not truthiness or a successful-looking data body', () => {
+    const bad = listMessages('owned', Infinity, () => ({ ok: false, parsed: { data: [user('goal')], cursor: { next: null } } }));
+    assert.equal(bad.ok, false);
+    const requests = [];
+    const good = listMessages('owned', 5000, (op, params, data, timeout, deadline) => {
+      requests.push({ op, params, deadline });
+      return { ok: true, parsed: { data: [user('goal')], cursor: { next: requests.length === 1 ? 'next' : null } } };
+    });
+    assert.equal(good.ok, true);
+    assert.equal(good.messages.length, 2);
+    assert.equal(requests[1].deadline, 5000);
+    assert.ok(!requests[1].params.includes('order=asc'));
+  });
+  it('clamps every requested timeout to an absolute remaining budget', () => {
+    assert.equal(remainingTimeout(2000, 120000, 1000), 1000);
+    assert.equal(remainingTimeout(2000, 50, 1000), 50);
+    assert.throws(() => remainingTimeout(2000, 50, 2000), /deadline exhausted/);
+    assert.throws(() => remainingTimeout(2000, 50, 3000), /deadline exhausted/);
   });
 });
 

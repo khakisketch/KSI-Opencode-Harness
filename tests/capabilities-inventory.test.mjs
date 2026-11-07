@@ -203,6 +203,35 @@ describe('bounded id grammar without secret-screening claims', () => {
 });
 
 describe('native fail-closed projections without overclaiming', () => {
+  it('preserves valid entries in an incomplete list without claiming absence', () => {
+    const r = buildNativeReport({
+      directory: '/fixture', domainsQueried: ['agent', 'skill', 'tool', 'mcp', 'plugin'],
+      agentResult: { ok: true, payload: [...realAgents, { id: 'sk-secret-xyz' }] },
+      skillResult: { ok: true, payload: [...realSkills, { id: '../invalid' }] },
+      toolResult: { ok: true, payload: [...realTools, { id: 'bad id' }] },
+      mcpResult: { ok: true, payload: [...realMcp, { name: 'bad id' }] },
+      pluginResult: { ok: true, payload: [...realPlugins, null] },
+    });
+    assert.ok(r.catalog.agent.ids.includes('build'));
+    assert.equal(r.agents.find(e => e.name === 'build').registered, true);
+    assert.equal(r.agents.find(e => e.name === 'explore').registered, 'unknown');
+    assert.equal(r.skills.find(e => e.name === 'impeccable').registered, true);
+    assert.equal(r.skills.find(e => e.name === 'journey').registered, 'unknown');
+    assert.equal(r.mcp.find(e => e.name === 'context7').status, 'connected');
+    assert.equal(r.mcp.find(e => e.name === 'mobbin').status, 'unknown');
+    assert.equal(r.tools.count, 'unknown');
+    assert.equal(r.tools.observedCount, 3);
+    assert.equal(r.plugins.observedCount, 2);
+    for (const domain of NATIVE_DOMAINS) {
+      assert.equal(r.queries[domain].status, 'incomplete');
+      assert.equal(r.queries[domain].reason, 'omitted-entries');
+      assert.equal(r.catalog[domain].complete, false);
+      assert.equal(r.catalog[domain].omitted, 1);
+    }
+    assert.equal(r.queriedOk, false);
+    assert.equal(r.coreQueriesOk, false);
+    assert.ok(!JSON.stringify(r).includes(SECRET));
+  });
   it('projects tracked agents/skills without leaking extras', () => {
     const agents = projectNativeAgents(realAgents);
     assert.equal(agents.find((a) => a.name === 'build').registered, true);
@@ -373,6 +402,68 @@ describe('fail-closed location checks with real directories', () => {
 });
 
 describe('session-verified explicit-call tool', () => {
+  it('bounds a hung optional list without discarding the other domains', { timeout: 5000 }, async () => {
+    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    let listSignal;
+    const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
+      agent: async () => realAgents, skill: async () => realSkills,
+      plugin: async (_input, options) => { listSignal = options?.signal; return new Promise(() => {}); },
+    } });
+    await setupCapabilitiesInventory(ctx);
+    let timer;
+    const out = await Promise.race([
+      ctx.getAdded().execute({}, tc()),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('optional list blocked healthy domains')), 3000); }),
+    ]).finally(() => clearTimeout(timer));
+    const report = JSON.parse(out.content[0].text);
+    assert.equal(report.agents.find(e => e.name === 'build').registered, true);
+    assert.equal(report.coreQueriesOk, true);
+    assert.equal(report.queries.plugin.reason, 'timeout');
+    assert.equal(report.catalog.plugin.status, 'unknown');
+    assert.equal(listSignal?.aborted, true);
+    assert.ok(report.notice.includes('underlying work may continue'));
+    assert.ok(!ctx.calls.includes('mcp'));
+  });
+  it('honors caller cancellation before reads and during required session verification', { timeout: 1000 }, async () => {
+    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const ctx = fakeCtx({ pluginDir: root, sessionDir: root });
+    await setupCapabilitiesInventory(ctx);
+    const aborted = new AbortController(); aborted.abort();
+    await assert.rejects(ctx.getAdded().execute({}, { ...tc(), signal: aborted.signal }), { name: 'AbortError' });
+    assert.deepEqual(ctx.calls, []);
+    const controller = new AbortController();
+    let requestSignal;
+    ctx.session.get = (_input, options) => { requestSignal = options?.signal; controller.abort(); return new Promise(() => {}); };
+    await assert.rejects(ctx.getAdded().execute({}, { ...tc(), signal: controller.signal }), { name: 'AbortError' });
+    assert.equal(requestSignal, controller.signal);
+    assert.deepEqual(ctx.calls, []);
+  });
+  it('propagates cancellation during lists, including the uncancellable tool list', { timeout: 1000 }, async () => {
+    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const controller = new AbortController();
+    let listSignal;
+    const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
+      skill: async (_input, options) => { listSignal = options?.signal; return new Promise(() => {}); },
+      tool: async (...args) => { assert.equal(args.length, 0); queueMicrotask(() => controller.abort()); return new Promise(() => {}); },
+    } });
+    await setupCapabilitiesInventory(ctx);
+    await assert.rejects(ctx.getAdded().execute({ domains: ['skill', 'tool'] }, { ...tc(), signal: controller.signal }), { name: 'AbortError' });
+    assert.equal(listSignal?.aborted, true);
+  });
+  it('preserves valid skill location hints but not false absence in an incomplete list', async () => {
+    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
+      skill: async () => [{ id: 'local-skill', path: `${root}/SKILL.md` }, { id: 'sk-secret-xyz' }],
+    } });
+    await setupCapabilitiesInventory(ctx);
+    const report = JSON.parse((await ctx.getAdded().execute({ domains: ['skill'], locateSkills: ['local-skill', 'missing-skill'] }, tc())).content[0].text);
+    assert.deepEqual(report.skillLocations, [
+      { id: 'local-skill', found: true, scope: 'project-hint' },
+      { id: 'missing-skill', found: 'unknown', scope: 'unknown' },
+    ]);
+    assert.equal(report.queries.skill.status, 'incomplete');
+    assert.ok(!JSON.stringify(report).includes(SECRET));
+  });
   it('registers one read-only tool and defaults without mcp', async () => {
     const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
     const ctx = fakeCtx({ lists: { agent: async () => realAgents, skill: async () => realSkills, tool: async () => realTools, mcp: async () => realMcp, plugin: async () => realPlugins }, pluginDir: root, sessionDir: root });

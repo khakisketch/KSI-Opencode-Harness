@@ -23,6 +23,93 @@ const assistantMsg = (agent, parts) => ({
 });
 
 describe('session-audit behavioral and temporal verification', () => {
+  it('invalidates snapshot freshness for running or partially failed cross-role mutations', () => {
+    const clean = assistantMsg('build', [toolPart('edit', { path: 'x.py' }), toolPart('shell', { command: 'node --test t.mjs' })]);
+    for (const name of ['subagent', 'shell', 'edit', 'write', 'patch']) {
+      for (const status of ['running', 'error']) {
+        const risk = toolPart(name, { agent: 'general', command: 'mv old.py new.py', path: 'x.py' }, status);
+        const result = auditMessages([clean, assistantMsg('plan', [risk])]);
+        assert.notEqual(result.completionAcrossRoles.outcome, 'candidate-after-snapshot-last-change', `${name}:${status}`);
+        assert.equal(result.completionAcrossRoles.passedProof, 'none');
+        assert.equal(result.completionAcrossRoles.countsAfterSnapshotLastChange.verificationCandidates, 0, `${name}:${status}`);
+      }
+    }
+  });
+  it('CLI exposes timestamp contradictions and does not claim tied-order enumeration', async () => {
+    const dir = await mkdtemp(path.join('/tmp/opencode', 'audit-order-regression-'));
+    try {
+      const messages = [
+        { type: 'user', text: 'continue without a timestamp' },
+        { ...assistantMsg('build', [toolPart('edit', { path: 'x.py' })]), time: { created: 2 } },
+        { ...assistantMsg('build', [toolPart('shell', { command: 'node --test t.mjs' })]), time: { created: 1 } },
+      ];
+      await writeFile(path.join(dir, 'trace.json'), JSON.stringify(messages));
+      const result = JSON.parse(execFileSync(process.execPath, [AUDIT_SCRIPT, dir], { encoding: 'utf8', timeout: 30000 }));
+      assert.equal(result.snapshotCompletionOutcomes.candidateAfterLastChange, 0);
+      assert.equal(result.orderEvidenceCounts.contradicted, 1);
+      assert.doesNotMatch(result.coverage.inputOrderBasis, /enumerated exactly|every tied order/);
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+  it('does not let a missing timestamp hide a known reversed edit and verification', () => {
+    const edit = { ...assistantMsg('build', [toolPart('edit', { path: 'x.py' })]), time: { created: 2 } };
+    const check = { ...assistantMsg('build', [toolPart('shell', { command: 'node --test t.mjs' })]), time: { created: 1 } };
+    for (const messages of [
+      [{ type: 'user', text: 'continue' }, edit, check],
+      [edit, { type: 'idle' }, check],
+      [edit, check, { type: 'idle' }],
+    ]) {
+      const result = auditMessages(messages);
+      assert.equal(result.orderEvidence.verdict, 'contradicted');
+      assert.equal(result.completionAcrossRoles.outcome, 'order-unknown');
+      assert.equal(result.completionAcrossRoles.freshnessOrderConfirmed, false);
+      assert.equal(summarizeAudits([result]).snapshotCompletionOutcomes.candidateAfterLastChange, 0);
+      assert.equal(auditMessages([...messages].reverse(), { order: 'newest-first' }).orderEvidence.verdict, 'contradicted');
+    }
+  });
+  it('retains sparse known ties and never lets ties downgrade a known contradiction', () => {
+    const timed = (created, tool) => ({ ...assistantMsg('build', [toolPart(tool, { command: 'node --test t.mjs', path: 'x.py' })]), time: { created } });
+    const edit = timed(2, 'edit'), check = timed(2, 'shell');
+    const tied = auditMessages([{ type: 'user' }, edit, { type: 'idle' }, check]);
+    assert.equal(tied.orderEvidence.verdict, 'unverifiable');
+    assert.equal(tied.orderEvidence.reason, 'relevant-ties-not-enumerated');
+    assert.equal(tied.completionAcrossRoles.outcome, 'order-unknown');
+    assert.equal(tied.completionAcrossRoles.freshnessOrderConfirmed, false);
+    const reversed = auditMessages([{ type: 'user' }, edit, check, timed(1, 'shell')]);
+    assert.equal(reversed.orderEvidence.verdict, 'contradicted');
+    assert.equal(reversed.completionAcrossRoles.outcome, 'order-unknown');
+    const incomplete = auditMessages([{ type: 'user' }, timed(1, 'edit'), timed(2, 'shell')]);
+    assert.equal(incomplete.orderEvidence.verdict, 'unverifiable');
+    assert.equal(incomplete.orderEvidence.reason, 'timestamps-missing');
+    assert.equal(incomplete.completionAcrossRoles.freshnessOrderConfirmed, false);
+  });
+  it('does not restore freshness while any earlier mutation is still running', () => {
+    const result = auditMessages([
+      assistantMsg('build', [toolPart('edit', { path: 'x.py' }), toolPart('shell', { command: 'node --test t.mjs' })]),
+      assistantMsg('plan', [toolPart('subagent', { agent: 'general' }, 'running')]),
+      assistantMsg('general', [toolPart('shell', { command: 'mv a b' }, 'error', 'partial failure')]),
+      assistantMsg('build', [toolPart('edit', { path: 'x.py' }), toolPart('shell', { command: 'node --test t.mjs' })]),
+    ]);
+    assert.notEqual(result.completionAcrossRoles.outcome, 'candidate-after-snapshot-last-change');
+    assert.equal(result.completionAcrossRoles.countsAfterSnapshotLastChange.verificationCandidates, 0);
+  });
+  it('marks tied middle blocks unknown even when reversing the full array would hide the tie', () => {
+    const timed = (at, part) => ({ ...assistantMsg('build', [part]), time: { created: at } });
+    const result = auditMessages([
+      timed(1, toolPart('read', { path: 'AGENTS.md' })),
+      timed(2, toolPart('edit', { path: 'x.py' })),
+      timed(2, toolPart('shell', { command: 'node --test t.mjs' })),
+      timed(3, toolPart('read', { path: 'x.py' })),
+    ]);
+    assert.equal(result.orderEvidence.reason, 'relevant-ties-not-enumerated');
+    assert.equal(result.completionAcrossRoles.outcome, 'order-unknown');
+    assert.equal(result.completionAcrossRoles.freshnessOrderConfirmed, false);
+    assert.equal(summarizeAudits([result]).snapshotCompletionOutcomes.orderUnknown, 1);
+  });
+  it('budgets timestamp strings before parsing even on messages without tools', () => {
+    const result = auditMessages([{ type: 'user', time: { created: 'x'.repeat(1000) } }, { type: 'idle', time: { created: 2 } }], { maxStringChars: 100 });
+    assert.equal(result.valid, false);
+    assert.equal(result.overBudget.reason, 'string-chars-exceeded');
+  });
   it('observes complementary skills before action and review skills first loaded after it', () => {
     const res = auditMessages([
       assistantMsg('build', [
@@ -40,21 +127,23 @@ describe('session-audit behavioral and temporal verification', () => {
     const summary = summarizeAudits([res]);
     assert.deepEqual(summary.roleTotals.build.skillsBeforeActionById, { 'designing-user-experience': 1, impeccable: 1 });
     assert.deepEqual(summary.roleTotals.build.skillsFirstAfterActionById, { 'ux-heuristics-audit': 1 });
-    assert.deepEqual(res.gaps, []); // Review-time loading is not a violation.
+    // Review-time loading is not a violation. But Build is the sole owner unit:
+    // an edit with no observed verification candidate is a gap.
+    assert.deepEqual(res.gaps, ['build-no-observed-verification-candidate']);
     assert.ok(summary.coverage.skillTimingBasis.includes('not task relevance'));
   });
 
   it('keeps skill timing local to each role and includes delegation as an observed action', () => {
     const res = auditMessages([
       assistantMsg('build', [
-        toolPart('subagent', { agent: 'lead' }),
+        toolPart('subagent', { agent: 'general' }),
         toolPart('skill', { id: 'impeccable' }),
       ]),
-      assistantMsg('lead', [toolPart('skill', { id: 'impeccable' })]),
+      assistantMsg('general', [toolPart('skill', { id: 'impeccable' })]),
     ]);
     assert.deepEqual(res.roles.build.skillsFirstLoadedAfterAction, ['impeccable']);
-    assert.deepEqual(res.roles.lead.skillsLoadedBeforeAction, ['impeccable']);
-    assert.deepEqual(res.roles.lead.skillsFirstLoadedAfterAction, []);
+    assert.deepEqual(res.roles.general.skillsLoadedBeforeAction, ['impeccable']);
+    assert.deepEqual(res.roles.general.skillsFirstLoadedAfterAction, []);
   });
 
   it('does not count failed or pending skills/actions as completed timing evidence', () => {
@@ -434,14 +523,14 @@ describe('session-audit behavioral and temporal verification', () => {
 
   it('delegation and possible-shell-edit invalidate prior verification (child work stays unobserved)', () => {
     const delegated = auditMessages([
-      assistantMsg('lead', [
+      assistantMsg('build', [
         toolPart('read', { path: '/proj/AGENTS.md' }),
         toolPart('edit', { path: '/proj/src/api.ts' }),
         toolPart('shell', { command: 'node --test tests/x.test.mjs' }),
         toolPart('subagent', { agent: 'general' }),
       ]),
     ]);
-    const d = delegated.roles.lead.completionEvidence;
+    const d = delegated.roles.build.completionEvidence;
     assert.equal(d.lastChangeKind, 'delegation');
     assert.equal(d.delegations, 1);
     assert.equal(d.verificationCandidatesAfterLastChange, 0);
@@ -715,14 +804,14 @@ describe('session-audit behavioral and temporal verification', () => {
 
     // Failed delegation: same conservative treatment, delegation unconfirmed.
     const failedDeleg = auditMessages([
-      assistantMsg('lead', [
+      assistantMsg('build', [
         toolPart('read', { path: '/proj/AGENTS.md' }),
         toolPart('subagent', { agent: 'general' }),
         toolPart('shell', { command: 'node --test tests/x.test.mjs' }),
         toolPart('subagent', { agent: 'general' }, 'error', 'denied'),
       ]),
     ]);
-    const d = failedDeleg.roles.lead;
+    const d = failedDeleg.roles.build;
     assert.equal(d.completionEvidence.outcome, 'failure-signal-after-last-change');
     assert.equal(d.verificationAfterLastChange, 0);
     assert.equal(d.failedAfterLastChange, 1);
@@ -746,9 +835,9 @@ describe('session-audit behavioral and temporal verification', () => {
 
   it('confirmed edits and potential changes are named and counted distinctly', () => {
     const deleg = auditMessages([
-      assistantMsg('lead', [toolPart('subagent', { agent: 'general' })]),
+      assistantMsg('build', [toolPart('subagent', { agent: 'general' })]),
     ]);
-    const d = deleg.roles.lead.completionEvidence;
+    const d = deleg.roles.build.completionEvidence;
     assert.equal(d.changesObserved, 1); // backward-compatible sum, not confirmed changes
     assert.equal(d.editsObserved, 0);
     assert.equal(d.potentialChangesObserved, 1);
@@ -762,9 +851,9 @@ describe('session-audit behavioral and temporal verification', () => {
     assert.equal(edited.roles.engineer.completionEvidence.editsObserved, 1);
 
     const summary = summarizeAudits([deleg, edited]);
-    assert.equal(summary.roleTotals.lead.completionAfterLastChange.withPotentialChangeLast, 1);
-    assert.equal(summary.roleTotals.lead.completionAfterLastChange.withConfirmedEditLast, 0);
-    assert.equal(summary.roleTotals.lead.completionAfterLastChange.withChange, 1);
+    assert.equal(summary.roleTotals.build.completionAfterLastChange.withPotentialChangeLast, 1);
+    assert.equal(summary.roleTotals.build.completionAfterLastChange.withConfirmedEditLast, 0);
+    assert.equal(summary.roleTotals.build.completionAfterLastChange.withChange, 1);
     assert.equal(summary.roleTotals.engineer.completionAfterLastChange.withConfirmedEditLast, 1);
     assert.equal(summary.roleTotals.engineer.completionAfterLastChange.ambiguous, 0);
     assert.ok(summary.coverage.changeBasis.includes('never confirmed file changes'));
@@ -819,6 +908,7 @@ describe('session-audit behavioral and temporal verification', () => {
       ambiguousAfterLastChange: 0,
       failureSignal: 1,
       legacyWithoutEvidence: 0,
+      orderUnknown: 0,
     });
   });
 

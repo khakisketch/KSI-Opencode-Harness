@@ -1,6 +1,7 @@
-// Opt-in isolated transport check of the repository's common and Lead guidance.
-// This proves delivery to scripted Build/Lead inputs, not model understanding,
-// test success or product acceptance.
+// Opt-in isolated transport check of the repository's common guidance.
+// This proves delivery to a scripted Build input, not model understanding,
+// test success or product acceptance. There is no intermediate owner role:
+// Build is the sole development owner.
 // Private HOME/server and fake loopback model only; no shared server or credentials.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -21,14 +22,11 @@ const cfg = path.join(home, '.config/opencode');
 await fs.mkdir(path.join(cfg, 'agents'), { recursive: true });
 await fs.mkdir(project, { recursive: true });
 const shared = await fs.readFile(path.join(source, 'AGENTS.md'), 'utf8');
-const lead = await fs.readFile(path.join(source, 'agents/lead.md'), 'utf8');
 assert.ok(shared.trim().length > 0);
-const isolatedLead = lead;
+assert.ok(!await fs.stat(path.join(source, 'agents/lead.md')).catch(() => null), 'no lead role file in source');
 await fs.writeFile(path.join(cfg, 'AGENTS.md'), shared);
-await fs.writeFile(path.join(cfg, 'agents/lead.md'), isolatedLead);
 const strings = v => typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(strings) : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : [];
 const norm = v => v.replace(/\r\n/g, '\n').trim();
-const leadBody = lead.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 const observed = [];
 let parentStep = 0;
 const model = http.createServer(async (req, res) => {
@@ -40,15 +38,11 @@ const model = http.createServer(async (req, res) => {
     const users = (body.messages ?? []).filter(m => m.role === 'user').flatMap(m => strings(m.content)).join('\n');
     const isAgentLoop = Array.isArray(body.tools) && body.tools.length > 0;
     const isMain = flat.includes('You are an AI agent running in OpenCode');
-    const child = users.includes('SOURCE_FIXTURE_CHILD');
     let tool, text = 'fixture auxiliary';
-    if (isAgentLoop && child) {
-      observed.push({ role: 'lead', isMain, hasCommon: norm(flat).includes(norm(shared)), hasLead: norm(leadBody) === "" });
-      text = 'SOURCE_FIXTURE_CHILD_DONE';
-    } else if (isAgentLoop && isMain && flat.includes('SOURCE_FIXTURE_PARENT')) {
+    if (isAgentLoop && isMain && flat.includes('SOURCE_FIXTURE_PARENT')) {
       observed.push({ role: 'build', hasCommon: norm(flat).includes(norm(shared)) });
-      if (parentStep++ === 0) tool = { id: 'fixture_lead_call', type: 'function', function: { name: 'subagent', arguments: JSON.stringify({ agent: 'lead', description: 'Test source guidance', prompt: 'SOURCE_FIXTURE_CHILD: return the fixture completion marker.' }) } };
-      else text = 'SOURCE_FIXTURE_PARENT_DONE';
+      parentStep++;
+      text = 'SOURCE_FIXTURE_PARENT_DONE';
     }
     const finish = tool ? 'tool_calls' : 'stop';
     if (body.stream) {
@@ -69,10 +63,10 @@ const port = reserve.address().port;
 await new Promise(resolve => reserve.close(resolve));
 await fs.writeFile(path.join(cfg, 'opencode.json'), JSON.stringify({
   model: 'fixture/fixture',
-  experimental: { subagent_depth: 2 },
+  experimental: { subagent_depth: 1 },
   providers: { fixture: { package: '@opencode/ai/providers/openai-compatible', settings: { baseURL: `http://127.0.0.1:${mp}/v1`, apiKey: 'synthetic-only' },
     models: { fixture: { capabilities: { tools: true, input: ['text'], output: ['text'] }, limit: { context: 32768, output: 4096 } } } } },
-  agents: { build: { permissions: [{ action: 'subagent', resource: '*', effect: 'deny' }, { action: 'subagent', resource: 'lead', effect: 'allow' }] } },
+  agents: { build: { permissions: [{ action: 'subagent', resource: '*', effect: 'deny' }] } },
 }));
 const password = randomBytes(20).toString('hex');
 const env = Object.fromEntries(['PATH', 'LANG', 'LC_ALL', 'TERM'].filter(k => process.env[k]).map(k => [k, process.env[k]]));
@@ -95,7 +89,7 @@ try {
   assert.equal(info?.pid, server.pid, 'refuse to mutate a server other than the owned child');
   assert.equal(server.exitCode, null);
   const session = await api('POST', '/api/session', { location: { directory: project }, agent: 'build', model: { providerID: 'fixture', id: 'fixture' } });
-  await api('POST', `/api/session/${session.id}/prompt`, { text: 'SOURCE_FIXTURE_PARENT: ask the Lead fixture to return its marker.' });
+  await api('POST', `/api/session/${session.id}/prompt`, { text: 'SOURCE_FIXTURE_PARENT: confirm you received the common guidance and return the marker.' });
   let messages;
   for (let i = 0; i < 200; i++) {
     await sleep(100);
@@ -105,13 +99,12 @@ try {
   }
   assert.ok(strings(messages).includes('SOURCE_FIXTURE_PARENT_DONE'));
   assert.ok(observed.some(x => x.role === 'build' && x.hasCommon), 'full common source reached scripted Build input');
-  assert.ok(observed.some(x => x.role === 'lead' && x.isMain && x.hasCommon && x.hasLead), 'Native base prompt and full common source reached scripted Lead input');
   const calls = messages.flatMap(m => m.content ?? []).filter(p => p?.type === 'tool' && p?.name === 'subagent');
-  assert.ok(calls.some(p => p?.state?.status === 'completed' && strings(p.state?.content).some(x => x.includes('SOURCE_FIXTURE_CHILD_DONE'))));
-  for (const [f, expected] of [[path.join(source, 'AGENTS.md'), shared], [path.join(source, 'agents/lead.md'), lead]]) {
+  assert.ok(calls.length === 0, 'Build made no subagent call in this delivery fixture');
+  for (const [f, expected] of [[path.join(source, 'AGENTS.md'), shared]]) {
     assert.equal(createHash('sha256').update(await fs.readFile(f)).digest('hex'), createHash('sha256').update(expected).digest('hex'), 'source file stable during fixture');
   }
-  console.log(`PASS isolated OpenCode delivered copied common source to scripted Build, and full common source to scripted Lead without a system replacement. ${root}`);
+  console.log(`PASS isolated OpenCode delivered copied common source to scripted Build without a system replacement. ${root}`);
 } catch (err) {
   console.error(`FAIL isolated source-guidance fixture ${root}: ${err.stack}; observations=${JSON.stringify(observed)}`);
   process.exitCode = 1;

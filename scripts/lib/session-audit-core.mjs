@@ -74,9 +74,9 @@ const LIMITATIONS = [
   'completion-basis: failed vs incomplete vs unverified stay distinct; candidates carry unknown outcome with passedProof none; real test success needs structural end-state proof, never claimed here.',
   'cross-role-basis: role-scoped evidence never covers another role’s later change; snapshot freshness needs completionAcrossRoles (one role’s verification never proves another role’s change).',
   'mixed-shell-basis: a single shell call matching both verification and mutation patterns is order-ambiguous (command-internal order unprovable): counted as a pattern candidate and a potential change, never as after-last-change verification.',
-  'partial-change-basis: failed/incomplete shell (mutation-pattern) or delegation may have partially changed files; prior verification freshness is discarded while the failure/incompleteness record is preserved.',
+  'partial-change-basis: failed/incomplete direct edits, mutation-pattern shell or delegation may have partially changed files; role and snapshot verification freshness is discarded while failure/incompleteness records are preserved. Any still-incomplete mutation blocks snapshot freshness even after later checks.',
   'change-naming-basis: changesObserved/withChange count confirmed edits plus potential-change signals for backward compatibility only; editsObserved vs potentialChangesObserved separate confirmed edit/write/patch calls from unconfirmed delegation/possible-shell-edit signals.',
-  'input-order-basis: input-array order follows the caller-declared order option (default oldest-first); a wrongly declared newest-first/oldest-first flips after-last-change results; relevant tied runs (tool-bearing parts in at least two messages of one timestamp block) are enumerated exactly and confirmation requires invariance — full-array reversal alone would miss partial ties; the Native V2 message API was operator-observed newest-first while ctx.session.context was isolated-fixture-observed oldest-first, so callers must verify and declare explicitly instead of guessing.',
+  'input-order-basis: input-array order follows the caller-declared order option (default oldest-first), never inferred. Timestamp contradictions or relevant tied runs suppress freshness candidates as order-unknown; tied permutations are NOT enumerated. Missing timestamps leave declared-order observations only, not confirmed freshness. REST order is explicit in V2; callers must verify and declare it.',
   'unsafe-key-basis: external agent/tool/skill strings are never trusted as object keys: every externally-keyed map uses a null-prototype object internally, so inherited members (toString, hasOwnProperty, __proto__, constructor, ...) can neither resolve nor pollute; boundaries convert back to plain JSON-safe objects without inventing or dropping keys.',
   'budget-basis: pre-processing caps (messages, tool parts, scanned string chars, duplicate-window chars) bound CPU/memory before analysis; over-budget input yields no summary (valid:false + overBudget), never a partial result. Caps bound analysis work only, never the context API fetch itself.',
 ];
@@ -95,9 +95,9 @@ const COVERAGE = {
   completionBasis: 'after latest observed edit/delegation/possible-shell-edit in input-array order; candidate-unknown vs ambiguous vs failure-signal vs unverified stay distinct; mixed verify+mutate shell calls never count as after-last-change verification; passedProof is always none here',
   completionScopeBasis: 'per-role evidence is role-scoped input-array order only; cross-role staleness needs completionAcrossRoles; one role’s verification never proves another role’s change',
   mixedShellBasis: 'a single shell call matching both verification and mutation patterns is order-ambiguous: counted as a pattern candidate and a potential change, never as after-last-change verification (see verificationAmbiguous*)',
-  partialChangeBasis: 'failed/incomplete shell (mutation-pattern) or delegation may have partially changed files: prior clean/ambiguous verification freshness is discarded while the failure/incompleteness record is preserved',
+  partialChangeBasis: 'failed/incomplete edit/write/patch, mutation-pattern shell or delegation may have partially changed files: role and snapshot freshness is discarded while records are preserved; unresolved mutation calls block freshness even after later checks',
   changeBasis: 'editsObserved are confirmed edit/write/patch calls; delegations/possibleShellEdits are potential-change signals only, never confirmed file changes; changesObserved/withChange sum both for backward compatibility only',
-  inputOrderBasis: 'input-array order follows the caller-declared order option (default oldest-first, explicit newest-first); never inferred; a wrong declaration flips after-last-change results; relevant tied timestamp runs are enumerated exactly and confirmation requires invariance under every tied order; when array order is unconfirmed, treat the result as unknown',
+  inputOrderBasis: 'input-array order follows the caller-declared order option (default oldest-first, explicit newest-first); never inferred. Timestamp contradictions and relevant ties suppress freshness candidates as order-unknown. Tied permutations are not enumerated; missing timestamps preserve declared-order observations only. When array order is unconfirmed, treat the result as unknown',
   unsafeKeyBasis: 'external agent/tool/skill strings are never trusted as object keys: null-prototype maps internally, plain JSON-safe objects at boundaries',
   budgetBasis: 'pre-processing caps bound analysis work only (messages, parts, scanned chars, duplicate-window chars); over-budget yields no summary; caps never limit the context API fetch itself',
 };
@@ -190,12 +190,12 @@ function toolInputOf(part) {
 }
 
 // Failed/running mutating-capable calls may have partially changed files even
-// though their transport never completed: a mutation-pattern shell, or any
-// delegation (child work is unobservable). Reads/skills cannot mutate, so they
+// though their transport never completed: direct edits, mutation-pattern shell,
+// or delegation (child work is unobservable). Reads/skills cannot mutate, so they
 // never count here. Used to discard verification freshness while preserving
 // the failure/incompleteness record (never conflated, never swallowed).
 function isPartialChangeRisk(toolName, part) {
-  if (toolName === 'subagent') return true;
+  if (['subagent', 'edit', 'write', 'patch'].includes(toolName)) return true;
   if (toolName === 'shell') {
     return isMaybeShellEdit(String(toolInputOf(part).command ?? ''));
   }
@@ -240,14 +240,16 @@ export function messageTimeOf(m) {
 }
 
 // Validate a declared array order against timestamp evidence. Fail closed:
-// missing/unusable timestamps on ANY message -> unverifiable (never guess);
-// a monotonicity violation of the declared direction -> contradicted.
+// Missing/unusable timestamps prevent full confirmation, but never hide a
+// contradiction among known timestamps. Check the entire known subsequence;
+// do not fill missing times or infer the declaration.
 // Consistent timestamps only corroborate the declaration; timestamp order is
 // not concurrent-completion proof (see limits).
 // Empty/single-message input is vacuously consistent.
 // Tied timestamps carry no tiebreak information: `tie` is true when no strict
 // step exists in the declared direction, and `tiedRuns` lists every maximal
-// adjacent equal-time block as { start, end, relevant }. A run is relevant
+// known equal-time block as { start, end, relevant } in original-array indices
+// (a block can span missing timestamps). A run is relevant
 // when tool-bearing parts sit in at least two of its messages — only then can
 // the unknown internal order change tool-trace evidence. Idle/user or
 // single-tooled ties are reported but never block confirmation by themselves;
@@ -259,33 +261,39 @@ export function checkDeclaredOrder(messages, order) {
   if (!Array.isArray(messages) || messages.length < 2) {
     return { verdict: 'consistent', reason: 'too-few-messages', tie: false, strictSteps: 0, tiedRuns: [] };
   }
-  let prev = order === 'oldest-first' ? -Infinity : Infinity;
+  let prev;
   let strictSteps = 0;
+  let firstMissing, firstConflict;
   const times = [];
   for (let i = 0; i < messages.length; i++) {
     const t = messageTimeOf(messages[i]);
     if (t === undefined) {
-      return { verdict: 'unverifiable', reason: 'timestamps-missing', tie: false, strictSteps, tiedRuns: [], detail: { atIndex: i } };
+      firstMissing ??= i;
+      continue;
     }
-    times.push(t);
-    if (i > 0) {
-      if (t === prev) continue;
-      else if (order === 'oldest-first' ? t > prev : t < prev) strictSteps += 1;
-      else return { verdict: 'contradicted', reason: 'timestamps-contradict-declared-order', tie: false, strictSteps, tiedRuns: [], detail: { atIndex: i } };
+    times.push({ time: t, index: i });
+    if (prev !== undefined && t !== prev) {
+      if (order === 'oldest-first' ? t > prev : t < prev) strictSteps += 1;
+      else firstConflict ??= i;
     }
     prev = t;
   }
   const tiedRuns = [];
   let start = -1;
   for (let i = 1; i <= times.length; i++) {
-    const tied = i < times.length && times[i] === times[i - 1];
+    const tied = i < times.length && times[i].time === times[i - 1].time;
     if (tied && start < 0) start = i - 1;
     if (!tied && start >= 0) {
-      tiedRuns.push(describeTiedRun(messages, start, i - 1));
+      tiedRuns.push(describeTiedRun(messages, times[start].index, times[i - 1].index));
       start = -1;
     }
   }
-  void prev;
+  if (firstConflict !== undefined) {
+    return { verdict: 'contradicted', reason: 'timestamps-contradict-declared-order', tie: false, strictSteps, tiedRuns, detail: { atIndex: firstConflict } };
+  }
+  if (firstMissing !== undefined) {
+    return { verdict: 'unverifiable', reason: 'timestamps-missing', tie: false, strictSteps, tiedRuns, detail: { atIndex: firstMissing } };
+  }
   // All-equal timestamps are consistent with both declarations: without a
   // strict step there is no tiebreak information, so callers must either fail
   // closed or confirm order-invariance explicitly (never guess the order).
@@ -356,6 +364,13 @@ function checkInputBudgets(ordered, { maxMessages, maxParts, maxStringChars }) {
   }
   let parts = 0, chars = 0;
   for (const msg of ordered) {
+    // Timestamp validation is now on the actual audit path. Bound string time
+    // parsing before Date.parse, even on messages with no tool parts.
+    const time = msg?.time && typeof msg.time === 'object' ? msg.time.created : msg?.time;
+    if (typeof time === 'string') chars += time.length;
+    if (chars > maxStringChars) {
+      return { over: true, summary: { reason: 'string-chars-exceeded', messages: ordered.length, parts, chars } };
+    }
     const list = Array.isArray(msg?.content) ? msg.content : (Array.isArray(msg?.parts) ? msg.parts : null);
     if (!list) continue;
     for (const part of list) {
@@ -391,6 +406,12 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
   if (budget.over) {
     return { sessionId, valid: false, roles: {}, gaps: ['over-budget'], overBudget: budget.summary };
   }
+  const orderEvidence = checkDeclaredOrder(ordered, 'oldest-first');
+  if (orderEvidence.verdict !== 'contradicted' && orderEvidence.tiedRuns.some(run => run.relevant)) {
+    orderEvidence.verdict = 'unverifiable';
+    orderEvidence.reason = 'relevant-ties-not-enumerated';
+  }
+  const orderConflict = orderEvidence.verdict === 'contradicted' || orderEvidence.reason === 'relevant-ties-not-enumerated';
   const byRole = Object.create(null);
   const ensureRole = (role) => {
     if (!byRole[role]) {
@@ -431,6 +452,7 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
         failedAfterLastChange: 0,
         incompleteAfterLastChange: 0,
         completionEvidence: null,
+        unresolvedMutationRisk: false,
       };
     }
     return byRole[role];
@@ -450,6 +472,8 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     lastAmbiguous: null, // { role, seq }
     lastFailure: null, // { role, tool, seq } failed transport or nonzero hint
     lastIncomplete: null, // { role, tool, seq }
+    lastPartialChangeRisk: null, // incomplete/failed mutation is not a confirmed edit
+    unresolvedMutationRisks: [], // running calls may outlive every later check
     visual: { captures: 0, reviews: 0, captureSeqs: [], reviewSeqs: [] }, // completed visual_capture/visual_review only, exact names
   };
   // Per-tool-part event positions (sequence numbers only, no content) so the
@@ -488,6 +512,9 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
         if (isPartialChangeRisk(toolName, part)) {
           stat.verificationAfterLastChange = 0;
           stat.verificationAmbiguousAfterLastChange = 0;
+          cross.lastPartialChangeRisk = { role, tool: toolName, seq, status: toolStatus(part) };
+          cross.lastCleanVerify = null;
+          cross.lastAmbiguous = null;
         }
         continue;
       }
@@ -505,6 +532,11 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
         if (isPartialChangeRisk(toolName, part)) {
           stat.verificationAfterLastChange = 0;
           stat.verificationAmbiguousAfterLastChange = 0;
+          cross.lastPartialChangeRisk = { role, tool: toolName, seq, status: toolStatus(part) };
+          stat.unresolvedMutationRisk = true;
+          cross.unresolvedMutationRisks.push(cross.lastPartialChangeRisk);
+          cross.lastCleanVerify = null;
+          cross.lastAmbiguous = null;
         }
         continue;
       }
@@ -635,10 +667,11 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
       if (s.authorityReads.length === 0) gaps.push('build-acted-without-authority-read');
       else if (!s.authorityReadBeforeAction) gaps.push('build-acted-before-authority-read');
     }
-    // Owner-unit authority grounding: lead is the current whole-task owner and
-    // acts through edits and delegation alike (build-style trigger/ids);
-    // design/engineer branches below stay byte-stable for honest historical
-    // trace parsing of sessions recorded before the five-profile migration.
+    // Owner-unit authority grounding: build is the sole whole-task owner and
+    // acts through edits and delegation alike. The lead branch below stays
+    // for honest historical trace parsing of sessions recorded before the
+    // role removal; design/engineer branches likewise stay byte-stable for
+    // sessions recorded before the five-profile migration.
     if (role === 'lead' && (s.edits > 0 || s.subagentsCalled.length > 0)) {
       if (s.authorityReads.length === 0) gaps.push('lead-acted-without-authority-read');
       else if (!s.authorityReadBeforeAction) gaps.push('lead-acted-before-authority-read');
@@ -650,11 +683,13 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     if (role === 'plan' && s.turns > 0 && s.authorityReads.length === 0) {
       gaps.push('plan-advised-without-authority-read');
     }
-    // Owner-unit verification candidates: lead mirrors engineer (required
-    // verification always applies). Skill-lens, visual-capture and critic-lens
-    // mandates are intentionally absent: optional lenses are observed as
-    // loaded skills/reads, never as failure gaps.
-    if ((role === 'lead' || role === 'engineer') && s.edits > 0) {
+    // Owner-unit verification candidates: build is the sole whole-task owner,
+    // so required verification always applies to its edits. Lead/engineer
+    // branches stay for historical sessions recorded before their removals.
+    // Skill-lens, visual-capture and critic-lens mandates are intentionally
+    // absent: optional lenses are observed as loaded skills/reads, never as
+    // failure gaps.
+    if ((role === 'build' || role === 'lead' || role === 'engineer') && s.edits > 0) {
       if (s.verificationRuns === 0) {
         gaps.push(`${role}-no-observed-verification-candidate`);
       } else if (s.postEditVerificationRuns === 0) {
@@ -680,6 +715,8 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
       outcome = 'no-change-observed';
     } else if ((s.failedAfterLastChange ?? 0) > 0 || (s.nonzeroHintAfterLastChange ?? 0) > 0) {
       outcome = 'failure-signal-after-last-change';
+    } else if (s.unresolvedMutationRisk) {
+      outcome = 'unverified-after-last-change';
     } else if ((s.verificationAfterLastChange ?? 0) > 0) {
       outcome = 'candidate-unknown-after-last-change';
     } else if ((s.verificationAmbiguousAfterLastChange ?? 0) > 0) {
@@ -687,6 +724,7 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     } else {
       outcome = 'unverified-after-last-change';
     }
+    if (orderConflict && /candidate|ambiguous/.test(outcome)) outcome = 'order-unknown';
     const lastChangeKind = s.lastChangeKind ?? null;
     s.completionEvidence = {
       scope: 'role-scoped input-array order only; another role’s later change can stale this; see completionAcrossRoles for snapshot-wide freshness',
@@ -706,8 +744,10 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
       nonzeroHintsAfterLastChange: s.nonzeroHintAfterLastChange ?? 0,
       failedAfterLastChange: s.failedAfterLastChange ?? 0,
       incompleteAfterLastChange: s.incompleteAfterLastChange ?? 0,
+      unresolvedMutationRisk: s.unresolvedMutationRisk,
       outcome,
       passedProof: 'none',
+      freshnessOrderConfirmed: orderEvidence.verdict === 'consistent',
       passedNote: 'command-pattern candidates and completed transport never prove test success; structural end-state proof required (not observed here).',
     };
   }
@@ -733,10 +773,11 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     else staleRoles.push(role);
   }
   const snapshotLastChange = cross.lastChange;
+  const freshnessBoundary = [snapshotLastChange, cross.lastPartialChangeRisk].filter(Boolean).sort((a, b) => b.seq - a.seq)[0] ?? null;
   // Roles that look fresh role-scoped but whose latest clean verification
   // predates the snapshot's latest change (another role changed later).
-  const freshRolesStaledByLaterCrossRoleChange = snapshotLastChange
-    ? freshCandidateRoles.filter((r) => (roleVerifySeq[r] ?? -1) < snapshotLastChange.seq)
+  const freshRolesStaledByLaterCrossRoleChange = freshnessBoundary
+    ? freshCandidateRoles.filter((r) => (roleVerifySeq[r] ?? -1) < freshnessBoundary.seq)
     : [];
   const failureAfterSnapshotLastChange = Boolean(
     snapshotLastChange && cross.lastFailure && cross.lastFailure.seq >= snapshotLastChange.seq,
@@ -748,26 +789,29 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
   // only, never content). Clean verifications must strictly follow the last
   // change; failures, incompletes, and the trailing mixed call itself (>=)
   // are counted at-or-after it. No change means no after-last-change scope.
-  const changeSeq = snapshotLastChange?.seq ?? null;
+  const changeSeq = freshnessBoundary?.seq ?? null;
   const afterCount = (arr, strict) => (changeSeq === null ? 0 : arr.filter((s) => (strict ? s > changeSeq : s >= changeSeq)).length);
   const countsAfterSnapshotLastChange = {
-    verificationCandidates: afterCount(eventSeqs.cleanVerifies, true),
+    verificationCandidates: cross.unresolvedMutationRisks.length ? 0 : afterCount(eventSeqs.cleanVerifies, true),
     ambiguousCandidates: afterCount(eventSeqs.ambiguous, false),
     failureSignals: afterCount(eventSeqs.failures, false),
     incompletes: afterCount(eventSeqs.incompletes, false),
   };
   let snapshotOutcome;
-  if (!snapshotLastChange) {
+  if (!freshnessBoundary) {
     snapshotOutcome = 'no-change-in-snapshot';
   } else if (failureAfterSnapshotLastChange) {
     snapshotOutcome = 'failure-signal-after-snapshot-last-change';
-  } else if (cross.lastCleanVerify && cross.lastCleanVerify.seq > snapshotLastChange.seq) {
+  } else if (cross.unresolvedMutationRisks.length) {
+    snapshotOutcome = 'unverified-late-change';
+  } else if (cross.lastCleanVerify && cross.lastCleanVerify.seq > freshnessBoundary.seq) {
     snapshotOutcome = 'candidate-after-snapshot-last-change';
-  } else if (cross.lastAmbiguous && cross.lastAmbiguous.seq >= snapshotLastChange.seq) {
+  } else if (cross.lastAmbiguous && cross.lastAmbiguous.seq >= freshnessBoundary.seq) {
     snapshotOutcome = 'ambiguous-after-snapshot-last-change';
   } else {
     snapshotOutcome = 'unverified-late-change';
   }
+  if (orderConflict && /candidate|ambiguous/.test(snapshotOutcome)) snapshotOutcome = 'order-unknown';
   const completionAcrossRoles = {
     scope: 'snapshot-wide input-array order across roles; one role’s verification never proves another role’s change; child sessions and concurrency stay unobserved',
     lastChange: snapshotLastChange,
@@ -775,12 +819,17 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     lastAmbiguousVerification: cross.lastAmbiguous,
     lastFailureSignal: cross.lastFailure,
     lastIncomplete: cross.lastIncomplete,
+    lastPartialChangeRisk: cross.lastPartialChangeRisk,
+    unresolvedMutationRisks: cross.unresolvedMutationRisks,
+    freshnessBoundary,
+    freshnessOrderConfirmed: orderEvidence.verdict === 'consistent',
     changeAfterLastCleanVerification: Boolean(
       snapshotLastChange && (!cross.lastCleanVerify || snapshotLastChange.seq > cross.lastCleanVerify.seq),
     ),
     failureAfterSnapshotLastChange,
     incompleteAfterSnapshotLastChange,
     countsAfterSnapshotLastChange,
+    countsAfterSnapshotLastChangeBasis: 'freshnessBoundary: latest completed change or later partial-change risk; still-incomplete mutations suppress fresh candidate counts, not historical verificationRuns',
     visualCompletions: {
       captures: cross.visual.captures,
       reviews: cross.visual.reviews,
@@ -798,10 +847,10 @@ export function auditMessages(messages, { sessionId = 'unknown', order = 'oldest
     noChangeRoles,
     outcome: snapshotOutcome,
     passedProof: 'none',
-    outcomeNote: 'candidate-after-snapshot-last-change carries unknown outcome and no cross-role coverage proof; unverified-late-change means some change (observed or potential) has no later clean verification; ambiguous means the latest evidence is a mixed verify+mutate shell call with unprovable internal order.',
+    outcomeNote: 'candidate-after-snapshot-last-change carries unknown outcome and no cross-role coverage proof; unverified-late-change means a change or partial-change risk lacks later clean verification, or a mutation remains running; ambiguous means mixed verify+mutate with unprovable internal order; order-unknown suppresses freshness when timestamps contradict the declaration or relevant ties are not enumerated.',
   };
 
-  return { sessionId, valid: true, roles: toPlain(byRole), gaps, completionAcrossRoles };
+  return { sessionId, valid: true, roles: toPlain(byRole), gaps, completionAcrossRoles, orderEvidence };
 }
 
 export function summarizeAudits(audits) {
@@ -814,12 +863,17 @@ export function summarizeAudits(audits) {
     ambiguousAfterLastChange: 0,
     failureSignal: 0,
     legacyWithoutEvidence: 0,
+    orderUnknown: 0,
   };
+  const orderEvidenceCounts = { consistent: 0, contradicted: 0, unverifiable: 0, legacyWithoutEvidence: 0 };
   let validSessions = 0;
 
   for (const a of audits) {
     if (!a || !a.valid) continue;
     validSessions += 1;
+    const orderVerdict = a.orderEvidence?.verdict;
+    if (['consistent', 'contradicted', 'unverifiable'].includes(orderVerdict)) orderEvidenceCounts[orderVerdict] += 1;
+    else orderEvidenceCounts.legacyWithoutEvidence += 1;
     for (const g of a.gaps ?? []) {
       gapCounts[g] = (gapCounts[g] ?? 0) + 1;
     }
@@ -831,6 +885,7 @@ export function summarizeAudits(audits) {
     else if (snap.outcome === 'unverified-late-change') snapshotCompletionOutcomes.unverifiedLateChange += 1;
     else if (snap.outcome === 'ambiguous-after-snapshot-last-change') snapshotCompletionOutcomes.ambiguousAfterLastChange += 1;
     else if (snap.outcome === 'failure-signal-after-snapshot-last-change') snapshotCompletionOutcomes.failureSignal += 1;
+    else if (snap.outcome === 'order-unknown') snapshotCompletionOutcomes.orderUnknown += 1;
     else snapshotCompletionOutcomes.legacyWithoutEvidence += 1;
     for (const [role, s] of Object.entries(a.roles ?? {})) {
       // Null-prototype roleTotals keeps even hand-crafted hostile role keys
@@ -865,6 +920,7 @@ export function summarizeAudits(audits) {
             unverified: 0,
             ambiguous: 0,
             failureSignal: 0,
+            orderUnknown: 0,
             withConfirmedEditLast: 0,
             withPotentialChangeLast: 0,
             legacyWithoutEvidence: 0,
@@ -891,6 +947,7 @@ export function summarizeAudits(audits) {
           unverified: 0,
           ambiguous: 0,
           failureSignal: 0,
+          orderUnknown: 0,
           withConfirmedEditLast: 0,
           withPotentialChangeLast: 0,
           legacyWithoutEvidence: 0,
@@ -911,6 +968,7 @@ export function summarizeAudits(audits) {
         else if (ev.outcome === 'unverified-after-last-change') rt.completionAfterLastChange.unverified += 1;
         else if (ev.outcome === 'ambiguous-after-last-change') rt.completionAfterLastChange.ambiguous += 1;
         else if (ev.outcome === 'failure-signal-after-last-change') rt.completionAfterLastChange.failureSignal += 1;
+        else if (ev.outcome === 'order-unknown') rt.completionAfterLastChange.orderUnknown += 1;
       }
       for (const [t, n] of Object.entries(s.failedTools ?? {})) {
         rt.failedTools[t] = (rt.failedTools[t] ?? 0) + n;
@@ -949,6 +1007,7 @@ export function summarizeAudits(audits) {
     roleTotals: toPlain(roleTotals),
     gapCounts,
     snapshotCompletionOutcomes,
+    orderEvidenceCounts,
     limitations: [...LIMITATIONS],
     coverage: { ...COVERAGE },
     notice: 'Heuristic execution anomaly detector (visible tool traces and input-array order only); not a product or design quality certifier.',

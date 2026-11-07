@@ -11,7 +11,7 @@ import { realpath } from 'node:fs/promises';
 export const PLUGIN_ID = 'ksi.capabilities-inventory';
 export const NATIVE_DOMAINS = ['agent', 'skill', 'tool', 'mcp', 'plugin'];
 export const DEFAULT_NATIVE_DOMAINS = ['agent', 'skill', 'tool', 'plugin'];
-export const TRACKED_AGENTS = ['build', 'plan', 'lead', 'general', 'explore'];
+export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore', 'design'];
 export const TRACKED_SKILLS = [
   'impeccable', 'journey', 'organize', 'wireframe',
   'vercel-react-best-practices', 'playwright-cli', 'mobbin-design',
@@ -25,6 +25,9 @@ export const AGENT_MODES = ['primary', 'subagent', 'all'];
 export const MAX_CATALOG_IDS = 200;
 export const MAX_ID_LENGTH = 128;
 export const MAX_LOCATE_SKILLS = 5;
+// Optional inventory reads only. Required session/location checks never turn a
+// timeout into a partial success; caller cancellation always rejects the call.
+export const LIST_DEADLINE_MS = 2000;
 
 const fail = (message) => { throw new Error(`capabilities-inventory: ${message}`); };
 
@@ -96,39 +99,44 @@ export function validNativePayload(payload, kind) {
   return !!list && list.every((e) => entryValid(e, kind));
 }
 
+const usableEntries = (payload, kind) => (entriesOf(payload) ?? []).filter(e => entryValid(e, kind));
+
 const unknownAgents = () => TRACKED_AGENTS.map((name) => ({ name, registered: 'unknown', mode: 'unknown' }));
 const unknownSkills = () => TRACKED_SKILLS.map((name) => ({ name, registered: 'unknown' }));
 const unknownMcp = () => TRACKED_MCP.map((name) => ({ name, status: 'unknown' }));
 const unknownCount = () => ({ count: 'unknown', status: 'unknown' });
-const unknownCatalog = () => ({ status: 'unknown', ids: [], truncated: false, count: 'unknown', omitted: 'unknown' });
+const unknownCatalog = () => ({ status: 'unknown', ids: [], truncated: false, count: 'unknown', omitted: 'unknown', complete: false, countKind: 'unknown' });
 
 export function projectNativeAgents(payload) {
-  if (!validNativePayload(payload, 'agent')) return unknownAgents();
+  if (!entriesOf(payload)) return unknownAgents();
+  const complete = validNativePayload(payload, 'agent');
   const modes = new Map();
-  for (const e of entriesOf(payload)) {
+  for (const e of usableEntries(payload, 'agent')) {
     const k = keyOf(e, 'agent');
     if (!k || modes.has(k)) continue;
     modes.set(k, AGENT_MODES.includes(e.mode) ? e.mode : 'unknown');
   }
   return TRACKED_AGENTS.map((name) => (modes.has(name)
     ? { name, registered: true, mode: modes.get(name) }
-    : { name, registered: false, mode: 'unknown' }));
+    : { name, registered: complete ? false : 'unknown', mode: 'unknown' }));
 }
 
 export function projectNativeSkills(payload) {
-  if (!validNativePayload(payload, 'skill')) return unknownSkills();
+  if (!entriesOf(payload)) return unknownSkills();
+  const complete = validNativePayload(payload, 'skill');
   const seen = new Set();
-  for (const e of entriesOf(payload)) { const k = keyOf(e, 'skill'); if (k) seen.add(k); }
-  return TRACKED_SKILLS.map((name) => ({ name, registered: seen.has(name) }));
+  for (const e of usableEntries(payload, 'skill')) { const k = keyOf(e, 'skill'); if (k) seen.add(k); }
+  return TRACKED_SKILLS.map((name) => ({ name, registered: seen.has(name) ? true : complete ? false : 'unknown' }));
 }
 
 // Present + connected stays connected. Present with missing/unknown state stays
 // unknown and is never asserted as unavailable. Absent from a valid list is
-// genuine absence (unavailable). Invalid payload is fully unknown.
+// genuine absence (unavailable). An incomplete list never proves absence.
 export function projectNativeMcp(payload) {
-  if (!validNativePayload(payload, 'mcp')) return unknownMcp();
+  if (!entriesOf(payload)) return unknownMcp();
+  const complete = validNativePayload(payload, 'mcp');
   const stat = new Map();
-  for (const e of entriesOf(payload)) {
+  for (const e of usableEntries(payload, 'mcp')) {
     const k = keyOf(e, 'mcp');
     if (!k || stat.has(k)) continue;
     const s = e?.status?.status;
@@ -136,18 +144,18 @@ export function projectNativeMcp(payload) {
     else stat.set(k, 'unknown');
   }
   return TRACKED_MCP.map((name) => {
-    if (!stat.has(name)) return { name, status: 'unavailable' };
+    if (!stat.has(name)) return { name, status: complete ? 'unavailable' : 'unknown' };
     return { name, status: stat.get(name) };
   });
 }
 
 export function projectNativeToolCount(payload) {
-  if (!validNativePayload(payload, 'tool')) return unknownCount();
+  if (!validNativePayload(payload, 'tool')) return entriesOf(payload) ? { ...unknownCount(), observedCount: usableEntries(payload, 'tool').length } : unknownCount();
   return { count: entriesOf(payload).length, status: 'known' };
 }
 
 export function projectNativePluginCount(payload) {
-  if (!validNativePayload(payload, 'plugin')) return unknownCount();
+  if (!validNativePayload(payload, 'plugin')) return entriesOf(payload) ? { ...unknownCount(), observedCount: usableEntries(payload, 'plugin').length } : unknownCount();
   return { count: entriesOf(payload).length, status: 'known' };
 }
 
@@ -176,8 +184,9 @@ export function catalogIds(payload, kind) {
     else truncated = true;
   }
   const valid = list.length - omitted;
-  if (valid === 0 && omitted > 0) return { status: 'unknown', ids: [], truncated: false, count: 'unknown', omitted };
-  return { status: 'known', ids, truncated, count: valid, omitted };
+  const complete = validNativePayload(payload, kind);
+  if (valid === 0 && omitted > 0) return { ...unknownCatalog(), omitted };
+  return { status: 'known', ids, truncated, count: valid, omitted, complete, countKind: complete ? 'total' : 'observed' };
 }
 
 const asResult = (r) => (r && typeof r === 'object' && typeof r.ok === 'boolean' ? r : { ok: false });
@@ -198,7 +207,20 @@ export function buildNativeReport({ directory, directoryStatus = 'ok', at, domai
   const coreQueried = queried.includes('agent') && queried.includes('skill');
   const okOf = (d) => (d === 'agent' ? aOk : d === 'skill' ? sOk : d === 'tool' ? tOk : d === 'mcp' ? mOk : pOk);
   const queriedOk = directoryStatus === 'ok' && queried.length > 0 && queried.every(okOf);
-  const located = Array.isArray(locatedSkills) ? locatedSkills.filter((e) => e && typeof e === 'object' && typeof e.id === 'string').map((e) => ({
+  const results = { agent: a, skill: s, tool: t, mcp: m, plugin: p };
+  // Only bounded enums/counts are projected: neither exception messages nor
+  // rejected ids are echoed. Complete means a structurally valid list, not
+  // successful invocation of any listed capability.
+  const queries = Object.fromEntries(NATIVE_DOMAINS.map(domain => {
+    const r = results[domain];
+    if (!queried.includes(domain)) return [domain, { status: 'skipped', reason: 'not-requested', omitted: 'unknown' }];
+    if (!r.ok) return [domain, { status: 'unknown', reason: ['timeout', 'unavailable', 'error'].includes(r.reason) ? r.reason : 'error', omitted: 'unknown' }];
+    const entries = entriesOf(r.payload);
+    if (!entries) return [domain, { status: 'unknown', reason: 'invalid-payload', omitted: 'unknown' }];
+    const omitted = entries.length - usableEntries(r.payload, domain).length;
+    return [domain, { status: omitted ? 'incomplete' : 'complete', reason: omitted ? 'omitted-entries' : 'ok', omitted }];
+  }));
+  const located = Array.isArray(locatedSkills) ? locatedSkills.filter((e) => e && typeof e === 'object' && allowedId(e.id)).map((e) => ({
     id: e.id.slice(0, MAX_ID_LENGTH),
     found: e.found === true ? true : e.found === false ? false : 'unknown',
     scope: e.scope === 'project-hint' || e.scope === 'external-hint' ? e.scope : 'unknown',
@@ -209,24 +231,26 @@ export function buildNativeReport({ directory, directoryStatus = 'ok', at, domai
     at: stamped,
     domainsQueried: queried,
     partial,
-    agents: aOk ? projectNativeAgents(a.payload) : unknownAgents(),
-    skills: sOk ? projectNativeSkills(s.payload) : unknownSkills(),
-    tools: tOk ? projectNativeToolCount(t.payload) : unknownCount(),
-    mcp: mOk ? projectNativeMcp(m.payload) : unknownMcp(),
-    plugins: pOk ? projectNativePluginCount(p.payload) : unknownCount(),
+    queries,
+    listDeadlineMs: LIST_DEADLINE_MS,
+    agents: a.ok ? projectNativeAgents(a.payload) : unknownAgents(),
+    skills: s.ok ? projectNativeSkills(s.payload) : unknownSkills(),
+    tools: t.ok ? projectNativeToolCount(t.payload) : unknownCount(),
+    mcp: m.ok ? projectNativeMcp(m.payload) : unknownMcp(),
+    plugins: p.ok ? projectNativePluginCount(p.payload) : unknownCount(),
     catalog: {
-      agent: aOk ? catalogIds(a.payload, 'agent') : unknownCatalog(),
-      skill: sOk ? catalogIds(s.payload, 'skill') : unknownCatalog(),
-      tool: tOk ? catalogIds(t.payload, 'tool') : unknownCatalog(),
-      mcp: mOk ? catalogIds(m.payload, 'mcp') : unknownCatalog(),
-      plugin: pOk ? catalogIds(p.payload, 'plugin') : unknownCatalog(),
+      agent: a.ok ? catalogIds(a.payload, 'agent') : unknownCatalog(),
+      skill: s.ok ? catalogIds(s.payload, 'skill') : unknownCatalog(),
+      tool: t.ok ? catalogIds(t.payload, 'tool') : unknownCatalog(),
+      mcp: m.ok ? catalogIds(m.payload, 'mcp') : unknownCatalog(),
+      plugin: p.ok ? catalogIds(p.payload, 'plugin') : unknownCatalog(),
     },
     skillLocations: located,
     coreQueriesOk: directoryStatus === 'ok' && coreQueried && aOk && sOk,
     queriedOk,
-    notice: partial
+    notice: 'Optional lists have independent bounded deadlines; cancellation is best-effort via Native request options where supported; tool.list has no documented signal parameter; underlying work may continue after cancellation or deadline, and no retry is made. Incomplete lists preserve observed entries but never prove absence; observed counts are not full totals. ' + (partial
       ? 'Read-only in-process location inventory; explicit tool call only, no hooks or auto queries; session location is verified against the plugin location on every call; registration does not prove connection completion or actual call success; listed presence never claims usable access; no service start, model call, permission request, or stored state; mcp reconnect behavior is unconfirmed and mcp is opt-in only; catalog ids are bounded with truncation marked and raw details omitted; id strings are grammar-screened only, with no secret screening claim; skill location scope is a lexical hint only and never verifies symlinks, existence, or access — use Native skill and read tooling for actual file checks; partial domains only, not a full inventory.'
-      : 'Read-only in-process location inventory; explicit tool call only, no hooks or auto queries; session location is verified against the plugin location on every call; registration does not prove connection completion or actual call success; listed presence never claims usable access; no service start, model call, permission request, or stored state; mcp reconnect behavior is unconfirmed and mcp is opt-in only; catalog ids are bounded with truncation marked and raw details omitted; id strings are grammar-screened only, with no secret screening claim; skill location scope is a lexical hint only and never verifies symlinks, existence, or access — use Native skill and read tooling for actual file checks.',
+      : 'Read-only in-process location inventory; explicit tool call only, no hooks or auto queries; session location is verified against the plugin location on every call; registration does not prove connection completion or actual call success; listed presence never claims usable access; no service start, model call, permission request, or stored state; mcp reconnect behavior is unconfirmed and mcp is opt-in only; catalog ids are bounded with truncation marked and raw details omitted; id strings are grammar-screened only, with no secret screening claim; skill location scope is a lexical hint only and never verifies symlinks, existence, or access — use Native skill and read tooling for actual file checks.'),
   };
 }
 
@@ -261,10 +285,48 @@ function toolInput(properties, required) {
   return { type: 'object', properties, required: required ?? [], additionalProperties: false };
 }
 
+const cancelled = () => new DOMException('Inventory call cancelled', 'AbortError');
+const checkCancelled = signal => { if (signal?.aborted) throw cancelled(); };
+// Also stop waiting when an in-process method ignores RequestOptions.signal.
+// This cannot forcibly stop its work. No timeout is applied to required reads.
+async function withCallerCancellation(run, signal) {
+  checkCancelled(signal);
+  if (!signal) return run();
+  let onAbort;
+  try {
+    return await Promise.race([
+      new Promise((_, reject) => { onAbort = () => reject(cancelled()); signal.addEventListener('abort', onAbort, { once: true }); }),
+      Promise.resolve().then(() => { checkCancelled(signal); return run(); }),
+    ]);
+  } finally { signal.removeEventListener('abort', onAbort); }
+}
+
+async function optionalList(fn, signal, supportsSignal) {
+  checkCancelled(signal);
+  if (typeof fn !== 'function') return { ok: false, reason: 'unavailable' };
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort, { once: true });
+  let timer;
+  try {
+    return await withCallerCancellation(() => Promise.race([
+      new Promise(resolve => { timer = setTimeout(() => { controller.abort(); resolve({ ok: false, reason: 'timeout' }); }, LIST_DEADLINE_MS); }),
+      Promise.resolve().then(() => { checkCancelled(controller.signal); return supportsSignal ? fn(undefined, { signal: controller.signal }) : fn(); }).then(
+        payload => ({ ok: true, payload }), () => ({ ok: false, reason: 'error' }),
+      ),
+    ]), signal);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
+  }
+}
+
 export async function setupCapabilitiesInventory(ctx) {
   if (!ctx || typeof ctx !== 'object') fail('plugin context is unavailable');
   if (!ctx.tool || typeof ctx.tool.transform !== 'function') fail('tool registration is unavailable');
   const execute = async (input, tc) => {
+    const signal = tc?.signal;
+    checkCancelled(signal);
     const raw = input == null || typeof input !== 'object' || Array.isArray(input) ? {} : input;
     for (const k of Object.keys(raw)) {
       if (k !== 'domains' && k !== 'locateSkills') fail(`unsupported input: ${k}`);
@@ -288,19 +350,17 @@ export async function setupCapabilitiesInventory(ctx) {
     if (!ctx.session || typeof ctx.session.get !== 'function') fail('calling session location is unavailable');
     let sessionDirectory;
     try {
-      const gotten = await ctx.session.get({ sessionID });
+      const gotten = await withCallerCancellation(() => ctx.session.get({ sessionID }, { signal }), signal);
       sessionDirectory = dataOf(gotten)?.location?.directory;
-    } catch { fail('calling session location is unavailable'); }
+    } catch { checkCancelled(signal); fail('calling session location is unavailable'); }
     if (typeof sessionDirectory !== 'string' || !sessionDirectory) fail('calling session location is unavailable');
-    if (!(await sameRoot(sessionDirectory, pluginDirectory))) fail('session moved; use the plugin in its current location');
+    if (!(await withCallerCancellation(() => sameRoot(sessionDirectory, pluginDirectory), signal))) fail('session moved; use the plugin in its current location');
+    checkCancelled(signal);
     const stamped = new Date().toISOString();
     const want = (d) => wanted.includes(d);
-    const safeList = async (domain, fn) => {
-      try {
-        if (typeof fn !== 'function') return { ok: false };
-        return { ok: true, payload: await fn() };
-      } catch { return { ok: false }; }
-    };
+    // V2's agent/skill/mcp/plugin list methods take RequestOptions as the
+    // second argument. ToolContext.list() is in-process and accepts no args.
+    const safeList = (domain, fn) => optionalList(fn, signal, domain !== 'tool');
     const [agentResult, skillResult, toolResult, mcpResult, pluginResult] = await Promise.all([
       want('agent') ? safeList('agent', ctx.agent?.list?.bind(ctx.agent)) : { ok: false },
       want('skill') ? safeList('skill', ctx.skill?.list?.bind(ctx.skill)) : { ok: false },
@@ -308,11 +368,13 @@ export async function setupCapabilitiesInventory(ctx) {
       want('mcp') ? safeList('mcp', ctx.mcp?.list?.bind(ctx.mcp)) : { ok: false },
       want('plugin') ? safeList('plugin', ctx.plugin?.list?.bind(ctx.plugin)) : { ok: false },
     ]);
+    checkCancelled(signal);
     let locatedSkills = [];
     if (Array.isArray(raw.locateSkills) && raw.locateSkills.length) {
-      if (skillResult.ok && validNativePayload(skillResult.payload, 'skill')) {
+      if (skillResult.ok && entriesOf(skillResult.payload)) {
+        const complete = validNativePayload(skillResult.payload, 'skill');
         const byId = new Map();
-        for (const e of entriesOf(skillResult.payload)) {
+        for (const e of usableEntries(skillResult.payload, 'skill')) {
           const k = keyOf(e, 'skill');
           if (k && !byId.has(k)) byId.set(k, e);
         }
@@ -323,7 +385,7 @@ export async function setupCapabilitiesInventory(ctx) {
           // lexical hint from the listed path string only: no filesystem
           // lookup is performed, so a read-denied external resource cannot
           // be probed through this tool, and symlinks are never resolved.
-          if (!entry) { locatedSkills.push({ id, found: false, scope: 'unknown' }); continue; }
+          if (!entry) { locatedSkills.push({ id, found: complete ? false : 'unknown', scope: 'unknown' }); continue; }
           const p = entry.path;
           if (typeof p !== 'string' || !p) { locatedSkills.push({ id, found: true, scope: 'unknown' }); continue; }
           locatedSkills.push({ id, found: true, scope: lexicalScopeHint(sessionDirectory, p) });
