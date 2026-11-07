@@ -1,5 +1,10 @@
 # 현재 검증과 한계
 
+### GitHub CI 가동 + 하드코딩 tmp 경로 수정 (2026-11-07)
+
+- `.github/workflows/verify.yml` 추가 (오프라인 전용, 네이티브 제외). 첫 실행에서 `mkdtemp('/tmp/opencode/...')` 하드코딩이 Ubuntu에서 ENOENT로 실패 → `UNIT_TMP` 폴백(`os.tmpdir()`)으로 수정 후 통과.
+- `verify` 워크플로 초록불 확인 (5da57ac). 네이티브 검사는 로컬 opencode 바이너리 필요라 CI 제외, 로컬에서 수행.
+
 ### 외부 리뷰 반영·CI 도입 (2026-11-07, 2.2.6)
 
 - 외부 리뷰에서 지적된 항목 수정: `bd claim`→`bd update <id> --claim` 오기 2건, rule-id 재검증 vs 매 라운드 전체 패스의 모순 해소(known 결함은 rule-id로 재확인 + 매 라운드 신규 탐색 병행), Design 역할 문구(검수 전용→독립 UX 판단·비평, 단 구현 금지 유지), Plan→Explore 권한의 위치별 동작 명시, T7 compact 판정 엄격화(200 확정 + 사용 가능 분리).
