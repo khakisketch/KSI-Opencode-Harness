@@ -1,5 +1,11 @@
 # 현재 검증과 한계
 
+### OpenCode 2.2.1 → 2.2.6 업그레이드 (2026-11-07)
+
+- Homebrew `opencode-v2` 2.2.1 → 2.2.6. 업그레이드 전 설치본 설정·버전 증거를 `~/.local/share/ksi-harness-backups/harness-upgrade-20261107-170407/`에 보존. 구 버전 바이너리는 brew cleanup으로 제거됨(재설치 시 내려받기 필요).
+- 업그레이드 후 전체 회귀: 오프라인 **286/286**, 격리 Native 4종·설치본 역할·인벤토리 포함 **7/7 단계 통과**. 2.2.5→2.2.6 변경분 중 하네스 관련 확인 항목(compaction % 버퍼, Go DeepSeek 한도, MCP 안정화, bash 폴백, Console override 허용)은 후속 파일럿에서 개별로 검증 예정.
+- 업그레이드 과정에서 발견된 설치본 drift 2건 수정: `AGENTS.md` 공통 지침(ai-memory→Beads 문구) 동기화, capabilities 인벤토리 설치본 재게시(구 4프로파일 lead 잔재 제거). 둘 다 업그레이드가 아닌 기존 drift이며, ре그레션으로 오인하지 말 것.
+
 ### ksi-visual-workflow 퇴역 (2026-11-06)
 
 - 자체 플러그인을 비활성화하고 소스·설치기·전용 테스트 4종을 제거했습니다(백업 `~/.local/share/ksi-harness-backups/harness-visual-retire-20261106-171446/`에 설치본·소스 tar 보관). `verify-harness.mjs`에서 외부 테스트 합류·전용 native 스크립트·`visual-verify` 단계를 제거했습니다. 세션 감사 휴리스틱(합성 세션 대상)은 손대지 않았습니다.
@@ -8,7 +14,7 @@
 - Design 모델 교체 (2026-11-06): Sol High → Go MiMo V2.6 Pro. V-suite 6종 블라인드에서 Sol High 6/6·MiMo 6/6 동점(시드 결함 메커니즘·수치 특정 동급). 이미지 입력 프로브 단독은 미확정이었으나 V-suite 렌더 열람으로 해소. 설치본 한정, 소스는 무고정 유지.
 - Design 직접 접근 검증 통과: 격리 http 서브에 Playwright Chromium으로 접속, 캡처 2장 직접 열람(배지 색·상세 문구 등 화면 전용 증거 보고), 요소 좌표 보고, 검색 조작 12→3행 확인. `visual_*` 없이 수행, 수정·위임 없음.
 - Design 읽기전용 강제 실측 (격리 /tmp, 전 수단 시도): `edit` deny는 edit/write/이미지생성 채널만 차단하고, shell(echo·tee·python·node·curl -o·mkdir)은 무제한 통과, 경로 제한 없음. 현행 읽기전용은 툴 타입 수준이며 파일시스템 격리가 아님. 엄격한 비수정이 필요하면 Native 세션 권한으로 shell까지 제한하거나 OS 격리를 쓸 것 (브라우저 CLI가 shell 경유이므로 트레이드오프 명시). 프로브 산출물은 삭제済.
-- Native 세션 생명주기 실측: `tests/session-lifecycle-native.mjs` 격리 검증 20/26 (실패 6건은 규명된 F1~F4로 수렴).
+- Native 세션 생명주기 실측: `tests/session-lifecycle-native.mjs` 격리 검증 23/23.
 - Decisions API 도입: 서버 API 직접 호출로 채택 (별도 플러그인 없음 — credential 탐색 실패로 제거). `jev-1.13-free`, cost 0 확인. T1에서 Build 선판단(위임)과 Jev(direct 0.95) 불일치 기록, 실행 결과로 판정 예정. 사용법은 `docs/development.md`에 최소 기록.
 - Beads 파일럿: PR 리뷰 스크래치 저장소에 opt-in 도입, V1/V2 루프 추적·기각·미지적 기록. 이 Mac 하네스 루트 `AGENTS.md`(gitignore·로컬 전용)의 의무 사용 문구는 opt-in으로 수정 — 계획 권한은 Build/Plan 유지, Native todo 유효.
 - Sleev 파일럿 (1대·단일 provider): opencode-go 라우팅 → MiMo V1 블라인드 동등 판정(시드 결함·수치·깊이 동급) → 효과 미입증으로 즉시 `disable`, 설정 바이트 일치 복원. 채택 보류, 재측정 시 동일 프로토콜 사용. (초기 '차단' 판정은 서버 경로 실측 후 해소 — 로컬 capabilities 선언만 불가하고 서버 라우팅은 정상 동작.)

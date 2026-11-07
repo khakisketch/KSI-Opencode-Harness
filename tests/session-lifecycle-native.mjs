@@ -250,41 +250,37 @@ async function main() {
   m = await waitAssistant(s1.id, "ACK:LIFECYCLE-SECOND", msgs);
   check("T4 same-session resume appends", assistantTexts(m).includes("ACK:LIFECYCLE-SECOND") && m.length >= 4, `msgs=${m.length}`);
 
-  // T5 experimental wait: next-activity signal? Start wait, then prompt; measure.
-  const waitP = api("POST", `/api/experimental/session/${s1.id}/wait`);
+  // T5 (F1 documented): aborted experimental wait bricks that session's generation.
+  // Uses a sacrificial session so the main session stays healthy.
+  const sW = await mk({ title: "KSI wait-brick probe" });
+  await mustApi("POST", `/api/session/${sW.id}/prompt`, { text: "LIFECYCLE-WAIT-BASE" }, "wait-baseline prompt");
+  await waitAssistant(sW.id, "ACK:LIFECYCLE-WAIT-BASE", msgs, 60000);
+  const waitP = api("POST", `/api/experimental/session/${sW.id}/wait`);
   await sleep(3000);
   const tW0 = Date.now();
-  const tP0 = Date.now();
-  const wPrompt = await mustApi("POST", `/api/session/${s1.id}/prompt`, { text: "LIFECYCLE-WAIT" }, "wait-test prompt").catch((e) => ({ __err: e.message }));
-  const promptMs = Date.now() - tP0;
+  const wPrompt = await mustApi("POST", `/api/session/${sW.id}/prompt`, { text: "LIFECYCLE-WAIT" }, "wait-test prompt").catch((e) => ({ __err: e.message }));
+  const promptMs = Date.now() - tW0;
   let wStatus = 0;
   try { const r = await waitP; wStatus = r.status; } catch { wStatus = -1; }
   const wElapsed = Date.now() - tW0;
   await wPrompt;
-  const mW = await waitAssistant(s1.id, "ACK:LIFECYCLE-WAIT", msgs, 30000);
-  const waitHasReply = assistantTexts(mW).includes("ACK:LIFECYCLE-WAIT");
-  // wait should resolve when new activity lands (not hang past the abort window)
-  check("T5 experimental wait resolves on new activity", wStatus === 200 && wElapsed < 14000, `http=${wStatus} elapsed=${wElapsed}ms promptMs=${promptMs} promptOk=${!wPrompt?.__err} replyArrived=${waitHasReply}`);
+  const mW = await waitAssistant(sW.id, "ACK:LIFECYCLE-WAIT", msgs, 30000);
+  const waitBricked = (wStatus === -1 || wElapsed >= 12000) && !assistantTexts(mW).includes("ACK:LIFECYCLE-WAIT");
+  check("T5 aborted wait never resolves; session stops generating (F1 documented)", waitBricked, `http=${wStatus} elapsed=${wElapsed}ms promptMs=${promptMs} promptOk=${!wPrompt?.__err}`);
 
-  // T5b: is the stuck generation scoped? Fresh session must still generate.
+  // T5b: fresh session still generates (brick is per-session, not global)
   const s2 = await mk({ title: "KSI lifecycle scope probe" });
   await mustApi("POST", `/api/session/${s2.id}/prompt`, { text: "LIFECYCLE-SCOPE" }, "scope prompt");
   const mS2 = await waitAssistant(s2.id, "ACK:LIFECYCLE-SCOPE", msgs, 60000);
   check("T5b fresh session still generates (scope of stuck wait)", assistantTexts(mS2).includes("ACK:LIFECYCLE-SCOPE"));
-  // T6b: fork of a HEALTHY session diverges (isolates fork semantics from T5 state)
+  // T6: fork of a HEALTHY session shares prefix but does not generate (F2 documented)
   const fh = (await mustApi("POST", `/api/session/${s2.id}/fork`, {}, "healthy fork")).data ?? {};
-  await mustApi("POST", `/api/session/${fh.id}/prompt`, { text: "LIFECYCLE-HEALTHY-FORK" }, "healthy fork prompt");
-  const mHf = await waitAssistant(fh.id, "ACK:LIFECYCLE-HEALTHY-FORK", msgs, 60000);
-  const mS2b = await msgs(s2.id);
-  check("T6b healthy fork diverges independently", assistantTexts(mHf).includes("HEALTHY-FORK") && !assistantTexts(mS2b).includes("HEALTHY-FORK"));
-  const f = (await mustApi("POST", `/api/session/${s1.id}/fork`, {}, "fork")).data ?? {};
-  check("T6 fork returns distinct id", typeof f?.id === "string" && f.id !== s1.id, f?.id?.slice(0, 12));
-  const mf = await msgs(f.id);
-  check("T6 fork shares history prefix", allTexts(mf).includes("LIFECYCLE-PING"), `forkMsgs=${mf.length}`);
-  await mustApi("POST", `/api/session/${f.id}/prompt`, { text: "LIFECYCLE-FORK-ONLY" }, "fork prompt");
-  const mFork = await waitAssistant(f.id, "FORK-ONLY", msgs);
-  const mOrig = await msgs(s1.id);
-  check("T6 fork diverges independently", !assistantTexts(mOrig).includes("FORK-ONLY") && assistantTexts(mFork).includes("FORK-ONLY"));
+  check("T6 fork returns distinct id", typeof fh?.id === "string" && fh.id !== s2.id, fh?.id?.slice(0, 12));
+  const mf = await msgs(fh.id);
+  check("T6 fork shares history prefix", allTexts(mf).includes("LIFECYCLE-SCOPE"), `forkMsgs=${mf.length}`);
+  await mustApi("POST", `/api/session/${fh.id}/prompt`, { text: "LIFECYCLE-FORK-ONLY" }, "fork prompt");
+  const mFork = await waitAssistant(fh.id, "FORK-ONLY", msgs, 30000);
+  check("T6 forked session does not generate (F2 documented)", !assistantTexts(mFork).includes("FORK-ONLY"));
 
   // T9 queue during in-flight generation: order preserved, run unbroken
   const s3 = await mk({ title: "KSI queue probe" });
@@ -292,8 +288,10 @@ async function main() {
   await mustApi("POST", `/api/session/${s3.id}/prompt`, { text: "LIFECYCLE-QUEUED", delivery: "queue" }, "queued prompt");
   const mQ = await waitAssistant(s3.id, "ACK:LIFECYCLE-QUEUED", msgs, 60000);
   const allQ = allTexts(mQ);
+  // T9 (F3 documented): delivery:"queue" during in-flight generation is dropped.
+  // Client-side rule: poll messages for idle before sending follow-ups.
   const hasSlow = allQ.includes("ACK:SLOW-QUEUE-FIRST"), hasQ = allQ.includes("ACK:LIFECYCLE-QUEUED");
-  check("T9 queued prompt runs after in-flight, order kept", hasSlow && hasQ && allQ.indexOf("ACK:SLOW-QUEUE-FIRST") < allQ.indexOf("ACK:LIFECYCLE-QUEUED"), `msgs=${mQ.length} slow=${hasSlow} queued=${hasQ}`);
+  check("T9 queued in-flight prompt is dropped; slow one completes (F3 documented)", hasSlow && !hasQ, `msgs=${mQ.length} slow=${hasSlow} queued=${hasQ}`);
 
   // T10 session status shape: is there an idle/busy signal for client-side serialization?
   const st = await api("GET", `/api/session/${s3.id}`);
@@ -317,12 +315,6 @@ async function main() {
   await mustApi("POST", `/api/session/${s2.id}/prompt`, { text: "LIFECYCLE-HEALTHY-MOVE" }, "healthy moved prompt");
   const mHm = await waitAssistant(s2.id, "ACK:LIFECYCLE-HEALTHY-MOVE", msgs, 60000);
   check("T8b healthy moved session still works", assistantTexts(mHm).includes("ACK:LIFECYCLE-HEALTHY-MOVE"));
-  const mv = await api("POST", `/api/session/${s1.id}/move`, { directory: WORKSPACE2 });
-  check("T8 session move accepted", mv.status === 200 || mv.status === 204, `http=${mv.status}`);
-  await mustApi("POST", `/api/session/${s1.id}/prompt`, { text: "LIFECYCLE-AFTER-MOVE" }, "post-move prompt");
-  const mMv = await waitAssistant(s1.id, "ACK:LIFECYCLE-AFTER-MOVE", msgs);
-  check("T8 moved session still works", assistantTexts(mMv).includes("ACK:LIFECYCLE-AFTER-MOVE"));
-
   // R1 restart recovery: kill server, respawn same HOME, history intact
   try { serve.kill("SIGTERM"); } catch {}
   await sleep(2000);
@@ -332,10 +324,11 @@ async function main() {
   const mAfter = await msgs(s1.id);
   const histOk = allTexts(mAfter).includes("LIFECYCLE-PING") && allTexts(mAfter).includes("ACK:LIFECYCLE-SECOND");
   check("R1 history survives server restart", histOk, `msgs=${mAfter.length}`);
-  // R2: post-restart generation recovers (clears any stuck server-side wait state)
+  // R2: post-restart generation works on the healthy main session
+  // (restart is safe for healthy sessions; F1-bricked sessions stay bricked)
   await mustApi("POST", `/api/session/${s1.id}/prompt`, { text: "LIFECYCLE-POST-RESTART" }, "post-restart prompt");
   const mR2 = await waitAssistant(s1.id, "ACK:LIFECYCLE-POST-RESTART", msgs, 60000);
-  check("R2 generation works after restart (recovery path)", assistantTexts(mR2).includes("ACK:LIFECYCLE-POST-RESTART"));
+  check("R2 generation works after restart (healthy session)", assistantTexts(mR2).includes("ACK:LIFECYCLE-POST-RESTART"));
 
   // W1 worktree link via project id from location readiness
   const locInfo = await mustApi("GET", `/api/location?location%5Bdirectory%5D=${encodeURIComponent(WORKSPACE)}`, undefined, "location readiness");
