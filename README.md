@@ -82,7 +82,7 @@ KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니
 | **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Sol High |
 | **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속이 기본. 이 Mac은 DGX Spark `qwen-flash-next` 사용 중 |
 | **Explore** | 코드와 자료를 찾아 읽고 분석합니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
-| **Design** | 화면 위계·레이아웃·구현 화면을 검수하고 판단과 개선 방향을 보고합니다. 구현하지 않습니다. | 권장: Sol High (이미지 입력 검증됨) |
+| **Design** | 사용자 목표·실제 화면 기준으로 UX를 독립 판단·비평하고 개선 방향을 보고합니다. 정보구조·사용 흐름 자체의 문제도 지적할 수 있습니다. 구현하지 않습니다. | 권장: MiMo V2.6 Pro, Go 경로 (V-suite 6/6 동점, 이미지 입력 검증됨) |
 
 > [!IMPORTANT]
 > 위임은 고정 순서가 아니며 직접 구현은 작은 수정에만 한정되지 않습니다.
@@ -181,7 +181,7 @@ Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 
 사용 가능한 모델과 비용·데이터 정책은 각 환경에서 확인해야 합니다.
 
 이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 분석·작업 전 자문의 Plan에 Sol High,
-읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High입니다. General은 부모 상속이 기본이며, 이 Mac에서만 실제 접속·도구 왕복을 확인한 뒤
+읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High, 독립 UX 판단·비평의 Design에 Go MiMo V2.6 Pro입니다. General은 부모 상속이 기본이며, 이 Mac에서만 실제 접속·도구 왕복을 확인한 뒤
 DGX Spark `qwen-flash-next`로 사용 중입니다. 이 경로는 Tailscale에 의존합니다. LAN 주소는 macOS
 Local Network Privacy가 `node`를 아직 허용하지 않아 Node에서 `EHOSTUNREACH`였고, 그래서 Tailscale IP를
 사용합니다. 시스템 설정의 로컬 네트워크에서 `node`를 허용하면 LAN IP도 사용할 수 있습니다. DGX가 꺼지거나 Tailscale이 끊기면 General 호출이
@@ -221,7 +221,7 @@ OpenCode V2에서 사용하려면 기존 설정을 확인한 뒤 필요한 항�
 
 1. 기존 OpenCode 설정을 백업하고, 같은 이름의 사용자 설정이 있는지 확인합니다.
 2. `global/`의 필요한 하네스 항목을 전역 설정에 **수동으로 합칩니다.**
-3. 시각 어댑터와 필요한 선택형 도구를 각각의 설치기로 적용합니다.
+3. 증거팩 5항과 필요한 선택형 도구를 각각의 설치기로 적용합니다.
 4. 설치 파일이 맞는지와 실행 중에 도구가 보이는지를 따로 확인합니다.
 
 > [!CAUTION]
@@ -235,7 +235,7 @@ OpenCode V2에서 사용하려면 기존 설정을 확인한 뒤 필요한 항�
 | --- | --- |
 | `global/AGENTS.md` | 공통으로 따를 작업 원칙 |
 | `global/opencode.jsonc` | 역할·모델·권한과 선택 연결 설정 |
-| `global/agents/` | 현재 운영 역할 파일 없음. 4프로파일(Build/Plan/General/Explore)은 `global/opencode.jsonc`에 정의 |
+| `global/agents/` | 현재 운영 역할 파일 없음. 5프로파일(Build/Plan/General/Explore/Design)은 `global/opencode.jsonc`에 정의 |
 | `global/commands/` | 선택해서 쓸 수 있는 명령 |
 | `global/plugins/` | 시각 작업과 선택형 기능 목록 |
 | `experiments/` | 자동 로딩·기본 설치에서 제외한 실험 코드 |
@@ -274,7 +274,7 @@ OpenCode V2에서 사용하려면 기존 설정을 확인한 뒤 필요한 항�
 ## 검증
 
 **2026-11-02 운영 정리:** 직접 완수·필요한 위임·실제 검증을 중심에 두고,
-KSI Lead Goal 연결·Decision 보조·세션 증거 요약은 기본 운영에서 제외했습니다.
+KSI Lead Goal 연결·세션 증거 요약은 기본 운영에서 제외했습니다. Jev Decisions API는 서버 직접 호출로 채택됐으며 권고 전용으로 쓰고 자동 실행·권한 승인은 하지 않습니다.
 최신 시험 결과와 설치·활성 범위는 [검증 문서](docs/validation.md) 한 곳에서 관리합니다.
 
 > [!WARNING]

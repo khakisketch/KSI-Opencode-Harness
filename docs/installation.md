@@ -8,14 +8,14 @@
 | --- | --- |
 | `global/AGENTS.md` | 전역 공통 지침. 기존 사용자 정의를 확인한 뒤 필요한 변경만 반영 |
 | `global/opencode.jsonc` | 전역 설정에 수동 병합. 모델·MCP·제공자·권한 전체 교체 금지 |
-| `global/agents/` | 현재 운영 역할 파일 없음. 4프로파일(Build/Plan/General/Explore)은 `global/opencode.jsonc`에 정의 |
+| `global/agents/` | 현재 운영 역할 파일 없음. 5프로파일(Build/Plan/General/Explore/Design)은 `global/opencode.jsonc`에 정의 |
 | `global/commands/` | 선택형 `/debug`·`/perf`·`/ux-audit` 바로가기 |
 | ~~`global/plugins/ksi-visual-workflow/`~~ | 2026-11-06 퇴역. 시각 실행은 agent-browser, 회귀·E2E는 Playwright. 소스·테스트는 백업 보관 |
 | `global/plugins/ksi-capabilities-inventory/` | 소스 경로 이름과 달리 **프로젝트 전용** 진단. 이 하네스의 `.opencode/plugins/`에만 설치 |
 
-Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출하며, Native 편집 제한은 유지합니다. Design은 화면 검수·판단의 자문 역할로 코드 수정·위임을 하지 않습니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
+Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다(독립 Root 실행 시; Build 자식 실행 시 깊이 1 가드가 재위임을 거부 — 의도된 동작). Native 편집 제한은 유지합니다. Design은 독립 UX 판단·비평 역할로 코드 수정·위임을 하지 않습니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
 
-이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan·Design Sol High, Explore Go DeepSeek V4.1 Flash High, General DGX Spark `dgx-spark/qwen-flash-next`입니다. Design의 이미지 입력은 Sol High로 검증했습니다. 머신별 주소·제공자·모델 설정은 휴대용 소스 기본값에 넣지 않습니다. 기존 General 세션의 저장 모델은 소급 변경되지 않습니다.
+이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Sol High, Design Go MiMo V2.6 Pro, Explore Go DeepSeek V4.1 Flash High, General DGX Spark `dgx-spark/qwen-flash-next`입니다. Design의 이미지 입력은 MiMo로 검증했습니다(V-suite 6/6, Sol High와 동점). 머신별 주소·제공자·모델 설정은 휴대용 소스 기본값에 넣지 않습니다. 기존 General 세션의 저장 모델은 소급 변경되지 않습니다.
 
 이 Mac의 DGX Spark 제공자는 로컬 설정에만 등록했습니다. LAN 주소 `172.30.1.44`는 `curl`·`nc`에서는 연결됐지만 Node/Python/C에서는 `EHOSTUNREACH`였고, **Tailscale 주소 `100.116.163.1`은 Node에서도 정상**이었습니다. 원인은 **macOS Local Network Privacy가 `node`의 로컬 네트워크 접근을 아직 허용하지 않은 것**입니다. `nehelper` 로그에 `Local network preference not yet set, prompting for node`, `Showing local network alert for node`가 기록됐고, `launchctl`에서 실행한 Node도 같은 실패였습니다. 시스템 설정의 **개인정보 보호 및 보안 → 로컬 네트워크**에서 `node`를 허용하면 LAN 주소도 사용할 수 있습니다. 이 프롬프트는 프로세스 서명/번들 ID 단위라 Node 업데이트 뒤 다시 나타날 수 있습니다. 이번에는 OS 권한을 대신 변경하지 않았고, Tailscale 경로로 제한된 Native 도구 왕복(읽기→쓰기→읽기, 바이트 일치, 최종 표식)을 통과해 기존 General을 `dgx-spark/qwen-flash-next`로 전환했습니다. 이는 전송·도구 왕복 확인이지 코딩 품질·긴 문맥 평가가 아닙니다. Tailscale이 꺼지면 General 호출이 실패하므로, 수동으로 상속으로 되돌리거나 제공자 경로를 다시 확인합니다. 자동 fallback은 없습니다.
 

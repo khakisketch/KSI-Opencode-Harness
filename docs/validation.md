@@ -1,5 +1,11 @@
 # 현재 검증과 한계
 
+### 외부 리뷰 반영·CI 도입 (2026-11-07, 2.2.6)
+
+- 외부 리뷰에서 지적된 항목 수정: `bd claim`→`bd update <id> --claim` 오기 2건, rule-id 재검증 vs 매 라운드 전체 패스의 모순 해소(known 결함은 rule-id로 재확인 + 매 라운드 신규 탐색 병행), Design 역할 문구(검수 전용→독립 UX 판단·비평, 단 구현 금지 유지), Plan→Explore 권한의 위치별 동작 명시, T7 compact 판정 엄격화(200 확정 + 사용 가능 분리).
+- 문서 불일치 수정: decisions Design MiMo, README/installation 5프로파일·MiMo, "자동 훅 금지"→최소 이벤트 연결 허용, `global/AGENTS.md` Jev 한 줄 추가 후 설치본 동기화.
+- GitHub Actions CI 추가(`.github/workflows/verify.yml`, --offline만; 네이티브는 로컬 opencode 바이너리 필요). 실패한 `--all` 3건 중 2건은 기존 설치본 drift(AGENTS.md 미동기화, 인벤토리 구 4프로파일)였고, 1건은 테스트의 관대한 compact 판정. 전부 수정 후 `--all` 7/7, 오프라인 286/286, lifecycle 24/24, routing 128/128.
+
 ### OpenCode 2.2.1 → 2.2.6 업그레이드 (2026-11-07)
 
 - Homebrew `opencode-v2` 2.2.1 → 2.2.6. 업그레이드 전 설치본 설정·버전 증거를 `~/.local/share/ksi-harness-backups/harness-upgrade-20261107-170407/`에 보존. 구 버전 바이너리는 brew cleanup으로 제거됨(재설치 시 내려받기 필요).

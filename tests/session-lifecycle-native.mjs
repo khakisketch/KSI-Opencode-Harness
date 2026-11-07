@@ -306,7 +306,8 @@ async function main() {
   const c1 = await api("POST", `/api/session/${s1.id}/compact`, {});
   const c2shape = JSON.stringify(c1.json ?? {}).slice(0, 120);
   const stillOk = (await msgs(s1.id)).length >= 4;
-  check("T7 compact deterministic + session usable", (c1.status === 200 || c1.status >= 400) && stillOk, `http=${c1.status} ${c2shape.slice(0, 60)}`);
+  check("T7 compact succeeds on healthy session (HTTP 200)", c1.status === 200, `http=${c1.status} ${c2shape.slice(0, 60)}`);
+  check("T7 session stays usable after compact", stillOk, `msgs>=4`);
 
   // T8b: move of a HEALTHY session keeps it generatable (isolates move from T5 state)
   const hmv = await api("POST", `/api/session/${s2.id}/move`, { directory: WORKSPACE2 });
