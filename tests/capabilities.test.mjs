@@ -25,6 +25,12 @@ import {
   collectCapabilities,
 } from '../scripts/capabilities.mjs';
 
+// CI runners lack the Mac-preferred /tmp/opencode base; create it when
+// possible, otherwise fall back to the OS temp dir.
+let UNIT_TMP = os.tmpdir();
+try { await tfsp.mkdir('/tmp/opencode', { recursive: true }); UNIT_TMP = '/tmp/opencode'; } catch {}
+const unitTmp = (name) => path.join(UNIT_TMP, name);
+
 const SECRET = 'sk-secret-xyz';
 // Canonical Native shapes: agent/skill keyed by `id`; `name` is a display label.
 const realAgents = [
@@ -320,7 +326,7 @@ describe('file transport (injected runner, no CLI/network)', () => {
   it('removes only its own temp file and dir', async () => {
     // Other Native probes may create/remove their own ksi-cap-* directories at
     // the same time. Inspect our exact fd's inode, not a global directory diff.
-    const sentinel = await tfsp.mkdtemp('/tmp/opencode/ksi-cap-sentinel-');
+    const sentinel = await tfsp.mkdtemp(unitTmp('ksi-cap-sentinel-'));
     const owned = [];
     try {
       for (const outcome of ['success', 'failure', 'throw']) {

@@ -39,6 +39,14 @@ import {
   TRACKED_MCP,
 } from '../scripts/capabilities.mjs';
 
+import os from 'node:os';
+
+// CI runners lack the Mac-preferred /tmp/opencode base; create it when
+// possible, otherwise fall back to the OS temp dir.
+let UNIT_TMP = os.tmpdir();
+try { await mkdir('/tmp/opencode', { recursive: true }); UNIT_TMP = '/tmp/opencode'; } catch {}
+const unitTmp = (name) => path.join(UNIT_TMP, name);
+
 const SECRET = 'sk-secret-xyz';
 const realAgents = [
   { id: 'build', name: 'Build Agent', mode: 'primary', apiKey: SECRET, description: 'keep private' },
@@ -130,7 +138,7 @@ describe('strict domain input with legacy compat', () => {
     assert.deepEqual(aliasNativeDomain(' AGENTS '), 'agent');
   });
   it('rejects typo/unknown domains as input errors without querying', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ lists: { agent: async () => realAgents }, pluginDir: root, sessionDir: root });
     await setupCapabilitiesInventory(ctx);
     ctx.calls.length = 0;
@@ -299,8 +307,8 @@ describe('native fail-closed projections without overclaiming', () => {
 
 describe('fail-closed location checks with real directories', () => {
   it('sameRoot accepts identical real dirs and rejects different or missing ones', async () => {
-    const a = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
-    const b = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const a = await mkdtemp(unitTmp('ksi-capinv-unit-'));
+    const b = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     assert.equal(await sameRoot(a, a), true);
     assert.equal(await sameRoot(a, b), false);
     assert.equal(await sameRoot(a, path.join(a, 'does-not-exist')), false);
@@ -324,8 +332,8 @@ describe('fail-closed location checks with real directories', () => {
     assert.equal(lexicalScopeHint(null, `${root}/x`), 'unknown');
   });
   it('skill-path scoping performs no filesystem oracle on existence or access', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
-    const outside = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
+    const outside = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     await writeFile(`${root}/SKILL.md`, 'x');
     const runLocate = async (skillPayload) => {
       const ctx = fakeCtx({ lists: { agent: async () => [], skill: async () => skillPayload, tool: async () => [], plugin: async () => [] }, pluginDir: root, sessionDir: root });
@@ -364,8 +372,8 @@ describe('fail-closed location checks with real directories', () => {
     assert.deepEqual(linkResult, [{ id: 'link-skill', found: true, scope: 'project-hint' }]);
   });
   it('execute rejects unverifiable or moved sessions without querying lists', async () => {
-    const a = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
-    const b = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const a = await mkdtemp(unitTmp('ksi-capinv-unit-'));
+    const b = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const moved = fakeCtx({ lists: { agent: async () => realAgents }, pluginDir: a, sessionDir: b });
     await setupCapabilitiesInventory(moved);
     await assert.rejects(moved.getAdded().execute({}, tc()), /session moved/);
@@ -403,7 +411,7 @@ describe('fail-closed location checks with real directories', () => {
 
 describe('session-verified explicit-call tool', () => {
   it('bounds a hung optional list without discarding the other domains', { timeout: 5000 }, async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     let listSignal;
     const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
       agent: async () => realAgents, skill: async () => realSkills,
@@ -425,7 +433,7 @@ describe('session-verified explicit-call tool', () => {
     assert.ok(!ctx.calls.includes('mcp'));
   });
   it('honors caller cancellation before reads and during required session verification', { timeout: 1000 }, async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ pluginDir: root, sessionDir: root });
     await setupCapabilitiesInventory(ctx);
     const aborted = new AbortController(); aborted.abort();
@@ -439,7 +447,7 @@ describe('session-verified explicit-call tool', () => {
     assert.deepEqual(ctx.calls, []);
   });
   it('propagates cancellation during lists, including the uncancellable tool list', { timeout: 1000 }, async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const controller = new AbortController();
     let listSignal;
     const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
@@ -451,7 +459,7 @@ describe('session-verified explicit-call tool', () => {
     assert.equal(listSignal?.aborted, true);
   });
   it('preserves valid skill location hints but not false absence in an incomplete list', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ pluginDir: root, sessionDir: root, lists: {
       skill: async () => [{ id: 'local-skill', path: `${root}/SKILL.md` }, { id: 'sk-secret-xyz' }],
     } });
@@ -465,7 +473,7 @@ describe('session-verified explicit-call tool', () => {
     assert.ok(!JSON.stringify(report).includes(SECRET));
   });
   it('registers one read-only tool and defaults without mcp', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ lists: { agent: async () => realAgents, skill: async () => realSkills, tool: async () => realTools, mcp: async () => realMcp, plugin: async () => realPlugins }, pluginDir: root, sessionDir: root });
     const cleanup = await setupCapabilitiesInventory(ctx);
     const def = ctx.getAdded();
@@ -484,7 +492,7 @@ describe('session-verified explicit-call tool', () => {
     await cleanup();
   });
   it('loads when one domain list is unavailable; that domain stays unknown', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ lists: { agent: async () => realAgents, skill: async () => realSkills, tool: async () => realTools, plugin: async () => realPlugins, __omit: ['mcp'] }, pluginDir: root, sessionDir: root });
     const cleanup = await setupCapabilitiesInventory(ctx);
     const report = JSON.parse((await ctx.getAdded().execute({ domains: ['agent', 'skill', 'mcp'] }, tc())).content[0].text);
@@ -496,7 +504,7 @@ describe('session-verified explicit-call tool', () => {
     await cleanup();
   });
   it('rejects parent/other session inputs without querying', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ lists: {}, pluginDir: root, sessionDir: root });
     await setupCapabilitiesInventory(ctx);
     ctx.calls.length = 0;
@@ -507,8 +515,8 @@ describe('session-verified explicit-call tool', () => {
     await assert.rejects(ctx.getAdded().execute({}, {}), /calling session is unavailable/);
   });
   it('confirms approved skill scope as hint without absolute paths', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
-    const outside = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
+    const outside = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const skillPayload = [
       { id: 'local-skill', path: `${root}/SKILL.md` },
       { id: 'global-skill', path: `${outside}/SKILL.md` },
@@ -529,7 +537,7 @@ describe('session-verified explicit-call tool', () => {
     await assert.rejects(ctx.getAdded().execute({ locateSkills: Array.from({ length: MAX_LOCATE_SKILLS + 1 }, (_, i) => `s-${i}`) }, tc()), /too many/);
   });
   it('rejects off-grammar locateSkills requests before querying', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const ctx = fakeCtx({ lists: { agent: async () => [], skill: async () => realSkills, tool: async () => [], plugin: async () => [] }, pluginDir: root, sessionDir: root });
     await setupCapabilitiesInventory(ctx);
     for (const bad of [
@@ -553,7 +561,7 @@ describe('session-verified explicit-call tool', () => {
     assert.equal(JSON.parse(out.content[0].text).skillLocations[0].found, true);
   });
   it('marks locateSkills unconfirmed when the skill list is skipped or fails', async () => {
-    const root = await mkdtemp('/tmp/opencode/ksi-capinv-unit-');
+    const root = await mkdtemp(unitTmp('ksi-capinv-unit-'));
     const skipped = fakeCtx({ lists: { tool: async () => realTools }, pluginDir: root, sessionDir: root });
     await setupCapabilitiesInventory(skipped);
     const report = JSON.parse((await skipped.getAdded().execute({ domains: ['tool'], locateSkills: ['impeccable'] }, tc())).content[0].text);
