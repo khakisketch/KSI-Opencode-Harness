@@ -2,6 +2,7 @@
 
 - Date: 2026-11-09
 - Repository: <https://github.com/khakisketch/KSI-Opencode-Harness>
+- Raw review URL after merge: <https://raw.githubusercontent.com/khakisketch/KSI-Opencode-Harness/main/docs/reviews/2026-11-09-harness-review.md>
 - Review target: `main` at `725a666` (PR #11 merged)
 - Scope: the portable harness, its installed configuration, and the evidence behind the current claims. Machine-local model pins and the Site Intelligence product repository are called out separately.
 
