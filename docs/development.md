@@ -132,15 +132,6 @@ Plan의 Explore 호출 허용은 실행 위치에 따라 다릅니다. 독립 Ro
 
 General은 범위 안에서 함수 구성 등 구현 방식을 스스로 결정하고, 동작·상태·테스트를 완성해 반환한다. 같은 파일을 두 에이전트가 동시에 고치지 않으며, 병렬 시 worktree·책임 분리 규칙을 따른다.
 
-### 작업 상태 추적 (프로젝트별 Beads, opt-in)
-
-해당 프로젝트에 `.beads/`가 있으면 Build가 작업 상태를 거기에 둔다. 없으면 만들지 않고 파일 기반으로 진행한다.
-
-- 시작: `bd create`로 목표·수용 기준·핵심 참조를 적는다. 제목만 금지.
-- 인수: `bd update <id> --claim`으로 선점하고, `bd ready`로 의존성 순서대로 가져간다. 세션 재개·교체 시 bead부터 읽는다.
-- 종료: `bd close --reason`으로 결과·근거를 남긴다. 중요한 결정·재사용 지식만 `bd remember`로 남기고, 전 실행 기록을 자동 저장하지 않는다.
-- Beads는 저장·전달 수단이며 계획 권한·위임 판단은 Build가 가진다. Beads가 위임 결정을 대신하지 않는다.
-
 ### Decisions 판단 보조 (읽기 전용 권고)
 
 Build가 직접 구현·위임·병렬·추가 검토를 판단하기 전에 Jev 권고를 참고할 수 있다. 서버 API를 직접 호출하며 별도 플러그인·모델 고정은 없다:
@@ -155,6 +146,8 @@ opencode api post /api/experimental/generate/decisions --data '{
     {"type": "predicate", "name": "needs_review", "instructions": "독립 검토가 이 과업을 의미 있게 개선할 것이다"}
   ]}'
 ```
+
+Jev는 decision 모델이라 `/api/model`(기본 chat 조회)에 나오지 않는다. `/api/experimental/generate/decisions`로 호출하며, 2026-11-08 이 환경에서 predicate 응답과 cost 0을 확인했다.
 
 원칙: Jev는 권고만 하며 최종 선택은 Build가 한다. Build 선판단을 먼저 기록하고 Jev와 비교한 뒤 실행 결과로 평가한다(`decision-log.md` 형식). API 실패 시 Build 정상 진행을 막지 않는다. 자동 모델 변경·권한 승인·도구 가로채기는 하지 않는다.
 
