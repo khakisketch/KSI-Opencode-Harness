@@ -79,7 +79,7 @@ KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니
 | 역할 | 맡는 일 | 모델(로컬 권장, 소스는 고정 안 함) |
 | --- | --- | --- |
 | **Build** | 사용자 의도를 유지하며 직접 해결하고 최종 결과를 확인합니다. 유일한 개발 총괄이며 중간 소유자를 두지 않습니다. | 세션에서 선택 (이 Mac 권장: Muse Spark 1.3 Contributor) |
-| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Sol High |
+| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Go Muse Spark 1.3 Contributor xhigh |
 | **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속이 기본. 이 Mac은 DGX Spark `qwen-flash-next` 사용 중 |
 | **Explore** | 코드와 자료를 찾아 읽고 분석합니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
 
