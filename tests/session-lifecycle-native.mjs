@@ -220,8 +220,8 @@ async function main() {
   if (SERVE_PORT === MODEL_PORT) SERVE_PORT = await freePortNear(SERVE_PORT + 1);
 
   const srcCfg = JSON.parse(stripJsonc(fs.readFileSync(path.join(REPO, "global", "opencode.jsonc"), "utf8")));
-  if (srcCfg?.experimental?.subagent_depth !== 1) failClosed("CONTRACT-NOT-READY: depth != 1", String(srcCfg?.experimental?.subagent_depth));
-  check("source depth-1 contract present", true);
+  if (srcCfg?.experimental?.subagent_depth !== 2) failClosed("CONTRACT-NOT-READY: depth != 2", String(srcCfg?.experimental?.subagent_depth));
+  check("source depth-2 contract present", true);
 
   fs.mkdirSync(WORKSPACE, { recursive: true });
   fs.mkdirSync(WORKSPACE2, { recursive: true });

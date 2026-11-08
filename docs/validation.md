@@ -60,6 +60,14 @@
 - 지침 압축(2026-11-08): 공통 `global/AGENTS.md` 1,664→359 words, 프로젝트 `AGENTS.md` 813→225 words. Beads 전체 블록은 `bd prime` 포인터로 대체했다. 중복 `impeccable` 사본을 제거하고 Plan의 Native skill 권한 3종을 설치 검증에 추가했다. 오프라인 1/1, Native 4/4, 설치 2/2 통과. 이는 지침 구조·권한 검증이지 모델의 스킬 선택 품질 증거가 아니다.
 - P0~P3 정리(2026-11-08): Plan 자문 횟수 제한을 제거하고, General DGX override 서술을 실제 부모 상속 상태로 정정했다. Beads를 다단계 작업의 기본 추적기로 문서화했다. README·개발·설치 문서의 모델 서술을 설치본과 대조했다.
 
+### Plan 증거 기반 계획과 깊이 2 단일 간선 (2026-11-09)
+
+- 문제: 기존 깊이 1에서는 Build의 자식 Plan이 Explore를 재위임할 수 없어, 증거가 부족할 때 내장 지식이나 일회성 스크립트에 의존할 위험이 있었다.
+- 변경: 위임 깊이를 2로 올리되 두 번째 단계는 Plan→Explore 한 간선만 허용했다. General/Explore에는 subagent deny-all을 명시해 말단을 유지한다. 공통 지침에 증거팩·확인 사실/가정 분리·누락 증거 요청·일회성 스크립트 금지·단일 간선을 명시하고, Plan 설명과 `docs/planning.md`를 갱신했다. Native Plan system prompt는 덮어쓰지 않았다.
+- 검증: 2026-11-09 `node scripts/verify-harness.mjs --all` 7/7, delegation 242/242. chain C에서 Build→Plan→Explore 실제 중첩이 완료됐고 Explore가 scope를 읽어 Plan을 거쳐 Build로 반환했다. Permission probe: plan→explore allow, plan→general deny, general/explore→plan/general/explore deny. 실제 모델의 계획 품질·시간·재작업은 미측정.
+- 실 Plan 프로브(2026-11-09): root Plan 세션에 “installed Plan description/permission parity check” 계획을 요청했다. Plan은 `global/opencode.jsonc`, 설치본, `scripts/verify-harness.mjs`, 관련 테스트를 실제로 읽고 파일·라인을 인용했으며, 확인 사실·가정·누락 증거를 분리했다. source에는 없고 설치본에만 있는 `cua-driver_*` deny를 발견하고, 설명·권한 parity 테스트가 없다는 공백을 지적했다. 한 번의 관찰이며 일반 계획 품질 벤치마크는 아니다.
+- 후속: `tests/plan-parity.test.mjs`를 추가했다. source/installed의 Plan description·mode·subagent_depth·subagent policy를 비교하고, machine-local model pin과 non-subagent tool deny는 허용한다. 설치본이 없으면 CI에서 skip한다. Plan의 제안을 Build가 검증·채택한 사례다.
+
 ### 제품 저장소 원클릭 분석 E2E (2026-11-08)
 
 - Site Intelligence Dashboard에 `npm run test:e2e:analysis`를 추가했다. Playwright 설정이 `analysis-e2e/`의 Vitest `.test.ts`까지 수집하던 문제를 `testMatch: "**/*.spec.ts"`로 차단했다.
@@ -99,7 +107,7 @@
 
 ## 권고 개선 (2026-11-02, 정리·Explore 변경 이후)
 
-**현재 역할은 Build 단일 총괄의 직접 완수 기본, Plan은 Explore만 조사 위임입니다. 중간 소유자 역할은 없습니다. 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. 이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Sol High, Explore OpenCode Go DeepSeek V4.1 Flash High, General DGX Spark 로컬 모델입니다.** 새 역할·필수 중간 단계·별도 실행 엔진·자동 제공자 전환·추가 과금은 넣지 않았습니다.
+**2026-11-02 당시 역할은 Build 단일 총괄의 직접 완수 기본, Plan은 Explore만 조사 위임입니다. 중간 소유자 역할은 없습니다. 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. 이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Sol High, Explore OpenCode Go DeepSeek V4.1 Flash High, General DGX Spark 로컬 모델입니다.** 새 역할·필수 중간 단계·별도 실행 엔진·자동 제공자 전환·추가 과금은 넣지 않았습니다.
 
 - **완수·이어가기:** 원래 목표·최신 교정·거부 방향·보존 조건을 간결하게 전달하고 부분 완료·차단을 구분합니다. 한도·접속·권한 실패를 코드 결함과 분리하며, 기존 자식의 저장 모델·권한이 설정 변경으로 소급 갱신되지 않는 점을 명시했습니다.
 - **평가:** 직접·위임·혼합 모두 일반 과업 성공 대상입니다. 회상·행동 재개·실제 검증을 분리하고 실행 약속·실행 중 변경을 성공이나 신선한 검증으로 올리지 않습니다. timestamp 충돌·관련 동률은 미확인입니다. live probe를 실제 모델로 다시 실행한 결과는 아닙니다.
@@ -143,7 +151,7 @@ OpenCode **2.2.5**에서 아래를 확인했습니다. 테스트 수는 회귀 �
 
 ### Lead 제거·Build 단일 총괄 (2026-11-06)
 
-- 사용자 승인에 따라 중간 소유자 Lead를 제거했습니다. Build가 유일한 개발 총괄이며 자식은 말단입니다. `experimental.subagent_depth` 3 → 1, Build 자식 허용에서 `lead` 제거, `global/agents/lead.md` 삭제(최종 승인 내용은 비공개 백업 `~/.local/share/ksi-harness-backups/harness-no-lead-20261106-134247/`에만 보존, tombstone 없음). Plan 자문(선택)·병렬 worktree·같은 자식 resume 관례는 `docs/development.md`에 명시했습니다.
+- 사용자 승인에 따라 중간 소유자 Lead를 제거했습니다. Build가 유일한 개발 총괄이며 2026-11-06 당시 자식은 말단이었습니다. `experimental.subagent_depth` 3 → 1(2026-11-09 Plan→Explore 단일 간선으로 2), Build 자식 허용에서 `lead` 제거, `global/agents/lead.md` 삭제(최종 승인 내용은 비공개 백업 `~/.local/share/ksi-harness-backups/harness-no-lead-20261106-134247/`에만 보존, tombstone 없음). Plan 자문(선택)·병렬 worktree·같은 자식 resume 관례는 `docs/development.md`에 명시했습니다.
 - 설치본도 동일하게 적용했습니다(lead 미등록, catalog 확인). Plan Sol High·Explore Go DeepSeek·General DGX 고정은 설치본에만 있습니다.
 - 평가기 진단도 교리에 맞췄습니다. Build를 소유 단위 검증 대상으로 포함하고, Lead 분기는 제거 전 세션의 역사적 파싱용으로만 남겼습니다.
 - 검증 결과: 단위 **486/486**, 격리 위임 **230/230**, 설치 역할 **111/111**, 공통 지침 전달 **통과**. 깊이 상한 증명(C)·Plan 직접 자문(P)·Build 직접 실행(T)·같은 자식 resume 수리(D)·병렬 fan-out(L)·제한 상속(I)·퇴역 exclusion(X, lead 포함)을 모두 실제 Native 호출로 확인했습니다. 위임 fixture는 계약 변경에 맞춰 재작성했으며, red 단계에서 마커 충돌·깊이 가드 오판단·거부 문구 미비를 재현 후 수정했습니다.

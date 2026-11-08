@@ -5,9 +5,9 @@
   "experimental": {
     // Optional Native task state for multi-step work; not a completion gate.
     "todo": true,
-    // Root = 0. Only direct children; children are leaves and start no
-    // subagents of their own. Breadth (parallel siblings) is unaffected.
-    "subagent_depth": 1
+    // Root = 0. Depth 2 exists only for Plan -> Explore. General and Explore
+    // are leaves and deny every subagent; no other second-level edge exists.
+    "subagent_depth": 2
   },
   "mcp": {
     // Task-specific evidence gathering happens inside the assigned scope when useful.
@@ -47,7 +47,7 @@
       ]
     },
     "plan": {
-      "description": "Advises on complex or uncertain work: alternatives, causes, risks and a work plan. No implementation, approval or task ownership.",
+      "description": "Advises on complex or uncertain work from actual code and project evidence: alternatives, causes, risks and a work plan. Requires an evidence pack, separates verified facts from assumptions and names missing evidence. May call Explore for missing evidence; cannot call General or another Plan. No implementation, approval or task ownership.",
       "mode": "all",
       // Portable source pins no model; choose locally per docs/development.md.
       // Analysis can use a read-centric leaf, not an execution or recursive agent.
@@ -60,9 +60,17 @@
     "explore": {
       // Portable source pins no model; choose locally per docs/development.md
       // (this Mac uses OpenCode Go DeepSeek V4.1 Flash High).
+      // Read-only leaf: depth 2 does not give Explore a child edge.
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" }
+      ]
     },
     "general": {
-      "description": "Executes and verifies bounded tasks independently; returns changed behavior, checks and risks."
+      "description": "Executes and verifies bounded tasks independently; returns changed behavior, checks and risks.",
+      // Bounded executor, not a planner or recursive delegator.
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" }
+      ]
     }
   },
   "providers": {

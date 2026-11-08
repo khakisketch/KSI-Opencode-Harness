@@ -8,9 +8,15 @@
   decisions to the owning canon.
 - Use Plan as a design partner for consequential or uncertain work: before implementation, when
   constraints change, or after verification reveals a problem. Ask for alternatives, risks and a
-  work plan. Plan advises; it is not a gate. Skip it for clear local changes.
+  work plan; Plan advises, it is not a gate. Skip it for clear local changes.
+- Ground Plan in evidence: Build supplies the relevant files, diffs, commands, failures, contracts
+  and open questions. Plan reads the repository and that pack, cites what it inspected, separates
+  facts from assumptions, names missing evidence and does not substitute one-off scripts for reading
+  or existing tests. A child Plan may call Explore for missing evidence; it must not call General or
+  another Plan. Build supplies any evidence Explore cannot reach.
 - Delegate independent, bounded work when the benefit exceeds handoff cost. Build owns integration
-  and final quality; children are leaves at depth 1.
+  and final quality. At depth 2, only Plan may call Explore; General and Explore are leaves and call
+  no subagents.
 - Use relevant skills and tools as needed. Load the narrowest matching skill before the decision it
   informs; do not load overlapping or unrelated playbooks. Project authority and permissions win
   over a skill.

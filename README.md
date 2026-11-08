@@ -73,15 +73,16 @@ KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니
 
 ```text
 사용자 → Build → 직접 조사·구현·검증·수정 → 완료 또는 실제 차단 보고
-            └─ 필요할 때만 General / Explore / Plan (자식은 말단, 추가 위임 없음)
+            └─ 필요할 때만 General / Explore / Plan
+               (Plan만 Explore에 한 단계 더 위임; General/Explore는 말단)
 ```
 
 | 역할 | 맡는 일 | 모델(로컬 권장, 소스는 고정 안 함) |
 | --- | --- | --- |
 | **Build** | 사용자 의도를 유지하며 직접 해결하고 최종 결과를 확인합니다. 유일한 개발 총괄이며 중간 소유자를 두지 않습니다. | 세션에서 선택 (이 Mac 권장: Muse Spark 1.3 Contributor) |
-| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. Build가 필요할 때 여러 번 자문할 수 있습니다(선택). | 권장: Go Muse Spark 1.3 Contributor xhigh |
-| **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속. DGX Spark override는 2026-11-06 제거됨 |
-| **Explore** | 코드와 자료를 찾아 읽고 분석합니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
+| **Plan** | 실제 코드·프로젝트 증거를 바탕으로 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며, 증거가 부족하면 Explore만 호출합니다. Build가 필요할 때 여러 번 자문할 수 있습니다(선택). [증거팩·계획 계약](docs/planning.md) | 권장: Go Muse Spark 1.3 Contributor xhigh |
+| **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. 하위 에이전트를 호출하지 않는 말단입니다. | 부모 상속. DGX Spark override는 2026-11-06 제거됨 |
+| **Explore** | 코드와 자료를 찾아 읽고 분석합니다. 하위 에이전트를 호출하지 않는 읽기 전용 말단입니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
 
 > [!IMPORTANT]
 > 위임은 고정 순서가 아니며 직접 구현은 작은 수정에만 한정되지 않습니다.

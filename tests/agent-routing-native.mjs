@@ -1,6 +1,6 @@
 // Opt-in, no model calls: verify installed Native role routing and permission effects
 // for the 4-profile harness (build, plan, general, explore) with max
-// subagent_depth 1. The superseded specialists (engineer, design, research,
+// subagent_depth 2 with one second-level edge: Plan -> Explore. The superseded specialists (engineer, design, research,
 // critic) and the removed lead role were removed with user approval
 // (last-approved contents survive only in private backups): the repo and
 // installed files must be absent while the merged catalog offers only the
@@ -212,9 +212,9 @@ for (const retired of ['lead', 'architect', 'design', 'design-specialist', 'desi
 // install location inspected above. Cold-location discovery/readiness is
 // distinct and is not evidence of a permission decision. Source-declared
 // config only: collect every document declaration, require at least one and
-// mutual consistency (fail explicit ambiguity), and keep expected 1. Actual
-// depth enforcement is proven by live nesting, not by this read. Depth 1
-// means only direct children; children are leaves and start no subagents.
+// mutual consistency (fail explicit ambiguity), and keep expected 2. Actual
+// depth enforcement is proven by live nesting, not by this read. Depth 2
+// means Plan may call Explore; General and Explore are leaves.
 // Checks below assert allowed targets, not a mandatory chain.
 const cfgResponse = await queryApi(routeFor('/api/config', repo));
 assert.ok(cfgResponse.ok);
@@ -222,18 +222,19 @@ const cfgList = Array.isArray(cfgResponse.payload) ? cfgResponse.payload : cfgRe
 const depthDecls = cfgList
   .filter(e => e && e.type === 'document' && e.info?.experimental?.subagent_depth !== undefined)
   .map(e => ({ path: e.path, depth: e.info.experimental.subagent_depth }));
-check('experimental.subagent_depth declared == 1, consistent', () => {
+check('experimental.subagent_depth declared == 2, consistent', () => {
   assert.ok(depthDecls.length >= 1, 'no source declares experimental.subagent_depth');
   assert.ok(depthDecls.every(d => d.depth === depthDecls[0].depth),
     `ambiguous depth declarations: ${JSON.stringify(depthDecls.map(d => d.path))}`);
-  assert.equal(depthDecls[0].depth, 1);
+  assert.equal(depthDecls[0].depth, 2);
 });
 // Scoped owner delegation for four profiles. Build is the sole development
 // owner: it owns product goal/integration/final acceptance and calls
 // general/explore plus optional Plan consultation; Plan (mode all,
 // deliberate consultation exception) advises and delegates only to Explore;
 // General and Explore are leaves that call nothing. Effects below are
-// allowed targets, not a fixed chain; the depth-1 guard means children start
+// allowed targets, not a fixed chain; the depth-2 guard allows only Plan ->
+// Explore, while General and Explore start no children.
 // no subagents. Plan's explicit routing prevents execution/self delegation
 // without replacing Native edit restrictions.
 const UNKNOWN = 'no-such-agent-ksi-probe';

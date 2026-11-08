@@ -13,7 +13,7 @@
 | ~~`global/plugins/ksi-visual-workflow/`~~ | 2026-11-06 퇴역. 시각 실행은 agent-browser, 회귀·E2E는 Playwright. 소스·테스트는 백업 보관 |
 | `global/plugins/ksi-capabilities-inventory/` | 소스 경로 이름과 달리 **프로젝트 전용** 진단. 이 하네스의 `.opencode/plugins/`에만 설치 |
 
-Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다(독립 Root 실행 시; Build 자식 실행 시 깊이 1 가드가 재위임을 거부 — 의도된 동작). Native 편집 제한은 유지합니다. UI 판단은 Build가 맡고, 결정론적 검사기를 근거로 쓰며, 필요하면 독립 읽기 전용 검토를 한 번 요청합니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
+Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다. 위임 깊이는 2이지만 두 번째 단계는 Plan→Explore 한 간선만 허용하며, General/Explore는 말단입니다. Native 편집 제한은 유지합니다. UI 판단은 Build가 맡고, 결정론적 검사기를 근거로 쓰며, 필요하면 독립 읽기 전용 검토를 한 번 요청합니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
 
 이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Go Muse Spark 1.3 Contributor xhigh, Explore Go DeepSeek V4.1 Flash High입니다. General은 부모 상속을 사용합니다(2026-11-06 DGX override 제거). 머신별 주소·제공자·모델 설정은 휴대용 소스 기본값에 넣지 않습니다. 기존 General 세션의 저장 모델은 소급 변경되지 않습니다.
 
