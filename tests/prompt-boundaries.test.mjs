@@ -39,14 +39,14 @@ describe('lead role removal (source only)', () => {
   });
 });
 
-describe('native config edges for five profiles (source only)', () => {
-  it('gives Build only General/Explore/Plan/Design child edges', () => {
+describe('native config edges for four profiles (source only)', () => {
+  it('gives Build only General/Explore/Plan child edges', () => {
     const cfg = JSON.parse(strippedJsonc());
     const allows = (cfg.agents.build.permissions ?? [])
       .filter((r) => r.action === 'subagent' && r.effect === 'allow')
       .map((r) => r.resource)
       .sort();
-    assert.deepEqual(allows, ['design', 'explore', 'general', 'plan']);
+    assert.deepEqual(allows, ['explore', 'general', 'plan']);
     assert.equal(cfg.agents.build.mode ?? 'primary', 'primary');
     assert.ok(cfg.agents.build.model === undefined);
   });
@@ -93,21 +93,25 @@ describe('native config edges for five profiles (source only)', () => {
     assert.ok(!('architect' in (cfg.agents ?? {})));
   });
 
-  it('gives Design an advisory-only contract (no delegation, no edits, no model pin)', () => {
+  it('retires the Design agent and routes no role to it', () => {
     const cfg = JSON.parse(strippedJsonc());
-    assert.equal(cfg.agents.design.mode, 'all');
-    assert.ok(cfg.agents.design.system === undefined);
-    assert.equal(cfg.agents.design.model, undefined);
-    assert.deepEqual(cfg.agents.design.permissions ?? [], [
-      { action: 'subagent', resource: '*', effect: 'deny' },
-      { action: 'edit', resource: '*', effect: 'deny' },
-    ]);
+    assert.equal(cfg.agents.design, undefined);
     for (const id of ['build', 'plan', 'general', 'explore']) {
       const allows = (cfg.agents[id].permissions ?? [])
         .filter((r) => r.action === 'subagent' && r.effect === 'allow')
         .map((r) => r.resource);
-      assert.ok(!allows.includes('design') || id === 'build', `${id} must not route to design unless it is Build`);
+      assert.ok(!allows.includes('design'), `${id} must not route to a retired design role`);
     }
+  });
+
+  it('carries the interface-structure principle in shared instructions', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    assert.equal(cfg.agents.design, undefined);
+    const instructions = read('global/AGENTS.md');
+    assert.match(instructions, /\*\*Interface structure\.\*\*/);
+    assert.match(instructions, /rather than restyling/);
+    assert.match(instructions, /passing them does not show that the structure fits the task/);
+    assert.doesNotMatch(instructions, /blacklist (cards|charts)/i);
   });
 });
 

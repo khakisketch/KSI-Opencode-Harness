@@ -11,7 +11,7 @@ import { realpath } from 'node:fs/promises';
 export const PLUGIN_ID = 'ksi.capabilities-inventory';
 export const NATIVE_DOMAINS = ['agent', 'skill', 'tool', 'mcp', 'plugin'];
 export const DEFAULT_NATIVE_DOMAINS = ['agent', 'skill', 'tool', 'plugin'];
-export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore', 'design'];
+export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore'];
 export const TRACKED_SKILLS = [
   'impeccable', 'journey', 'organize', 'wireframe',
   'vercel-react-best-practices', 'playwright-cli', 'mobbin-design',

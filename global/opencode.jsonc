@@ -31,17 +31,16 @@
     }
   },
   "agents": {
-    // Native Build/Plan/General/Explore/Design. Build is the sole development
+    // Native Build/Plan/General/Explore. Build is the sole development
     // owner; there is no intermediate owner role. Plan advises, General
-    // executes bounded tasks, Explore investigates, Design reviews visuals.
+    // executes bounded tasks, Explore investigates, Build judges UI.
     "build": {
       "description": "Owns the approved goal and can investigate, design, implement, verify and correct it directly; delegates when benefits outweigh context and handoff costs. Creates a worktree only when parallel independent implementation benefits; owns worktree creation, session assignment, integration and cleanup. Workers implement and test inside their assigned workspace and never manage worktree lifecycle. Verify changes and test results before integrating; never remove a worktree with unmerged commits, modified files, or live sessions, and never force-remove without explicit user confirmation for that worktree. No extra sessions or worktrees for simple tasks.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
         { "action": "subagent", "resource": "general", "effect": "allow" },
-        { "action": "subagent", "resource": "explore", "effect": "allow" },
-        { "action": "subagent", "resource": "design", "effect": "allow" }
+        { "action": "subagent", "resource": "explore", "effect": "allow" }
       ]
     },
     "plan": {
@@ -61,17 +60,6 @@
     },
     "general": {
       "description": "Executes and verifies assigned tasks independently; returns results and material risks."
-    },
-    "design": {
-      "description": "Reviews visual hierarchy, layout and implemented screens against real references, and reports concrete defects and improvement directions; advises only, never implements.",
-      "mode": "all",
-      // Portable source pins no model; locally pin an image-input-capable
-      // model per docs/development.md. Analysis-only worker: reads and judges,
-      // never edits code nor starts subagents.
-      "permissions": [
-        { "action": "subagent", "resource": "*", "effect": "deny" },
-        { "action": "edit", "resource": "*", "effect": "deny" }
-      ]
     }
   },
   "providers": {

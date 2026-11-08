@@ -166,7 +166,7 @@ try {
       && report.mcp.every((e) => Object.keys(e).every((k) => ['name', 'status'].includes(k))));
     check('isolated grammar fits the id pattern with nothing omitted', ['agent', 'skill', 'tool', 'plugin'].every((d) => report.catalog[d].omitted === 0)
       && ['agent', 'skill', 'tool', 'plugin'].every((d) => report.catalog[d].ids.every((id) => /^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,126}[A-Za-z0-9])?$/.test(id))));
-    check('tracked projections keep fixed shape', report.agents.length === 5 && report.skills.length === 16 && report.mcp.length === 2);
+    check('tracked projections keep fixed shape', report.agents.length === 4 && report.skills.length === 16 && report.mcp.length === 2);
   }
   {
     const { messages } = await runCase(workspace1, 'NATIVE_CAPINV_MCP: list mcp explicitly', 'CAPINV_MCP_DONE');
