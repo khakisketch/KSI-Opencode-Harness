@@ -55,8 +55,7 @@
 - Observer 제거(2026-11-08): `ksi-session-observer`, 설치기, 전용 테스트를 하네스에서 제거했다. 자식 상태는 Native 세션·메시지·권한 API로 확인한다. 재시작·compaction 이후 같은 세션의 편집·테스트 검증은 유지한다. 이전 Observer 실험 기록은 제거 전 이력이며 현재 구성에 포함되지 않는다.
 - 기존 생명주기 픽스처는 스트리밍 응답의 `finish_reason`을 누락했다. OpenCode는 텍스트를 표시한 뒤 `provider.invalid-output`으로 재시도했다. 따라서 이전 F1~F3 PASS를 Native 결함이나 복구 성공의 확정 근거로 쓰지 않는다. 수정된 픽스처에서 진행 중 `wait` 요청을 중단한 뒤 같은 세션이 응답했고, fork 후 응답과 queue 입력도 확인했다. 이전 fork 검사의 문자열 비교 역시 잘못됐다. 해당 조건의 결과이며 모든 버전·경합에 일반화하지 않는다. F4는 이 재실행에서 판정하지 않았다.
 - OpenCode 2.2.6 격리 서버·scripted 모델에서 이벤트 시작/완료, 연결 단절 후 메시지 재조회, 동일 Native 메시지 ID 재전송 시 단일 입력·응답, compaction 완료 후 신규 assistant 응답, 서버 재시작 후 응답을 확인했다: `node tests/session-lifecycle-native.mjs`. 별도 빈 Git 저장소·연결 worktree에서 Native 세션 위치·프로젝트 ID와 미커밋 파일도 대조했다. 실모델의 요약 품질이나 모든 이벤트 경합은 검증하지 않는다.
-- `node tests/delegation-native-integration.mjs`: Build가 Native 백그라운드 General의 완료 이벤트와 상태를 관찰하고 실제 Node 테스트 실패 후 동일 자식에게 수정을 요청해 테스트를 다시 실행했다. 별도 실험에서는 모델 공급자 오류로 자식이 실패한 뒤 기존 파일을 보존해 새 자식으로 이어갔고, Native API로 생성한 권한 대기 요청을 관찰했으며, 부분 파일 작성 뒤 실제 interrupt와 같은 자식으로 보존·수정을 확인했다. 권한 요청은 테스트에서 거부해 정리했으며 실제 사용자 권한을 승인하지 않았다. 완료된 compaction과 격리 서버 재시작 후 같은 Build 세션이 파일을 수정하고 테스트했다. scripted 모델이 순서를 지정하므로 자율적 판단의 증거가 아니다.
-- Native 세션·재시작 검증은 유지한다. Observer 제거 전 실험의 상세는 제거된 구성에 대한 이력이며 현재 하네스에 포함되지 않는다.
+- `node tests/delegation-native-integration.mjs`: Build가 blocking General 자식에게 구현을 맡기고, 실제 Node 테스트 실패 후 같은 자식에게 수정을 요청해 재시험했다. 완료된 compaction과 격리 서버 재시작 후 같은 Build 세션이 파일을 수정하고 테스트했다. Observer 제거로 실패 자식 관찰·interrupt·권한 대기 시나리오는 이 파일에서 제거됐다. scripted 모델이 순서를 지정하므로 자율적 판단의 증거가 아니다.
 
 ### GitHub CI 가동 + 하드코딩 tmp 경로 수정 (2026-11-07)
 
