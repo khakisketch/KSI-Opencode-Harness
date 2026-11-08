@@ -134,7 +134,7 @@ General은 범위 안에서 함수 구성 등 구현 방식을 스스로 결정�
 
 ### Decisions 판단 보조 (읽기 전용 권고)
 
-Build가 직접 구현·위임·병렬·추가 검토를 판단하기 전에 Jev 권고를 참고할 수 있다. 서버 API를 직접 호출하며 별도 플러그인·모델 고정은 없다:
+Build가 판단이 어려울 때 Jev에 구조화된 결정을 요청할 수 있다. 실행 전략, 도구·스킬 선택, 계속·중단, 검토 필요 등에 활용하며 특정 호출 조건이나 숫자를 두지 않는다. 자동 라우팅은 하지 않는다. 서버 API를 직접 호출하며 별도 플러그인·모델 고정은 없다:
 
 ```sh
 opencode api post /api/experimental/generate/decisions --data '{
@@ -149,7 +149,7 @@ opencode api post /api/experimental/generate/decisions --data '{
 
 Jev는 decision 모델이라 `/api/model`(기본 chat 조회)에 나오지 않는다. `/api/experimental/generate/decisions`로 호출하며, 2026-11-08 이 환경에서 predicate 응답과 cost 0을 확인했다.
 
-원칙: Jev는 권고만 하며 최종 선택은 Build가 한다. Build 선판단을 먼저 기록하고 Jev와 비교한 뒤 실행 결과로 평가한다(`decision-log.md` 형식). API 실패 시 Build 정상 진행을 막지 않는다. 자동 모델 변경·권한 승인·도구 가로채기는 하지 않는다.
+원칙: Jev는 권고만 하며 최종 선택은 Build가 한다. 선판단과 Jev 결과가 크게 다르면 그 차이를 짧게 남기고, 별도 로그 파일이나 고정 형식을 강제하지 않는다. API 실패 시 Build 정상 진행을 막지 않는다. 자동 모델 변경·권한 승인·도구 가로채기는 하지 않는다.
 
 ### 선택형 AI PR 리뷰 (2026-11-08)
 
