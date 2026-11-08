@@ -73,16 +73,15 @@ KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니
 
 ```text
 사용자 → Build → 직접 조사·구현·검증·수정 → 완료 또는 실제 차단 보고
-            └─ 필요할 때만 General / Explore / Plan / Design (자식은 말단, 추가 위임 없음)
+            └─ 필요할 때만 General / Explore / Plan (자식은 말단, 추가 위임 없음)
 ```
 
 | 역할 | 맡는 일 | 모델(로컬 권장, 소스는 고정 안 함) |
 | --- | --- | --- |
 | **Build** | 사용자 의도를 유지하며 직접 해결하고 최종 결과를 확인합니다. 유일한 개발 총괄이며 중간 소유자를 두지 않습니다. | 세션에서 선택 (이 Mac 권장: Muse Spark 1.3 Contributor) |
-| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Sol High |
+| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Go Muse Spark 1.3 Contributor xhigh |
 | **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속이 기본. 이 Mac은 DGX Spark `qwen-flash-next` 사용 중 |
 | **Explore** | 코드와 자료를 찾아 읽고 분석합니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
-| **Design** | 사용자 목표·실제 화면 기준으로 UX를 독립 판단·비평하고 개선 방향을 보고합니다. 정보구조·사용 흐름 자체의 문제도 지적할 수 있습니다. 구현하지 않습니다. | 권장: MiMo V2.6 Pro, Go 경로 (V-suite 6/6 동점, 이미지 입력 검증됨) |
 
 > [!IMPORTANT]
 > 위임은 고정 순서가 아니며 직접 구현은 작은 수정에만 한정되지 않습니다.
@@ -134,9 +133,9 @@ Impeccable·Hallmark·Taste를 항상 함께 실행하지 않습니다. Hallmark
 
 ### 화면 작업을 도와주는 도구
 
-표준 시각 실행 환경은 agent-browser입니다(직접 실행·관찰·조작·캡처). 회귀·E2E는 Playwright를 씁니다. 자체 `ksi-visual-workflow` 플러그인은 2026-11-06 퇴역했습니다(비활성화 후 외부 도구 검증, 소스·테스트는 백업 보관). 디자인 판단은 Design이, 기능·회귀 검증은 Playwright가, 화면 조작·관찰은 agent-browser가 맡습니다.
+표준 시각 실행 환경은 agent-browser입니다(직접 실행·관찰·조작·캡처). 회귀·E2E는 Playwright를 씁니다. 자체 `ksi-visual-workflow` 플러그인은 2026-11-06 퇴역했습니다(비활성화 후 외부 도구 검증, 소스·테스트는 백업 보관). 디자인 판단과 구조 선택은 Build가 맡고, 결정론적 검사기는 근거로 사용하며, 기능·회귀 검증은 Playwright, 화면 조작·관찰은 agent-browser가 맡습니다.
 
-담당자는 원래 문제와 실제 사용자 의견을 함께 살펴봅니다. 증거 기록은 [증거팩](docs/evidence-pack.md) 5항(목표·화면·조건·검증·Design 의견)을 따릅니다. 캡처 한 장을 실제 빌드·품질의 자동 증명으로 삼지 않습니다.
+담당자는 원래 문제와 실제 사용자 의견을 함께 살펴봅니다. 증거 기록은 [증거팩](docs/evidence-pack.md) 5항(목표·화면·조건·검증·판단 근거)을 따릅니다. 캡처 한 장을 실제 빌드·품질의 자동 증명으로 삼지 않습니다.
 
 이 하네스 프로젝트에서 필요할 때만 [기능 목록](docs/workflow-evidence.md)을 조회합니다. 기능 목록 플러그인과
 `find-skills`는 전역 기본 구성에서 제외했습니다. 도구 등록은 실제 사용 성공이 아니며,
@@ -180,8 +179,8 @@ Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 
 방향이 정해진 반복 개발에는 DeepSeek Flash Max를 선택하는 운영을 고려할 수 있습니다.
 사용 가능한 모델과 비용·데이터 정책은 각 환경에서 확인해야 합니다.
 
-이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 분석·작업 전 자문의 Plan에 Sol High,
-읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High, 독립 UX 판단·비평의 Design에 Go MiMo V2.6 Pro입니다. General은 부모 상속이 기본이며, 이 Mac에서만 실제 접속·도구 왕복을 확인한 뒤
+이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 분석·작업 전 자문의 Plan에 Go Muse Spark 1.3 Contributor xhigh,
+읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High입니다. General은 부모 상속이 기본이며, 이 Mac에서만 실제 접속·도구 왕복을 확인한 뒤
 DGX Spark `qwen-flash-next`로 사용 중입니다. 이 경로는 Tailscale에 의존합니다. LAN 주소는 macOS
 Local Network Privacy가 `node`를 아직 허용하지 않아 Node에서 `EHOSTUNREACH`였고, 그래서 Tailscale IP를
 사용합니다. 시스템 설정의 로컬 네트워크에서 `node`를 허용하면 LAN IP도 사용할 수 있습니다. DGX가 꺼지거나 Tailscale이 끊기면 General 호출이
@@ -235,7 +234,7 @@ OpenCode V2에서 사용하려면 기존 설정을 확인한 뒤 필요한 항�
 | --- | --- |
 | `global/AGENTS.md` | 공통으로 따를 작업 원칙 |
 | `global/opencode.jsonc` | 역할·모델·권한과 선택 연결 설정 |
-| `global/agents/` | 현재 운영 역할 파일 없음. 5프로파일(Build/Plan/General/Explore/Design)은 `global/opencode.jsonc`에 정의 |
+| `global/agents/` | 현재 운영 역할 파일 없음. 4프로파일(Build/Plan/General/Explore)은 `global/opencode.jsonc`에 정의 |
 | `global/commands/` | 선택해서 쓸 수 있는 명령 |
 | `global/plugins/` | 시각 작업과 선택형 기능 목록 |
 | `experiments/` | 자동 로딩·기본 설치에서 제외한 실험 코드 |

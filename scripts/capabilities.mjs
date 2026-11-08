@@ -10,7 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore', 'design'];
+export const TRACKED_AGENTS = ['build', 'plan', 'general', 'explore'];
 export const TRACKED_SKILLS = [
   'impeccable', 'journey', 'organize', 'wireframe',
   'vercel-react-best-practices', 'playwright-cli', 'mobbin-design',

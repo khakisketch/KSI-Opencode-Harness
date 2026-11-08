@@ -12,6 +12,7 @@ design-previews/
 .opencode/skills/reviewing-security/
 .opencode/skills/ux-heuristics-audit/
 .agents/skills/find-skills/
+.agents/skills/oil-ui/
 /skills-lock.json
 # Project-local diagnostic installation; portable source/installer stays versioned.
 .opencode/plugins/ksi-capabilities-inventory/

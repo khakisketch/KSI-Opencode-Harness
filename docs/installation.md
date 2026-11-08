@@ -8,14 +8,15 @@
 | --- | --- |
 | `global/AGENTS.md` | 전역 공통 지침. 기존 사용자 정의를 확인한 뒤 필요한 변경만 반영 |
 | `global/opencode.jsonc` | 전역 설정에 수동 병합. 모델·MCP·제공자·권한 전체 교체 금지 |
-| `global/agents/` | 현재 운영 역할 파일 없음. 5프로파일(Build/Plan/General/Explore/Design)은 `global/opencode.jsonc`에 정의 |
+| `global/agents/` | 현재 운영 역할 파일 없음. 4프로파일(Build/Plan/General/Explore)은 `global/opencode.jsonc`에 정의 |
 | `global/commands/` | 선택형 `/debug`·`/perf`·`/ux-audit` 바로가기 |
 | ~~`global/plugins/ksi-visual-workflow/`~~ | 2026-11-06 퇴역. 시각 실행은 agent-browser, 회귀·E2E는 Playwright. 소스·테스트는 백업 보관 |
 | `global/plugins/ksi-capabilities-inventory/` | 소스 경로 이름과 달리 **프로젝트 전용** 진단. 이 하네스의 `.opencode/plugins/`에만 설치 |
+| `global/plugins/ksi-session-observer/` | 선택형 자식 세션 관찰. 현재 격리 검증용이며 전역 자동 설치·자동 복구 없음 |
 
-Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다(독립 Root 실행 시; Build 자식 실행 시 깊이 1 가드가 재위임을 거부 — 의도된 동작). Native 편집 제한은 유지합니다. Design은 독립 UX 판단·비평 역할로 코드 수정·위임을 하지 않습니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
+Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다(독립 Root 실행 시; Build 자식 실행 시 깊이 1 가드가 재위임을 거부 — 의도된 동작). Native 편집 제한은 유지합니다. UI 판단은 Build가 맡고, 결정론적 검사기를 근거로 쓰며, 필요하면 독립 읽기 전용 검토를 한 번 요청합니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
 
-이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Sol High, Design Go MiMo V2.6 Pro, Explore Go DeepSeek V4.1 Flash High, General DGX Spark `dgx-spark/qwen-flash-next`입니다. Design의 이미지 입력은 MiMo로 검증했습니다(V-suite 6/6, Sol High와 동점). 머신별 주소·제공자·모델 설정은 휴대용 소스 기본값에 넣지 않습니다. 기존 General 세션의 저장 모델은 소급 변경되지 않습니다.
+이 Mac의 로컬 권장값은 Build 세션 Muse Spark 1.3 Contributor, Plan Go Muse Spark 1.3 Contributor xhigh, Explore Go DeepSeek V4.1 Flash High, General DGX Spark `dgx-spark/qwen-flash-next`입니다. 머신별 주소·제공자·모델 설정은 휴대용 소스 기본값에 넣지 않습니다. 기존 General 세션의 저장 모델은 소급 변경되지 않습니다.
 
 이 Mac의 DGX Spark 제공자는 로컬 설정에만 등록했습니다. LAN 주소 `172.30.1.44`는 `curl`·`nc`에서는 연결됐지만 Node/Python/C에서는 `EHOSTUNREACH`였고, **Tailscale 주소 `100.116.163.1`은 Node에서도 정상**이었습니다. 원인은 **macOS Local Network Privacy가 `node`의 로컬 네트워크 접근을 아직 허용하지 않은 것**입니다. `nehelper` 로그에 `Local network preference not yet set, prompting for node`, `Showing local network alert for node`가 기록됐고, `launchctl`에서 실행한 Node도 같은 실패였습니다. 시스템 설정의 **개인정보 보호 및 보안 → 로컬 네트워크**에서 `node`를 허용하면 LAN 주소도 사용할 수 있습니다. 이 프롬프트는 프로세스 서명/번들 ID 단위라 Node 업데이트 뒤 다시 나타날 수 있습니다. 이번에는 OS 권한을 대신 변경하지 않았고, Tailscale 경로로 제한된 Native 도구 왕복(읽기→쓰기→읽기, 바이트 일치, 최종 표식)을 통과해 기존 General을 `dgx-spark/qwen-flash-next`로 전환했습니다. 이는 전송·도구 왕복 확인이지 코딩 품질·긴 문맥 평가가 아닙니다. Tailscale이 꺼지면 General 호출이 실패하므로, 수동으로 상속으로 되돌리거나 제공자 경로를 다시 확인합니다. 자동 fallback은 없습니다.
 
@@ -29,12 +30,16 @@ Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유
    # 이 하네스 프로젝트에서만 쓰는 선택형 진단; 전역 대상은 지원하지 않음
    node scripts/install-capabilities-inventory.mjs --project "$PWD"
    node scripts/install-capabilities-inventory.mjs --project "$PWD" --verify
+   # 선택형 첫 설치만 지원: 기존 대상이 있으면 덮어쓰지 않고 중단
+   node scripts/install-session-observer.mjs --project "$PWD"
    ```
 
 4. Native plugin/agent catalog에서 로딩과 모델·권한을 별도 확인합니다. 파일 일치나 도구 등록만으로 호출 성공을 주장하지 않습니다. OpenCode는 설정을 감시하므로 공유 서비스를 재시작하지 않습니다.
 5. [검증](validation.md)의 명시적 시험만 실행합니다. 로컬 실모델 probe를 와일드카드로 실행하지 않습니다.
 
 설치기는 수정·미관리 파일, manifest와 다른 상태, 예상 밖 진입점과 symlink를 안전 중단합니다. 소스를 한 번 읽어 해시·배포 bytes를 일치시키며 발견 경로 밖에서 전체 staging 후 의존 파일→entrypoint→manifest 순서로 게시합니다. 신규 파일·manifest는 hard link의 atomic no-clobber를 쓰고 지원되지 않으면 중단합니다. 기존 관리 파일은 최종 비교 후 rename하므로 비협조 writer와의 compare→rename race는 남습니다. 협조 잠금이 임의 외부 편집까지 막지는 않습니다. 파일별 게시이지 세대 트랜잭션이 아니며 Native hot reload에서 중간 버전을 볼 수 있습니다.
+
+위 상세 잠금·manifest 규칙은 capabilities-inventory 설치기에만 적용됩니다. session-observer 설치기는 새 대상만 생성하며 기존 대상은 변경하지 않습니다. 중단되면 부분 디렉터리를 남기므로 직접 조사해야 합니다. 부모 디렉터리의 검사와 생성 사이에는 비협조 프로세스의 경합이 남습니다.
 
 외부 PNG 고정 운영자 설정은 플러그인 퇴역과 함께 폐지했습니다. 증거 기록은 [증거팩](evidence-pack.md)을 따릅니다.
 
@@ -75,6 +80,26 @@ Context7 공식 플러그인과 명시적 MCP 설정은 이 정리에서 유지�
 - 필요한 프로젝트에는 해당 저장소의 `.agents/skills/` 또는 `.opencode/skills/`에 Skills CLI로 개별 설치합니다. 예: 마케팅 웹 프로젝트의 Taste, 필요시 해당 프로젝트의 Hallmark. 전역 재설치는 하지 않습니다.
 - `puppeteer-core` 전역 패키지는 Hallmark의 렌더 검사 경로가 참조하므로 유지합니다. Hallmark를 쓰는 프로젝트가 없으면 제거를 재검토합니다.
 
+### Anthropic Engineering·Design 스킬 라이브러리 (2026-11-08)
+
+[anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins)의 Engineering 10종·Design 7종을 **플러그인 실행이 아니라 고정 커밋 스킬 라이브러리**로 보관합니다.
+
+- 위치: `external/anthropic-knowledge-work-plugins/` (Apache-2.0, 커밋 `e050c2ec856373787143d7057663a6ebd1277df3`)
+- 보관 범위: `SKILL.md`만. `.claude-plugin`, `.mcp.json`, `CONNECTORS.md`는 Claude Code 패키징이라 제외했습니다.
+- 전역 설치하지 않습니다. 필요한 프로젝트에만 설치합니다.
+
+```sh
+node scripts/install-external-skills.mjs --list
+node scripts/install-external-skills.mjs --project /abs/path/to/project --set design
+node scripts/install-external-skills.mjs --project /abs/path/to/project --set all --verify
+```
+
+- `--set engineering|design|all`, `--skill <name>`으로 고릅니다.
+- 기존 파일이 다르면 덮어쓰지 않고 실패합니다. 상대 경로·심볼릭 링크 대상도 거부합니다.
+- 격리 OpenCode 2.2.6에서 프로젝트 설치 후 `design-critique` 활성화(HTTP 204 + skill 메시지)를 확인했습니다. 이는 발견·로딩 증거이며 제품 품질 개선의 증거가 아닙니다.
+
+상황별 선택: 운영 장애는 `incident-response`, 실제 배포는 `deploy-checklist`, 복잡한 데이터 파이프라인 검증은 `testing-strategy`, 화면 비평·접근성·문구·인계는 해당 Design 스킬을 필요할 때만 씁니다.
+
 ### 추가한 선택형 스킬
 
 공식 Skills CLI `1.7.4`에서 스킬·에이전트·전역 범위를 명시하고 아래 커밋으로 설치했습니다. 이 버전의 CLI는 OpenCode를 universal agent로 취급해 `~/.agents/skills/`에 설치하므로 **다른 호환 에이전트도 발견할 수 있습니다**. 다른 에이전트의 설정·훅은 변경하지 않았습니다. 설치 파일은 아래 원본과 해시로 대조했으며 본문은 수정하지 않았습니다. CLI telemetry/security-audit 전송은 이번 호출에서 비활성화했습니다.
@@ -86,6 +111,8 @@ Context7 공식 플러그인과 명시적 MCP 설정은 이 정리에서 유지�
 | `design-taste-frontend` | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) | `12af471f627f866411b4bd785b19646d3672784c` |
 
 Impeccable은 누적 필수 절차가 아니라 담당자가 과업에 맞게 고르는 대안입니다. 사용자가 정한 브랜드·기능·권한이 우선이며, Impeccable을 무조건 호출하지 않습니다. 새 디자인용 자동 훅·별도 보안 에이전트는 추가하지 않았습니다. Hallmark의 렌더 검사 의존성으로 `puppeteer-core@25.16.0`만 전역 설치했고 npm lifecycle script와 브라우저 다운로드는 실행하지 않았습니다. 기존 Chrome과 별도의 임시 프로필을 사용합니다. `hallmark`·`design-taste-frontend`는 2026-11-06에 전역에서 제외되어 위 표의 해당 행은 당시 설치 기록입니다. 필요한 프로젝트에만 개별 설치합니다.
+
+Impeccable은 같은 버전이 두 경로에 **호스트별 변형**으로 설치되어 있습니다. `~/.agents/skills/impeccable`은 범용·타 에이전트용(`$impeccable`, `agents/` 포함), `~/.config/opencode/skills/impeccable`은 OpenCode용(`/impeccable`, `.opencode` 경로, allowed-tools)입니다. 활성화 텍스트로 OpenCode가 후자를 로드하는 것을 확인했습니다. 두 복사본은 함께 갱신해야 합니다.
 
 Cloudflare는 일상 보안 질문의 guidance와 명시적 전체 감사를 구분합니다. 전체 감사는 하위 에이전트·보고서 비용이 있고 대상 코드를 실행하려면 네트워크·환경·쓰기·자원을 제한한 **OS 수준 격리**가 필요합니다. worktree나 이 스킬 설치는 그 격리를 제공하지 않습니다. 격리가 없으면 실행 검증을 보류하고 미확인 사실을 남깁니다.
 

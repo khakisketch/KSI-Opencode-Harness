@@ -58,13 +58,11 @@ test('summary fails on the first non-pass result and preserves its log', () => {
 
 test('role matrix marks the machine-local General override as drift from source', async () => {
   const sourceConfig = { agents: { build: {}, general: {}, plan: {}, explore: {} } };
-  const installedConfig = { agents: { build: {}, general: { model: 'dgx-spark/qwen-flash-next' }, plan: { model: 'openai/gpt-6.1-sol#high' }, explore: { model: 'opencode-go/deepseek-v4.1-flash#high' } } };
+  const installedConfig = { agents: { build: {}, general: { model: 'dgx-spark/qwen-flash-next' }, plan: { model: 'opencode-go/muse-spark-1.3-contributor#xhigh' }, explore: { model: 'opencode-go/deepseek-v4.1-flash#high' } } };
   const matrix = await roleMatrix({ sourceConfig, installedConfig });
   assert.ok(!matrix.some((row) => row.role === 'lead'));
-  assert.deepEqual(matrix.map((row) => row.role), ['build', 'plan', 'general', 'explore', 'design']);
-  assert.equal(matrix.find((row) => row.role === 'design').source, 'inherit/session');
-  assert.equal(matrix.find((row) => row.role === 'design').installed, 'inherit/session');
-  assert.equal(matrix.find((row) => row.role === 'design').drift, false);
+  assert.deepEqual(matrix.map((row) => row.role), ['build', 'plan', 'general', 'explore']);
+  assert.equal(matrix.find((row) => row.role === 'explore').installed, 'opencode-go/deepseek-v4.1-flash#high');
   const general = matrix.find((row) => row.role === 'general');
   assert.equal(general.source, 'inherit/session');
   assert.equal(general.installed, 'dgx-spark/qwen-flash-next');

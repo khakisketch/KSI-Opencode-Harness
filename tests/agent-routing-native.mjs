@@ -98,20 +98,18 @@ check('build registered primary, no global model', () => {
   assert.ok(buildEntry.model === undefined || buildEntry.model === null);
 });
 for (const [id, model, mode] of [
-  ['plan', { providerID: 'openai', id: 'gpt-6.1-sol', variant: 'high' }, 'all'],
+  ['plan', { providerID: 'opencode-go', id: 'muse-spark-1.3-contributor', variant: 'xhigh' }, 'all'],
   ['general', null, 'subagent'],
   ['explore', { providerID: 'opencode-go', id: 'deepseek-v4.1-flash', variant: 'high' }, 'subagent'],
-  ['design', { providerID: 'opencode-go', id: 'mimo-v2.6-pro' }, 'all'],
 ]) {
   const a = list.find(a => a.id === id);
   check(`${id} model/mode`, () => {
     assert.ok(a);
     // Portable source pins no models; the expectations below are this Mac's
-    // local choice (Sol for Plan, Go MiMo for Design, Go DeepSeek for Explore,
-    // DGX for General), not a shared-source requirement. The source contract
+    // local choice (Go Muse for Plan, Go DeepSeek for Explore, DGX for
+    // General), not a shared-source requirement. The source contract
     // (no model pins) is checked separately by prompt-boundaries and the
-    // isolated fixture. Design moved Sol High -> MiMo V2.6 Pro after V-suite
-    // 6/6 parity (2026-11-06).
+    // isolated fixture.
     if (id === 'general') {
       assert.ok(a.model == null || (a.model.providerID === 'dgx-spark' && a.model.id === 'qwen-flash-next'),
         'General must inherit or use the machine-local DGX model');
@@ -152,7 +150,7 @@ for (const id of ['engineer', 'research', 'critic', 'lead']) {
 // Retired/archived native ids must not be registered after the Main install.
 // Physical archive decision: architect.md lives at docs/archive/agents/
 // architect.md (out of discovery), so the id is strictly unregistered.
-for (const retired of ['lead', 'architect', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
+for (const retired of ['lead', 'architect', 'design', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
   check(`retired role not registered: ${retired}`, () => assert.ok(!list.some(a => a.id === retired)));
 }
 // Archive retained, never installed: the repo archive file exists byte-full,
@@ -189,10 +187,9 @@ for (const retired of ['lead', 'architect', 'design-specialist', 'design-archite
       'agents.plan.system must stay undefined so the Native prompt applies');
   });
   check('source carries no retired operating definitions (removal, no tombstones)', () => {
-    for (const id of ['engineer', 'research', 'critic', 'lead']) {
+    for (const id of ['engineer', 'research', 'critic', 'lead', 'design']) {
       assert.ok(!(id in (cfg.agents ?? {})), `${id} must have no agents entry`);
     }
-    assert.ok(cfg.agents?.design && typeof cfg.agents.design === 'object', 'design must have an agents entry');
     assert.ok(!('architect' in (cfg.agents ?? {})));
   });
   check('source Build child edges and Plan Explore-only delegation match the contract', () => {
@@ -200,7 +197,7 @@ for (const retired of ['lead', 'architect', 'design-specialist', 'design-archite
       .filter((r) => r?.action === 'subagent' && r?.effect === 'allow')
       .map((r) => r?.resource)
       .sort();
-    assert.deepEqual(allows('build'), ['design', 'explore', 'general', 'plan']);
+    assert.deepEqual(allows('build'), ['explore', 'general', 'plan']);
     assert.deepEqual(cfg.agents.plan.permissions, [
       { action: 'subagent', resource: '*', effect: 'deny' },
       { action: 'subagent', resource: 'explore', effect: 'allow' },
@@ -231,16 +228,16 @@ check('experimental.subagent_depth declared == 1, consistent', () => {
     `ambiguous depth declarations: ${JSON.stringify(depthDecls.map(d => d.path))}`);
   assert.equal(depthDecls[0].depth, 1);
 });
-// Scoped owner delegation for five profiles. Build is the sole development
+// Scoped owner delegation for four profiles. Build is the sole development
 // owner: it owns product goal/integration/final acceptance and calls
-// general/explore/design plus optional Plan consultation; Plan (mode all,
+// general/explore plus optional Plan consultation; Plan (mode all,
 // deliberate consultation exception) advises and delegates only to Explore;
-// General, Explore and Design are leaves that call nothing. Effects below are
+// General and Explore are leaves that call nothing. Effects below are
 // allowed targets, not a fixed chain; the depth-1 guard means children start
 // no subagents. Plan's explicit routing prevents execution/self delegation
 // without replacing Native edit restrictions.
 const UNKNOWN = 'no-such-agent-ksi-probe';
-const RETIRED = ['engineer', 'research', 'critic', 'lead'];
+const RETIRED = ['engineer', 'research', 'critic', 'lead', 'design'];
 async function probeSubagent(caller, targets) {
   const s = await api('session.create', [], { location: { directory: repo }, agent: caller });
   assert.ok(s.id);
@@ -252,7 +249,7 @@ async function probeSubagent(caller, targets) {
   return s;
 }
 await probeSubagent('build', [
-  ['plan', 'allow'], ['general', 'allow'], ['explore', 'allow'], ['design', 'allow'],
+  ['plan', 'allow'], ['general', 'allow'], ['explore', 'allow'], ['design', 'deny'],
   ...RETIRED.map((id) => [id, 'deny']),
   ['architect', 'deny'],
   ['build', 'deny'], [UNKNOWN, 'deny'],
@@ -275,37 +272,12 @@ await probeSubagent('explore', [
   ['architect', 'deny'], ['critic', 'deny'],
   ['build', 'deny'], [UNKNOWN, 'deny'],
 ]);
-await probeSubagent('design', [
-  ['plan', 'deny'], ['general', 'deny'], ['explore', 'deny'], ['design', 'deny'],
-  ...RETIRED.map((id) => [id, 'deny']),
-  ['architect', 'deny'], ['critic', 'deny'],
-  ['build', 'deny'], [UNKNOWN, 'deny'],
-]);
 // The archived architect id is never an operational caller: no session is
 // created for it; the catalog must exclude it regardless of policy effects.
 // Plan stays analysis-only: normal edits deny in its own session even though it
-// may delegate to the read-centric Explore leaf. Design stays review-only:
-// reads allow, edits deny, no subagent calls. Children still own their
+// may delegate to the read-centric Explore leaf. Children still own their
 // role permissions; strict non-mutation requires explicit session restrictions
 // or actual isolation, not just this edge allowlist.
-{
-  const designSession = await api('session.create', [], { location: { directory: repo }, agent: 'design' });
-  assert.ok(designSession.id);
-  for (const [action, resource, expected] of [
-    ['read', 'probe.css', 'allow'],
-    ['edit', 'probe.css', 'deny'],
-    ['edit', '/tmp/opencode/design-output.md', 'deny'],
-    ['subagent', 'general', 'deny'],
-    ['subagent', 'plan', 'deny'],
-    ['subagent', 'design', 'deny'],
-    ['subagent', UNKNOWN, 'deny'],
-  ]) {
-    const normalized = ['read', 'edit'].includes(action) ? path.resolve(fixture, resource) : resource;
-    const r = await api('session.permission.create', [`sessionID=${designSession.id}`], { action, resources: [normalized], agent: 'design' });
-    await rejectIfPending(designSession.id, r);
-    check(`design ${action} ${resource}: ${expected}`, () => assert.equal(r.effect, expected, `design ${action} ${normalized}`));
-  }
-}
 {
   const planSession = await api('session.create', [], { location: { directory: repo }, agent: 'plan' });
   assert.ok(planSession.id);

@@ -44,8 +44,8 @@ const realSkills = [
 const realMcp = [{ name: 'context7', status: { status: 'connected' }, headers: { auth: SECRET } }];
 
 describe('tracked role inventory', () => {
-  it('tracks 5 operating roles in exact order build,plan,general,explore,design', () => {
-    assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'general', 'explore', 'design']);
+  it('tracks 4 operating roles in exact order build,plan,general,explore', () => {
+    assert.deepEqual(TRACKED_AGENTS, ['build', 'plan', 'general', 'explore']);
   });
   it('tracks the 16 current harness-wired skills, excluding removed local adaptations', () => {
     assert.deepEqual(TRACKED_SKILLS, [
@@ -93,11 +93,11 @@ describe('tracked role inventory', () => {
     assert.ok(!JSON.stringify(withoutNew).match(/apiKey|headers|config|stdout|stderr|url|prompt/i));
   });
   it('retired/superseded native ids are not tracked and never project as registered', () => {
-    // Removed operating files stay removed from active sources (design is a
-    // live role again and is tracked separately); Architect remains archived
+    // Removed operating files stay removed from active sources. Design was
+    // retired 2026-11-08 and is no longer tracked; Architect remains archived
     // outside discovery. This projection test only checks the tracked
     // inventory, not the effective installed runtime.
-    for (const retired of ['engineer', 'research', 'critic', 'lead', 'architect', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
+    for (const retired of ['engineer', 'research', 'critic', 'lead', 'architect', 'design', 'design-specialist', 'design-architect', 'ux-scout', 'ui-ux-critic', 'product-reviewer']) {
       assert.ok(!TRACKED_AGENTS.includes(retired), `${retired} must not be tracked`);
     }
     const mocked = projectAgents([
@@ -111,12 +111,13 @@ describe('tracked role inventory', () => {
       { id: 'design-architect', name: 'Design Architect', mode: 'all' },
       { id: 'product-reviewer', name: 'Product Reviewer', mode: 'subagent' },
       { id: 'design-specialist', name: 'Design Specialist', mode: 'all' },
+      { id: 'design', name: 'Design', mode: 'all' },
     ]);
     assert.ok(mocked.every((a) => a.registered === false));
-    assert.ok(!mocked.some((a) => ['lead', 'engineer', 'research', 'critic', 'architect', 'ux-scout', 'ui-ux-critic', 'design-architect', 'product-reviewer', 'design-specialist'].includes(a.name)));
+    assert.ok(!mocked.some((a) => ['lead', 'engineer', 'research', 'critic', 'architect', 'ux-scout', 'ui-ux-critic', 'design-architect', 'product-reviewer', 'design-specialist', 'design'].includes(a.name)));
   });
-  it('tracks 5 roles in projections and mocks without secret exposure', () => {
-    assert.equal(projectAgents([]).length, 5);
+  it('tracks 4 roles in projections and mocks without secret exposure', () => {
+    assert.equal(projectAgents([]).length, 4);
     assert.equal(projectAgents([]).find((a) => a.name === 'general').registered, false);
     const mocked = projectAgents([
       { id: 'general', name: 'General', mode: 'subagent', headers: { auth: SECRET } },

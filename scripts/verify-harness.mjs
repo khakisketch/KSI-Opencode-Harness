@@ -87,7 +87,7 @@ function modelText(value) {
 }
 
 export async function roleMatrix({ sourceConfig, installedConfig }) {
-  const roles = ['build', 'plan', 'general', 'explore', 'design'];
+  const roles = ['build', 'plan', 'general', 'explore'];
   return roles.map((role) => {
     const source = sourceConfig?.agents?.[role] ?? {};
     const installed = installedConfig?.agents?.[role] ?? {};
