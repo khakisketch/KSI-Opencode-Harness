@@ -9,7 +9,7 @@
 //
 // Run: node tests/session-lifecycle-native.mjs
 // Env: KSI_HARNESS_ROOT, KSI_MODEL_PORT / KSI_SERVE_PORT, OPENCODE_BIN
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
@@ -78,7 +78,9 @@ function startFakeModel(port) {
             typeof m.content === "string" ? [m.content]
             : Array.isArray(m.content) ? m.content.map((p) => p.text ?? "") : []);
           const lastUser = [...texts].pop() ?? "";
-          const text = ("ACK:" + lastUser).slice(0, 400);
+          const summary = '## Objective\n- Test session continuity.\n\n## Requirements\n- Use isolated fixtures.\n\n## Decisions\n- Preserve work.\n\n## Work State\n### Completed\n- Initial prompt.\n\n### Active\n- Continue.\n\n### Blocked\n- (none)\n\n## Next Move\n1. Continue.\n\n## Relevant Files\n- (none)\n\n## Important Context\n- Fixture only.';
+          const isCompact = lastUser.includes('You MUST summarize the conversation') || lastUser.includes('previous response did not fill in the required summary template');
+          const text = isCompact ? summary : ("ACK:" + lastUser).slice(0, 400);
           const slow = lastUser.includes("SLOW-");
           const respond = () => {
           const id = `chatcmpl-ksilife-${Date.now()}`;
@@ -86,7 +88,7 @@ function startFakeModel(port) {
             choices: [{ index: 0, message: { role: "assistant", content: text }, finish_reason: "stop" }] };
           if (body.stream) {
             res.writeHead(200, { "Content-Type": "text/event-stream" });
-            res.end(`data: ${JSON.stringify({ id, object: "chat.completion.chunk", created: 1, model: "fixture", choices: [{ index: 0, delta: { role: "assistant", content: text }, finish_reason: null }] })}\n\ndata: [DONE]\n\n`);
+            res.end(`data: ${JSON.stringify({ id, object: "chat.completion.chunk", created: 1, model: "fixture", choices: [{ index: 0, delta: { role: "assistant", content: text }, finish_reason: null }] })}\n\ndata: ${JSON.stringify({ id, object: "chat.completion.chunk", created: 1, model: "fixture", choices: [{ index: 0, delta: {}, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`);
             return;
           }
           res.writeHead(200, { "Content-Type": "application/json" });
@@ -123,6 +125,44 @@ async function mustApi(method, p, body, what, wantStatus = 200) {
   if (r.status !== wantStatus) throw new Error(`${what}: HTTP ${r.status} (want ${wantStatus}): ${r.text.slice(0, 200)}`);
   return r.json;
 }
+// The stream is a notification source, not a durable queue. Keep consuming it
+// independently of assertions and always reconcile from session state.
+async function subscribeEvents() {
+  const controller = new AbortController();
+  const response = await fetch(`http://127.0.0.1:${SERVE_PORT}/api/event`, {
+    headers: { Authorization: AUTH, Accept: "text/event-stream" }, signal: controller.signal,
+  });
+  if (!response.ok || !response.body) throw new Error(`event subscription: HTTP ${response.status}`);
+  const events = [];
+  const reader = response.body.getReader();
+  const done = (async () => {
+    const decoder = new TextDecoder();
+    let pending = "";
+    try {
+      for (;;) {
+        const part = await reader.read();
+        if (part.done) break;
+        pending += decoder.decode(part.value, { stream: true }).replace(/\r\n/g, "\n");
+        let end;
+        while ((end = pending.indexOf("\n\n")) !== -1) {
+          const frame = pending.slice(0, end); pending = pending.slice(end + 2);
+          const data = frame.split("\n").filter((line) => line.startsWith("data:"))
+            .map((line) => line.slice(5).trimStart()).join("\n");
+          if (data) { try { events.push(JSON.parse(data)); } catch { events.push({ unparsed: data }); } }
+        }
+      }
+    } catch (error) { if (!controller.signal.aborted) throw error; }
+  })();
+  return { events, stop: async () => { controller.abort(); await done; } };
+}
+async function waitEvent(events, type, sessionID, timeoutMs = 10000) {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    if (events.some((e) => JSON.stringify(e).includes(type) && JSON.stringify(e).includes(sessionID))) return true;
+    await sleep(100);
+  }
+  return false;
+}
 function assistantTexts(messages) {
   return (messages ?? []).filter((m) => m?.type === "assistant" || m?.role === "assistant")
     .flatMap((m) => (m.content ?? []).map((p) => (typeof p === "string" ? p : p?.text ?? "")).join(""));
@@ -135,6 +175,15 @@ async function waitAssistant(id, marker, fetchMsgs, timeoutMs = 90000) {
     if (Date.now() - t0 > timeoutMs) return m;
     await sleep(2000);
   }
+}
+async function waitIdleAfter(id, marker, fetchMsgs, timeoutMs = 30000) {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    const messages = await fetchMsgs(id);
+    if ((messages.at(-1)?.type ?? messages.at(-1)?.role) === "idle" && assistantTexts(messages).includes(marker)) return true;
+    await sleep(200);
+  }
+  return false;
 }
 function allTexts(messages) {
   const out = [];
@@ -168,6 +217,7 @@ process.on("exit", onExit);
 async function main() {
   MODEL_PORT = await freePortNear(Number(process.env.KSI_MODEL_PORT ?? 41961));
   SERVE_PORT = await freePortNear(Number(process.env.KSI_SERVE_PORT ?? 41962));
+  if (SERVE_PORT === MODEL_PORT) SERVE_PORT = await freePortNear(SERVE_PORT + 1);
 
   const srcCfg = JSON.parse(stripJsonc(fs.readFileSync(path.join(REPO, "global", "opencode.jsonc"), "utf8")));
   if (srcCfg?.experimental?.subagent_depth !== 1) failClosed("CONTRACT-NOT-READY: depth != 1", String(srcCfg?.experimental?.subagent_depth));
@@ -228,6 +278,43 @@ async function main() {
     { location: LOC, agent: "build", model: { id: "fixture", providerID: "fixture" }, ...extra }, "session.create")).data;
   const msgs = async (id) => (await mustApi("GET", `/api/session/${id}/message?order=asc&limit=50`, undefined, "messages")).data ?? [];
 
+  // Subscribe before executing, then verify both notifications and durable
+  // message state. Disconnected events are deliberately not assumed replayable.
+  const stream = await subscribeEvents();
+  const eventSession = await mk({ title: "KSI event probe" });
+  await mustApi("POST", `/api/session/${eventSession.id}/prompt`, { text: "LIFECYCLE-EVENT" }, "event prompt");
+  const eventMessages = await waitAssistant(eventSession.id, "ACK:LIFECYCLE-EVENT", msgs, 30000);
+  const eventIdle = await waitIdleAfter(eventSession.id, "ACK:LIFECYCLE-EVENT", msgs);
+  check("E1 execution started event observed", await waitEvent(stream.events, "session.execution.started", eventSession.id));
+  check("E1 execution succeeded event observed", await waitEvent(stream.events, "session.execution.succeeded", eventSession.id));
+  check("E1 event session state independently confirms response and idle", assistantTexts(eventMessages).includes("ACK:LIFECYCLE-EVENT") && eventIdle);
+  fs.writeFileSync(path.join(ROOT, "event-probe.json"), JSON.stringify(stream.events, null, 2));
+  await stream.stop();
+  if (!eventIdle) failClosed("EVENT-SESSION-NOT-IDLE", "refusing follow-up while prior execution is not confirmed idle");
+  await mustApi("POST", `/api/session/${eventSession.id}/prompt`, { text: "LIFECYCLE-EVENT-OFFLINE" }, "disconnected event prompt");
+  await waitAssistant(eventSession.id, "ACK:LIFECYCLE-EVENT-OFFLINE", msgs, 30000);
+  const offlineIdle = await waitIdleAfter(eventSession.id, "ACK:LIFECYCLE-EVENT-OFFLINE", msgs);
+  const reconnected = await subscribeEvents();
+  const reconciled = await msgs(eventSession.id);
+  check("E2 state reconciled after disconnected event stream", assistantTexts(reconciled).includes("ACK:LIFECYCLE-EVENT-OFFLINE"));
+  if (!offlineIdle) failClosed("OFFLINE-SESSION-NOT-IDLE", "refusing follow-up while prior execution is not confirmed idle");
+  await mustApi("POST", `/api/session/${eventSession.id}/prompt`, { text: "LIFECYCLE-EVENT-RECONNECTED" }, "reconnected event prompt");
+  const reconnectedMessages = await waitAssistant(eventSession.id, "ACK:LIFECYCLE-EVENT-RECONNECTED", msgs, 30000);
+  check("E2 reconnected stream observes later execution", await waitEvent(reconnected.events, "session.execution.succeeded", eventSession.id) && assistantTexts(reconnectedMessages).includes("ACK:LIFECYCLE-EVENT-RECONNECTED"));
+  fs.writeFileSync(path.join(ROOT, "event-reconnected.json"), JSON.stringify(reconnected.events, null, 2));
+  await reconnected.stop();
+  if (!await waitIdleAfter(eventSession.id, "ACK:LIFECYCLE-EVENT-RECONNECTED", msgs)) failClosed("RECONNECTED-NOT-IDLE", "refusing duplicate-admission probe");
+  const stableID = `msg_${crypto.randomBytes(12).toString('hex')}`;
+  const duplicatePrompt = { id: stableID, text: 'LIFECYCLE-IDEMPOTENCY' };
+  await mustApi('POST', `/api/session/${eventSession.id}/prompt`, duplicatePrompt, 'first stable-id prompt');
+  if (!await waitIdleAfter(eventSession.id, 'ACK:LIFECYCLE-IDEMPOTENCY', msgs)) failClosed('IDEMPOTENCY-NOT-IDLE', 'first prompt did not complete');
+  const secondAdmission = await api('POST', `/api/session/${eventSession.id}/prompt`, duplicatePrompt);
+  await sleep(2000);
+  const duplicateMessages = await msgs(eventSession.id);
+  const matchingUsers = userTexts(duplicateMessages).filter((text) => text === duplicatePrompt.text).length;
+  const matchingReplies = assistantTexts(duplicateMessages).filter((text) => text === `ACK:${duplicatePrompt.text}`).length;
+  check('E3 repeated native message id does not duplicate completed prompt', secondAdmission.status === 200 && matchingUsers === 1 && matchingReplies === 1, `http=${secondAdmission.status} users=${matchingUsers} replies=${matchingReplies}`);
+
   // T1 create
   const s1 = await mk({ title: "KSI lifecycle probe" });
   check("T1 session.create returns id", typeof s1?.id === "string" && !!s1.id, s1?.id?.slice(0, 12));
@@ -250,8 +337,8 @@ async function main() {
   m = await waitAssistant(s1.id, "ACK:LIFECYCLE-SECOND", msgs);
   check("T4 same-session resume appends", assistantTexts(m).includes("ACK:LIFECYCLE-SECOND") && m.length >= 4, `msgs=${m.length}`);
 
-  // T5 (F1 documented): aborted experimental wait bricks that session's generation.
-  // Uses a sacrificial session so the main session stays healthy.
+  // Historical F1 probe, kept on a sacrificial session. A normal 204 wait
+  // response does not exercise abort-in-flight and cannot disprove F1.
   const sW = await mk({ title: "KSI wait-brick probe" });
   await mustApi("POST", `/api/session/${sW.id}/prompt`, { text: "LIFECYCLE-WAIT-BASE" }, "wait-baseline prompt");
   await waitAssistant(sW.id, "ACK:LIFECYCLE-WAIT-BASE", msgs, 60000);
@@ -266,21 +353,38 @@ async function main() {
   await wPrompt;
   const mW = await waitAssistant(sW.id, "ACK:LIFECYCLE-WAIT", msgs, 30000);
   const waitBricked = (wStatus === -1 || wElapsed >= 12000) && !assistantTexts(mW).includes("ACK:LIFECYCLE-WAIT");
-  check("T5 aborted wait never resolves; session stops generating (F1 documented)", waitBricked, `http=${wStatus} elapsed=${wElapsed}ms promptMs=${promptMs} promptOk=${!wPrompt?.__err}`);
+  console.log(`OBSERVED T5 prior F1 reproduction: ${waitBricked ? 'observed' : 'not observed'} — http=${wStatus} elapsed=${wElapsed}ms promptMs=${promptMs} promptOk=${!wPrompt?.__err}`);
 
-  // T5b: fresh session still generates (brick is per-session, not global)
+  // T5b: an independent fresh session still generates.
   const s2 = await mk({ title: "KSI lifecycle scope probe" });
   await mustApi("POST", `/api/session/${s2.id}/prompt`, { text: "LIFECYCLE-SCOPE" }, "scope prompt");
   const mS2 = await waitAssistant(s2.id, "ACK:LIFECYCLE-SCOPE", msgs, 60000);
-  check("T5b fresh session still generates (scope of stuck wait)", assistantTexts(mS2).includes("ACK:LIFECYCLE-SCOPE"));
-  // T6: fork of a HEALTHY session shares prefix but does not generate (F2 documented)
+  check("T5b independent fresh session generates", assistantTexts(mS2).includes("ACK:LIFECYCLE-SCOPE"));
+  const sAbort = await mk({ title: 'KSI wait abort recovery probe' });
+  await mustApi('POST', `/api/session/${sAbort.id}/prompt`, { text: 'SLOW-WAIT-ABORT' }, 'slow wait-abort prompt');
+  await sleep(500);
+  let aborted = false;
+  try {
+    await fetch(`http://127.0.0.1:${SERVE_PORT}/api/experimental/session/${sAbort.id}/wait`, {
+      method: 'POST', headers: { Authorization: AUTH }, signal: AbortSignal.timeout(1000),
+    });
+  } catch (error) { aborted = error?.name === 'TimeoutError' || error?.name === 'AbortError'; }
+  const firstAfterAbort = await waitIdleAfter(sAbort.id, 'ACK:SLOW-WAIT-ABORT', msgs, 20000);
+  check('T5c wait request was aborted while generation was active', aborted);
+  check('T5c in-flight generation completes after wait abort', firstAfterAbort);
+  if (firstAfterAbort) {
+    await mustApi('POST', `/api/session/${sAbort.id}/prompt`, { text: 'LIFECYCLE-AFTER-WAIT-ABORT' }, 'post-wait-abort prompt');
+    const recovered = await waitAssistant(sAbort.id, 'ACK:LIFECYCLE-AFTER-WAIT-ABORT', msgs, 30000);
+    check('T5c same session responds after wait abort', assistantTexts(recovered).includes('ACK:LIFECYCLE-AFTER-WAIT-ABORT'));
+  } else check('T5c same session responds after wait abort', false, 'first execution did not reach idle');
+  // T6: fork of a healthy session shares history; probe follow-up separately.
   const fh = (await mustApi("POST", `/api/session/${s2.id}/fork`, {}, "healthy fork")).data ?? {};
   check("T6 fork returns distinct id", typeof fh?.id === "string" && fh.id !== s2.id, fh?.id?.slice(0, 12));
   const mf = await msgs(fh.id);
   check("T6 fork shares history prefix", allTexts(mf).includes("LIFECYCLE-SCOPE"), `forkMsgs=${mf.length}`);
   await mustApi("POST", `/api/session/${fh.id}/prompt`, { text: "LIFECYCLE-FORK-ONLY" }, "fork prompt");
-  const mFork = await waitAssistant(fh.id, "FORK-ONLY", msgs, 30000);
-  check("T6 forked session does not generate (F2 documented)", !assistantTexts(mFork).includes("FORK-ONLY"));
+  const mFork = await waitAssistant(fh.id, "ACK:LIFECYCLE-FORK-ONLY", msgs, 30000);
+  check('T6 healthy fork responds to a new prompt', assistantTexts(mFork).includes("ACK:LIFECYCLE-FORK-ONLY"));
 
   // T9 queue during in-flight generation: order preserved, run unbroken
   const s3 = await mk({ title: "KSI queue probe" });
@@ -288,10 +392,9 @@ async function main() {
   await mustApi("POST", `/api/session/${s3.id}/prompt`, { text: "LIFECYCLE-QUEUED", delivery: "queue" }, "queued prompt");
   const mQ = await waitAssistant(s3.id, "ACK:LIFECYCLE-QUEUED", msgs, 60000);
   const allQ = allTexts(mQ);
-  // T9 (F3 documented): delivery:"queue" during in-flight generation is dropped.
-  // Client-side rule: poll messages for idle before sending follow-ups.
+  // Historical F3 reproduction; assert actual delivery rather than rewarding loss.
   const hasSlow = allQ.includes("ACK:SLOW-QUEUE-FIRST"), hasQ = allQ.includes("ACK:LIFECYCLE-QUEUED");
-  check("T9 queued in-flight prompt is dropped; slow one completes (F3 documented)", hasSlow && !hasQ, `msgs=${mQ.length} slow=${hasSlow} queued=${hasQ}`);
+  check("T9 queued prompt and preceding prompt both receive responses", hasSlow && hasQ, `msgs=${mQ.length} slow=${hasSlow} queued=${hasQ}`);
 
   // T10 session status shape: is there an idle/busy signal for client-side serialization?
   const st = await api("GET", `/api/session/${s3.id}`);
@@ -303,11 +406,23 @@ async function main() {
   const listR = await api("GET", `/api/experimental/session/${s3.id}/instructions/entries`);
   const entriesText = JSON.stringify(listR.json ?? {});
   check("T10b instructions.entry persists + lists", (putR.status === 200 || putR.status === 204 || putR.status === 201) && entriesText.includes("ksi-goal"), `put=${putR.status} get=${listR.status}`);
+  const compactReady = await waitIdleAfter(s1.id, "ACK:LIFECYCLE-SECOND", msgs);
+  if (!compactReady) failClosed("COMPACT-SESSION-NOT-IDLE", "refusing compaction while execution state is unclear");
+  const compactStream = await subscribeEvents();
   const c1 = await api("POST", `/api/session/${s1.id}/compact`, {});
   const c2shape = JSON.stringify(c1.json ?? {}).slice(0, 120);
   const stillOk = (await msgs(s1.id)).length >= 4;
   check("T7 compact succeeds on healthy session (HTTP 200)", c1.status === 200, `http=${c1.status} ${c2shape.slice(0, 60)}`);
-  check("T7 session stays usable after compact", stillOk, `msgs>=4`);
+  check("T7 prior messages remain after compact request", stillOk, `msgs>=4`);
+  const compactEnded = c1.status === 200 && await waitEvent(compactStream.events, "session.compaction.ended", s1.id, 30000);
+  check("T7 compaction completion event observed", compactEnded);
+  fs.writeFileSync(path.join(ROOT, "compact-events.json"), JSON.stringify(compactStream.events, null, 2));
+  await compactStream.stop();
+  if (compactEnded) {
+    await mustApi("POST", `/api/session/${s1.id}/prompt`, { text: "LIFECYCLE-POST-COMPACT" }, "post-compact prompt");
+    const postCompact = await waitAssistant(s1.id, "ACK:LIFECYCLE-POST-COMPACT", msgs, 30000);
+    check("T7 new assistant response after completed compaction", assistantTexts(postCompact).includes("ACK:LIFECYCLE-POST-COMPACT"));
+  } else check("T7 new assistant response after completed compaction", false, "completion not observed; follow-up not sent");
 
   // T8b: move of a HEALTHY session keeps it generatable (isolates move from T5 state)
   const hmv = await api("POST", `/api/session/${s2.id}/move`, { directory: WORKSPACE2 });
@@ -326,7 +441,7 @@ async function main() {
   const histOk = allTexts(mAfter).includes("LIFECYCLE-PING") && allTexts(mAfter).includes("ACK:LIFECYCLE-SECOND");
   check("R1 history survives server restart", histOk, `msgs=${mAfter.length}`);
   // R2: post-restart generation works on the healthy main session
-  // (restart is safe for healthy sessions; F1-bricked sessions stay bricked)
+  // This only proves restart behavior for this particular fixture session.
   await mustApi("POST", `/api/session/${s1.id}/prompt`, { text: "LIFECYCLE-POST-RESTART" }, "post-restart prompt");
   const mR2 = await waitAssistant(s1.id, "ACK:LIFECYCLE-POST-RESTART", msgs, 60000);
   check("R2 generation works after restart (healthy session)", assistantTexts(mR2).includes("ACK:LIFECYCLE-POST-RESTART"));
@@ -339,6 +454,29 @@ async function main() {
   } else {
     check("W0 location exposes project id", false, "no project id; worktree link untestable via API");
   }
+
+  // A separate unborn Git repository needs no commits or remote. Check the
+  // actual linked worktree, Native session location and uncommitted bytes.
+  const gitRoot = path.join(ROOT, 'git-fixture');
+  const gitWorktree = path.join(ROOT, 'git-fixture-worktree');
+  fs.mkdirSync(gitRoot);
+  const git = (...args) => {
+    const result = spawnSync('git', args, { env, encoding: 'utf8', timeout: 15000 });
+    if (result.status !== 0) throw new Error(`isolated git ${args[0]} failed: ${result.stderr?.slice(0, 300)}`);
+    return result.stdout;
+  };
+  git('init', '-q', gitRoot);
+  git('-C', gitRoot, 'worktree', 'add', '--orphan', '-b', 'ksi-fixture', gitWorktree);
+  const gitLoc = await mustApi('GET', `/api/location?location%5Bdirectory%5D=${encodeURIComponent(gitRoot)}`, undefined, 'git root location');
+  const wtLoc = await mustApi('GET', `/api/location?location%5Bdirectory%5D=${encodeURIComponent(gitWorktree)}`, undefined, 'worktree location');
+  check('W1 Git root and linked worktree map to one Native project', !!gitLoc?.project?.id && gitLoc.project.id === wtLoc?.project?.id);
+  const wtSession = await mk({ title: 'KSI linked worktree probe', location: { directory: gitWorktree } });
+  fs.writeFileSync(path.join(gitWorktree, 'progress.txt'), 'uncommitted work preserved\n');
+  await mustApi('POST', `/api/session/${wtSession.id}/prompt`, { text: 'LIFECYCLE-WORKTREE' }, 'worktree prompt');
+  const wtMessages = await waitAssistant(wtSession.id, 'ACK:LIFECYCLE-WORKTREE', msgs, 30000);
+  const wtInfo = (await mustApi('GET', `/api/session/${wtSession.id}`, undefined, 'worktree session')).data;
+  const status = git('-C', gitWorktree, 'status', '--porcelain');
+  check('W1 session location, response and uncommitted worktree bytes agree', wtInfo?.location?.directory === gitWorktree && wtInfo?.projectID === gitLoc?.project?.id && assistantTexts(wtMessages).includes('ACK:LIFECYCLE-WORKTREE') && status.includes('?? progress.txt') && fs.readFileSync(path.join(gitWorktree, 'progress.txt'), 'utf8') === 'uncommitted work preserved\n', `git-status=${status.trim()}`);
 
   try { fake.close(); } catch {}
   finish();
