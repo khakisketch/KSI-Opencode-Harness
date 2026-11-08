@@ -20,6 +20,9 @@
         "url": "https://api.mobbin.com/mcp",
         "disabled": false
       },
+      // Alternative path: the OpenCode plugin "@upstash/context7-opencode".
+      // Use exactly one of the MCP server or the plugin; enabling both
+      // registers the same Context7 tools twice.
       "context7": {
         "type": "remote",
         "url": "https://mcp.context7.com/mcp",

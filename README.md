@@ -175,7 +175,7 @@ Impeccable·Hallmark·Taste를 항상 함께 실행하지 않습니다. Hallmark
 
 ## 모델 운영
 
-Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 때는 Sol High,
+Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 때는 Muse Spark 1.3 Contributor나 Sol High,
 방향이 정해진 반복 개발에는 DeepSeek Flash Max를 선택하는 운영을 고려할 수 있습니다.
 사용 가능한 모델과 비용·데이터 정책은 각 환경에서 확인해야 합니다.
 
