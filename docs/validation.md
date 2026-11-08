@@ -11,7 +11,8 @@
 - [Oil UI](https://github.com/oil-oil/oil-ui) `65dee4e5262635651712c338ad7dbfe0929e318c` (스킬 0.33.0, MIT)을 격리 프로젝트에 복사했다. OpenCode 2.2.6의 Native 스킬 발견과 `resume:false` 활성화(HTTP 204·skill 메시지)를 확인했으나 이 활성화는 모델 추론이 아니다. 오프라인 `build_explorer.py`가 단순한 두 HTML 샘플의 비교 페이지를 생성하고 브라우저에 두 후보를 표시했다. 실제 디자인 대안이나 품질 비교가 아니다. 업데이트 확인은 `OIL_NO_UPDATE_CHECK=1`로 비활성화했다.
 - [Selector](https://github.com/oil-oil/selector) `0eb020b5a7266ea58a79126bf067f27d86950587` (0.4.1)을 로컬 빌드해 격리 HTML 화면에 주입했다. 합성 선택·주석과 대체 클립보드로 `#search`, 접근성 위치와 한글 수정 요청을 얻었고, 별도 코드 검색으로 `index.html:13`, `styles.css:10-12`를 찾았다. 북마클릿 설치·실제 클립보드·React 소스 매핑·사람의 사용성은 미검증이다. 설치 페이지는 에셋을 가져와 북마클릿을 조립하며, 내보낸 DOM·클립보드에는 민감한 내용이 담길 수 있다.
 - [draw-ui](https://github.com/oil-oil/draw-ui)와 Selector는 README에 MIT를 표기하지만 확인한 루트 `LICENSE` 경로는 없었다. 배포 전 라이선스 원문과 조건을 별도 확인한다. [Crit](https://github.com/tomasz-tomczyk/crit), [Superpowers](https://github.com/obra/superpowers), [Promptfoo](https://github.com/promptfoo/promptfoo)는 MIT, [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)는 Apache-2.0으로 조사했다. draw-ui의 선택적 스크립트는 이미지·프롬프트 전송과 Python 의존성 설치를 수반할 수 있고, Crit에는 외부 공유·명령 실행이 있다. Chrome DevTools MCP는 기본 통계와 일부 성능 도구의 CrUX 조회를 확인해야 한다.
-- 동일 과업에서 구현된 Oil UI 대 Impeccable의 통제 비교, 사람의 블라인드 인수, 실제 기능·데이터 보존 및 시간·비용 비교는 완료하지 않았다. Crit·draw-ui·Promptfoo의 실제 협업/품질 효과와 Promptfoo의 KSI OpenCode V2 호환성도 미검증이다. 따라서 어느 도구의 제품 품질 개선이나 비용 절감을 주장하지 않는다. 관련 작업 `ksi-harness-8mr`은 미완료로 유지한다.
+- 동일 과업에서 구현된 Oil UI 대 Impeccable의 통제 비교, 사람의 블라인드 인수, 실제 기능·데이터 보존 및 시간·비용 비교는 완료하지 않았다. Crit·draw-ui·Promptfoo의 실제 협업/품질 효과와 Promptfoo의 KSI OpenCode V2 호환성도 미검증이다. 따라서 어느 도구의 제품 품질 개선이나 비용 절감을 주장하지 않는다. 관련 작업 `ksi-harness-8mr`은 파일럿 미채택으로 종료했고, 스킬은 프로젝트 전용 선택형으로 복원했다.
+- 2026-11-08: Oil UI는 프로젝트 전용 선택형 스킬로 복원했다. 전역 배포하지 않고, 새 화면 방향 탐색에만 쓴다. 기존 제품 개선은 Impeccable 단일 사본을 쓴다. 두 스킬의 통제 비교는 여전히 미완료다.
 - Oil UI 원문과 `references/task-review.md`를 직접 읽은 독립 Design 평가자는 격리 화면을 조작해 상태 필터·검색·행 선택·상세 표시를 확인했다고 보고했다. 주요 관찰은 긴급·점검예정 항목이 기본 목록에 흩어져 있고, 경과한 점검일이 시각적으로 구분되지 않으며, 검색과 필터 조합의 활성 조건이 충분히 드러나지 않는다는 것이다. 빈 결과의 필터 초기화와 필터 밖 상세 안내는 긍정적으로 평가했다. 이는 평가자 보고이며 구현 개선의 증거가 아니다. 키보드·모바일·상태 변경은 미검증이고, 1280×575 기준 캡처는 목록 아래쪽을 잘라 전체 목록 판단에 충분하지 않았다. 다른 평가와의 비교는 결과 수신 후에만 가능하다.
 
 ### UI 패턴 선택 지침과 Design 실측 (2026-11-08)
@@ -56,6 +57,14 @@
 - 기존 생명주기 픽스처는 스트리밍 응답의 `finish_reason`을 누락했다. OpenCode는 텍스트를 표시한 뒤 `provider.invalid-output`으로 재시도했다. 따라서 이전 F1~F3 PASS를 Native 결함이나 복구 성공의 확정 근거로 쓰지 않는다. 수정된 픽스처에서 진행 중 `wait` 요청을 중단한 뒤 같은 세션이 응답했고, fork 후 응답과 queue 입력도 확인했다. 이전 fork 검사의 문자열 비교 역시 잘못됐다. 해당 조건의 결과이며 모든 버전·경합에 일반화하지 않는다. F4는 이 재실행에서 판정하지 않았다.
 - OpenCode 2.2.6 격리 서버·scripted 모델에서 이벤트 시작/완료, 연결 단절 후 메시지 재조회, 동일 Native 메시지 ID 재전송 시 단일 입력·응답, compaction 완료 후 신규 assistant 응답, 서버 재시작 후 응답을 확인했다: `node tests/session-lifecycle-native.mjs`. 별도 빈 Git 저장소·연결 worktree에서 Native 세션 위치·프로젝트 ID와 미커밋 파일도 대조했다. 실모델의 요약 품질이나 모든 이벤트 경합은 검증하지 않는다.
 - `node tests/delegation-native-integration.mjs`: Build가 blocking General 자식에게 구현을 맡기고, 실제 Node 테스트 실패 후 같은 자식에게 수정을 요청해 재시험했다. 완료된 compaction과 격리 서버 재시작 후 같은 Build 세션이 파일을 수정하고 테스트했다. Observer 제거로 실패 자식 관찰·interrupt·권한 대기 시나리오는 이 파일에서 제거됐다. scripted 모델이 순서를 지정하므로 자율적 판단의 증거가 아니다.
+- 지침 압축(2026-11-08): 공통 `global/AGENTS.md` 1,664→359 words, 프로젝트 `AGENTS.md` 813→225 words. Beads 전체 블록은 `bd prime` 포인터로 대체했다. 중복 `impeccable` 사본을 제거하고 Plan의 Native skill 권한 3종을 설치 검증에 추가했다. 오프라인 1/1, Native 4/4, 설치 2/2 통과. 이는 지침 구조·권한 검증이지 모델의 스킬 선택 품질 증거가 아니다.
+- P0~P3 정리(2026-11-08): Plan 자문 횟수 제한을 제거하고, General DGX override 서술을 실제 부모 상속 상태로 정정했다. Beads를 다단계 작업의 기본 추적기로 문서화했다. README·개발·설치 문서의 모델 서술을 설치본과 대조했다.
+
+### 제품 저장소 원클릭 분석 E2E (2026-11-08)
+
+- Site Intelligence Dashboard에 `npm run test:e2e:analysis`를 추가했다. Playwright 설정이 `analysis-e2e/`의 Vitest `.test.ts`까지 수집하던 문제를 `testMatch: "**/*.spec.ts"`로 차단했다.
+- macOS에서 `tmpdir()`가 `/var`와 `/private/var`로 갈라져 Python fixture가 런타임 루트를 거부하던 문제를 `realpathSync(tmpdir())`로 수정했다.
+- 실제 실행은 core fixture의 Linux 전용 `SO_PEERCRED` 검사에서 `inspection socket identity differs`로 중단됐다. config 로드·테스트 선택·fixture 초기화까지는 진행됐지만 전체 분석 왕복은 macOS에서 완료하지 못했다. 전체 분석 E2E는 Linux/CI에서 실행해야 한다.
 
 ### GitHub CI 가동 + 하드코딩 tmp 경로 수정 (2026-11-07)
 
@@ -86,6 +95,7 @@
 - Decisions API 도입: 서버 API 직접 호출로 채택 (별도 플러그인 없음 — credential 탐색 실패로 제거). `jev-1.13-free`, cost 0 확인. T1에서 Build 선판단(위임)과 Jev(direct 0.95) 불일치 기록, 실행 결과로 판정 예정. 사용법은 `docs/development.md`에 최소 기록.
 - Beads 파일럿: PR 리뷰 스크래치 저장소에 opt-in 도입, V1/V2 루프 추적·기각·미지적 기록. 이 Mac 하네스 루트 `AGENTS.md`(gitignore·로컬 전용)의 의무 사용 문구는 opt-in으로 수정 — 계획 권한은 Build/Plan 유지, Native todo 유효.
 - Sleev 파일럿 (1대·단일 provider): opencode-go 라우팅 → MiMo V1 블라인드 동등 판정(시드 결함·수치·깊이 동급) → 효과 미입증으로 즉시 `disable`, 설정 바이트 일치 복원. 채택 보류, 재측정 시 동일 프로토콜 사용. (초기 '차단' 판정은 서버 경로 실측 후 해소 — 로컬 capabilities 선언만 불가하고 서버 라우팅은 정상 동작.)
+- Sleev 재연결(2026-11-08): `sleev gateway start` → `sleev harness opencode enable opencode-go` → `opencode run --model opencode-go/deepseek-v4.1-flash`가 `SLEEV-OK`를 반환했다. 설정은 `baseURL=http://127.0.0.1:17321`과 provider 헤더만 추가했고, 이전 설정은 백업했다. 이는 라우팅·인증 경로 확인이며, 컨텍스트 최적화의 품질·토큰·비용 효과는 재측정하지 않았다. 문제 시 `sleev harness opencode disable --all`로 되돌린다.
 
 ## 권고 개선 (2026-11-02, 정리·Explore 변경 이후)
 

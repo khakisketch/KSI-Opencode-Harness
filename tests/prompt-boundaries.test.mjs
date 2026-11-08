@@ -108,9 +108,8 @@ describe('native config edges for four profiles (source only)', () => {
     const cfg = JSON.parse(strippedJsonc());
     assert.equal(cfg.agents.design, undefined);
     const instructions = read('global/AGENTS.md');
-    assert.match(instructions, /\*\*Interface structure\.\*\*/);
-    assert.match(instructions, /rather than restyling/);
-    assert.match(instructions, /passing them does not show that the structure fits the task/);
+    assert.match(instructions, /For UI work, assess the user's task/);
+    assert.match(instructions, /does not prove the structure fits/);
     assert.doesNotMatch(instructions, /blacklist (cards|charts)/i);
   });
 });

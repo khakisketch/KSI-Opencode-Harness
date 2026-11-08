@@ -79,8 +79,8 @@ KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니
 | 역할 | 맡는 일 | 모델(로컬 권장, 소스는 고정 안 함) |
 | --- | --- | --- |
 | **Build** | 사용자 의도를 유지하며 직접 해결하고 최종 결과를 확인합니다. 유일한 개발 총괄이며 중간 소유자를 두지 않습니다. | 세션에서 선택 (이 Mac 권장: Muse Spark 1.3 Contributor) |
-| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. 본격 구현 전 Build가 한 번 자문할 수 있습니다(선택). | 권장: Go Muse Spark 1.3 Contributor xhigh |
-| **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속이 기본. 이 Mac은 DGX Spark `qwen-flash-next` 사용 중 |
+| **Plan** | 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며 조사 위임은 Explore만 사용합니다. Build가 필요할 때 여러 번 자문할 수 있습니다(선택). | 권장: Go Muse Spark 1.3 Contributor xhigh |
+| **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. | 부모 상속. DGX Spark override는 2026-11-06 제거됨 |
 | **Explore** | 코드와 자료를 찾아 읽고 분석합니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
 
 > [!IMPORTANT]
@@ -179,13 +179,10 @@ Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 
 방향이 정해진 반복 개발에는 DeepSeek Flash Max를 선택하는 운영을 고려할 수 있습니다.
 사용 가능한 모델과 비용·데이터 정책은 각 환경에서 확인해야 합니다.
 
-이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 분석·작업 전 자문의 Plan에 Go Muse Spark 1.3 Contributor xhigh,
-읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High입니다. General은 부모 상속이 기본이며, 이 Mac에서만 실제 접속·도구 왕복을 확인한 뒤
-DGX Spark `qwen-flash-next`로 사용 중입니다. 이 경로는 Tailscale에 의존합니다. LAN 주소는 macOS
-Local Network Privacy가 `node`를 아직 허용하지 않아 Node에서 `EHOSTUNREACH`였고, 그래서 Tailscale IP를
-사용합니다. 시스템 설정의 로컬 네트워크에서 `node`를 허용하면 LAN IP도 사용할 수 있습니다. DGX가 꺼지거나 Tailscale이 끊기면 General 호출이
-실패하므로 수동으로 상속 모델로 되돌리며, 자동 제공자 전환·추가 과금 활성화는 하지 않습니다.
-공유 소스는 모델을 고정하지 않으므로, 위 권장값과 머신별 주소·모델은 다른 컴퓨터에 복사하지 않습니다.
+이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 설계 자문의 Plan에 Go Muse Spark 1.3 Contributor xhigh,
+읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High입니다. General은 부모 상속을 사용합니다. DGX Spark `qwen-flash-next` override는
+2026-11-06 서버 다운으로 제거했고, 복구 후 제한된 Native 왕복 검증을 통과할 때만 재도입합니다. 자동 제공자 전환·추가 과금 활성화는 하지 않습니다.
+공유 소스는 모델을 고정하지 않으므로, 위 권장값과 머신별 설정은 다른 컴퓨터에 복사하지 않습니다.
 
 어느 모델이 항상 더 낫다는 결론은 아직 없습니다. [모델 시험과 한계](docs/validation.md)
 
@@ -207,9 +204,13 @@ Build가 메인 체크아웃에서 통합·검증합니다. 미커밋 변경이 
 
 ## 작업 상태·기억 (프로젝트별 Beads)
 
-작업 상태·의존성·진행 이력은 해당 프로젝트의 Beads(`bd`)가 정본입니다. `bd create/claim/close`로 추적하고, 비드에는 목표·수용 기준·핵심 참조를 반드시 적습니다.
+작업 상태·의존성·진행 이력은 해당 프로젝트의 Beads(`bd`)가 정본입니다. 다단계·장기 작업의 기본 추적기로 사용하고, 단순 수정은 이슈를 만들지 않습니다. `bd create/claim/close`로 추적하고, 비드에는 목표·수용 기준·핵심 참조를 반드시 적습니다.
 설계 결정의 정본은 Git/프로젝트 문서, 실행 증거는 [증거팩](docs/evidence-pack.md) 5항을 따릅니다.
 중요한 결정·재사용 지식만 `bd remember`로 남기고, 모든 실행 기록을 자동 저장하지 않습니다. 기억보다 현재 사용자 요청과 프로젝트의 실제 상태가 우선합니다.
+
+### 컨텍스트 최적화 (선택형 Sleev)
+
+Sleev는 긴 세션의 컨텍스트를 최적화하는 로컬 게이트웨이입니다. 작업 상태·설계 정본을 대신하지 않습니다. 이 Mac에서는 `opencode-go` 경로를 Sleev에 연결해 사용 중이며, 다른 환경은 기본 비활성입니다. 평가·복구 절차는 [개발 문서](docs/development.md#컨텍스트-최적화-선택형-sleev)를 따릅니다.
 
 ---
 
