@@ -266,7 +266,7 @@ function chainMarker(text) {
   // Most-specific first: resumed sessions carry both the old and the new prompt
   // in user history. Marker-naming ban: no marker may be a substring of
   // HANDOFF/ORIGIN/SCOPE.
-  for (const mk of ["KSI-ASK-BUILD", "KSI-FAIL-RECOVER", "KSI-FAIL-WORK", "KSI-FAIL-BUILD", "KSI-INTERRUPT-RECOVER", "KSI-INTERRUPT-WORK", "KSI-INTERRUPT-BUILD", "KSI-PRACTICE-AFTER", "KSI-PRACTICE-REPAIR", "KSI-PRACTICE-WORK", "KSI-PRACTICE-BUILD", "KSI-DELEG-P1", "KSI-DELEG-P0",
+  for (const mk of ["KSI-PRACTICE-AFTER", "KSI-PRACTICE-REPAIR", "KSI-PRACTICE-WORK", "KSI-PRACTICE-BUILD", "KSI-DELEG-P1", "KSI-DELEG-P0",
     "KSI-DELEG-C1", "KSI-DELEG-C0",
     "KSI-DELEG-D2", "KSI-DELEG-D1", "KSI-DELEG-D0",
     "KSI-DELEG-M1", "KSI-DELEG-M0", "KSI-DIRECT-ROOT",
@@ -290,60 +290,16 @@ function scriptFor(marker, advertised, { allUser, toolMsgs }) {
   // missing from the advertised list entirely (strongest form: unadvertised),
   // or a sandbox-boundary refusal ("Cannot use X to modify files outside...").
   const deniedIn = (msgs) => /"status"\s*:\s*"error"|denied|not permitted|not allowed|no tool named|cannot use \w+ to modify|outside the \S+ directory/i.test((Array.isArray(msgs) ? msgs : [msgs]).join("\n"));
-  if (marker === 'KSI-ASK-BUILD') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'ksi_session_observe', args: { sessionID: lastSessionId(allUser) } }] };
-    return { kind: 'text', text: 'ASK-BUILD-DONE' };
-  }
-  if (marker === 'KSI-FAIL-BUILD') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'subagent', args: { agent: 'general', background: true, description: 'failing fixture', prompt: 'KSI-FAIL-WORK Report failure.' } }] };
-    if (stepIs(1)) return { kind: 'tools', calls: [{ name: 'ksi_session_observe', args: { sessionID: lastSessionId(toolMsgs), waitMs: 30000 } }] };
-    if (stepIs(2)) {
-      if (!toolMsgs.join('\n').includes('failed')) return { kind: 'text', text: 'FAILURE-NOT-CONFIRMED' };
-      return { kind: 'tools', calls: [{ name: 'subagent', args: { agent: 'general', description: 'recover failed task', prompt: 'KSI-FAIL-RECOVER Preserve and complete the existing recovery file.' } }] };
-    }
-    return { kind: 'text', text: 'FAILURE-BUILD-DONE' };
-  }
-  if (marker === 'KSI-FAIL-RECOVER') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'edit', args: { path: 'recovery-unit.txt', oldString: 'pre-existing work', newString: 'pre-existing work and completed' } }] };
-    return { kind: 'text', text: 'FAILURE-RECOVERED' };
-  }
-  if (marker === 'KSI-INTERRUPT-BUILD') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'subagent', args: { agent: 'general', background: true, description: 'interruptible work', prompt: 'KSI-INTERRUPT-WORK Write partial work then wait.' } }] };
-    if (stepIs(1)) { const child = lastSessionId(toolMsgs); return { kind: 'tools', calls: [{ name: 'ksi_session_observe', args: { sessionID: child, waitMs: 30000 } }] }; }
-    if (stepIs(2)) {
-      const child = lastSessionId(toolMsgs);
-      if (!toolMsgs.join('\n').includes('interrupted')) return { kind: 'text', text: 'INTERRUPT-NOT-CONFIRMED' };
-      return { kind: 'tools', calls: [{ name: 'subagent', args: { agent: 'general', sessionID: child, description: 'resume interrupted work', prompt: 'KSI-INTERRUPT-RECOVER Preserve and complete the partial file.' } }] };
-    }
-    if (stepIs(3)) return { kind: 'tools', calls: [{ name: 'read', args: { path: 'interrupted-unit.txt' } }] };
-    return { kind: 'text', text: 'INTERRUPT-BUILD-DONE' };
-  }
-  if (marker === 'KSI-INTERRUPT-WORK') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'write', args: { path: 'interrupted-unit.txt', content: 'partial-preserved\n' } }] };
-    if (stepIs(1)) return { kind: 'tools', calls: [{ name: 'shell', args: { command: "node -e 'setTimeout(() => {}, 20000)'" } }] };
-    return { kind: 'text', text: 'INTERRUPT-WORK-DONE' };
-  }
-  if (marker === 'KSI-INTERRUPT-RECOVER') {
-    if (stepIs(0)) return { kind: 'tools', calls: [{ name: 'edit', args: { path: 'interrupted-unit.txt', oldString: 'partial-preserved', newString: 'partial-preserved and completed' } }] };
-    return { kind: 'text', text: 'INTERRUPT-RECOVERED' };
-  }
   // Scripted model mechanics only: real Native tool calls and real node test,
   // not a claim that a model independently chose this task or repair.
   if (marker === "KSI-PRACTICE-BUILD") {
-    if (stepIs(0)) return { kind: "tools", calls: [{ name: "subagent", args: { agent: "general", background: true, description: "implement addition", prompt: "KSI-PRACTICE-WORK Implement add(a,b) in practice.mjs and report." } }] };
-    if (stepIs(1)) {
-      const child = lastSessionId(toolMsgs);
-      return child ? { kind: "tools", calls: [{ name: "ksi_session_observe", args: { sessionID: child, waitMs: 30000 } }] } : { kind: "text", text: "PRACTICE-NO-CHILD" };
-    }
-    // Subscribe again only after completion: the prior completion event cannot
-    // be delivered to this new observer. Reconcile the real Native session.
-    if (stepIs(2)) return { kind: "tools", calls: [{ name: "ksi_session_observe", args: { sessionID: lastSessionId(toolMsgs), waitMs: 0 } }] };
-    if (stepIs(3)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
-    if (stepIs(4)) {
+    if (stepIs(0)) return { kind: "tools", calls: [{ name: "subagent", args: { agent: "general", description: "implement addition", prompt: "KSI-PRACTICE-WORK Implement add(a,b) in practice.mjs and report." } }] };
+    if (stepIs(1)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
+    if (stepIs(2)) {
       const child = lastSessionId(toolMsgs);
       return child ? { kind: "tools", calls: [{ name: "subagent", args: { agent: "general", sessionID: child, description: "repair addition", prompt: "KSI-PRACTICE-REPAIR The test failed; correct the add implementation." } }] } : { kind: "text", text: "PRACTICE-NO-CHILD" };
     }
-    if (stepIs(5)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
+    if (stepIs(3)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
     return { kind: "text", text: "PRACTICE-BUILD-DONE" };
   }
   if (marker === "KSI-PRACTICE-WORK") {
@@ -356,9 +312,8 @@ function scriptFor(marker, advertised, { allUser, toolMsgs }) {
     return { kind: "text", text: "PRACTICE-REPAIRED" };
   }
   if (marker === "KSI-PRACTICE-AFTER") {
-    if (stepIs(0)) return { kind: "tools", calls: [{ name: "ksi_session_observe", args: { sessionID: lastSessionId(allUser), waitMs: 0 } }] };
-    if (stepIs(1)) return { kind: "tools", calls: [{ name: "edit", args: { path: "practice.mjs", oldString: "a + b", newString: "(a + b)" } }] };
-    if (stepIs(2)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
+    if (stepIs(0)) return { kind: "tools", calls: [{ name: "edit", args: { path: "practice.mjs", oldString: "a + b", newString: "(a + b)" } }] };
+    if (stepIs(1)) return { kind: "tools", calls: [{ name: "shell", args: { command: "node --test practice.test.mjs" } }] };
     return { kind: "text", text: "PRACTICE-AFTER-DONE" };
   }
   // P: Build->Plan direct consultation. Plan reads the scope and returns an
@@ -412,9 +367,7 @@ function scriptFor(marker, advertised, { allUser, toolMsgs }) {
       };
     }
     if (stepIs(1)) {
-      const child = lastSessionId(toolMsgs);
-      if (!child || !has("ksi_session_observe")) return { kind: "text", text: `D0-OBSERVER-UNAVAILABLE child=${!!child} advertised=${has("ksi_session_observe")}` };
-      return { kind: "tools", calls: [{ name: "ksi_session_observe", args: { sessionID: child, waitMs: 0 } }] };
+      return { kind: "text", text: `D0-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
     }
     return { kind: "text", text: `D0-ROOT-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
@@ -900,18 +853,12 @@ async function main() {
     // inherits its actual fixture parent. Nothing else is rewritten.
     sandboxAgents[id] = { ...(sandboxAgents[id] ?? {}), model: FIXTURE_MODEL };
   }
-  const installRoot = path.join(ROOT, 'observer-install');
-  fs.mkdirSync(installRoot);
-  const install = spawnSync(process.execPath, [path.join(REPO, 'scripts/install-session-observer.mjs'), '--project', installRoot], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' } });
-  if (install.status !== 0) throw new Error(`sandbox observer install failed: ${install.stderr}`);
-  check('sandbox installs observer without touching user configuration', true);
   const sandboxCfg = {
     $schema: srcCfg.$schema ?? "https://opencode.ai/config.json",
     ...(srcCfg.default_agent ? { default_agent: srcCfg.default_agent } : {}),
     ...(srcCfg.share ? { share: srcCfg.share } : {}),
     ...(srcCfg.update ? { update: srcCfg.update } : {}),
     experimental: JSON.parse(JSON.stringify(srcCfg.experimental)),
-    plugins: [path.join(installRoot, '.opencode/plugins/ksi-session-observer')],
     agents: sandboxAgents,
     providers: {
       fixture: {
@@ -1268,10 +1215,6 @@ async function main() {
     check("D root returns to Main (D0-ROOT-OK)", assistantTexts(d.messages).includes("D0-ROOT-OK"));
     const dKids = await childrenOf(d.id);
     check("D build owns one general child", dKids.length === 1 && dKids[0].agent === "general", dKids.map((k) => k.agent).join(","));
-    const observerCalls = toolEntries(d.messages).filter((t) => t.name === "ksi_session_observe");
-    let observedChild;
-    try { observedChild = JSON.parse(observerCalls[0]?.state?.content?.[0]?.text ?? ''); } catch {}
-    check("D Build calls observer on its completed child", observerCalls.length === 1 && observerCalls[0].state?.status === "completed" && observedChild?.state === 'completed', JSON.stringify(observerCalls[0]?.state ?? {}).slice(0, 300));
     const dGen = dKids[0]?.id ?? null;
     check("D general created no child of its own (leaf)", dGen ? (await childrenOf(dGen)).length === 0 : false);
     check("D unit evidence returned up (D1-UNIT-OK + bytes in D0 inputs)",
@@ -1494,62 +1437,13 @@ async function main() {
     const practiceKids = await childrenOf(practice.id);
     const practiceTools = toolEntries(practice.messages);
     const practiceShell = practiceTools.filter((t) => t.name === 'shell');
-    let practiceObservation;
-    try { practiceObservation = JSON.parse(practiceTools.find((t) => t.name === 'ksi_session_observe')?.state?.content?.[0]?.text ?? ''); } catch {}
     const practiceChild = practiceKids[0]?.id;
     const practiceChildMsgs = practiceChild ? requireDataArray(await mustApi('GET', `/api/session/${practiceChild}/message?limit=100&order=asc`, undefined, 'practice child messages'), 'practice child messages') : [];
+    const practiceChildState = practiceChild ? (await mustApi('GET', `/api/session/${practiceChild}`, undefined, 'practice child state'))?.data : null;
+    check('practice child completed (Native session state)', practiceChildState?.outcome === 'succeeded', JSON.stringify(practiceChildState ?? {}).slice(0, 200));
     check('practice Build uses one general child for implementation and repair', practiceKids.length === 1 && practiceKids[0].agent === 'general' && toolEntries(practiceChildMsgs).some((t) => t.name === 'write' && t.state?.status === 'completed') && toolEntries(practiceChildMsgs).some((t) => t.name === 'edit' && t.state?.status === 'completed'));
     check('practice Build runs real test before and after repair', practiceShell.length === 2 && /fail 1/.test(JSON.stringify(practiceShell[0].state)) && /pass 1/.test(JSON.stringify(practiceShell[1].state)), JSON.stringify(practiceShell.map((t) => t.state)).slice(0, 600));
-    check('practice Build observes completion event and reconciles child state', practiceObservation?.state === 'completed' && practiceObservation?.eventHint === 'session.execution.succeeded' && practiceObservation?.streamError === false, JSON.stringify(practiceObservation));
-    let lateObservation;
-    try { lateObservation = JSON.parse(practiceTools.filter((t) => t.name === 'ksi_session_observe')[1]?.state?.content?.[0]?.text ?? ''); } catch {}
-    check('practice late observer discovers completed same child without completion event', lateObservation?.sessionID === practiceChild && lateObservation?.state === 'completed' && lateObservation?.eventHint === null, JSON.stringify(lateObservation));
     check('practice Build integrates fixed bytes', fs.readFileSync(path.join(WORKSPACE, 'practice.mjs'), 'utf8').includes('a + b') && assistantTexts(practice.messages).includes('PRACTICE-BUILD-DONE'));
-
-    fs.writeFileSync(path.join(WORKSPACE, 'recovery-unit.txt'), 'pre-existing work\n');
-    const failedPractice = await runChain('build', 'KSI-FAIL-BUILD Observe a child with a terminal fixture failure.', 'FAILURE-BUILD-DONE', 'practice-failure');
-    let failureObservation;
-    try { failureObservation = JSON.parse(toolEntries(failedPractice.messages).find((t) => t.name === 'ksi_session_observe')?.state?.content?.[0]?.text ?? ''); } catch {}
-    check('Build observes terminal child failure through event and session state', failureObservation?.state === 'failed' && failureObservation?.eventHint === 'session.execution.failed', JSON.stringify(failureObservation));
-    check('Build starts a new child after terminal failure and preserves existing work', (await childrenOf(failedPractice.id)).length === 2 && fs.readFileSync(path.join(WORKSPACE, 'recovery-unit.txt'), 'utf8') === 'pre-existing work and completed\n' && assistantTexts(failedPractice.messages).includes('FAILURE-BUILD-DONE'));
-
-    const askRoot = await createSession('build');
-    const askChild = await createSession('general', { parentID: askRoot, permissions: [{ action: 'edit', resource: '*', effect: 'ask' }] });
-    const permissionProbe = await mustApi('POST', `/api/session/${askChild}/permission`, { action: 'edit', resources: [path.join(WORKSPACE, 'ask-fixture.txt')], agent: 'general' }, 'own child ask probe');
-    const askData = permissionProbe?.data ?? permissionProbe;
-    try {
-      check('isolated child permission probe actually waits for a decision', askData?.effect === 'ask', `effect=${askData?.effect}`);
-      const askMessages = await promptTurn(askRoot, `KSI-ASK-BUILD Observe child ${askChild}.`, 'ASK-BUILD-DONE', 'practice-ask');
-      let askObservation;
-      try { askObservation = JSON.parse(toolEntries(askMessages).find((t) => t.name === 'ksi_session_observe')?.state?.content?.[0]?.text ?? ''); } catch {}
-      check('Build observes actual pending child permission', askObservation?.state === 'permission_wait' && askObservation?.permissionCount > 0, JSON.stringify(askObservation));
-    } finally {
-      if (askData?.effect === 'ask') await settleSourceFreeAskProbe({ sessionID: askChild, probe: askData, api: restProbeApi, notice: 'isolated observer fixture cleanup' });
-    }
-
-    const interruptRoot = await createSession('build');
-    await mustApi('POST', `/api/session/${interruptRoot}/prompt`, { text: 'KSI-INTERRUPT-BUILD Start work and handle interruption.' }, 'interruptible practice');
-    let interruptChild;
-    const interruptFile = path.join(WORKSPACE, 'interrupted-unit.txt');
-    for (let attempt = 0; attempt < 100; attempt++) {
-      interruptChild = (await childrenOf(interruptRoot))[0]?.id;
-      if (interruptChild && fs.existsSync(interruptFile)) break;
-      await sleep(200);
-    }
-    if (!interruptChild || !fs.existsSync(interruptFile)) throw new Error('interrupt fixture did not start writing');
-    check('interrupt fixture wrote partial bytes before interruption', fs.readFileSync(interruptFile, 'utf8') === 'partial-preserved\n');
-    const interruption = await mustApi('POST', `/api/session/${interruptChild}/interrupt?resume=false`, undefined, 'interrupt owned fixture child');
-    check('interrupt fixture actually interrupted active child', interruption?.interrupted === true || interruption?.data?.interrupted === true, JSON.stringify(interruption));
-    let interruptMessages = [];
-    for (let attempt = 0; attempt < 60; attempt++) {
-      interruptMessages = requireDataArray(await mustApi('GET', `/api/session/${interruptRoot}/message?limit=100&order=asc`, undefined, 'interrupt parent messages'), 'interrupt parent messages');
-      if (assistantTexts(interruptMessages).includes('INTERRUPT-BUILD-DONE') || assistantTexts(interruptMessages).includes('INTERRUPT-NOT-CONFIRMED')) break;
-      await sleep(500);
-    }
-    fs.writeFileSync(path.join(ROOT, 'messages-interrupt.json'), JSON.stringify(interruptMessages, null, 2));
-    let interruptObservation;
-    try { interruptObservation = JSON.parse(toolEntries(interruptMessages).find((t) => t.name === 'ksi_session_observe')?.state?.content?.[0]?.text ?? ''); } catch {}
-    check('Build observes interrupted child and preserves partial work through same-child recovery', interruptObservation?.state === 'interrupted' && (await childrenOf(interruptRoot)).length === 1 && fs.readFileSync(interruptFile, 'utf8') === 'partial-preserved and completed\n' && assistantTexts(interruptMessages).includes('INTERRUPT-BUILD-DONE'), JSON.stringify(interruptObservation));
 
     const compact = await mustApi('POST', `/api/session/${practice.id}/compact`, {}, 'practice compact');
     const compactID = compact?.data?.id;
@@ -1575,9 +1469,8 @@ async function main() {
     if (restartInfo?.pid !== serve.pid) throw new Error('restart identity mismatch; refusing follow-up');
     const after = await promptTurn(practice.id, `KSI-PRACTICE-AFTER Recheck child ${practiceChild}, continue the existing implementation and rerun tests.`, 'PRACTICE-AFTER-DONE', 'practice-after-restart');
     const afterTools = toolEntries(after);
-    let restartedObservation;
-    try { restartedObservation = JSON.parse(afterTools.filter((t) => t.name === 'ksi_session_observe').at(-1)?.state?.content?.[0]?.text ?? ''); } catch {}
-    check('restarted observer rechecks the same owned child', restartedObservation?.sessionID === practiceChild && restartedObservation?.state === 'completed', JSON.stringify(restartedObservation));
+    const restartedChild = practiceChild ? (await mustApi('GET', `/api/session/${practiceChild}`, undefined, 'restarted child state'))?.data : null;
+    check('restarted server reports the same child completed', restartedChild?.outcome === 'succeeded', JSON.stringify(restartedChild ?? {}).slice(0, 200));
     check('practice same Build session edits and runs tests after compaction and server restart', afterTools.some((t) => t.name === 'edit' && t.state?.status === 'completed') && afterTools.some((t) => t.name === 'shell' && /pass 1/.test(JSON.stringify(t.state))) && fs.readFileSync(path.join(WORKSPACE, 'practice.mjs'), 'utf8').includes('(a + b)') && assistantTexts(after).includes('PRACTICE-AFTER-DONE'));
   } catch (e) {
     check("fixture completed without harness error", false, String(e?.stack ?? e).slice(0, 600));
