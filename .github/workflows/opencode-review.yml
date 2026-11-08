@@ -1,0 +1,46 @@
+name: opencode-review
+
+# Optional read-only PR review.
+# Enable for PRs with: gh variable set OPENCODE_REVIEW_ENABLED --body true
+# Requires: gh secret set OPENCODE_API_KEY
+# It never edits files, pushes, approves, or merges.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  review:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (vars.OPENCODE_REVIEW_ENABLED == 'true' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Review pull request (read-only)
+        uses: anomalyco/opencode/github@17b79f4e0c16dcff200b0417567ed22aeb2d7166
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode/deepseek-v4.1-flash-free' }}
+          use_github_token: true
+          prompt: |
+            Review this pull request read-only. Do not modify files, push commits,
+            create branches, approve, or merge.
+
+            Report concrete findings with file and line references, severity, and
+            why each matters. Focus on behavior, data contracts, security, and
+            regressions. If nothing material is wrong, say so briefly instead of
+            inventing issues.
