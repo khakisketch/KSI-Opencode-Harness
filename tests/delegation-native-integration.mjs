@@ -1,4 +1,4 @@
-// Delegation native integration test: depth-1 dynamic delegation on real OpenCode v2 CLI.
+// Delegation native integration test: depth-2 single-edge delegation on real OpenCode v2 CLI.
 //
 // Spins up, in a private HOME/XDG sandbox:
 //   1. a local scripted OpenAI-compatible model server (no external models/credentials),
@@ -13,21 +13,19 @@
 //        - `mcp` section removed (no remote URLs / credential references),
 //        - no top-level permission widening, no invented config keys.
 //
-// Contract under test (depth 1, root = 0; Build is the sole development owner):
+// Contract under test (depth 2, root = 0; Build is the sole development owner):
 //   Four operating profiles: build (primary), plan (all, optional consultation),
 //   and general/explore (subagent leaves). No intermediate owner. Build fans
-//   out to Plan/General/Explore directly; children never delegate. Plan keeps
-//   its Explore-only edge for root-level use; as a depth-1 child the Native
-//   depth guard — not policy — stops any Plan->Explore attempt.
+//   out to Plan/General/Explore directly. Plan may call Explore (the only
+//   second-level edge); General and Explore call no subagents.
 //
 // The scripted model drives REAL native `subagent` tool calls through representative
 // runtime chains (script markers in Native tool I/O only verify delegation mechanics;
 // they say nothing about model quality):
 //   P  build(0) -> plan(1, analysis only, ZERO subagent calls)   (optional direct
 //      Plan consultation: result returned to Main, never a required stage)
-//   C  build(0) -> plan(1) -> explore(2) ATTEMPTED and refused by the depth guard
-//      (no depth-2 child may be created; the tool must be advertised yet fail
-//      closed with a depth error — this is the depth-1 contract proof)
+//   C  build(0) -> plan(1) -> explore(2) ALLOWED (the only depth-2 edge;
+//      Explore is a leaf and returns its evidence to Plan)
 //   D  build(0) -> general(1, write+read unit file, then SAME child resumed for
 //      repair)   (Build-owned worker: real write/test/follow-up repair via one
 //      owned general child; completion returns to Main)
@@ -64,8 +62,8 @@
 //      overlap required, serialization fails as NOT PROVEN)
 //   X  retired-target fresh-call exclusion at REAL call time from the build
 //      root. Removed engineer/lead must fail closed (agent-not-found or
-//      denial) and create no child session. A depth-1 plan child would hit
-//      the depth guard first, which chain C already proves separately.
+//      denial) and create no child session. Plan's only edge is Explore, so
+//      retired targets are absent from every caller's edge list.
 // J/M/T/D/V/L task-local files are SEPARATE plus the shared read-only scope
 // contract; no user projects/services are touched. This bound integration proves
 // delegation mechanics only, not a workflow engine, real model quality, rendered
@@ -78,7 +76,7 @@
 //       KSI_MODEL_PORT / KSI_SERVE_PORT (defaults 41951/41952; auto-bumped if busy)
 //       OPENCODE_BIN (default opencode)
 // Fails closed with CONTRACT-NOT-READY when the repo source does not yet declare the
-// depth-1 / four-profile contract; it never weakens permissions or falls back to interim
+// depth-2 single-edge / four-profile contract; it never weakens permissions or falls back to interim
 // roles to achieve a chain.
 import { spawn, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
@@ -108,7 +106,8 @@ const AUTH = "Basic " + Buffer.from(`opencode:${PASSWORD}`).toString("base64");
 const FIXTURE_MODEL = "fixture/fixture";
 const UNKNOWN = "no-such-agent-ksi-probe";
 
-// Contract under test (depth 1, root = 0; a max allowance, not a mandatory tree).
+// Contract under test (depth 2, root = 0; a max allowance, not a mandatory tree;
+// Plan -> Explore is the only second-level edge).
 // Four operating profiles: build (primary), plan (all, optional consultation),
 // general/explore (subagent leaves). The Lead role and the superseded
 // specialists (including Design, retired 2026-11-08) were REMOVED with user
@@ -119,7 +118,7 @@ const UNKNOWN = "no-such-agent-ksi-probe";
 // docs/archive/agents/architect.md (out of discovery) and appears in NO edge
 // list either.
 const CONTRACT = {
-  depth: 1,
+  depth: 2,
   modes: {
     plan: "all",
     general: "subagent", explore: "subagent",
@@ -267,7 +266,7 @@ function chainMarker(text) {
   // in user history. Marker-naming ban: no marker may be a substring of
   // HANDOFF/ORIGIN/SCOPE.
   for (const mk of ["KSI-PRACTICE-AFTER", "KSI-PRACTICE-REPAIR", "KSI-PRACTICE-WORK", "KSI-PRACTICE-BUILD", "KSI-DELEG-P1", "KSI-DELEG-P0",
-    "KSI-DELEG-C1", "KSI-DELEG-C0",
+    "KSI-DELEG-C2", "KSI-DELEG-C1", "KSI-DELEG-C0",
     "KSI-DELEG-D2", "KSI-DELEG-D1", "KSI-DELEG-D0",
     "KSI-DELEG-M1", "KSI-DELEG-M0", "KSI-DIRECT-ROOT",
     "KSI-DELEG-X0",
@@ -335,26 +334,34 @@ function scriptFor(marker, advertised, { allUser, toolMsgs }) {
     }
     return { kind: "text", text: `P1-PLAN-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
-  // C: depth-ceiling proof. The plan child attempts a real subagent->explore
-  // call; the Native depth guard must reject it and create no depth-2 child.
+  // C: the only depth-2 edge. Build -> Plan -> Explore is allowed; Explore is
+  // a leaf and returns its evidence to Plan.
   if (marker === "KSI-DELEG-C0") {
     if (stepIs(0)) {
       if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
       return {
         kind: "tools",
-        calls: [{ name: "subagent", args: { agent: "plan", description: `ceiling probe ${marker}`, prompt: subPrompt("KSI-DELEG-C1", "Place exactly one subagent call to explore and report the exact tool outcome back to Main.") } }],
+        calls: [{ name: "subagent", args: { agent: "plan", description: `evidence probe ${marker}`, prompt: subPrompt("KSI-DELEG-C1", "Use Explore for missing evidence and return the exact outcome back to Main.") } }],
       };
     }
     return { kind: "text", text: `C0-ROOT-OK ${HANDOFF} ${ORIGIN}` };
   }
   if (marker === "KSI-DELEG-C1") {
     if (stepIs(0)) {
+      if (!has("subagent")) return { kind: "text", text: `NO-SUBAGENT-ADVERTISED-${marker}` };
       return {
         kind: "tools",
-        calls: [{ name: "subagent", args: { agent: "explore", description: `ceiling probe ${marker}`, prompt: "This delegated call must be refused by the depth guard; report only." } }],
+        calls: [{ name: "subagent", args: { agent: "explore", description: `evidence probe ${marker}`, prompt: subPrompt("KSI-DELEG-C2", "Read the scope file and return its exact bytes; place no further calls.") } }],
       };
     }
-    return { kind: "text", text: `C1-CEILING-OK ${HANDOFF} ${ORIGIN} ERR:${JSON.stringify(toolMsgs).slice(0, 400)}` };
+    return { kind: "text", text: `C1-NESTED-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
+  }
+  if (marker === "KSI-DELEG-C2") {
+    if (stepIs(0)) {
+      if (!has("read")) return { kind: "text", text: `C2-EXPLORE-OK ${HANDOFF} ${ORIGIN} NO-READ-ADVERTISED` };
+      return { kind: "tools", calls: [{ name: "read", args: { path: SCOPE_FILE } }] };
+    }
+    return { kind: "text", text: `C2-EXPLORE-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
   // D: Build-owned general unit with same-child repair. D0 (build) -> D1
   // (general: write+read), then the SAME child is resumed for repair.
@@ -434,8 +441,8 @@ function scriptFor(marker, advertised, { allUser, toolMsgs }) {
     return { kind: "text", text: `T0-DONE-OK ${HANDOFF} ${ORIGIN} ${evidenceSuffix(toolMsgs)}` };
   }
   // X: retired-target fresh-call exclusion at REAL call time from the build
-  // root (depth 0 can call; a depth-1 plan child would hit the depth guard
-  // first, which chain C already proves). Removed engineer/lead must fail
+  // root. Plan's only edge is Explore, so retired targets are absent from every
+  // caller's edge list. Removed engineer/lead must fail
   // closed with agent-not-found (or a denial) and create no child session.
   if (marker === "KSI-DELEG-X0") {
     if (stepIs(0)) {
@@ -761,7 +768,7 @@ async function main() {
   SERVE_PORT = await freePortNear(Number(process.env.KSI_SERVE_PORT ?? 41952));
   if (SERVE_PORT === MODEL_PORT) SERVE_PORT = await freePortNear(SERVE_PORT + 1);
 
-  // --- 1. Source contract (no models pinned; four profiles; depth 1). ---
+  // --- 1. Source contract (no models pinned; four profiles; depth 2 single edge). ---
   let srcCfg;
   try {
     srcCfg = JSON.parse(stripJsonc(fs.readFileSync(SRC_JSONC, "utf8")));
@@ -770,10 +777,10 @@ async function main() {
     return void finish();
   }
   if (srcCfg?.experimental?.subagent_depth !== CONTRACT.depth) {
-    failClosed("CONTRACT-NOT-READY: experimental.subagent_depth != 1 in source", `found=${srcCfg?.experimental?.subagent_depth}`);
+    failClosed("CONTRACT-NOT-READY: experimental.subagent_depth != 2 in source", `found=${srcCfg?.experimental?.subagent_depth}`);
     return void finish();
   }
-  check("source declares experimental.subagent_depth == 1", true);
+  check("source declares experimental.subagent_depth == 2", true);
   const srcAgents = srcCfg.agents ?? {};
   for (const id of ["build", "plan"]) {
     if (!srcAgents[id]) {
@@ -877,7 +884,7 @@ async function main() {
   check("sandbox providers are fixture-only", Object.keys(sandboxCfg.providers).join() === "fixture");
   check("sandbox drops MCP remotes/credentials", !("mcp" in sandboxCfg) && !cfgText.includes("mobbin") && !cfgText.includes("context7"));
   check("sandbox models all fixture-only", !/openai\/|opencode-go\/|anthropic\//.test(cfgText), "no external provider/model refs");
-  check("sandbox keeps depth ceiling (not widened)", sandboxCfg.experimental.subagent_depth === 1);
+  check("sandbox keeps depth ceiling (not widened)", sandboxCfg.experimental.subagent_depth === 2);
   check("sandbox carries no removed operating definitions (authorized removal)",
     RETIRED_IDS.every((id) => !Object.hasOwn(sandboxCfg.agents ?? {}, id)),
     `retiredKeys=[${Object.keys(sandboxCfg.agents ?? {}).filter((k) => RETIRED_IDS.includes(k)).join(",")}]`);
@@ -1181,7 +1188,7 @@ async function main() {
     const pKids = await childrenOf(p.id);
     check("P build owns one plan child", pKids.length === 1 && pKids[0].agent === "plan", pKids.map((k) => k.agent).join(","));
     const pPlan = pKids[0]?.id ?? null;
-    check("P plan created no child (consultation only, depth 1)", pPlan ? (await childrenOf(pPlan)).length === 0 : false);
+    check("P plan created no child (consultation did not need Explore)", pPlan ? (await childrenOf(pPlan)).length === 0 : false);
     const pPlanMsgs = pPlan ? requireDataArray(await mustApi("GET", `/api/session/${pPlan}/message?limit=100&order=asc`, undefined, "P plan messages"), "P plan messages") : [];
     check("P plan made zero subagent calls", toolEntries(pPlanMsgs).filter((t) => t.name === "subagent").length === 0);
     check("P plan completed a real read (Native part output bytes)",
@@ -1189,9 +1196,9 @@ async function main() {
     check("P plan outcome returned up (P1-PLAN-OK + bytes in P0 inputs)",
       receivedIn(p.messages, "P1-PLAN-OK") && receivedIn(p.messages, "SCOPE-NOTE-CONTENT"));
 
-    // --- C: depth-ceiling proof. Plan->Explore must fail closed. ---
+    // --- C: the only depth-2 edge. Plan -> Explore is allowed; Explore reads. ---
     const c = await runChain("build",
-      `${subPrompt("KSI-DELEG-C0")} Ask plan to place one call to explore and return the exact tool outcome to Main.`,
+      `${subPrompt("KSI-DELEG-C0")} Ask plan to use Explore for the missing evidence and return the exact outcome to Main.`,
       "C0-ROOT-OK", "chain-c");
     check("C root returns to Main (C0-ROOT-OK)", assistantTexts(c.messages).includes("C0-ROOT-OK"));
     const cKids = await childrenOf(c.id);
@@ -1199,14 +1206,23 @@ async function main() {
     const cPlan = cKids[0]?.id ?? null;
     const cPlanMsgs = cPlan ? requireDataArray(await mustApi("GET", `/api/session/${cPlan}/message?limit=100&order=asc`, undefined, "C plan messages"), "C plan messages") : [];
     const cCalls = toolEntries(cPlanMsgs).filter((t) => t.name === "subagent");
-    check("C plan attempted exactly one explore call", cCalls.length === 1, `calls=${cCalls.length}`);
-    const cErr = cCalls.length === 1 ? (cCalls[0].state?.error?.message ?? "") : "";
-    check("C nested call failed closed with a depth error (never success)",
-      cCalls.length === 1 && cCalls[0].state?.status === "error" && /depth/i.test(cErr),
-      `status=${cCalls[0]?.state?.status ?? "none"} err=${cErr.slice(0, 160)}`);
-    check("C depth guard created no depth-2 child", cPlan ? (await childrenOf(cPlan)).length === 0 : false);
-    check("C subagent tool was advertised to plan (guard, not omission)",
+    check("C plan made exactly one explore call", cCalls.length === 1, `calls=${cCalls.length}`);
+    check("C plan nested call completed (Plan -> Explore allowed)",
+      cCalls.length === 1 && cCalls[0].state?.status === "completed",
+      `status=${cCalls[0]?.state?.status ?? "none"} err=${(cCalls[0]?.state?.error?.message ?? "").slice(0, 160)}`);
+    check("C subagent tool was advertised to plan",
       reqLog().some((r) => r.marker === "KSI-DELEG-C1" && r.hasTools && (r.advertised ?? []).includes("subagent")));
+    const cExploreKids = cPlan ? await childrenOf(cPlan) : [];
+    check("C plan owns one explore child", cExploreKids.length === 1 && cExploreKids[0].agent === "explore", cExploreKids.map((k) => k.agent).join(","));
+    const cExplore = cExploreKids[0]?.id ?? null;
+    const cExploreMsgs = cExplore ? requireDataArray(await mustApi("GET", `/api/session/${cExplore}/message?limit=100&order=asc`, undefined, "C explore messages"), "C explore messages") : [];
+    check("C explore read the scope (Native part output bytes)",
+      toolEntries(cExploreMsgs).filter((t) => t.name === "read" && JSON.stringify(t.state?.input ?? {}).includes(SCOPE_FILE)).length === 1);
+    check("C explore made no child (leaf)", cExplore ? (await childrenOf(cExplore)).length === 0 : false);
+    check("C explore evidence returned up (C2-EXPLORE-OK + bytes in C1 inputs)",
+      receivedIn(cPlanMsgs, "C2-EXPLORE-OK") && receivedIn(cPlanMsgs, "SCOPE-NOTE-CONTENT"));
+    check("C plan result returned to Build (C1-NESTED-OK + bytes in C0 inputs)",
+      receivedIn(c.messages, "C1-NESTED-OK") && receivedIn(c.messages, "SCOPE-NOTE-CONTENT"));
 
     // --- D: Build-owned general unit with same-child repair. ---
     const d = await runChain("build",
@@ -1276,8 +1292,8 @@ async function main() {
     check("V findings returned with denial evidence (VR-DENIED-OK)", assistantTexts(vMsgs).includes("VR-DENIED-OK"));
 
     // --- X: retired-target exclusion at REAL call time from the build root. ---
-    // A depth-1 plan child would hit the depth guard first (chain C proves
-    // that), so the retired-target proof runs where calls can actually route.
+    // Plan's only edge is Explore; retired targets are absent from every edge
+    // list, so the retired-target proof runs where calls can actually route.
     const x = await runChain("build",
       `${subPrompt("KSI-DELEG-X0")} Place one subagent call each to the removed engineer and lead roles and return their exact tool outcomes to Main.`,
       "CHAIN-X-ROOT-OK", "chain-x");

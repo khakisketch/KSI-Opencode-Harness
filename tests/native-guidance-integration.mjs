@@ -63,7 +63,7 @@ const port = reserve.address().port;
 await new Promise(resolve => reserve.close(resolve));
 await fs.writeFile(path.join(cfg, 'opencode.json'), JSON.stringify({
   model: 'fixture/fixture',
-  experimental: { subagent_depth: 1 },
+  experimental: { subagent_depth: 2 },
   providers: { fixture: { package: '@opencode/ai/providers/openai-compatible', settings: { baseURL: `http://127.0.0.1:${mp}/v1`, apiKey: 'synthetic-only' },
     models: { fixture: { capabilities: { tools: true, input: ['text'], output: ['text'] }, limit: { context: 32768, output: 4096 } } } } },
   agents: { build: { permissions: [{ action: 'subagent', resource: '*', effect: 'deny' }] } },

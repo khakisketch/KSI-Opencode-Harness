@@ -3,14 +3,14 @@
 - Date: 2026-11-09
 - Repository: <https://github.com/khakisketch/KSI-Opencode-Harness>
 - Raw review URL after merge: <https://raw.githubusercontent.com/khakisketch/KSI-Opencode-Harness/main/docs/reviews/2026-11-09-harness-review.md>
-- Review target: `main` at `725a666` (PR #11 merged)
+- Review target: `main` at the merge commit of this PR (base `725a666`, PR #12 merged), including the evidence-grounded Plan and depth-2 single-edge changes
 - Scope: the portable harness, its installed configuration, and the evidence behind the current claims. Machine-local model pins and the Site Intelligence product repository are called out separately.
 
 This brief is intentionally self-contained so an external reviewer can evaluate the design without reading the surrounding Korean documentation first.
 
 ## 1. What the harness is
 
-A portable, Native-first OpenCode harness for product development. It deliberately has **four roles, delegation depth 1, no workflow engine, and no mandatory review gates**. Build is the sole development owner; Plan, General and Explore support it. Beads owns durable task state; Sleev is an optional context gateway; project canon owns product truth.
+A portable, Native-first OpenCode harness for product development. It deliberately has **four roles, delegation depth 2 with a single Plan→Explore edge, no workflow engine, and no mandatory review gates**. Build is the sole development owner; Plan, General and Explore support it. Beads owns durable task state; Sleev is an optional context gateway; project canon owns product truth.
 
 The design goal is not "more agents" or "more instructions". The goal is a short operating contract plus a real product loop: understand the task, decide, implement, run the product, inspect the rendered result, correct, and report verified behavior.
 
@@ -19,7 +19,7 @@ The design goal is not "more agents" or "more instructions". The goal is a short
 These constraints come from the project owner and bound any review recommendation:
 
 1. Roles are Build / Plan / General / Explore. No Design agent.
-2. Delegation depth is 1. Children are leaves and start no subagents.
+2. Delegation depth is 2, but the only second-level edge is Plan→Explore. General and Explore are leaves; Build is the only root.
 3. Build owns the goal, implementation, integration and final quality.
 4. Do not add agents, a workflow engine, mandatory review gates, or global skill installs.
 5. Optional read-only review and observation are allowed; they are not gates.
@@ -34,14 +34,14 @@ These constraints come from the project owner and bound any review recommendatio
 | Component | Responsibility | Explicit non-responsibility |
 |---|---|---|
 | **Build** | Goal interpretation, context, implementation, delegation, integration, verification, correction | Does not delegate final ownership |
-| **Plan** | Advisory design partner for consequential or uncertain work: alternatives, causes, risks, work plan | Cannot implement, approve or own the task; not a gate |
-| **General** | Bounded, self-contained execution with changed behavior, checks and risks returned | Does not own integration or final quality |
-| **Explore** | Read-only investigation of code, docs and external material | Does not implement |
+| **Plan** | Advisory design partner for consequential or uncertain work: alternatives, causes, risks, work plan. May call Explore for missing evidence | Cannot implement, approve or own the task; cannot call General or another Plan; not a gate |
+| **General** | Bounded, self-contained execution with changed behavior, checks and risks returned | Does not own integration or final quality; calls no subagents |
+| **Explore** | Read-only investigation of code, docs and external material | Does not implement; calls no subagents |
 | **Beads** | Multi-step task state, dependencies, resume | Not a workflow gate; not product canon |
 | **Sleev** | Optional context optimization between OpenCode and a provider | Does not replace Beads, canon or session state |
 | **Native tools + skills + MCP** | Git, worktrees, browser, Playwright, tests, Context7, Mobbin, design skills | Skills are loaded only when their trigger matches |
 
-Plan may use Explore. Build consults Plan before implementation, when constraints change, or after verification reveals a problem. The consultation is never a mandatory gate.
+Plan may use Explore for missing evidence. Build consults Plan before implementation, when constraints change, or after verification reveals a problem. The consultation is never a mandatory gate. General and Explore cannot spawn subagents.
 
 ## 4. What changed, and why
 
@@ -98,19 +98,21 @@ Run from the repository root:
 node scripts/verify-harness.mjs --all
 ```
 
-Latest result on `main`:
+Latest local result (2026-11-09):
 
 - 7/7 checks passed
 - Offline: 1/1
-- Native delegation: 4/4 (238/238 assertions)
+- Native delegation: 4/4 (242/242 assertions). Chain C proves real Build→Plan→Explore nesting; Explore reads the scope and its bytes return through Plan to Build.
 - Installed roles and inventory: 2/2
+- Permission probes: Plan→Explore allow, Plan→General deny, General/Explore→Plan/General/Explore deny
 - Installed `AGENTS.md` byte-identical to the portable source
 - Plan skill permission probes: `diagnosing-bugs`, `evolving-apis-and-schemas`, `reviewing-security` all allowed
+- Real root Plan probe: read the repository, cited files/lines, separated verified facts from assumptions and missing evidence, and found a missing installed-vs-source parity check. `tests/plan-parity.test.mjs` now covers description, mode, depth and subagent policy; machine-local model pins and non-subagent tool denies are allowed.
 - GitHub CI on `main`: success after PR #11
 
-What this proves: instruction structure, role configuration, delegation mechanics, installed/source parity and permission effects.
+What this proves: instruction structure, role configuration, delegation mechanics including the single depth-2 Plan→Explore edge, installed/source parity and permission effects. It also records one observed evidence-grounded Plan session, not a general planning-quality benchmark.
 
-What it does **not** prove: real-model design quality, product acceptance, controlled comparison against Codex/Claude Code, or Sleev's optimization benefit.
+What it does **not** prove: general real-model design or planning quality, product acceptance, controlled comparison against Codex/Claude Code, or Sleev's optimization benefit.
 
 ## 7. Machine-local state versus portable source
 

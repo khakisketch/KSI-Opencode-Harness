@@ -72,6 +72,7 @@ describe('native config edges for four profiles (source only)', () => {
       // The builtin leaf deny need not be duplicated in source. Its effective
       // policy and removed tool surface are tested by Native execution.
       assert.ok(!rules.some((r) => r.action === 'subagent' && r.effect === 'allow'), `${id} adds no child allows`);
+      assert.ok(rules.some((r) => r.action === 'subagent' && r.resource === '*' && r.effect === 'deny'), `${id} denies subagents explicitly`);
       assert.ok(!rules.some((r) => r.action === 'skill'), `${id} declares no skill rules`);
     }
     assert.equal(cfg.agents.general.model, undefined);
@@ -79,8 +80,9 @@ describe('native config edges for four profiles (source only)', () => {
     // choice lives in the installed config, not the shared source.
     assert.equal(cfg.agents.explore.model, undefined);
     assert.ok(cfg.agents.explore.steps === undefined);
-    // Depth 1: only direct children; children are leaves and start no subagents.
-    assert.equal(cfg.experimental.subagent_depth, 1);
+    // Depth 2: the only second-level edge is Plan -> Explore; General and
+    // Explore are leaves and deny subagents.
+    assert.equal(cfg.experimental.subagent_depth, 2);
     assert.equal(cfg.experimental.todo, true);
   });
 
@@ -111,6 +113,34 @@ describe('native config edges for four profiles (source only)', () => {
     assert.match(instructions, /For UI work, assess the user's task/);
     assert.match(instructions, /does not prove the structure fits/);
     assert.doesNotMatch(instructions, /blacklist (cards|charts)/i);
+  });
+});
+
+describe('evidence-grounded planning (structural contract)', () => {
+  it('requires an evidence pack and fact/assumption separation in shared instructions', () => {
+    const instructions = read('global/AGENTS.md');
+    assert.match(instructions, /Ground Plan in evidence/);
+    assert.match(instructions, /supplies the relevant files, diffs, commands, failures, contracts/);
+    assert.match(instructions, /separates\s+facts from assumptions/);
+    assert.match(instructions, /one-off scripts/);
+    assert.match(instructions, /may call Explore for missing evidence/);
+    assert.match(instructions, /must not call General or/);
+  });
+
+  it('describes Plan as evidence-grounded without a system override', () => {
+    const cfg = JSON.parse(strippedJsonc());
+    assert.match(cfg.agents.plan.description, /evidence pack/i);
+    assert.match(cfg.agents.plan.description, /separates verified facts from assumptions/i);
+    assert.equal(cfg.agents.plan.system, undefined);
+  });
+
+  it('documents the evidence pack, output contract, anti-patterns and depth-2 single-edge rule', () => {
+    const planning = read('docs/planning.md');
+    assert.match(planning, /증거팩/);
+    assert.match(planning, /Plan의 출력/);
+    assert.match(planning, /안티패턴/);
+    assert.match(planning, /깊이 2/);
+    assert.match(planning, /일회성 스크립트/);
   });
 });
 
