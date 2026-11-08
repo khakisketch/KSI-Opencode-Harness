@@ -153,10 +153,10 @@ Jev는 decision 모델이라 `/api/model`(기본 chat 조회)에 나오지 않�
 
 ### 선택형 AI PR 리뷰 (2026-11-08)
 
-- `.github/workflows/opencode-review.yml`은 **선택형 읽기 전용** 리뷰입니다. `OPENCODE_REVIEW_ENABLED=true`일 때만 PR에서 실행되고, 수동 실행은 Actions에서 항상 가능합니다.
-- `OPENCODE_API_KEY`(OpenCode Go/Console 키)가 필요합니다. 없거나 변수가 꺼져 있으면 실행되지 않으며 CI를 막지 않습니다.
+- `.github/workflows/opencode-review.yml`은 **PR 코멘트에서 `/oc` 또는 `/opencode`로 부를 때만** 실행됩니다. 자동 PR 리뷰는 하지 않습니다.
+- `OPENCODE_API_KEY`(OpenCode Go/Console 키)가 필요합니다. 없으면 트리거된 코멘트 실행이 실패하며 CI를 막지는 않습니다.
 - 모델은 `OPENCODE_REVIEW_MODEL` 변수로 바꿀 수 있습니다. 기본값은 무료 `opencode/deepseek-v4.1-flash-free`입니다.
-- 파일 수정·푸시·승인·병합 권한은 없습니다. 코멘트만 남깁니다.
+- `share: false`로 세션 공유를 끕니다. **코드 수정·푸시·승인·병합은 제한하고 리뷰 코멘트만** 허용합니다.
 - 리뷰 결과는 Build가 triage하고, 수정·재검증·병합은 기존 흐름대로 사람이 결정합니다.
 
 ### 화면 작업 흐름 (새 화면·리디자인)
