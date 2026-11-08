@@ -72,11 +72,11 @@ Context7 공식 플러그인과 명시적 MCP 설정은 이 정리에서 유지�
 - `find-skills`는 이 하네스의 `.agents/skills/find-skills/`에만 보존합니다. 전역 사본과 전역 lock 항목은 제거했습니다. Vercel Skills CLI 자체의 제거와는 다릅니다.
 - `ksi.capabilities-inventory`는 이 하네스의 `.opencode/plugins/ksi-capabilities-inventory/`에서만 동작합니다. 전역 관리본은 발견 경로 밖으로 이동했고, 설치기는 명시한 절대 프로젝트 경로만 받습니다. 다른 프로젝트에는 설치하지 않습니다.
 - `opencode_console` MCP, Context7·Cua Driver·Mobbin, Impeccable 및 기존 계정·모델·권한은 유지합니다. Context Mode·Ghidra·추가 플러그인 marketplace는 설치하지 않았습니다. Ghidra는 필요 프로젝트에서 별도 검토합니다.
-- 원본과 이전 설정은 `~/.local/share/ksi-harness-backups/skill-scope-20261102-183546/`에 보존합니다. 영상 스킬 보관 위치는 그 아래 `disabled-global-skills/`이며 자동 발견 경로가 아닙니다.
+- 원본과 이전 설정은 `~/.local/share/ksi-harness-backups/skill-scope-20261102-183546/`에 보존했으나, 2026-11-08 정리로 삭제했습니다. 영상 스킬 보관 위치는 그 아래 `disabled-global-skills/`였으며 자동 발견 경로가 아니었습니다. 필요한 스킬은 업스트림에서 프로젝트별로 재설치합니다.
 
 ### 이 Mac의 스킬 범위 조정 (2026-11-06)
 
-- `hallmark`·`design-taste-frontend`를 전역 발견 경로(`~/.agents/skills/`) 밖으로 이동했습니다. 대시보드 중심 제품에 Taste의 기업 홈페이지 방법론을 기본 적용하지 않기 위함이며, 두 스킬의 전역 lock 항목도 함께 제거했습니다. 원본과 lock 변경 전 상태는 `~/.local/share/ksi-harness-backups/harness-final-20261106-152008/disabled-global-skills/`에 보존합니다(디렉터리 원본과 tar, skill-lock 변경 전 사본 포함).
+- `hallmark`·`design-taste-frontend`를 전역 발견 경로(`~/.agents/skills/`) 밖으로 이동했습니다. 대시보드 중심 제품에 Taste의 기업 홈페이지 방법론을 기본 적용하지 않기 위함이며, 두 스킬의 전역 lock 항목도 함께 제거했습니다. 원본과 lock 변경 전 상태는 `~/.local/share/ksi-harness-backups/harness-final-20261106-152008/disabled-global-skills/`에 보존했으나, 2026-11-08 정리로 삭제했습니다.
 - 필요한 프로젝트에는 해당 저장소의 `.agents/skills/` 또는 `.opencode/skills/`에 Skills CLI로 개별 설치합니다. 예: 마케팅 웹 프로젝트의 Taste, 필요시 해당 프로젝트의 Hallmark. 전역 재설치는 하지 않습니다.
 - `puppeteer-core` 전역 패키지는 Hallmark의 렌더 검사 경로가 참조하므로 유지합니다. Hallmark를 쓰는 프로젝트가 없으면 제거를 재검토합니다.
 

@@ -203,7 +203,7 @@ OpenCode **2.2.5**에서 아래를 확인했습니다. 테스트 수는 회귀 �
 - 기존 OpenCode 설정 JSON/JSONC와 프로젝트 설정은 바이트 단위로 보존했고 다른 기존 스킬 lock 항목도 보존했습니다. `opencode_console`을 포함한 기존 MCP 연결은 유지됐으며 공통 지침 설치본은 소스와 일치합니다. 공유 서비스 재시작·계정/모델/권한 변경은 하지 않았습니다.
 - 배포 전 시각 연결 재검사에서는 HOME 하위 시험 폴더가 상위의 실제 `.agents/skills/impeccable`을 발견해 합성 스킬 전달 검사가 실패했습니다. Native의 상위 경로 탐색을 고려해 시험 폴더를 HOME 밖 임시 경로로 옮겼고 같은 검사가 **32/32** 통과했습니다. 실제 사용자 스킬을 삭제하거나 전달 검사를 완화하지 않았습니다. 이 수정은 시험 격리이며 제품의 디자인 품질·실행 격리를 증명하지 않습니다.
 
-이 단계의 백업·원본 커밋·설치 로그·검증 영수증은 `~/.local/share/ksi-harness-backups/skill-scope-20261102-183546/`에 있습니다. Claude-Mem의 비교 우위는 측정되지 않아 ai-memory를 교체하지 않았고 Context Mode는 설치하지 않았습니다. [설치 범위](installation.md#이-mac의-스킬-범위-조정-2026-11-02)와 [기억 비교](ai-memory.md#claude-memnative-컨텍스트와의-비교-2026-11-02)를 함께 확인하세요.
+이 단계의 백업·원본 커밋·설치 로그·검증 영수증은 `~/.local/share/ksi-harness-backups/skill-scope-20261102-183546/`에 있었으나, 2026-11-08 정리로 삭제했습니다. Claude-Mem의 비교 우위는 측정되지 않아 ai-memory를 교체하지 않았고 Context Mode는 설치하지 않았습니다. [설치 범위](installation.md#이-mac의-스킬-범위-조정-2026-11-02)와 [기억 비교](ai-memory.md#claude-memnative-컨텍스트와의-비교-2026-11-02)를 함께 확인하세요.
 
 ## Explore 유료 모델 변경 (2026-11-02)
 
