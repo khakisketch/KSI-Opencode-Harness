@@ -38,7 +38,7 @@
     // owner; there is no intermediate owner role. Plan advises, General
     // executes bounded tasks, Explore investigates, Build judges UI.
     "build": {
-      "description": "Owns the approved goal and can investigate, design, implement, verify and correct it directly; delegates when benefits outweigh context and handoff costs. Creates a worktree only when parallel independent implementation benefits; owns worktree creation, session assignment, integration and cleanup. Workers implement and test inside their assigned workspace and never manage worktree lifecycle. Verify changes and test results before integrating; never remove a worktree with unmerged commits, modified files, or live sessions, and never force-remove without explicit user confirmation for that worktree. No extra sessions or worktrees for simple tasks.",
+      "description": "Owns the approved goal end to end: investigates, designs, implements, integrates and verifies. Delegates bounded work when it pays; creates worktrees only for parallel implementation, owns integration, and never force-removes one. No extra sessions or worktrees for simple tasks.",
       "permissions": [
         { "action": "subagent", "resource": "*", "effect": "deny" },
         { "action": "subagent", "resource": "plan", "effect": "allow" },
@@ -47,7 +47,7 @@
       ]
     },
     "plan": {
-      "description": "Analyzes complex problems, product and technical alternatives, and causes; returns evidence-based advice without implementation or approval authority.",
+      "description": "Advises on complex or uncertain work: alternatives, causes, risks and a work plan. No implementation, approval or task ownership.",
       "mode": "all",
       // Portable source pins no model; choose locally per docs/development.md.
       // Analysis can use a read-centric leaf, not an execution or recursive agent.
@@ -62,7 +62,7 @@
       // (this Mac uses OpenCode Go DeepSeek V4.1 Flash High).
     },
     "general": {
-      "description": "Executes and verifies assigned tasks independently; returns results and material risks."
+      "description": "Executes and verifies bounded tasks independently; returns changed behavior, checks and risks."
     }
   },
   "providers": {

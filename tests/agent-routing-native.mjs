@@ -342,6 +342,17 @@ await probeSubagent('explore', [
     check(`general skill ${sk}: allow (no KSI whitelist)`, () => assert.equal(r.effect, 'allow', `general skill ${sk}`));
   }
 }
+// Plan retains Native skill access: advisory work may load a scoped playbook.
+// This probes permission effects, not model selection or skill quality.
+{
+  const session = await api('session.create', [], { location: { directory: repo }, agent: 'plan' });
+  assert.ok(session.id);
+  for (const sk of ['diagnosing-bugs', 'evolving-apis-and-schemas', 'reviewing-security']) {
+    const r = await api('session.permission.create', [`sessionID=${session.id}`], { action: 'skill', resources: [sk], agent: 'plan' });
+    await rejectIfPending(session.id, r);
+    check(`plan skill ${sk}: allow`, () => assert.equal(r.effect, 'allow', `plan skill ${sk}`));
+  }
+}
 const fixtureContent = await readFile(path.join(fixture, 'probe.css'), 'utf8');
 check('product fixture unchanged', () => assert.equal(fixtureContent, 'body { color: black; }\n'));
 await writeFile(path.join(root, 'result.json'), JSON.stringify({ checks, modelCalls: 0 }, null, 2));
