@@ -151,6 +151,14 @@ Jev는 decision 모델이라 `/api/model`(기본 chat 조회)에 나오지 않�
 
 원칙: Jev는 권고만 하며 최종 선택은 Build가 한다. Build 선판단을 먼저 기록하고 Jev와 비교한 뒤 실행 결과로 평가한다(`decision-log.md` 형식). API 실패 시 Build 정상 진행을 막지 않는다. 자동 모델 변경·권한 승인·도구 가로채기는 하지 않는다.
 
+### 선택형 AI PR 리뷰 (2026-11-08)
+
+- `.github/workflows/opencode-review.yml`은 **선택형 읽기 전용** 리뷰입니다. `OPENCODE_REVIEW_ENABLED=true`일 때만 PR에서 실행되고, 수동 실행은 Actions에서 항상 가능합니다.
+- `OPENCODE_API_KEY`(OpenCode Go/Console 키)가 필요합니다. 없거나 변수가 꺼져 있으면 실행되지 않으며 CI를 막지 않습니다.
+- 모델은 `OPENCODE_REVIEW_MODEL` 변수로 바꿀 수 있습니다. 기본값은 무료 `opencode/deepseek-v4.1-flash-free`입니다.
+- 파일 수정·푸시·승인·병합 권한은 없습니다. 코멘트만 남깁니다.
+- 리뷰 결과는 Build가 triage하고, 수정·재검증·병합은 기존 흐름대로 사람이 결정합니다.
+
 ### 화면 작업 흐름 (새 화면·리디자인)
 
 1. **현재 화면 실행**: 코드를 읽고 짐작하지 말고 실제 화면을 렌더·실행합니다.
