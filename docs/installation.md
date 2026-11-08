@@ -12,7 +12,6 @@
 | `global/commands/` | 선택형 `/debug`·`/perf`·`/ux-audit` 바로가기 |
 | ~~`global/plugins/ksi-visual-workflow/`~~ | 2026-11-06 퇴역. 시각 실행은 agent-browser, 회귀·E2E는 Playwright. 소스·테스트는 백업 보관 |
 | `global/plugins/ksi-capabilities-inventory/` | 소스 경로 이름과 달리 **프로젝트 전용** 진단. 이 하네스의 `.opencode/plugins/`에만 설치 |
-| `global/plugins/ksi-session-observer/` | 선택형 자식 세션 관찰. 현재 격리 검증용이며 전역 자동 설치·자동 복구 없음 |
 
 Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다. Plan은 분석 역할로 Explore만 호출합니다(독립 Root 실행 시; Build 자식 실행 시 깊이 1 가드가 재위임을 거부 — 의도된 동작). Native 편집 제한은 유지합니다. UI 판단은 Build가 맡고, 결정론적 검사기를 근거로 쓰며, 필요하면 독립 읽기 전용 검토를 한 번 요청합니다. 자식은 말단이라 추가 위임하지 않습니다. 이것만으로 셸·네트워크까지 엄격한 비변경이 되는 것은 아닙니다. 기존 세션의 저장 모델·권한과 프로젝트별 override는 별도이며 새 설정을 소급 적용하지 않습니다. Native todo는 선택형 상태이고 `/goal`이나 필수 문서 세트를 요구하지 않습니다.
 
@@ -30,8 +29,6 @@ Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유
    # 이 하네스 프로젝트에서만 쓰는 선택형 진단; 전역 대상은 지원하지 않음
    node scripts/install-capabilities-inventory.mjs --project "$PWD"
    node scripts/install-capabilities-inventory.mjs --project "$PWD" --verify
-   # 선택형 첫 설치만 지원: 기존 대상이 있으면 덮어쓰지 않고 중단
-   node scripts/install-session-observer.mjs --project "$PWD"
    ```
 
 4. Native plugin/agent catalog에서 로딩과 모델·권한을 별도 확인합니다. 파일 일치나 도구 등록만으로 호출 성공을 주장하지 않습니다. OpenCode는 설정을 감시하므로 공유 서비스를 재시작하지 않습니다.
@@ -39,7 +36,7 @@ Build는 유일한 개발 총괄로 직접 완수를 기본으로 하며, 공유
 
 설치기는 수정·미관리 파일, manifest와 다른 상태, 예상 밖 진입점과 symlink를 안전 중단합니다. 소스를 한 번 읽어 해시·배포 bytes를 일치시키며 발견 경로 밖에서 전체 staging 후 의존 파일→entrypoint→manifest 순서로 게시합니다. 신규 파일·manifest는 hard link의 atomic no-clobber를 쓰고 지원되지 않으면 중단합니다. 기존 관리 파일은 최종 비교 후 rename하므로 비협조 writer와의 compare→rename race는 남습니다. 협조 잠금이 임의 외부 편집까지 막지는 않습니다. 파일별 게시이지 세대 트랜잭션이 아니며 Native hot reload에서 중간 버전을 볼 수 있습니다.
 
-위 상세 잠금·manifest 규칙은 capabilities-inventory 설치기에만 적용됩니다. session-observer 설치기는 새 대상만 생성하며 기존 대상은 변경하지 않습니다. 중단되면 부분 디렉터리를 남기므로 직접 조사해야 합니다. 부모 디렉터리의 검사와 생성 사이에는 비협조 프로세스의 경합이 남습니다.
+위 상세 잠금·manifest 규칙은 capabilities-inventory 설치기에만 적용됩니다. 부모 디렉터리의 검사와 생성 사이에는 비협조 프로세스의 경합이 남습니다.
 
 외부 PNG 고정 운영자 설정은 플러그인 퇴역과 함께 폐지했습니다. 증거 기록은 [증거팩](evidence-pack.md)을 따릅니다.
 
