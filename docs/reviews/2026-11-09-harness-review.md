@@ -108,6 +108,7 @@ Latest local result (2026-11-09):
 - Installed `AGENTS.md` byte-identical to the portable source
 - Plan skill permission probes: `diagnosing-bugs`, `evolving-apis-and-schemas`, `reviewing-security` all allowed
 - Real root Plan probe: read the repository, cited files/lines, separated verified facts from assumptions and missing evidence, and found a missing installed-vs-source parity check. `tests/plan-parity.test.mjs` now covers description, mode, depth and subagent policy; machine-local model pins and non-subagent tool denies are allowed.
+- Design delivery contract added (`docs/design-work.md`); `/oc` now requires an owner/member/collaborator author. `be-ambitious` is installed project-locally in the harness (pinned commit `dc116a3`, SHA-256 `b180b9…`), but has not been benchmarked on a product task.
 - GitHub CI on `main`: success after PR #11
 
 What this proves: instruction structure, role configuration, delegation mechanics including the single depth-2 Plan→Explore edge, installed/source parity and permission effects. It also records one observed evidence-grounded Plan session, not a general planning-quality benchmark.

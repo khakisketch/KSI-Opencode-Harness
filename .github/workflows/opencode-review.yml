@@ -2,6 +2,7 @@ name: opencode-review
 
 # On-demand, comment-triggered review. No automatic PR review.
 # Comment "/oc review this PR" (or "/opencode ...") on a pull request.
+# Only repository owners, members and collaborators may trigger a review.
 #
 # Requires: gh secret set OPENCODE_API_KEY
 # The action supports issue_comment and pull_request_review_comment only.
@@ -21,6 +22,7 @@ jobs:
   review:
     if: |
       github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
       (contains(github.event.comment.body, '/oc') ||
        contains(github.event.comment.body, '/opencode'))
     runs-on: ubuntu-latest

@@ -110,9 +110,18 @@ describe('native config edges for four profiles (source only)', () => {
     const cfg = JSON.parse(strippedJsonc());
     assert.equal(cfg.agents.design, undefined);
     const instructions = read('global/AGENTS.md');
-    assert.match(instructions, /For UI work, assess the user's task/);
+    assert.match(instructions, /For UI work, assess the task/);
+    assert.match(instructions, /a critique alone is\s+not completion/i);
     assert.match(instructions, /does not prove the structure fits/);
     assert.doesNotMatch(instructions, /blacklist (cards|charts)/i);
+  });
+
+  it('defines design delivery through implementation and rendered verification', () => {
+    const doc = read('docs/design-work.md');
+    assert.match(doc, /비평만으로 완료를 선언하지 않습니다/);
+    assert.match(doc, /실제 렌더 검증/);
+    assert.match(doc, /be-ambitious/);
+    assert.match(doc, /Design 에이전트는 두지 않습니다/);
   });
 });
 
