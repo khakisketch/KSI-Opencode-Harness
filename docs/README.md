@@ -1,17 +1,17 @@
 # 문서 안내
 
-처음이라면 **[README](../README.md)** → **[설치](installation.md)** → **[검증](validation.md)** 순서로 보세요. 이 문서는 나머지 문서의 역할을 짧게 안내합니다.
+처음이라면 **영어 [README](../README.md)** → **[설치](installation.md)** → **[검증](validation.md)** 순서로 보세요. 이 문서는 나머지 문서의 역할을 짧게 안내합니다.
 
 현재 문서는 **지금 해야 할 일과 최신 결론**만 담고, 날짜별 검증·이전 역할·폐기된 절차는 [역사 기록](#역사-기록)으로 분리합니다.
 
 > [!TIP]
-> **읽는 순서:** 하네스가 처음이면 README의 [처음이라면](../README.md#처음이라면)·[역할](../README.md#역할과-위임-구조)·[제품 수용](../README.md#완료를-어떻게-판정하나)만 먼저 보세요. 적용할 때 [설치 안내](installation.md), 결과의 의미를 물을 때 [검증](validation.md)으로 이동합니다.
+> **읽는 순서:** 하네스가 처음이면 README의 [Quick start](../README.md#quick-start)·[How it works](../README.md#how-it-works)·[Verification and limitations](../README.md#verification-and-limitations)만 먼저 보세요. 적용할 때 [설치 안내](installation.md), 결과의 의미를 물을 때 [검증](validation.md)으로 이동합니다.
 
 ## 지금 읽을 문서
 
 | 문서 | 읽는 상황 | 내용 |
 | --- | --- | --- |
-| [README](../README.md) | 하네스가 무엇인지 알고 싶을 때 | 핵심 원칙, 빠른 시작, 역할 요약, 제품 수용, 설치·검증 진입점 |
+| [README](../README.md) | 하네스가 무엇인지 알고 싶을 때 | 영어 프로젝트 소개, 빠른 시작, 역할 요약, 검증·한계, 문서 진입점 |
 | [설치 안내](installation.md) | 내 컴퓨터에 적용할 때 | 적용 파일, 백업, 설치 절차, 확인, 되돌리기 |
 | [프로젝트 지식과 상태](project-knowledge.md) | 프로젝트 문서·계획을 정리할 때 | 제품·경험·디자인·시스템·상태 정본, 디자인 정본의 범위, 지속 정본과 과업 계획의 분리 |
 | [검증](validation.md) | 현재 검증 범위와 한계를 볼 때 | 최신 시험·설치·활성 결과와 미입증 사항 |

@@ -1,317 +1,189 @@
 # KSI OpenCode Harness
 
-**사용자 의도를 유지하며 직접 해결하고, 실제 결과까지 확인하는 OpenCode 하네스**
+**A lightweight, native-first harness for building and verifying software with OpenCode.**
 
-무엇을 만들고 싶은지 알려주세요. 하네스는 프로젝트의 맥락을 찾아 작업하고,
-코드뿐 아니라 실제 동작과 화면까지 확인하도록 돕습니다.
+[![verify](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/verify.yml/badge.svg)](https://github.com/khakisketch/KSI-Opencode-Harness/actions/workflows/verify.yml)
 
-[처음 사용하기](#처음이라면) · [일하는 흐름](#일하는-흐름) · [역할](#역할과-위임-구조) · [스킬과 도구](#스킬과-도구는-어떻게-쓰이나요) · [설치](#설치) · [검증과 한계](#검증)
+AI agents can generate code quickly. The harder problem is carrying a task through implementation, integration, verification, and correction.
 
-> [!NOTE]
-> 이 하네스는 OpenCode 위에서 동작합니다. 별도의 새 실행 엔진이나
-> 자동 품질 판정기를 설치하는 방식이 아닙니다.
+KSI OpenCode Harness is a practical development setup built around clear agent ownership, evidence-grounded planning, selective delegation, and verification against real running software. It extends OpenCode's native capabilities without a separate workflow engine or mandatory review gates.
+
+`OpenCode Native` · `Four roles` · `Depth 2 with one second-level edge` · `No mandatory review gates`
+
+**한국어 문서:** [문서 안내](docs/README.md)에서 시작하세요.
 
 ---
 
-## 처음이라면
+## Why this exists
 
-OpenCode에서 프로젝트를 열고 **목표와 지켜야 할 것**을 평소처럼 말하면 됩니다.
-역할 이름이나 명령어를 외울 필요는 없습니다.
+Most agent setups optimize for the first draft. Real development is the part after it: preserving existing behavior, integrating parallel changes, running the product, looking at the rendered screen, and fixing what the evidence reveals.
 
-> **화면을 바꾸고 싶을 때**
->
-> “이 대시보드를 현장 담당자가 다음 행동을 바로 알 수 있게 개선해줘.
-> 기존 기능은 유지하고 모바일 화면도 확인해줘.”
+This harness keeps one development owner responsible for the whole result. Specialized agents and tools are used only when their value exceeds the cost of handing work off. Verification is based on actual tests, runtime behavior, logs, and rendered UI — not on an agent's completion message.
 
-> **기능을 만들고 싶을 때**
->
-> “현장 자료를 비교하는 기능을 구현해줘. 기존 데이터를 보존하고
-> 실제 동작과 오류 상태까지 확인해줘.”
-
-> **먼저 살펴보기만 할 때**
->
-> “현재 화면의 문제와 개선 방향을 분석해줘. 파일은 수정하지 마.”
-
-> [!TIP]
-> 목표 사용자, 유지할 기능, 접근하면 안 되는 데이터가 있다면 함께 알려주세요.
-> 중요한 제약을 처음부터 전달할수록 작업 범위를 더 분명하게 잡을 수 있습니다.
-
-## 일하는 흐름
+## How it works
 
 ```text
-요청하기 → 제품과 현재 상태 이해 → 설계·구현 → 실제 결과 확인 → 보고
+User
+  └─ Build ── investigate → design → implement → integrate → verify → correct → report
+       ├─ Plan     advisory analysis; may call Explore for missing evidence
+       ├─ General  bounded, self-contained execution
+       └─ Explore  read-only investigation
 ```
 
-| 순서 | 하는 일 |
-| --- | --- |
-| **이해** | 사용자 목표와 프로젝트 문서·코드·현재 변경을 살펴봅니다. |
-| **판단** | 필요한 역할·스킬·도구를 고르고, 중요한 선택에는 이유를 설명합니다. |
-| **구현** | 승인된 범위에서 만들고, 문제가 발견되면 고칩니다. |
-| **확인** | 테스트와 실제 동작을 보고, 화면 작업은 실제 화면과 주요 상태도 확인합니다. |
-| **보고** | 완료한 것, 확인한 것, 아직 확인하지 못한 것을 나눠 알려줍니다. |
-
-이것은 **대표적인 흐름**이지 모든 작업에 강제되는 고정 절차는 아닙니다.
-작은 수정은 간단히 처리하고, 큰 작업이나 불확실한 문제에는 필요한 만큼 더 살펴봅니다.
-
-### 선택형 Native Goal
-
-평소 요청은 그대로 사용합니다. 일반 요청도 구현·검증·필요한 수정까지 이어서 처리하며,
-사용자가 역할이나 `/goal`을 관리할 필요는 없습니다. 별도 장기 실행이 필요할 때만 내장
-`/goal 목표`와 `/goal pause`, `/goal resume`, `/goal clear`를 선택합니다.
-KSI의 Lead Goal 자동 시작 계획과 상태 전달 연결은 제거했습니다.
-목표는 세션별이어서 Build의 목표가 자식에 자동 상속되는 것은 아닙니다. 자식 위임의 완료 표시나 내장
-목표 완료 표시는 검사 성공·제품 수용을 보장하지 않습니다. 반복·평가에는 시간과 비용이 들 수 있습니다.
-[내장 목표 안내](docs/native-goal.md). 중요한 불확실성은 주 담당자의 재검토와 선택형 Plan·독립 검토로 확인합니다.
-
----
-
-## 역할과 위임 구조
-
-**Build가 맥락과 전체 결과를 책임지며 조사·설계·구현·복구·검증을 직접 수행합니다.**
-작업 크기나 파일 수 때문에 반드시 넘기지는 않습니다. 분리의 이득이 전달·통합 비용보다 클 때만
-다른 역할을 사용합니다.
-
-```text
-사용자 → Build → 직접 조사·구현·검증·수정 → 완료 또는 실제 차단 보고
-            └─ 필요할 때만 General / Explore / Plan
-               (Plan만 Explore에 한 단계 더 위임; General/Explore는 말단)
-```
-
-| 역할 | 맡는 일 | 모델(로컬 권장, 소스는 고정 안 함) |
+| Role | Responsibility | Boundary |
 | --- | --- | --- |
-| **Build** | 사용자 의도를 유지하며 직접 해결하고 최종 결과를 확인합니다. 유일한 개발 총괄이며 중간 소유자를 두지 않습니다. | 세션에서 선택 (이 Mac 권장: Muse Spark 1.3 Contributor) |
-| **Plan** | 실제 코드·프로젝트 증거를 바탕으로 복잡한 문제와 대안을 분석합니다. 구현을 승인하지 않으며, 증거가 부족하면 Explore만 호출합니다. Build가 필요할 때 여러 번 자문할 수 있습니다(선택). [증거팩·계획 계약](docs/planning.md) | 권장: Go Muse Spark 1.3 Contributor xhigh |
-| **General** | 범위가 정해진 구현·조사·테스트를 수행합니다. 하위 에이전트를 호출하지 않는 말단입니다. | 부모 상속. DGX Spark override는 2026-11-06 제거됨 |
-| **Explore** | 코드와 자료를 찾아 읽고 분석합니다. 하위 에이전트를 호출하지 않는 읽기 전용 말단입니다. | 권장: DeepSeek V4.1 Flash High (OpenCode Go) |
+| **Build** | Owns the approved goal end to end: context, design, implementation, integration, verification, correction | Sole development owner; does not delegate final ownership |
+| **Plan** | Advises on consequential or uncertain work from actual code and project evidence: alternatives, causes, risks, a work plan | Cannot implement, approve, or own the task; may call Explore, not General or another Plan |
+| **General** | Executes a bounded, independent task and returns changed behavior, checks, and risks | Leaf; calls no subagents |
+| **Explore** | Investigates code, docs, and external material | Read-only leaf; calls no subagents |
 
-> [!IMPORTANT]
-> 위임은 고정 순서가 아니며 직접 구현은 작은 수정에만 한정되지 않습니다.
-> 책임과 모델 등급은 별개입니다. 저렴한 Build가 어려운 판단이 필요하면 강한 Plan에 자문할 수 있지만,
-> 판단·실행의 책임은 Build가 집니다. 부모는 자식 결과를 통합하고 실제 남은 일을 확인합니다.
-> 표의 모델은 이 Mac의 로컬 권장값이며 공유 소스는 어떤 역할에도 모델을 고정하지 않습니다.
-> 기존 자식의 저장 모델·권한은 설정 변경으로 자동 갱신되지 않으며,
-> 같은 과업이어도 현재 승인된 모델·자료 경로·권한에 맞는지 확인한 뒤 재사용합니다.
-> 머신별 주소·모델은 다른 컴퓨터에 복사하지 않습니다.
+Delegation depth is 2, but the only second-level edge is **Plan → Explore**. General and Explore are leaves, and Build is the only root. None of this is a fixed sequence: Build implements directly when that is cheaper and delegates only when separation pays.
 
-위임에는 원래 목표·최신 교정과 거부 방향·담당 범위·보존 조건·완료 조건을 간결하게 담습니다.
-자식은 실제 변경·검사 결과·미완료와 차단을 반환하고, 부모는 보고만 믿지 않고 원래 과업과 대조합니다.
-새 보고 양식·문서 세트·리뷰어 수는 강제하지 않습니다.
+## Key principles
 
-## 스킬과 도구는 어떻게 쓰이나요?
+- **One owner.** Build owns the user goal through implementation, integration, verification, and correction.
+- **Evidence before advice.** Plan works from files, diffs, failures, contracts, and open questions — not from a summary alone. It cites what it inspected, separates facts from assumptions, and names missing evidence.
+- **Delegation is optional.** Work is handed off when the benefit exceeds handoff and integration cost, not because a task is large or touches many files.
+- **Verify the product, not the report.** Tests, runtime interaction, logs, and rendered screens are evidence. A passing check or a screenshot does not by itself prove user acceptance.
+- **Disposable plans, durable canon.** Task plans stay short. Only decisions that outlive the task are promoted to the project's canonical docs.
+- **Explicit boundaries.** Approved scope, existing work, analysis-only requests, credentials, and shared services are preserved. A user stop ends the work until re-authorized.
 
-역할이 **누가 일하는지**라면, 스킬과 도구는 **어떻게 일하는지**를 돕습니다.
+## Quick start
 
-| 구분 | 무엇을 하나요? | 예시 |
-| --- | --- | --- |
-| **스킬** | 특정 작업에 필요한 방법과 주의점을 제공합니다. | 화면 디자인, 사용자 흐름, 버그 진단, 접근성 |
-| **커맨드** | 필요한 스킬을 불러오도록 요청하는 선택형 바로가기입니다. | `/ux-audit`, `/debug`, `/perf` |
-| **플러그인·도구** | 에이전트가 자료를 확인하고 검증할 수 있게 돕습니다. | 시각 작업 도구, 선택형 기능 목록 |
-| **외부 연결** | 필요할 때 문서·디자인 참고자료를 찾아봅니다. | Context7, Mobbin |
+### Requirements
 
-**상황에 맞게 고르는 스킬의 예**
+- **OpenCode V2** with Native agents.
+- **Git** to clone the repository.
+- **Node.js 26** for the verification scripts. The repository has no npm dependencies; nothing needs to be installed.
+- Optional: the `opencode` binary on `PATH` for Native checks, and your own provider credentials for real sessions.
 
-| 이런 일이 필요할 때 | 스킬 |
-| --- | --- |
-| 화면을 디자인하고 다듬기 | `impeccable` |
-| 더 높은 목표·전문가 수준의 접근이 필요할 때 | `be-ambitious` (선택, 프로젝트별 설치) |
-| 새로운 웹 디자인의 대안 탐색 | 프로젝트에 개별 설치된 경우 `hallmark`, `design-taste-frontend` 중 과업에 맞게 선택 |
-| 사용자가 일을 끝내는 흐름 설계 | `journey` |
-| 메뉴와 정보 구조 정리 | `organize` |
-| 화면의 뼈대와 배치 구상 | `wireframe` |
-| 키보드·화면 읽기 등 접근성 확인 | `building-accessible-interfaces` |
-| 명시적인 코드 보안 감사와 근거 보고 | `security-audit` |
-
-이 스킬들은 설치되어 있고 해당 작업과 권한에 맞을 때 선택합니다.
-`/ux-audit`은 UX 점검과 접근성, `/debug`는 버그 진단,
-`/perf`는 성능 조사 스킬을 사용하도록 안내합니다. 예를 들어
-`/ux-audit 설정 화면`처럼 쓸 수 있습니다. 명령을 쓰지 않아도 담당자가
-일반 요청에 맞는 스킬을 선택할 수 있습니다.
-
-일부 명확한 화면 요청에는 설치된 디자인 스킬을 자동으로 연결합니다.
-다만 모든 요청을 정확히 알아보거나, 모델이 필요한 스킬을 항상 선택한다고
-보장하지는 않습니다. Anthropic 17종은 `external/`에 고정 커밋으로 보관하지만, 설치본은 프로젝트별 `.opencode/skills`에 두며 전역에 자동 배포하지 않습니다.
-Impeccable·Hallmark·Taste를 항상 함께 실행하지 않습니다. Hallmark·Taste는 전역에서 제외되어 필요한 프로젝트에만 개별 설치합니다. 보안 스킬 설치도 OS 실행 격리나
-상시 보안 에이전트를 추가하지 않습니다. [현재 설치 범위](docs/installation.md#추가한-선택형-스킬)를 확인하세요.
-
-### 화면 작업을 도와주는 도구
-
-표준 시각 실행 환경은 agent-browser입니다(직접 실행·관찰·조작·캡처). 회귀·E2E는 Playwright를 씁니다. 자체 `ksi-visual-workflow` 플러그인은 2026-11-06 퇴역했습니다(비활성화 후 외부 도구 검증, 소스·테스트는 백업 보관). 디자인 판단과 구조 선택은 Build가 맡고, 결정론적 검사기는 근거로 사용하며, 기능·회귀 검증은 Playwright, 화면 조작·관찰은 agent-browser가 맡습니다.
-
-담당자는 원래 문제와 실제 사용자 의견을 함께 살펴봅니다. 증거 기록은 [증거팩](docs/evidence-pack.md) 5항(목표·화면·조건·검증·판단 근거)을 따릅니다. 캡처 한 장을 실제 빌드·품질의 자동 증명으로 삼지 않습니다.
-
-이 하네스 프로젝트에서 필요할 때만 [기능 목록](docs/workflow-evidence.md)을 조회합니다. 기능 목록 플러그인과
-`find-skills`는 전역 기본 구성에서 제외했습니다. 도구 등록은 실제 사용 성공이 아니며,
-검증은 실제 명령 결과와 동작·화면으로 확인합니다. 세션 증거 요약과 별도 판단 모델 연결은 기본 운영에서 제외했습니다.
-
----
-
-## 완료를 어떻게 판정하나
-
-| 확인 | 질문 |
-| --- | --- |
-| **기능** | 실제로 동작하나요? 기존 기능과 데이터를 지켰나요? |
-| **화면** | 사용자가 해야 할 일과 다음 행동을 찾고 사용할 수 있나요? |
-| **예외 상황** | 빈 화면·로딩·오류에서도 필요한 행동과 복구 방법이 보이나요? |
-| **사용 환경** | 대상 기기에서 읽고 조작할 수 있나요? 필요한 접근성은 확인했나요? |
-
-> [!IMPORTANT]
-> **작동 확인과 사용자 수용은 다릅니다.** 테스트 통과, 스크린샷,
-> 다른 에이전트의 “완료” 보고만으로 제품이 좋아졌다고 단정하지 않습니다.
-> 확인하지 못한 기기·상태·사용자 평가는 그대로 남깁니다.
-
----
-
-## 전역과 프로젝트의 책임
-
-| 어디에 있나요? | 무엇을 담나요? |
-| --- | --- |
-| **전역 하네스** | 일을 찾고, 맡기고, 확인하는 공통 방식 |
-| **각 프로젝트** | 제품의 목적, 사용자 업무, 기능·안전 기준 |
-| **현재 코드와 결과** | 실제 구현과 확인한 동작·화면·남은 문제 |
-
-하네스를 설치해도 다른 프로젝트의 문서가 자동으로 만들어지거나 바뀌지는 않습니다.
-기존 문서를 찾아 사용하며, 특정 파일 이름을 모든 프로젝트에 강제하지 않습니다.
-자세한 내용은 [프로젝트 지식과 상태](docs/project-knowledge.md)를 참고하세요.
-
----
-
-## 모델 운영
-
-Build의 모델은 세션에서 고릅니다. 제품 방향을 깊이 판단할 때는 Muse Spark 1.3 Contributor나 Sol High,
-방향이 정해진 반복 개발에는 DeepSeek Flash Max를 선택하는 운영을 고려할 수 있습니다.
-사용 가능한 모델과 비용·데이터 정책은 각 환경에서 확인해야 합니다.
-
-이 Mac의 권장 기본은 Build 세션에 Muse Spark 1.3 Contributor, 선택형 설계 자문의 Plan에 Go Muse Spark 1.3 Contributor xhigh,
-읽기 중심의 Explore에 Go DeepSeek V4.1 Flash High입니다. General은 부모 상속을 사용합니다. DGX Spark `qwen-flash-next` override는
-2026-11-06 서버 다운으로 제거했고, 복구 후 제한된 Native 왕복 검증을 통과할 때만 재도입합니다. 자동 제공자 전환·추가 과금 활성화는 하지 않습니다.
-공유 소스는 모델을 고정하지 않으므로, 위 권장값과 머신별 설정은 다른 컴퓨터에 복사하지 않습니다.
-
-어느 모델이 항상 더 낫다는 결론은 아직 없습니다. [모델 시험과 한계](docs/validation.md)
-
-현재 구조·변경·증거·한계를 외부 검토용으로 정리한 문서: [External review brief (2026-11-09)](docs/reviews/2026-11-09-harness-review.md)
-
-### 작업 지속과 병행 변경
-
-이미 승인된 개발은 테스트·화면 확인·발견된 결함 수정까지 진행합니다. 일부 외부 조건이 막혀도
-독립적인 작업은 계속하고, 실제로 필요한 결정만 묻습니다. 사용자의 중단·범위 변경은 즉시 반영합니다.
-목표·채택/거부한 방향·완료 조건·남은 일은 세션과 기존 정본에 연결하며 새 필수 문서 체계를 만들지 않습니다.
-
-한도·인증·접속 실패와 코드 결함을 구분합니다. 새 증거 없이 같은 실패를 반복하거나 권한을 우회하지
-않고, 부분 결과와 진행 가능한 일을 보존합니다. 실행 중인 자식을 교체하기 전에는 종료와 부분 변경을
-확인하며, 중단 뒤 늦게 도착한 결과가 작업을 다시 시작할 허가가 되지는 않습니다.
-
-병행 변경을 발견하면 겹치는 범위부터 확인합니다. 파일이 겹치는 병렬 작업은 Git worktree로 분리하고,
-Build가 메인 체크아웃에서 통합·검증합니다. 미커밋 변경이 자동 상속되거나 DB·화면까지 격리된다고 가정하지 않습니다.
-[분리 작업 안내](docs/isolated-work.md) · [실제 과업 평가 기준](docs/harness-evaluation.md)
-
----
-
-## 작업 상태·기억 (프로젝트별 Beads)
-
-작업 상태·의존성·진행 이력은 해당 프로젝트의 Beads(`bd`)가 정본입니다. 다단계·장기 작업의 기본 추적기로 사용하고, 단순 수정은 이슈를 만들지 않습니다. `bd create/claim/close`로 추적하고, 비드에는 목표·수용 기준·핵심 참조를 반드시 적습니다.
-설계 결정의 정본은 Git/프로젝트 문서, 실행 증거는 [증거팩](docs/evidence-pack.md) 5항을 따릅니다.
-중요한 결정·재사용 지식만 `bd remember`로 남기고, 모든 실행 기록을 자동 저장하지 않습니다. 기억보다 현재 사용자 요청과 프로젝트의 실제 상태가 우선합니다.
-
-### 컨텍스트 최적화 (선택형 Sleev)
-
-Sleev는 긴 세션의 컨텍스트를 최적화하는 로컬 게이트웨이입니다. 작업 상태·설계 정본을 대신하지 않습니다. 이 Mac에서는 `opencode-go` 경로를 Sleev에 연결해 사용 중이며, 다른 환경은 기본 비활성입니다. 평가·복구 절차는 [개발 문서](docs/development.md#컨텍스트-최적화-선택형-sleev)를 따릅니다.
-
----
-
-## 설치
-
-이 저장소를 내려받는 것만으로 전역 설정이 바뀌지는 않습니다.
-OpenCode V2에서 사용하려면 기존 설정을 확인한 뒤 필요한 항목을 적용합니다.
-
-1. 기존 OpenCode 설정을 백업하고, 같은 이름의 사용자 설정이 있는지 확인합니다.
-2. `global/`의 필요한 하네스 항목을 전역 설정에 **수동으로 합칩니다.**
-3. 증거팩 5항과 필요한 선택형 도구를 각각의 설치기로 적용합니다.
-4. 설치 파일이 맞는지와 실행 중에 도구가 보이는지를 따로 확인합니다.
-
-> [!CAUTION]
-> `opencode.jsonc`를 통째로 덮어쓰면 개인 설정이나 연결 정보가 사라질 수 있습니다.
-> 정확한 백업·병합·확인·되돌리기 방법은 **[설치 안내](docs/installation.md)**를 따르세요.
-
-<details>
-<summary>어떤 파일이 들어 있나요?</summary>
-
-| 위치 | 내용 |
-| --- | --- |
-| `global/AGENTS.md` | 공통으로 따를 작업 원칙 |
-| `global/opencode.jsonc` | 역할·모델·권한과 선택 연결 설정 |
-| `global/agents/` | 현재 운영 역할 파일 없음. 4프로파일(Build/Plan/General/Explore)은 `global/opencode.jsonc`에 정의 |
-| `global/commands/` | 선택해서 쓸 수 있는 명령 |
-| `global/plugins/` | 시각 작업과 선택형 기능 목록 |
-| `experiments/` | 자동 로딩·기본 설치에서 제외한 실험 코드 |
-| `scripts/` · `docs/` · `tests/` | 설치·사용 안내와 검증 자료 |
-
-`global/`은 저장소의 원본이고, `~/.config/opencode/`는 전역 설치 위치입니다.
-외부 스킬 원본은 `external/`에 고정 보관하고, 필요한 스킬만 프로젝트의 `.opencode/skills`에 설치합니다.
-
-</details>
-
-### 배포와 로컬 자료
-
-공유할 때는 하네스 소스·설치기·문서·합성 테스트 자료를 골라 포함합니다.
-개인 설정, 토큰, 로컬 모델과 이 저장소의 루트 `AGENTS.md`·`.harness-journal/`은
-로컬 자료이며 공유 대상이 아닙니다.
-작업 폴더에 다른 변경이 섞여 있을 수 있으므로 `git add -A`로 한꺼번에 묶지 말고
-파일별로 확인하세요. `.gitignore`는 암호화나 비밀 탐지 기능이 아닙니다.
-
----
-
-## 지켜지는 경계
-
-| 지킬 것 | 의미 |
-| --- | --- |
-| **승인된 범위** | 운영 환경·공유 서비스·자격증명은 허가 없이 변경하지 않습니다. |
-| **기존 작업** | 다른 세션의 변경과 프로젝트 데이터는 보존합니다. |
-| **분석 전용** | 살펴봐 달라는 요청을 구현 허가로 해석하지 않습니다. |
-| **민감한 자료** | 토큰·개인정보를 저장소나 시각 자료에 넣지 않습니다. |
-| **외부 연결과 비용** | 모델·외부 도구·유료 서비스는 해당 환경의 권한과 비용을 확인합니다. |
-
-엄격하게 파일 변경을 막아야 한다면 말로 요청하는 것에 더해 OpenCode 세션에서
-편집·셸 등 필요한 권한을 제한해야 합니다. 자식 에이전트의 권한과 자료 접근도 따로 확인합니다.
-
----
-
-## 검증
-
-**2026-11-02 운영 정리:** 직접 완수·필요한 위임·실제 검증을 중심에 두고,
-KSI Lead Goal 연결·세션 증거 요약은 기본 운영에서 제외했습니다. Jev Decisions API는 서버 직접 호출로 채택됐으며 권고 전용으로 쓰고 자동 실행·권한 승인은 하지 않습니다.
-최신 시험 결과와 설치·활성 범위는 [검증 문서](docs/validation.md) 한 곳에서 관리합니다.
-
-> [!WARNING]
-> 이 검사는 도구 연결과 경계를 확인하는 자료입니다. 실제 제품의 디자인 품질,
-> 사용자 만족이나 어느 모델이 더 나은지를 증명하지 않습니다.
-
-검사 결과·실패·명령과 아직 확인하지 못한 범위는 [검증과 한계](docs/validation.md)에 정리했습니다.
-
-개발 중에는 한 명령으로 범위를 나눠 확인할 수 있습니다.
+### 1. Clone and back up your configuration
 
 ```sh
-node scripts/verify-harness.mjs            # 오프라인 회귀
-node scripts/verify-harness.mjs --status   # 소스/설치본 역할·모델 표
-node scripts/verify-harness.mjs --all      # 오프라인 + 격리 Native + 설치본
+git clone https://github.com/khakisketch/KSI-Opencode-Harness.git
+cd KSI-Opencode-Harness
+
+mkdir -p "$HOME/.local/share/ksi-harness-backup"
+cp "$HOME/.config/opencode/AGENTS.md" "$HOME/.local/share/ksi-harness-backup/AGENTS.md" 2>/dev/null || true
+cp "$HOME/.config/opencode/opencode.json" "$HOME/.local/share/ksi-harness-backup/opencode.json" 2>/dev/null || true
+cp "$HOME/.config/opencode/opencode.jsonc" "$HOME/.local/share/ksi-harness-backup/opencode.jsonc" 2>/dev/null || true
 ```
 
-`--live`는 실제 모델 호출이므로 기본 실행에 포함하지 않습니다. 자세한 범위와 알려진 제약은
-[개발·검증 루프](docs/development.md)를 따릅니다.
+### 2. Merge the operating instructions
 
----
+Review [`global/AGENTS.md`](global/AGENTS.md) and merge its principles into `~/.config/opencode/AGENTS.md`. Keep your own project rules. The file is a short operating contract, not a replacement for your existing instructions.
 
-## 문서 안내
+### 3. Merge the role and permission configuration
 
-| 더 알고 싶다면 | 문서 |
+Merge the parts of [`global/opencode.jsonc`](global/opencode.jsonc) you need into `~/.config/opencode/opencode.json(c)`:
+
+- the `build`, `plan`, `general`, and `explore` agent definitions,
+- `experimental.subagent_depth: 2`,
+- the optional MCP entries you actually use.
+
+Keep your providers, models, credentials, and permission settings. **Do not replace the whole file.** The portable source intentionally pins no models; the configuration is model-agnostic.
+
+> The repository provides no automated installer for the global configuration. This is deliberate: `opencode.json(c)` often contains personal providers, local models, MCP credentials, and permissions that a script should not overwrite.
+
+### 4. Optionally install project-local skills
+
+```sh
+node scripts/install-external-skills.mjs --list
+node scripts/install-external-skills.mjs --project /absolute/path/to/your-project --set all
+```
+
+This installs the vendored Anthropic engineering and design skills into that project's `.opencode/skills`. Nothing is installed globally.
+
+### 5. Verify the setup
+
+```sh
+node scripts/verify-harness.mjs --offline   # source, installer, and packaging checks
+node scripts/verify-harness.mjs --all       # offline + isolated Native + installed checks
+```
+
+`--all` needs the `opencode` binary and an installed configuration. `--live` runs real model calls and is never implicit.
+
+### 6. Revert
+
+Restore the files from `~/.local/share/ksi-harness-backup/` and remove any merged keys. Nothing else is written outside the project directories you chose.
+
+## Typical usage
+
+Describe the goal and the constraints; role names and commands are not required.
+
+**Feature work**
+
+```text
+Implement two-epoch comparison for the site dashboard. Preserve existing
+project data and permissions. Verify the actual flow, empty, loading,
+and error states, then fix what the checks reveal.
+```
+
+**UI work**
+
+```text
+Rework this screen for field staff so the next action is obvious.
+Keep existing functionality. Check desktop and mobile, and correct the
+issues you find in the rendered result.
+```
+
+**Analysis only**
+
+```text
+Review the current screen and propose improvements. Do not modify files.
+```
+
+Build chooses whether to consult Plan, delegate to General or Explore, or do the work directly. A critique alone is not completion when the request is to implement: Build implements, re-renders, and corrects.
+
+## Tooling and integrations
+
+| Layer | What it provides | Required? |
+| --- | --- | --- |
+| **OpenCode Native** | Agents, permissions, skills, MCP, sessions | Yes — the harness runs on OpenCode |
+| **Git and worktrees** | Isolation for parallel file-touching work | Optional |
+| **agent-browser / Playwright** | Runtime UI interaction, regression, and E2E checks | Optional |
+| **Beads (`bd`)** | Durable task state, dependencies, and resume for multi-step work | Optional |
+| **Sleev** | Local context gateway between OpenCode and a provider | Optional |
+| **MCP servers** | Context7 for library docs, Mobbin for design references | Optional |
+| **Vendored skills** | 17 Anthropic engineering and design skills, installed per project | Optional |
+
+None of these is a workflow engine, and none is a gate. A tool being configured does not prove it works: verification uses actual command output, runtime behavior, and rendered results.
+
+## Verification and limitations
+
+The repository ships with an explicit verification entry point:
+
+```sh
+node scripts/verify-harness.mjs --offline   # CI-safe; no model calls
+node scripts/verify-harness.mjs --native    # isolated Native delegation and permissions
+node scripts/verify-harness.mjs --installed # installed files and roles vs. portable source
+node scripts/verify-harness.mjs --all       # all of the above
+```
+
+Recorded results and their dates live in [`docs/validation.md`](docs/validation.md). The checks prove role configuration, delegation mechanics, permission effects, source/installed parity, and installer behavior.
+
+They do **not** prove real-model planning or design quality, product acceptance, long-running recovery in every environment, or superiority over other harnesses. Those require actual product tasks and observed outcomes, and the harness documents that boundary instead of claiming more.
+
+Model routing and model pins are machine-local. The portable source in `global/` does not pin any model. Real-model probes may cost money and are opt-in.
+
+## Documentation
+
+| Start here | Contents |
 | --- | --- |
-| 안전하게 설치하고 되돌리기 | [설치 안내](docs/installation.md) |
-| 하네스를 바꾸고 한 명령으로 검증하기 | [개발·검증 루프](docs/development.md) |
-| 화면 자료와 이미지를 연결하는 방법 | [증거팩](docs/evidence-pack.md) |
-| 프로젝트 문서와 상태를 관리하는 방법 | [프로젝트 지식과 상태](docs/project-knowledge.md) |
-| 검사 결과와 남은 한계 | [검증과 한계](docs/validation.md) |
-| 이전 작업 상태·의존성 연결 | [Beads 작업 상태](#작업-상태-추적-프로젝트별-beads-opt-in) |
-| 기능 목록·오프라인 진단 | [진단 안내](docs/workflow-evidence.md) |
+| [문서 안내 (Korean index)](docs/README.md) | Full documentation map and historical archive |
+| [Installation](docs/installation.md) | Backup, manual merge, verification, and rollback |
+| [Development loop](docs/development.md) | Delegation, verification modes, models, and environment constraints |
+| [Planning contract](docs/planning.md) | Plan evidence pack and output requirements |
+| [Design work](docs/design-work.md) | UI delivery: direction, implementation, rendered verification, correction |
+| [Verification](docs/validation.md) | Current evidence and known limitations |
+| [Architecture decisions](docs/architecture/decisions.md) | Durable decisions behind the harness |
+| [External reviews](docs/reviews/) | Review briefs and responses, including what changed and why |
+| [Harness evaluation](docs/harness-evaluation.md) | Preservation-aware comparison of harness changes |
 
-전체 문서와 과거 기록은 [문서 안내](docs/README.md)에서 볼 수 있습니다.
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-[MIT](LICENSE) — Copyright (c) 2026 KSI
+## License
+
+[MIT](LICENSE) — Copyright (c) 2026 KSI.
+
+The vendored Anthropic Knowledge Work skills under [`external/anthropic-knowledge-work-plugins/`](external/anthropic-knowledge-work-plugins/) are licensed under Apache-2.0; see their [LICENSE](external/anthropic-knowledge-work-plugins/LICENSE) and [SOURCE.md](external/anthropic-knowledge-work-plugins/SOURCE.md). Optional tools, MCP services, model providers, and project-local skills keep their own licenses and terms. The MIT license of this repository does not relicense third-party assets.
