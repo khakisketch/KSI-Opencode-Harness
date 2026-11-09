@@ -8,6 +8,8 @@
 
 This brief is intentionally self-contained so an external reviewer can evaluate the design without reading the surrounding Korean documentation first.
 
+> **Post-review cleanup (2026-11-09):** the unused `/oc` PR-review workflow and Serena MCP were removed after this review because they added CI-secret, process and tool surface without demonstrated use. The state below is preserved for traceability.
+
 ## 1. What the harness is
 
 A portable, Native-first OpenCode harness for product development. It deliberately has **four roles, delegation depth 2 with a single Plan→Explore edge, no workflow engine, and no mandatory review gates**. Build is the sole development owner; Plan, General and Explore support it. Beads owns durable task state; Sleev is an optional context gateway; project canon owns product truth.
