@@ -17,7 +17,7 @@
 | [검증](validation.md) | 현재 검증 범위와 한계를 볼 때 | 최신 시험·설치·활성 결과와 미입증 사항 |
 | [개발·검증 루프](development.md) | 하네스를 바꾸고 확인할 때 | 한 명령 검증, 모드별 범위, 모델·환경 제약, UI 작업 흐름·스킬 정책 |
 | [디자인 작업](design-work.md) | UI 과업을 구현·검증까지 완료할 때 | 방향·구현·렌더 검증·수정·인계, be-ambitious 선택 사용 |
-| [아키텍처 결정](architecture/decisions.md) | 모델이 바뀌어도 유지되는 결정을 볼 때 | 역할·위임·검증·도구의 standing 결정 24항 |
+| [아키텍처 결정](architecture/decisions.md) | 모델이 바뀌어도 유지되는 결정을 볼 때 | 역할·위임·검증·도구의 standing 결정 25항 |
 | [ai-memory](ai-memory.md) | 퇴역 기록을 확인할 때 | 2026-11-07 제거, Beads·정본·증거팩으로 대체 |
 | [증거팩](evidence-pack.md) | UI 작업의 실행·검증 증거를 남길 때 | 목표·화면·조건·검증·판단 근거 5항, agent-browser 표준 |
 | [내장 목표](native-goal.md) | 장기 반복을 선택할 때 | Native 기능만 사용, KSI Lead 연결 없음 |

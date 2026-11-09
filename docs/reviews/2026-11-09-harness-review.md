@@ -3,7 +3,7 @@
 - Date: 2026-11-09 (revised after cleanup)
 - Repository: <https://github.com/khakisketch/KSI-Opencode-Harness>
 - Raw review URL after merge: <https://raw.githubusercontent.com/khakisketch/KSI-Opencode-Harness/main/docs/reviews/2026-11-09-harness-review.md>
-- Review target: `main` at the merge commit of this brief (parent `a208cc8`, PR #15 merged), including the depth-2 single-edge, evidence-grounded Plan, design-delivery and post-cleanup state
+- Review target: `main` at the merge commit of this brief (parent `b6a8926`), including the depth-2 single-edge, evidence-grounded Plan, design-delivery, post-cleanup and preservation-aware evaluation state
 - Scope: the portable harness, its installed configuration, and the evidence behind the current claims. Machine-local model pins and the Site Intelligence product repository are called out separately.
 
 This brief is intentionally self-contained so an external reviewer can evaluate the design without reading the surrounding Korean documentation first.
@@ -131,12 +131,13 @@ Latest local result (2026-11-09, after cleanup):
 - Real root Plan probe: read the repository, cited files/lines, separated verified facts from assumptions and missing evidence, and found a missing installed-vs-source parity check. `tests/plan-parity.test.mjs` now covers description, mode, depth and subagent policy; machine-local model pins and non-subagent tool denies are allowed.
 - Design delivery contract added (`docs/design-work.md`).
 - `be-ambitious` is installed project-locally in the harness and product repository; both copies match the pinned hash.
+- Preservation-aware evaluation was added to `docs/harness-evaluation.md` and decision #25: a harness change must report new successes, preserved tasks, regressions, blockers and cost, not only an average improvement. No automatic harness optimizer is introduced.
 - Cleanup verified: `opencode mcp list` shows Context7, CUA, Mobbin and OpenCode Console connected; no Serena process or tray manager remains; `bd ready --json` is empty; the optional Jev task is deferred.
 - GitHub CI: the offline check passed on PR #15 and on this review-brief PR.
 
 What this proves: instruction structure, role configuration, delegation mechanics including the single depth-2 Plan→Explore edge, installed/source parity and permission effects. It also records one observed evidence-grounded Plan session, not a general planning-quality benchmark.
 
-What it does **not** prove: general real-model design or planning quality, product acceptance, controlled comparison against Codex/Claude Code, or Sleev's optimization benefit.
+What it does **not** prove: general real-model design or planning quality, product acceptance, controlled comparison against Codex/Claude Code, Sleev's optimization benefit, or preservation of previously passing tasks. The last item now has an evaluation procedure but no fixed harness-wide baseline yet.
 
 ## 7. Machine-local state versus portable source
 
@@ -187,6 +188,7 @@ The product repository also contains concurrent, unrelated work on a previous-re
 8. **No controlled comparison against other harnesses.** The current evidence supports mechanism and instruction quality, not a claim of superior product outcomes versus Codex or Claude Code.
 9. **be-ambitious is unbenchmarked.** It is installed and available on demand, but no controlled product task has compared it with the same task without it.
 10. **Serena removal leaves no semantic symbol MCP.** Normal work uses `read`, `grep`, Explore and project tooling. Serena can be re-enabled project-locally if symbol/reference work justifies the process and tool surface.
+11. **No fixed preservation V-suite baseline.** The 7/7 checks and the six-task UI pilot are not a harness-wide capability baseline. `docs/harness-evaluation.md` defines preservation-aware evaluation, but the fixed suite and before/after runs still need to be built.
 
 ## 10. Questions for the external reviewer
 
@@ -200,6 +202,7 @@ The product repository also contains concurrent, unrelated work on a previous-re
 8. Is there any reason to reintroduce Design or Observer that the current evidence does not support?
 9. Is the CUA/Mobbin MCP surface justified, or is one of them the next removal candidate?
 10. What, if anything, would you cut from the 14 global bullets without losing a safety or ownership contract?
+11. Is the preservation-aware V-suite practical without becoming the separate automatic harness-optimization system the constraints reject?
 
 ## 11. Key files
 
@@ -213,7 +216,8 @@ The product repository also contains concurrent, unrelated work on a previous-re
 - `docs/validation.md` — historical evidence and current limitations
 - `docs/planning.md` — Plan evidence pack and output contract
 - `docs/design-work.md` — UI delivery contract and optional be-ambitious use
-- `docs/architecture/decisions.md` — 24 durable decisions
+- `docs/harness-evaluation.md` — preservation-aware evaluation procedure
+- `docs/architecture/decisions.md` — 25 durable decisions
 - `scripts/verify-harness.mjs` — offline/native/installed verification
 - `tests/agent-routing-native.mjs` — role, delegation and Plan skill probes
 - `tests/plan-parity.test.mjs` — installed/source Plan parity
