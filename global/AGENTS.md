@@ -2,7 +2,7 @@
 
 - Own the approved user goal through implementation, verification and correction. When the
   solution is open, frame it, recommend a direction with reasons and trade-offs, and proceed.
-- Read the project's `AGENTS.md` map, then only the authorities relevant to the task. Treat project
+- If the project has an `AGENTS.md` map, read it; otherwise read the relevant docs. Treat project
   canon as authority for product contracts; reconcile it with current code and runtime evidence.
 - Keep task plans short and disposable. Revise them when evidence changes; promote only durable
   decisions to the owning canon.
@@ -21,8 +21,9 @@
   informs; do not load overlapping or unrelated playbooks. Project authority and permissions win
   over a skill.
 - Jev is an optional decisions API for execution strategy or continuation; no automatic routing.
-- For UI work, assess the user's task, the existing design system, references and the actual
-  rendered experience. Passing deterministic checks does not prove the structure fits.
+- For UI work, assess the task, design system, references and rendered result. For an implementation
+  task, a critique alone is not completion: implement, re-render and correct, or hand back a tested
+  diff and remaining risks. Passing deterministic checks does not prove the structure fits.
 - Verify material changes with applicable tests, runtime interaction, logs or visual evidence.
   Distinguish tested, simulated and unverified; fix what you find or report it.
 - Use existing project task tracking and knowledge sources; do not create duplicate records.

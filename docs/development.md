@@ -64,7 +64,7 @@ node scripts/verify-harness.mjs --all      # 위 세 가지 + 상태 표
 
 - 시작: `bd create`로 목표·수용 기준·핵심 참조를 적습니다. 제목만 금지.
 - 인수: `bd update <id> --claim`으로 선점하고, `bd ready`로 의존성 순서대로 가져옵니다. 세션 재개 시 bead부터 읽습니다.
-- 종료: `bd close --reason`으로 결과·근거를 남깁니다. 중요한 결정·재사용 지식만 `bd remember`로 남기고, 전 실행 기록을 자동 저장하지 않습니다.
+- 종료: `bd close --reason`으로 결과·근거를 남깁니다. 승인된 설계 결정은 프로젝트 정본에 기록하고, Beads에는 그 결정의 링크와 후속 작업만 남깁니다. `bd remember`를 제품 정본 대체로 쓰지 않으며, 전 실행 기록을 자동 저장하지 않습니다.
 - hard rule: Beads는 저장·전달 수단이며 계획 권한은 Build/Plan에 있습니다. 위임 판단·아키텍처 결정을 Beads에 맡기지 않습니다.
 
 ### 컨텍스트 최적화 (선택형 Sleev)

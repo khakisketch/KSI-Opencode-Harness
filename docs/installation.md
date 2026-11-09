@@ -109,7 +109,9 @@ node scripts/install-external-skills.mjs --project /abs/path/to/project --set al
 
 Impeccable은 누적 필수 절차가 아니라 담당자가 과업에 맞게 고르는 대안입니다. 사용자가 정한 브랜드·기능·권한이 우선이며, Impeccable을 무조건 호출하지 않습니다. 새 디자인용 자동 훅·별도 보안 에이전트는 추가하지 않았습니다. Hallmark의 렌더 검사 의존성으로 `puppeteer-core@25.16.0`만 전역 설치했고 npm lifecycle script와 브라우저 다운로드는 실행하지 않았습니다. 기존 Chrome과 별도의 임시 프로필을 사용합니다. `hallmark`·`design-taste-frontend`는 2026-11-06에 전역에서 제외되어 위 표의 해당 행은 당시 설치 기록입니다. 필요한 프로젝트에만 개별 설치합니다.
 
-Impeccable은 같은 버전이 두 경로에 **호스트별 변형**으로 설치되어 있습니다. `~/.agents/skills/impeccable`은 범용·타 에이전트용(`$impeccable`, `agents/` 포함), `~/.config/opencode/skills/impeccable`은 OpenCode용(`/impeccable`, `.opencode` 경로, allowed-tools)입니다. 활성화 텍스트로 OpenCode가 후자를 로드하는 것을 확인했습니다. 두 복사본은 함께 갱신해야 합니다.
+Impeccable은 `~/.config/opencode/skills/impeccable` 단일 사본을 사용합니다. 과거 `~/.agents/skills/impeccable` 중복 사본은 2026-11-08 백업 후 제거했습니다. 새 프로젝트에는 필요할 때 `.opencode/skills`에 설치하며, 전역에 17종을 자동 배포하지 않습니다.
+
+`be-ambitious`는 MIT 라이선스의 선택형 스킬입니다. 현재 이 Mac의 하네스 프로젝트에는 `.opencode/skills/be-ambitious/SKILL.md`에 설치되어 있고, 고정 커밋은 `dc116a3ebd8cf772e4d0930626f67369bd60399d`, SHA-256은 `b180b90b55f1bb3b6100a9558929480197e3c1c68b59de7d96b00f7ca2ec3c5b`입니다. 다른 프로젝트에는 같은 파일을 해당 프로젝트의 `.opencode/skills`에 복사하며, 전역에 배포하거나 모든 작업에서 강제하지 않습니다. Build/Plan이 필요할 때만 사용하고, Plan은 방향·프롬프트 구체화까지만 사용합니다.
 
 Cloudflare는 일상 보안 질문의 guidance와 명시적 전체 감사를 구분합니다. 전체 감사는 하위 에이전트·보고서 비용이 있고 대상 코드를 실행하려면 네트워크·환경·쓰기·자원을 제한한 **OS 수준 격리**가 필요합니다. worktree나 이 스킬 설치는 그 격리를 제공하지 않습니다. 격리가 없으면 실행 검증을 보류하고 미확인 사실을 남깁니다.
 
