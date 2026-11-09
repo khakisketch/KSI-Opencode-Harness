@@ -68,12 +68,12 @@
 - 실 Plan 프로브(2026-11-09): root Plan 세션에 “installed Plan description/permission parity check” 계획을 요청했다. Plan은 `global/opencode.jsonc`, 설치본, `scripts/verify-harness.mjs`, 관련 테스트를 실제로 읽고 파일·라인을 인용했으며, 확인 사실·가정·누락 증거를 분리했다. source에는 없고 설치본에만 있는 `cua-driver_*` deny를 발견하고, 설명·권한 parity 테스트가 없다는 공백을 지적했다. 한 번의 관찰이며 일반 계획 품질 벤치마크는 아니다.
 - 후속: `tests/plan-parity.test.mjs`를 추가했다. source/installed의 Plan description·mode·subagent_depth·subagent policy를 비교하고, machine-local model pin과 non-subagent tool deny는 허용한다. 설치본이 없으면 CI에서 skip한다. Plan의 제안을 Build가 검증·채택한 사례다.
 
-### 디자인 완료 계약과 문서 정리 (2026-11-09)
+### 디자인 완료 계약과 불필요 통합 정리 (2026-11-09)
 
 - `global/AGENTS.md`의 UI 원칙을 “비평만으로 완료 아님; 구현·재렌더·수정 또는 tested diff/위험 인계”로 바꿨다. Design 에이전트나 필수 승인 게이트는 추가하지 않았다.
 - `docs/design-work.md`에 제품 이해 → 방향 → 구현 → 실제 렌더 검증 → 수정 → Build 인계의 완료 기준과 General 작업 브리프를 추가했다. be-ambitious는 선택형 project-local 스킬로만 쓰고, Plan은 방향·프롬프트 구체화까지만 사용한다.
 - `be-ambitious`를 하네스 프로젝트의 `.opencode/skills/be-ambitious/SKILL.md`에 설치했다. 고정 커밋 `dc116a3`, SHA-256 `b180b9…`, MIT. 실제 제품 과업의 A/B는 아직 하지 않았다.
-- `/oc` PR 리뷰 워크플로에 `author_association` 제한을 추가해 owner/member/collaborator만 실행할 수 있게 했다.
+- AI PR 리뷰 워크플로와 Serena MCP는 사용 실적이 없고 비밀·프로세스·도구 표면만 늘려 제거했다. Serena 프로세스는 종료했고, 필요할 때 프로젝트/로컬에서 다시 켠다.
 - 문서 불일치를 정리했다: 결정 수 17→24, Impeccable 단일 사본, `external/` 보관과 프로젝트별 설치의 구분, `AGENTS.md`가 없는 프로젝트의 탐색 표현, Beads와 제품 정본의 경계.
 - 검증: `--all` 7/7. 실제 제품의 디자인 변경·be-ambitious A/B는 아직 실행하지 않았다.
 
